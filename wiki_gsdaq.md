@@ -122,8 +122,51 @@
 
 ---
 
+## Trigger & Digitizer Setup Procedure (from wiki)
+
+**Key principle:** Initialize top-down (Master → Router → Digitizer to lock timestamps), then configure bottom-up (Digitizer → Router → Master) to get triggers working.
+
+### Step-by-step (DGS)
+
+1. **Digitizers → transmit real discriminator data to Routers**
+   - Should happen by default; watch for accidentally disabled SERDES or SYNC-pattern-instead-of-data bit
+   - Set discriminator bit assertion time per channel (e.g. 100 ns) — use a script
+
+2. **Verify Routers lock onto all digitizer data**
+   - Use Router counters to confirm no channel dropping in/out of lock
+   - Ignore X-plane/Y-plane map registers (DFMA only)
+
+3. **Load `CLEAN_DIRTY_CONTROL` register on each Router (addr `0x8CC`)**
+   - Bits 7:4 = Y sum source; bits 3:0 = X sum source
+   - Values: `0001` = clean sum, `0010` = dirty sum, `0100` = module sum
+
+4. **Load `TSCATTER_DELAY` register on each Router (addr `0x08C8`)**
+   - Time window after Ge hit during which BGO hit marks event as dirty (Scattering Time)
+   - Typical value: **30 counts = 600 ns** (1 count = 20 ns)
+
+5. **Verify Router data using FIFOs**
+   - Channel FIFOs: check digitizer bits 9:0
+   - Monitor FIFO 4: check X sum data being sent to Master
+
+6. **Repeat for every Router**
+
+7. **Set up Master Trigger**
+   - Verify Master receives data from all Routers via channel FIFOs
+   - Common error: forgetting to clear the SYNC bit in `LINK_LRU_CTRL` of the Router
+   - Set multiplicity thresholds for X and Y sums
+   - Enable trigger algorithms via Trigger Mask register (`SumX`, `SumY`, etc.)
+   - SumX + SumY enabled simultaneously = OR trigger
+   - If both fire at same timestamp, two triggers issued but likely select same event
+
+### DFMA differences
+- Step 3: must load X-plane and Y-plane mapping registers (not used in DGS)
+- Step 3: load `CLEAN_DIRTY_CONTROL` = 0
+- Step 4 (TSCATTER_DELAY): skip for DFMA
+
+---
+
 ## Pages Not Yet Browsed (worth checking)
-- `/gsdaq/Triggers_and_digitizers` — trigger/digitizer setup guide
+- `/gsdaq/Triggers_and_digitizers` — trigger/digitizer setup guide ✅ visited 2026-04-05
 - `/gsdaq/Data_formats` — data format details
 - `/gsdaq/Firmware_documentation` — firmware docs list
 - `/gsdaq/Typical_DGS_run_procedures` — run procedure reference
