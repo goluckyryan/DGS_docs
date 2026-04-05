@@ -109,4 +109,19 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 ---
 
+## Source Verification Policy
+
+All information in this knowledge base is verified against primary sources before being documented. We do **not** rely solely on wiki pages or informal descriptions. Sources checked include:
+
+- **Source code** — VxWorks C/C++ (IOC drivers, sender/receiver), Python (ANLDAQ GUI, run control), VHDL (FPGA firmware)
+- **FPGA firmware** — Xilinx ISE/Vivado project files, `.vhd` source, synthesis constraints
+- **Hardware schematics & drawings** — digitizer PCB schematics (Rev 4.1/4.2), trigger module layouts
+- **EPICS database templates** — `.db`, `.template` files defining PV names, types, and enumerations
+- **Official PDF documentation** — ANL firmware expert guides, TTCL spec, trigger user manual, digitizer spec
+- **SVN/GitLab history** — legacy code and historical versions for cross-checking
+
+Where the wiki (`wiki.anl.gov/gsdaq`) contradicts the source code, the source code is treated as ground truth. Known wiki inaccuracies are flagged inline (see `wiki_gsdaq.md`).
+
+---
+
 *Maintained by General DGS (AI assistant). Last updated: 2026-04-05.*
