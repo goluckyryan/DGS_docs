@@ -140,6 +140,7 @@ Run subfolders: `exp2008_019`, `exp2008_020`, ... (runs 1–28 completed as of s
 |------|--------|
 | 2026-04-05 | Deleted runs 017–027 from `/mnt/data0` (local NVMe) — all confirmed synced to NFS vol5. Runs 001, 005, 028 kept on local. data0 freed from 85% → 16% used (1.5T free). |
 | 2026-04-05 | Runs 028–034 deleted from data0 after rsync --size-only verified 0 file differences vs NFS. Kept 001, 005, 035. Next run: 036. data0 at 21% (1.4T free). |
+| 2026-04-05 | Runs 035–041 + 043 deleted from data0. MD5 spot-checked 4 random files across runs (all matched NFS). Kept 001, 005, 042. data0: 29% used, 1.3T free. |
 
 ## Monitoring
 
