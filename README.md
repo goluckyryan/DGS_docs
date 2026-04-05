@@ -90,6 +90,12 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [preamp_reset_readme.md](preamp_reset_readme.md) | Preamplifier reset handling |
 | [sbx.md](sbx.md) | Slope Box Extension (SBX): signal conversion, BGO pattern, pickoff card, GS_ID dongle, HV map |
 
+### Utilities & Operations
+
+| File | Description |
+|------|-------------|
+| [utility_scripts.md](utility_scripts.md) | BGO HV tuning script, PV discovery scripts, data0 space monitor |
+
 ### Legacy & Reference
 
 | File | Description |
