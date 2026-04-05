@@ -87,9 +87,64 @@ Additional analysis applications (contents not fully explored).
 
 ---
 
-## working/ — Experiment-Specific Files
+## working/ — Experiment-Specific Scripts & Calibration
 
-Holds calibration files, run-specific configs, etc. Not experiment-independent — changes per run/experiment.
+Holds experiment-specific scripts and calibration files. All paths driven by `expInfo.sh` from `~/ANLDAQ/tcpReceiver/expInfo.sh`.
+
+*Updated 2026-04-05 from git pull (commits up to 5126a11)*
+
+### RunParquet
+
+Runs the full parquet_pysort pipeline for a single run:
+```
+make_filemap_dgs.py → decode.py → event_builder.py
+```
+- Stage 1 skipped if filemap exists and is newer than raw files
+- Also called automatically by `stop_run.sh` after each run
+
+```bash
+./working/RunParquet [--decode-only] <expInfo.sh> <run_number> [TIMEWIN] [THREADS]
+```
+
+| Arg | Default | Description |
+|-----|---------|-------------|
+| `--decode-only` | off | Stages 1+2 only, skip event builder (for pole-zero prep) |
+| `TIMEWIN` | 1000 | Coincidence window in ticks |
+| `THREADS` | 78 | Threads for decode + event builder |
+
+**Output:**
+- `$expFolder/Parquet/decode/$expName_NNN_dgs.parquet` — timestamp-sorted hits
+- `$expFolder/Parquet/events/$expName_NNN_events.parquet` — coincidence events
+
+**Parquet schema:**
+
+| File | Key Columns |
+|------|-------------|
+| `_dgs.parquet` | `tid`, `timestamp`, `sum1`, `sum2`, `e_raw`, `e_cal`, `e_dc`, `CSflag` |
+| `_events.parquet` | `event_id`, `gs_mult`, `gs_hitid`, `gs_ts`, `gs_cryid`, `gs_eraw`, `gs_ecal`, `gs_edc`, `gs_flag` |
+
+### parquetCLI
+
+Interactive REPL for exploring any `_dgs.parquet` or `_events.parquet` file. Columns discovered dynamically at load time.
+
+```bash
+./working/parquetCLI <file.parquet>
+```
+
+### gain_from_parquet.py
+
+Extracts gain calibration from decoded parquet data.
+
+### pz_from_parquet.py
+
+Extracts pole-zero calibration from decoded parquet data. Use with `--decode-only` RunParquet:
+```bash
+python working/pz_from_parquet.py $expFolder/Parquet/decode/exp2008_003_dgs.parquet --output working/dgs_pz.cal
+```
+
+### ProcessRUN
+
+Higher-level run processing wrapper.
 
 ---
 
