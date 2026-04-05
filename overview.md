@@ -40,19 +40,21 @@ DGS is a full software+firmware+hardware stack:
 │  Virtex-4 XC4VLX80        │    │  VxWorks 5.5 RTOS             │
 │  Aggregates 8 DIGs        │    │  gretDet.munch (vxworks/)     │
 │  Computes X/Y multiplicity│    │  DMA readout of DIG FIFOs     │
-└───────────┬───────────────┘    │  EPICS IOC (ioc/)             │
-            │ SERDES (Link L)    │  Boot: vme66.cmd / vme99.cmd  │
-            ▼                    └───────────────┬───────────────┘
-┌───────────────────────────┐                    │ EPICS CA + TCP data
-│  MTRG — Master Trigger    │                    ▼
-│  (fpga/)                  │    ┌───────────────────────────────┐
-│  Virtex-4 / KU060         │    │  ANLDAQ (anldaq/)             │
-│  Runs trigger algorithms  │    │  commander.py — PyQt6 GUI     │
-│  TDC ~1 ns resolution     │    │  DIG/RTR/MTRG board control   │
-│  2 µs cycle (20 frames)   │    │  Run control + live monitor   │
-└───────────┬───────────────┘    │  tcpReceiverMT — binary files │
-            │ trigger decision   └───────────────┬───────────────┘
-            └──────────────────────────────────┘ │
+└───────────┬───────────┬───┘    │  EPICS IOC (ioc/)             │
+            │ SERDES    │ trigger │  Boot: vme66.cmd / vme99.cmd  │
+            │ (Link L)  │ cmd ▲  └───────────────┬───────────────┘
+            ▼           │        │                │ EPICS CA + TCP data
+┌───────────────────────┴───┐    │                ▼
+│  MTRG — Master Trigger    │    │ ┌───────────────────────────────┐
+│  (fpga/)                  │    │ │  ANLDAQ (anldaq/)             │
+│  Virtex-4 / KU060         │    │ │  commander.py — PyQt6 GUI     │
+│  Runs trigger algorithms  │    │ │  DIG/RTR/MTRG board control   │
+│  TDC ~1 ns resolution     │    │ │  Run control + live monitor   │
+│  2 µs cycle (20 frames)   │    │ │  tcpReceiverMT — binary files │
+└───────────┬───────────────┘    │ └───────────────┬───────────────┘
+            │ trigger decision   │                  │
+            │ (TTCL, Link L)     │                  │
+            └──► RTRG ──► DIG ───┘                  │
                                                   │ raw binary files
                                                   ▼
                                  ┌───────────────────────────────┐
