@@ -76,7 +76,7 @@ Each RTRG manages a "sector" of 8 DIGs = 80 channels = one VME crate.
 | Collector box × 4 | Aggregates slope boxes from multiple detectors; provides HV control for all channels in a sector |
 | Raspberry Pi (1 per collector box) | Runs EPICS soft IOC for that collector box's PVs (HV, BGO, monitoring) |
 | fs2.onenet (file server) | NFS/PXE boot server for collector Pis |
-| 12 VME crates | One per RTRG sector (192.168.203.141–145, 177–183) |
+| 12 VME crates | One per RTRG sector (192.168.203.141–145, 177–183) ✅ verified 2026-04-05 — ping confirmed live |
 
 ### Collector Box Architecture
 
