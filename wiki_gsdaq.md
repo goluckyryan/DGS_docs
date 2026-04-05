@@ -136,11 +136,11 @@
    - Use Router counters to confirm no channel dropping in/out of lock
    - Ignore X-plane/Y-plane map registers (DFMA only)
 
-3. **Load `CLEAN_DIRTY_CONTROL` register on each Router (addr `0x8CC`)**
+3. **Load `CLEAN_DIRTY_CONTROL` register on each Router (addr `0x08CC`)** ✅ verified 2026-04-05 — `asynRTrigParams.c:475`
    - Bits 7:4 = Y sum source; bits 3:0 = X sum source
    - Values: `0001` = clean sum, `0010` = dirty sum, `0100` = module sum
 
-4. **Load `TSCATTER_DELAY` register on each Router (addr `0x08C8`)**
+4. **Load `TSCATTER_DELAY` register on each Router (addr `0x08C8`)** ✅ verified 2026-04-05 — `asynRTrigParams.c:474`
    - Time window after Ge hit during which BGO hit marks event as dirty (Scattering Time)
    - Typical value: **30 counts = 600 ns** (1 count = 20 ns)
 
