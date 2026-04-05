@@ -19,6 +19,28 @@ A single VME crate with one MTRG, one RTRG, and two DIGs (BUS_LEFT + BUS_RIGHT p
 | Terminal server | Serial console access to MVME5500 and boards |
 | Network switch | Connects IOC, Pi, host computer, EPICS CA traffic |
 
+### MDIG vs SDIG — Master and Slave Digitizers
+
+**Same physical board, different firmware** (compile-time flag: `SLAVE_MODE`).
+
+| | MDIG (Master Digitizer) | SDIG (Slave Digitizer) |
+|---|---|---|
+| SERDES link to RTRG | ✅ Yes — full upstream/downstream | ❌ None — invisible to trigger |
+| Receives trigger/clock | From RTRG via SERDES | From MDIG via front-bus ribbon cable |
+| Sends multiplicity upstream | ✅ Yes | ❌ No (only throttle request bit via master) |
+| IOC talks to it | ✅ Yes | ✅ Yes (VME registers) |
+| SERDES lock checked by link_sys | ✅ Yes | ❌ No (locks passively via MDIG's clock) |
+| External discriminator source | Local ch9 | ch9 of paired MDIG |
+| Data channels | 10 (ch 0–9) | 10 (ch 0–9) — second set |
+
+**In a crate:** each MDIG+SDIG pair covers up to 20 detector channels. Connected by front-bus ribbon cable — MDIG distributes trigger/clock down to SDIG.
+
+**Naming:** NFS scripts use `MDIG1/SDIG1/MDIG2/SDIG2` (accurate). ANLDAQ `SYSTEM_DEFINES.sh` uses `MDIG1/MDIG2/MDIG3/MDIG4` (simplified — all called MDIG regardless of role). The IOC boot cmd only configures MDIGs (`asynDigitizerConfig`); SDIGs are accessed via VME but don't need separate SERDES init.
+
+*Sources: `DIG_firmware_expert.md`, `link_sys_analysis.md`, NFS `DGS_SYSTEM_DEFINES.sh` vs ANLDAQ `SYSTEM_DEFINES.sh` diff — 2026-04-05*
+
+---
+
 ### Minimal Crate Layout (vme66 example)
 
 ```

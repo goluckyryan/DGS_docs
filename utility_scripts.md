@@ -2,6 +2,11 @@
 
 Collection of utility/analysis scripts found in the DGS SVN and tools pack.
 
+> ⚠️ **Legacy caveat:** Most scripts here come from the SVN archive (`DGS_SVN/`) — treat them as historical reference.
+> - **PV names may be outdated** — the active system PV list is in `collectorbox_PVs.md`; always verify against live EPICS before using any PV from these scripts.
+> - **Methods may no longer be needed** — some workflows (BGO tuning, PV extraction) may have been superseded by newer tooling or procedures.
+> - **SVN = legacy** — active development is in Git repos (`ioc/`, `ANLDAQ/`, `collectorboxpi/`, etc.)
+
 ---
 
 ## NS_scripts (SVN: `DGS_SVN/dgs/NS_scripts/`)
@@ -81,6 +86,21 @@ Legacy bash scripts for BGO counter averaging and sweeping:
 ## VXI_database (SVN: `DGS_SVN/dgs/VXI_database/`)
 
 Legacy EPICS database files (`resm1.db` – `resm6.db`) from the pre-upgrade VXI system. Uses same `MOD{N}` PV prefix as the current system — confirms naming continuity across the upgrade. Historical reference only; replaced by SBX + Collector Box system.
+
+---
+
+## Modernization Notes
+
+> ⚠️ The NS_scripts and slopebox_scripts use shell `caput`/`caget` subprocess calls — one process fork per PV read. This is slow and fragile.
+
+**Recommended: rewrite in [pyepics](https://pyepics.github.io/pyepics/)**
+- Persistent CA connections — no subprocess overhead
+- `epics.caget(pv)` / `epics.caput(pv, val)` — cleaner syntax
+- `epics.caget_many([pv1, pv2, ...])` — parallel batch reads
+- Native async monitoring via `epics.PV(name, callback=fn)` (replaces `camonitor` shell scripts)
+- For `BGO_tune_v2.py`: could read all 7 BGO counters in one batch call instead of 7 sequential subprocesses
+
+*Note added 2026-04-05 per Ryan.*
 
 ---
 
