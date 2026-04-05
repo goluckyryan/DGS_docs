@@ -85,6 +85,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [lnfill.md](lnfill.md) | Liquid nitrogen filling system; valves, tanks, cron jobs, Discord alerts |
 | [myriad.md](myriad.md) | MγRIAD module: aux detector interface, NIM I/O pinout, ECL connectors, TTCL link, DGS usage |
+| [digitizer_tester.md](digitizer_tester.md) | Digitizer Tester: dual 200 MHz 16-bit DAC, analog switch matrix (10ch), TTCL link, waveform generation |
 | [preamp_reset_readme.md](preamp_reset_readme.md) | Preamplifier reset handling |
 | [sbx.md](sbx.md) | Slope Box Extension (SBX): signal conversion, BGO pattern, pickoff card, GS_ID dongle, HV map |
 
