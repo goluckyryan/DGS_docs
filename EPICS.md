@@ -1,0 +1,310 @@
+# EPICS — Experimental Physics and Industrial Control System
+
+_A primer for DGS: how EPICS works under the hood, record types, tools, and Python integration._
+
+---
+
+## 1. What Is EPICS?
+
+EPICS is a distributed control system framework used in particle accelerators, nuclear physics labs, and large instruments worldwide (including DGS at ANL). It is:
+
+- **Distributed:** control data lives on many IOCs (Input/Output Controllers), not one central server
+- **Real-time:** IOCs run on bare-metal or RTOS (e.g., VxWorks) for deterministic timing
+- **Network-based:** any machine on the network can read/write any PV using Channel Access (CA) protocol
+- **Record-based:** each controlled quantity is a "Process Variable" (PV), backed by a strongly-typed record
+
+**Key concepts:**
+- **PV (Process Variable):** a named data channel — e.g., `VME01:MDIG1:coarse_threshold0`
+- **IOC (Input/Output Controller):** a process (or embedded system) that hosts PVs and talks to hardware
+- **CA (Channel Access):** the UDP/TCP protocol that connects clients to IOCs
+- **Record:** the in-memory data structure inside an IOC that represents one PV
+
+---
+
+## 2. Record Types
+
+Every PV has a **record type** that determines what it stores and how it behaves.
+
+### Analog (floating-point)
+| Type | Direction | Use |
+|------|-----------|-----|
+| `ai` | Input (from hardware) | Read analog value — e.g., temperature, voltage readback |
+| `ao` | Output (to hardware) | Write analog setpoint — e.g., HV demand, threshold |
+
+### Binary (1-bit on/off)
+| Type | Direction | Use |
+|------|-----------|-----|
+| `bi` | Input | Read binary status — e.g., HV on/off, interlock state |
+| `bo` | Output | Write binary command — e.g., reset, enable |
+
+### Long integer
+| Type | Direction | Use |
+|------|-----------|-----|
+| `longin` | Input | Read 32-bit integer — e.g., event count, firmware version |
+| `longout` | Output | Write 32-bit integer |
+
+### Multi-bit binary (enum)
+| Type | Direction | Use |
+|------|-----------|-----|
+| `mbbi` | Input | Read enum (up to 16 states) — e.g., link state: IDLE/INIT/LOCKED |
+| `mbbo` | Output | Write enum — e.g., trigger mode select |
+
+### String / waveform
+| Type | Direction | Use |
+|------|-----------|-----|
+| `stringin` / `stringout` | In/Out | 40-char string — e.g., firmware date |
+| `waveform` | In/Out | Array — e.g., ADC trace, lookup table |
+
+### Calculated
+| Type | Use |
+|------|-----|
+| `calc` | Compute a value from up to 12 input PVs (e.g., convert raw ADC to voltage) |
+| `calcout` | Like `calc` but also writes the result to another PV |
+
+### Special
+| Type | Use |
+|------|-----|
+| `seq` | Sequence: execute a chain of PV writes in order with delays |
+| `fanout` | Trigger processing of multiple records |
+| `compress` | Statistical reduction of arrays |
+
+---
+
+## 3. The IOC — Input/Output Controller
+
+The IOC is the heart of EPICS. It:
+1. **Loads record definitions** from `.db` files (the database)
+2. **Initializes device support** — links records to hardware drivers
+3. **Starts the CA server** — listens on port 5064 (UDP) and 5065 (TCP) by default
+4. **Scans records** periodically or on events — updates PV values from hardware
+
+### Types of IOC
+
+**Hardware IOC:** runs on embedded hardware (e.g., MVME5500 VxWorks) — directly accesses VME registers, SPI buses, etc. DGS VME crates run this type.
+
+**Soft IOC:** runs as a normal Linux process — no direct hardware access. Uses drivers that talk to hardware over network, serial, or shared memory. DGS collector box Pis run softIOC (`softIoc` binary from EPICS base).
+
+### softIOC
+```bash
+softIoc -d myrecords.db
+```
+Starts a full CA server hosting whatever records are in `myrecords.db`. Useful for:
+- Collector box control (Python logic + EPICS interface)
+- Testing
+- Software-only PVs (calculations, alarms, etc.)
+
+### Record scanning
+Records are processed (hardware read → value updated → monitors notified) by:
+- **Periodic scan:** every N seconds (0.1, 0.2, 0.5, 1, 2, 5, 10 sec)
+- **I/O Intr:** hardware interrupts the IOC when new data is ready (fastest)
+- **Event:** triggered by another record or external event
+- **Passive:** only processed when written to or explicitly triggered
+
+---
+
+## 4. Channel Access (CA) — Under the Hood
+
+CA is a client-server protocol. Clients (caget, caput, PyEPICS, CSS) talk to IOC servers.
+
+### Discovery (name resolution)
+1. Client wants PV `VME01:MDIG1:coarse_threshold0`
+2. Sends **UDP broadcast** on port 5064: "Who has this PV?"
+3. IOC that owns it replies with its IP + TCP port
+4. Client opens a **TCP connection** to that IOC for subsequent operations
+5. Connection is kept alive for subscriptions; re-established on IOC restart
+
+**CA_ADDR_LIST:** If broadcast doesn't work (different subnets), set this env var to list specific IOC IPs:
+```bash
+export EPICS_CA_ADDR_LIST="192.168.203.141 192.168.203.142"
+export EPICS_CA_AUTO_ADDR_LIST=NO
+```
+DGS uses this — all 12 VME IOCs are on `192.168.203.141-145, 177-183`.
+
+### caget — read a PV
+```bash
+caget VME01:MDIG1:coarse_threshold0
+# Under the hood:
+# 1. UDP search broadcast
+# 2. TCP connect to IOC
+# 3. CA_PROTO_READ request
+# 4. IOC reads hardware (or cached value), returns it
+# 5. TCP connection closed (for one-shot caget)
+```
+
+### caput — write a PV
+```bash
+caput VME01:MDIG1:coarse_threshold0 500
+# Under the hood:
+# 1. UDP search + TCP connect
+# 2. CA_PROTO_WRITE request with value 500
+# 3. IOC receives it → record processes → device support writes to hardware
+# 4. IOC sends write-complete acknowledgment
+# 5. caput returns
+```
+
+`caput -w 5` waits up to 5 seconds for processing to complete (useful for records that trigger slow hardware ops).
+
+### camonitor — subscribe to a PV
+```bash
+camonitor VME01:MDIG1:coarse_threshold0
+# Under the hood:
+# 1. UDP search + TCP connect
+# 2. CA_PROTO_EVENT_ADD (subscribe) request
+# 3. IOC adds client to monitor list for this PV
+# 4. Whenever PV value changes (or on periodic scan), IOC sends CA_PROTO_EVENT (monitor update)
+# 5. Client prints each update
+# Connection stays open indefinitely
+```
+
+### Subscriptions (monitors)
+The most efficient CA pattern. Instead of polling (caget in a loop), you **subscribe once** and the IOC pushes updates:
+- IOC sends update only when value changes (or at defined rate)
+- Minimal network traffic
+- Used by CSS, EDM, PyEPICS `ca.monitor()`, ANLDAQ GUI
+
+**Dead-band (MDEL/ADEL):** IOC only sends monitor updates if change exceeds a threshold — avoids flooding clients with noise.
+
+---
+
+## 5. PyEPICS — Python CA Client
+
+`pyepics` is the Python binding for Channel Access. Used in DGS collector box IOC logic, monitoring scripts, and ANLDAQ.
+
+### Install
+```bash
+pip install pyepics
+```
+Requires EPICS base libraries and `EPICS_CA_ADDR_LIST` set correctly.
+
+### Basic usage
+```python
+import epics
+
+# Read
+val = epics.caget('VME01:MDIG1:coarse_threshold0')
+print(val)  # e.g., 500.0
+
+# Write
+epics.caput('VME01:MDIG1:coarse_threshold0', 600)
+
+# Read with metadata
+pv = epics.PV('VME01:MDIG1:coarse_threshold0')
+print(pv.value)      # current value
+print(pv.units)      # engineering units
+print(pv.count)      # number of elements (1 for scalar)
+print(pv.connected)  # True if IOC is up
+```
+
+### Subscriptions in PyEPICS
+```python
+import epics
+
+def my_callback(pvname=None, value=None, **kw):
+    print(f"{pvname} changed to {value}")
+
+# Subscribe — callback fires every time PV changes
+pv = epics.PV('VME01:MDIG1:coarse_threshold0', callback=my_callback)
+
+# Or via ca module:
+import epics.ca as ca
+ca.monitor('VME01:MDIG1:coarse_threshold0', callback=my_callback)
+```
+The callback runs in a background thread managed by PyEPICS.
+
+### Waiting for connections
+```python
+epics.caput('GS1_GE_HV_DEMAND_VOLTS', 3000, wait=True, timeout=10)
+# wait=True blocks until IOC confirms processing complete
+```
+
+### PV object (persistent connection)
+```python
+pv = epics.PV('VME01:MDIG1:coarse_threshold0')
+pv.get()           # explicit read
+pv.put(700)        # write
+pv.add_callback(my_callback)   # subscribe
+pv.clear_callbacks()           # unsubscribe
+pv.disconnect()    # close CA connection
+```
+PV objects keep the TCP connection open — much faster for repeated access than `caget`/`caput` calls.
+
+---
+
+## 6. EPICS DB File Syntax
+
+A `.db` file defines records:
+
+```
+record(ao, "VME$(CRATE):$(BOARD):coarse_threshold0") {
+    field(DESC, "Coarse disc threshold ch0")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FLOAT64_VALUE")
+    field(EGU,  "ADC counts")
+    field(PREC, "0")
+    field(DRVL, "0")
+    field(DRVH, "65535")
+    field(SCAN, "Passive")
+}
+```
+
+Key fields:
+| Field | Meaning |
+|-------|---------|
+| `DESC` | Description string |
+| `DTYP` | Device type (which driver handles this) |
+| `INP` / `OUT` | Hardware link (for input/output records) |
+| `EGU` | Engineering units |
+| `PREC` | Display precision |
+| `SCAN` | Scan rate or method |
+| `HIHI/LOLO` | Alarm limits |
+| `MDEL/ADEL` | Monitor/archive dead-band |
+| `FLNK` | Forward link — trigger another record after processing |
+
+**Macros:** `$(CRATE)`, `$(BOARD)` are substituted when the DB is loaded:
+```
+dbLoadRecords("MDigUser.template", "CRATE=01,BOARD=MDIG1,PORT=VME01_MDIG1")
+```
+
+---
+
+## 7. DGS-Specific EPICS Setup
+
+### CA Port assignments
+| System | CA port |
+|--------|---------|
+| DGS | 5064/5065 |
+| X-Array (DXA) | 5072/5073 |
+| DuoGe (DUO) | 5080/5081 |
+
+Set before using CA tools:
+```bash
+export EPICS_CA_SERVER_PORT=5064
+export EPICS_CA_REPEATER_PORT=5065
+export EPICS_CA_ADDR_LIST="192.168.203.141 192.168.203.142 192.168.203.143 192.168.203.144 192.168.203.145 192.168.203.177 192.168.203.178 192.168.203.179 192.168.203.180 192.168.203.181 192.168.203.182 192.168.203.183"
+export EPICS_CA_AUTO_ADDR_LIST=NO
+```
+
+### Collector box (softIOC on Pi)
+Each Raspberry Pi runs a softIOC for one detector. The IOC:
+1. Loads DB templates from `CollectorBox_RevA/db/`
+2. Uses custom device support (`CollectorApp`) to talk to the pickoff FPGA via SPI
+3. Exposes ~1,437 PVs per detector (GS hole numbering)
+4. Runs `caput`/`caget` against the VME IOCs to coordinate HV with the digitizer
+
+### Useful one-liners for DGS
+```bash
+# Check all coarse thresholds on VME01 MDIG1
+for ch in $(seq 0 9); do caget VME01:MDIG1:coarse_threshold${ch}; done
+
+# Monitor Ge HV for GS hole 5
+camonitor GS5_GE_HV_DEMAND_VOLTS GS5_Conv_GeHV
+
+# Check trigger mode on all boards
+for c in 01 02 03; do for b in MDIG1 MDIG2; do caget VME${c}:${b}:trigger_mux_select_RBV; done; done
+
+# Check MTRG threshold
+caget VME10:MTRG:Threshold
+```
+
+_Source: EPICS documentation, DGS source code, operational experience._
+_Created: 2026-04-05_
