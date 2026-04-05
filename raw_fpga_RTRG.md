@@ -252,3 +252,6 @@ The Router also inserts the per-channel veto mask (`VETO[9:0]`) into bits [9:0] 
 | `Work13_4/router_top.bit` | Production bitfile (current) |
 | `MAIN_FPGA/Work13_4/router_top.bit` | Earlier version bitfile |
 | `MAIN_FPGA/Work13_4/experimental_router_top.bit` | Experimental variant |
+
+---
+*Source: `DGS_tools_pack/raw_FPGA/Rtr4704*/` — VHDL source + bitfiles. Created: 2026-04-05.*

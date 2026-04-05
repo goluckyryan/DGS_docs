@@ -127,3 +127,6 @@ sudo apt-get install flex libfl-dev
 | `synApps/asyn4-17/lib/vxWorks-ppc604_long/libasyn.a` | asyn driver support library |
 | `dgsDrivers/lib/vxWorks-ppc604_long/libdevDGSDriverSupport.a` | DGS driver support library |
 | `dgsDrivers/dgsDriverApp/src/O.vxWorks-ppc604_long/dgsDriver.munch` | Final VxWorks loadable object (ELF 32-bit MSB PowerPC relocatable) |
+
+---
+*Source: Migration session notes + `DGS_tools_pack/vxworks/` build environment. Created: 2026-04-05.*

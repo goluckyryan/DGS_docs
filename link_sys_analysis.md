@@ -305,3 +305,6 @@ rtrg_map = [
 ]
 # 0=X(disabled), 1=Active, 2=M(masked+powered)
 ```
+
+---
+*Source: `DGS_tools_pack/ANLDAQ/tcpReceiver/link_sys.py` — Python link initialization script. Created: 2026-04-05.*

@@ -36,3 +36,6 @@ MTRG/
 │   └── offshoots/                # Archived branch variants
 └── Gretina Trigger/              # Legacy GRETINA hardware reference
 ```
+
+---
+*Source: `DGS_tools_pack/raw_FPGA/` + `DGS_tools_pack/fpga/` (git repos on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05.*

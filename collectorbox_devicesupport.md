@@ -240,3 +240,6 @@ Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[dev
 | `ScanADCs.c` | ADC scanning loop |
 | `initTrace.c` | Trace/debug init |
 | `bcm2835.c` / `.h` | Raspberry Pi GPIO/SPI library |
+
+---
+*Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/CollectorApp/src/` — C device support source. Created: 2026-04-05.*

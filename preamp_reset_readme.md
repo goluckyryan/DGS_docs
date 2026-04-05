@@ -171,3 +171,6 @@ WAIT_EDGE (normal operation resumes)
 | `jta_channel.vhd` | Passes PREAMP_RESET_DELAY registers; latches PARST timestamp into PEHQ |
 | `Digitizer.vhd` | Routes CHANNEL_KILLED to BGO gates; connects LOAD_DELAYS_COMBO |
 | `SERDES_RX_Mach.vhd` | Decodes Frame 15 FRONT_END_RESET command from MTRG |
+
+---
+*Source: `DGS_tools_pack/raw_FPGA/` preamp reset documentation + `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05.*

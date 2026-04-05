@@ -1194,3 +1194,6 @@ Located in each branch's `Cores/` directory:
 | `fifo_16x1023_async` | 16-bit, 1K deep async FIFO |
 | `fifo_16x64K_async` | 16-bit, 64K deep async FIFO |
 | `BRAM_1024X16_REGSHADOW` | Block RAM register shadow |
+
+---
+*Source: `DGS_tools_pack/raw_FPGA/Dig*/` — VHDL source. PDF: `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05.*

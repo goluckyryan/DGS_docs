@@ -181,3 +181,6 @@ sudo systemctl restart systemd-journald
 - **EPICS** — uses EPICS Channel Access to control valves via lnfill IOC (192.168.203.121)
 - **collectorboxpi/** — similar Pi-based EPICS infrastructure but for detector HV, not LN
 - **DCS2.onenet** — external monitoring host (InfluxDB, Grafana, ping health checks)
+
+---
+*Source: `DGS_tools_pack/lnfill/` (git repo on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05.*

@@ -1551,3 +1551,6 @@ Which crystal is installed →  Ge_Prefix + Ge_ID      (e.g. module 3, crystal 0
 ---
 
 _Total: 1437 records_
+
+---
+*Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/db/` — EPICS database templates. Created: 2026-04-05.*

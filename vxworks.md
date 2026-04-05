@@ -181,3 +181,6 @@ ld < /global/ioc/bin/gretDet.munch
 - Cross-compiler is NOT in git — must download from JLab before building
 - `migration.md` documents how this was ported from Solaris/con6 to Ubuntu
 - Each VME crate loads the same `gretDet.munch` but uses a different boot script with crate-specific parameters
+
+---
+*Source: `DGS_tools_pack/vxworks/` (git repo). Created: 2026-04-05.*

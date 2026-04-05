@@ -481,3 +481,6 @@ See **[BUILDING.md](BUILDING.md)** for the full build guide, including:
 - ISE 14.7 device support (Virtex-4, Spartan-3 confirmed)
 - Running ISE 14.7 on Ubuntu 24.04 via Docker/Podman container
 - LD_PRELOAD native patch alternative
+
+---
+*Source: `DGS_tools_pack/fpga/` and `DGS_tools_pack/raw_FPGA/` (gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05.*

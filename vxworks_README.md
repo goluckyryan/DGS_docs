@@ -364,3 +364,6 @@ This matches the existing startup scripts in `dgsIoc/iocBoot/iocArray/vme*.cmd`.
 
 Original code lives on `con6` (Solaris, `192.168.203.136`, user `dgs`).
 See `migration.md` for a full list of what was copied and what was changed.
+
+---
+*Source: `DGS_tools_pack/vxworks/README.md`. Created: 2026-04-05.*
