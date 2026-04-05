@@ -167,7 +167,7 @@
 
 ## Pages Not Yet Browsed (worth checking)
 - `/gsdaq/Triggers_and_digitizers` — trigger/digitizer setup guide ✅ visited 2026-04-05
-- `/gsdaq/Data_formats` — data format details
+- `/gsdaq/Data_formats` — data format details ✅ visited 2026-04-05 (thin page — header types 5/6 → 7/8 evolution already in `DIG_firmware_expert.md`)
 - `/gsdaq/Firmware_documentation` — firmware docs list
 - `/gsdaq/Typical_DGS_run_procedures` — run procedure reference
 - `/gsdaq/Some_problems_and_their_solutions` — troubleshooting
