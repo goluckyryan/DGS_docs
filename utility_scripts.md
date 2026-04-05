@@ -66,6 +66,24 @@ A cron job runs hourly on pi5-dgs checking `/mnt/data0` free space on DCS2.
 
 ---
 
+## slopebox_scripts (SVN: `DGS_SVN/dgs/slopebox_scripts/`)
+
+Legacy bash scripts for BGO counter averaging and sweeping:
+
+- **`caget_avg`** — reads a PV N times (1 s apart), returns average. Usage: `./caget_avg <PV> <N_samples>`
+- **`Avg_all_BGO_count`** — runs `caget_avg` on all 7 BGO counters + BGO sum for one detector
+  - PVs: `GS000_BGO1_counter` … `GS000_BGO7_counter`, `GS000_BGOSum_counter`
+- **`BGO_Sweep_test`** — BGO sweep test script
+- **`BGO_counter_sweep.ods`** — spreadsheet for sweep analysis
+
+---
+
+## VXI_database (SVN: `DGS_SVN/dgs/VXI_database/`)
+
+Legacy EPICS database files (`resm1.db` – `resm6.db`) from the pre-upgrade VXI system. Uses same `MOD{N}` PV prefix as the current system — confirms naming continuity across the upgrade. Historical reference only; replaced by SBX + Collector Box system.
+
+---
+
 ## Related Files
 - `collectorbox_PVs.md` — full PV list including `GS{N}_SBX_Present`, BGO HV PVs
 - `expMemory_2008_Chiara.md` — current experiment data locations
