@@ -529,7 +529,7 @@ When `trigger_mux_select = ExtTTL`, one of these auxiliary inputs serves as the 
 
 This is a hardware strobe mode — no TTCL/MTRG involvement. Useful for bench testing, pulser injection, or external-detector-gated readout.
 
-**Full connector pinout (36-pin, 3-column):** *(see also `digitizer_connectors.md`)*
+**Full connector pinout (36-pin, 3-column):** *(see also `connectors.md`)*
 
 | Pin | Function | Pin | Function | Pin | Function |
 |-----|----------|-----|----------|-----|----------|

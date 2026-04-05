@@ -42,7 +42,7 @@ The **Trigger Timing and Control Link (TTCL)** carries timestamps, trigger messa
 
 - Single bi-directional SERDES link → uses **RJ45 connector** (not Ethernet-compatible!)
 - No built-in termination — discrete passives on PCB handle it
-- **RJ45 pinout** *(full pinout in `digitizer_connectors.md`)*:
+- **RJ45 pinout** *(full pinout in `connectors.md`)*:
   - Pin 7/8: SERDES RX+/− : TTCL in (from trigger to digitizer)
   - Pin 3/6: SERDES TX+/− : Trigger Data Link (digitizer → trigger system)
   - Pin 1/2: Auxiliary In0 +/− (LVDS1 — fast discriminator copy / multiplicity in GRETINA; undefined in DGS)

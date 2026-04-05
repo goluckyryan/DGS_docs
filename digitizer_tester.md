@@ -76,8 +76,8 @@
 ---
 
 ## Related Files
-- `digitizer_connectors.md` — RJ45 pinout (same connector as digitizer)
-- `MTRG_connectors.md` — trigger module links the Digitizer Tester connects to
+- `connectors.md` — RJ45 pinout (same connector as digitizer)
+- `connectors.md` — trigger module links the Digitizer Tester connects to
 - `DIG_firmware_expert.md` — digitizer firmware being tested
 - `DGS_SVN.md` — `Digitizer_Tester/` in SVN tree
 

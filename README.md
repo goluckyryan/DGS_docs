@@ -50,8 +50,8 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 | File | Description |
 |------|-------------|
-| [digitizer_connectors.md](digitizer_connectors.md) | Digitizer connector pinouts: RJ45 (TTCL/SER/DES), 36-pin Aux I/O (ExtTTL = AUX_DIN[10] pins 32/33) |
-| [MTRG_connectors.md](MTRG_connectors.md) | MTRG/RTRG connector pinouts: 125-pin SERDES (links A–H/L/R/U), NIM I/O (NIM IN 1=aux trig, NIM IN 2=TDC/RF), CPLD ribbons |
+| [connectors.md](connectors.md) | Digitizer connector pinouts: RJ45 (TTCL/SER/DES), 36-pin Aux I/O (ExtTTL = AUX_DIN[10] pins 32/33) |
+| [connectors.md](connectors.md) | MTRG/RTRG connector pinouts: 125-pin SERDES (links A–H/L/R/U), NIM I/O (NIM IN 1=aux trig, NIM IN 2=TDC/RF), CPLD ribbons |
 
 ### EPICS IOC
 

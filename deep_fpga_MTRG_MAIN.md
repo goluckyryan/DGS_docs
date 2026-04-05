@@ -335,7 +335,7 @@ RF clock → LEMO cable → NIM IN 2 (bottom row, MTRG front panel)
 **EPICS PV:** `VME99:MTRG:EN_NIM2_DELAY` — enable delay on NIM IN 2 if signal timing adjustment needed.
 
 > ⚠️ Do not confuse with NIM IN 1 (auxiliary trigger input). NIM IN 2 is exclusively the TDC/veto input.
-> See `MTRG_connectors.md` §3 for the full physical connector layout.
+> See `connectors.md` §3 for the full physical connector layout.
 
 #### Signal Input (Firmware)
 

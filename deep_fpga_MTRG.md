@@ -10,7 +10,7 @@ The hardware contains three programmable devices:
 | VME FPGA | Spartan-3 XC3S400 | VME slave, main FPGA configuration |
 | CPLD | XC9500XL XC95144XL | Fast strobe multiplicity threshold |
 
-> 🔌 **Front panel connectors & pinouts:** see `digitizer_connectors.md` — covers the 125-pin hard metric SERDES connector (links A–H/L/R/U), NIM I/O, CPLD ribbon cables, and Aux I/O header.
+> 🔌 **Front panel connectors & pinouts:** see `connectors.md` — covers the 125-pin hard metric SERDES connector (links A–H/L/R/U), NIM I/O, CPLD ribbon cables, and Aux I/O header.
 
 ## Table of Contents
 

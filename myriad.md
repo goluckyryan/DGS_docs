@@ -16,7 +16,7 @@ The MγRIAD bridges auxiliary detectors (NIM/ECL-based) to the DGS/GRETINA TTCL 
 - Provides local coincidence logic between local detector and auxiliary trigger
 - Interfaces legacy FERA ADC systems via ECL
 
-Connected to **link R or U** of the Master Trigger (see `MTRG_connectors.md`).
+Connected to **link R or U** of the Master Trigger (see `connectors.md`).
 
 ---
 
@@ -98,7 +98,7 @@ Coincidence timer is programmable via register — window defines valid auxiliar
 ---
 
 ## Related Files
-- `MTRG_connectors.md` — links R and U on MTRG where MγRIAD connects
+- `connectors.md` — links R and U on MTRG where MγRIAD connects
 - `ttcl.md` — TTCL protocol MγRIAD uses for trigger communication
 - `wiki_gsdaq.md` — MγRIAD mentioned in DAQ system overview
 
