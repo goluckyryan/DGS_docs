@@ -155,8 +155,8 @@ Two differential ECL output signals provided alongside the Auxiliary I/O connect
 | MTrigUser.template (EPICS) | `/home/ryan/DGS_tools_pack/ANLDAQ/ioc/db/MTrigUser.template` | NIM PV definitions: EN_NIM_AUX, ENBL_NIM_VETO, EN_NIM1_DELAY, EN_NIM2_DELAY, NIMSrc1/2, NIM1/2_SubSelect |
 
 **Related memory docs:**
-- `deep_fpga_MTRG_MAIN.md` — MTRG main FPGA firmware (TAC-II TDC uses NIM_IN2)
-- `deep_fpga_MTRG_CPLD.md` — CPLD fast multiplicity logic
+- `raw_fpga_MTRG_MAIN.md` — MTRG main FPGA firmware (TAC-II TDC uses NIM_IN2)
+- `raw_fpga_MTRG_CPLD.md` — CPLD fast multiplicity logic
 - `digitizer_connectors.md` — Digitizer-side connector pinouts (RJ45, Aux I/O)
 
 ---

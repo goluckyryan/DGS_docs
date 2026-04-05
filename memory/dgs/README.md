@@ -33,15 +33,15 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | File | Description |
 |------|-------------|
 | [fpga.md](fpga.md) | FPGA firmware overview: DIG, RTRG, MTRG hierarchy |
-| [deep_fpga_DIG.md](deep_fpga_DIG.md) | DIG firmware: Spartan-3, ADC pipeline, discriminators, event packet format, pole-zero correction |
+| [raw_fpga_DIG.md](raw_fpga_DIG.md) | DIG firmware: Spartan-3, ADC pipeline, discriminators, event packet format, pole-zero correction |
 | [DIG_firmware_expert.md](DIG_firmware_expert.md) | DIG firmware expert guide: all modes, trigger_mux_select (IntAcptAll/ExtTTL/ExtTTCL/Diag), aux I/O |
-| [deep_fpga_RTRG.md](deep_fpga_RTRG.md) | RTRG firmware: Virtex-4, multiplicity aggregation, throttle, VME register map |
-| [deep_fpga_MTRG.md](deep_fpga_MTRG.md) | MTRG overview: 3 devices (Main FPGA, VME FPGA, CPLD) |
-| [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) | MTRG Main FPGA: trigger algorithms, 20-frame command structure, TAC-II TDC, VME map, RF→NIM IN 2 |
-| [deep_fpga_MTRG_VIVADO.md](deep_fpga_MTRG_VIVADO.md) | MTRG Vivado port: Kintex UltraScale XCK060 |
-| [deep_fpga_MTRG_VME.md](deep_fpga_MTRG_VME.md) | MTRG VME FPGA: Spartan-3, A32/D32 slave, FPGA config manager |
-| [deep_fpga_MTRG_CPLD.md](deep_fpga_MTRG_CPLD.md) | MTRG CPLD: XC9500XL, fast strobe multiplicity logic (~1 µs latency) |
-| [deep_fpga_building.md](deep_fpga_building.md) | Build toolchain: ISE 14.7 / Vivado 2018.3, Ubuntu 24.04 Docker approach |
+| [raw_fpga_RTRG.md](raw_fpga_RTRG.md) | RTRG firmware: Virtex-4, multiplicity aggregation, throttle, VME register map |
+| [raw_fpga_MTRG.md](raw_fpga_MTRG.md) | MTRG overview: 3 devices (Main FPGA, VME FPGA, CPLD) |
+| [raw_fpga_MTRG_MAIN.md](raw_fpga_MTRG_MAIN.md) | MTRG Main FPGA: trigger algorithms, 20-frame command structure, TAC-II TDC, VME map, RF→NIM IN 2 |
+| [raw_fpga_MTRG_VIVADO.md](raw_fpga_MTRG_VIVADO.md) | MTRG Vivado port: Kintex UltraScale XCK060 |
+| [raw_fpga_MTRG_VME.md](raw_fpga_MTRG_VME.md) | MTRG VME FPGA: Spartan-3, A32/D32 slave, FPGA config manager |
+| [raw_fpga_MTRG_CPLD.md](raw_fpga_MTRG_CPLD.md) | MTRG CPLD: XC9500XL, fast strobe multiplicity logic (~1 µs latency) |
+| [raw_fpga_building.md](raw_fpga_building.md) | Build toolchain: ISE 14.7 / Vivado 2018.3, Ubuntu 24.04 Docker approach |
 | [link_sys_analysis.md](link_sys_analysis.md) | link_sys.py: 5-stage SERDES link init + timestamp sync sequence |
 | [ttcl.md](ttcl.md) | TTCL spec (v2.1): word/frame/cycle format, all 20 frames, selective propagation |
 | [register_maps.md](register_maps.md) | EPICS register maps for DIG/RTRG/MTRG |

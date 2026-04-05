@@ -1,0 +1,245 @@
+# CollectorBox Device Support — EPICS Driver Internals
+
+Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/CollectorApp/src/`
+
+---
+
+## Why Not asyn?
+
+The device support is custom C — **asyn is explicitly rejected** (see comments in `CollectorSupport.c`):
+- asyn assumes byte-granularity; collector transactions are 24-bit (not byte-aligned)
+- True SPI requires simultaneous MOSI/MISO — asyn doesn't support this
+- Transaction length is FPGA-defined and can be arbitrary
+
+---
+
+## EPICS Device Support Architecture
+
+### How PVs Connect to Hardware
+
+EPICS uses a **device support function table** pattern:
+
+```c
+struct {
+    long         number;
+    DEVSUPFUN    report;
+    DEVSUPFUN    init;
+    DEVSUPFUN    init_record;   // ← called once at IOC start
+    DEVSUPFUN    get_ioint_info;
+    DEVSUPFUN    read/write;    // ← called on each PV process
+    DEVSUPFUN    special_linconv;
+} devXxxCollector = { 6, NULL, NULL, init_record_xxx, NULL, action_xxx, NULL };
+epicsExportAddress(dset, devXxxCollector);
+```
+
+This table is registered in `CollectorSupport.dbd`:
+```
+device(ao, CAMAC_IO, devAoCollector, "Collector Local Serial")
+device(ai, CAMAC_IO, devAiCollector, "Collector Local Serial")
+...
+```
+
+**DTYP field in .db files** must match the string (e.g. `"Collector Local Serial"`) to route PV processing to the correct handler.
+
+### Link Structure Used: CAMAC_IO
+
+Uses the **camacio** EPICS link structure (not VME_IO) to embed SPI transaction parameters:
+
+```c
+struct camacio {
+    short b;    // DEVSEL (GPIO bus value) — which device to select
+    short c;    // transaction length in bits (always 24)
+    short n;    // bits 7:0 = register address; bit 7 = R/W flag
+    short a;    // AND mask (for bi/bo/mbbi/mbbo bit extraction)
+    short f;    // OR mask / shift
+    char  *parm;
+};
+```
+
+In `.db` files this appears as:
+```
+field(OUT, "#<b> <c> <n> <a> <f> @")
+```
+Example: `OUT("#5 24 20 0 0 @")` → DEVSEL=5, 24-bit, addr=20, write
+
+### Record Init Flow
+1. `init_record_xxx()` called once at IOC load
+2. Casts `pai->inp.value` (or `pao->out.value`) to `struct camacio *`
+3. Extracts b/c/n/a/f into local vars
+4. Stores in `pai->dpvt` (device private pointer) if needed for bit games (mbbi/mbbo/bi/bo)
+
+### Record Process Flow
+1. `read_xxx()` / `write_xxx()` called on scan or CA put
+2. Sets DEVSEL via `Set_DEVSEL(b)`
+3. Calls `Do_SPI1_transaction(RWflag, addr, data)`
+4. For reads: stores result back into PV's `rval`/`val` field
+5. For bi/bo/mbbi/mbbo: applies AND/OR masks to extract/set individual bits
+
+---
+
+## Global Data Structure
+
+Initialized once at IOC start via `GetDataArrayPtr(1)`:
+
+```c
+typedef struct {
+    unsigned short GLBL_CollectorDataArray[32][1024];   // raw scan data per device
+    unsigned short GLBL_CollectorControlVals[32][256];  // integer mailboxes per device
+    epicsFloat64   GLBL_CollectorFloatVals[32][256];    // float mailboxes per device
+    unsigned short *GLBL_CollectorArrayPtr[32];         // walking pointers into DataArray
+    epicsFloat64   GLBL_ConversionCoefficients[64][2]; // [idx][0]=slope, [idx][1]=offset
+    epicsFloat64   PT100Coefficients[5];               // RTD temperature fit
+    epicsFloat64   PT500Coefficients[5];               // RTD temperature fit (500Ω)
+} CollectorGlobDataStructure;
+```
+
+First index (32) = DEVSEL device number. All PVs for the same device share the same mailbox arrays.
+
+---
+
+## Conversion Coefficients Table
+
+Loaded by `InitializeCoefficients()` at IOC init. Used by `CollectorCalc` PVs.
+
+| Index | Signal | Conversion |
+|-------|--------|------------|
+| 0 | Sandbox | y = x (passthrough) |
+| 1 | ADC450 voltage | V = (500/4096) × count |
+| 2 | Ge HV | V = (5000/4096) × count |
+| 3 | ADC400 voltage | V = (500/4096) × count |
+| 4 | +24V supply | V = [5/(4096×0.149)] × count |
+| 5 | +12V supply | V = [5/(4096×0.338)] × count |
+| 6 | -12V supply | V = -[5/(4096×0.348)] × count |
+| 7 | +5V supply | V = [5/(4096×0.808)] × count |
+| 8 | CenterFET bias | V = [11/(125×32768)] × count |
+| 9 | CenterFET current | I = [11/(5×32768)] × count (mA) |
+| 10,11 | FET Vds | V = [1249/(31125×32768)] × count |
+| 14 | SideFET bias | V = [11/(125×32768)] × count |
+| 15 | SideFET current | I = -[11/(5×32768)] × count (mA) |
+| 16,17 | Side offset V | V = [2249/(31125×131072)] × count |
+| 20 | Enclosure temp | T = (175/65535)×count − 45 (°C) |
+| 21 | Enclosure humidity | H = (100/65535)×count (%) |
+| 22 | PCB temp | T = count/256 (°C) |
+| 23–26 | Fan RPM | RPM = 675000/(count×N), N=1,2,4,8 |
+| 27 | Slope box DAC | DAC = volts × (4096/5000) |
+| 29 | Power board temp | T = count × 0.125 (°C) |
+| 30 | Collector remote temp | T = count × 0.125 + 17 (°C) |
+| 31 | Timestamp (bits 26:11) | ms = count × 0.02048 |
+
+### PT100 / PT500 Temperature Fit (2-step)
+1. **ADC → Resistance:** R = slope×count + intercept
+2. **R → Temperature:** T = a0 + a1×R + a2×R² (CVD polynomial)
+
+| Sensor | ADC→R slope | ADC→R intercept | a0 | a1 | a2 |
+|--------|------------|-----------------|----|----|-----|
+| PT100 | 0.05427 | 1.0284 | −242.36 | 2.252 | 1.846×10⁻³ |
+| PT500 | 0.04120 | 0.0 | −242.36 | 0.4504 | 7.384×10⁻⁵ |
+
+---
+
+## Source Files Overview
+
+## Two-Layer PV Architecture
+
+There are **two separate device support layers**, both using CAMAC_IO but different DTYP strings:
+
+| DTYP String | Files | What it does |
+|-------------|-------|--------------|
+| `"Collector Local Serial"` | `CollectorSupport_AO/AI/BI/BO/MBBI/MBBO.c` | **Directly drives SPI** — writes/reads hardware registers |
+| `"CollectorSoftControl"` | `CollectorCtl_AO/AI/BI/BO/MBBI.c` | **Writes to RAM mailboxes only** — no SPI, used for staging control values |
+
+PVs that need to send data to hardware use `"Collector Local Serial"`. PVs that just store operator settings use `"CollectorSoftControl"`.
+
+---
+
+## CollectorSupport_AO — Full SPI Write Flow
+
+When a CA client writes an ao PV tagged `DTYP = "Collector Local Serial"`:
+
+1. `write_ao()` is called with the aoRecord pointer
+2. Extract camacio fields: `Bidx`=B&0x1F (DEVSEL), `UsrAddr`=N&0x7F (register), `AndMask`=A, `ShiftFactor`=F&0xF
+3. `MailboxMode` = bits 13:12 of C field:
+
+| Mode | Address source | Data source |
+|------|---------------|-------------|
+| 0 | N field (direct) | PV val (shifted) |
+| 1 | N field (direct) | PV val (shifted) + copy to mailbox |
+| 2 | N field (direct) | Mailbox`[Bidx][Cidx]` (indirect data) |
+| 3 | Mailbox`[Bidx][Cidx]` (indirect addr) | PV val (shifted) |
+
+4. **If `parm` string after `@` is empty → Read-Modify-Write:**
+   - SPI read: `Do_SPI1_transaction(1, Bidx, UsrAddr, 0)` → `SPI_data_in`
+   - Strip upper bits: `SPI_data_out = SPI_data_in & 0xFFFF`
+   - AND with mask: `SPI_data_out = SPI_data_out & AndMask`
+   - OR user data: `SPI_data_out = SPI_data_out | UsrData`
+5. **If `parm` is non-empty → Write-Only:**
+   - `SPI_data_out = UsrData | AndMask` (A field acts as OR mask here)
+6. SPI write: `Do_SPI1_transaction(0, Bidx, UsrAddr, SPI_data_out)`
+7. If mode 1: copy result to mailbox
+
+**Init behavior:** On IOC start, every RMW-style ao PV does a hardware READ to pre-populate its value. Write-only PVs initialize to 0.
+
+---
+
+## CollectorCtl_AO — Mailbox Write Flow
+
+For `DTYP = "CollectorSoftControl"` ao PVs — **no SPI involved**. C bits 14:12 select mode:
+
+| Mode | Action |
+|------|--------|
+| 0 | Write PV → integer mailbox `[Bidx][Cidx]` (optional RMW with AND/shift) |
+| 1 | Write PV → current buffer pointer location in DataArray |
+| 2 | Write PV → float mailbox `[Bidx][Cidx]` |
+| 3 | Set buffer pointer to PV value |
+| 4 | Write PV → conversion coefficient `[Cidx][0]` (slope m) |
+| 5 | Write PV → conversion coefficient `[Cidx][1]` (offset b) |
+| 6 | Use PV value as index → read integer mailbox back into PV |
+| 7 | Use PV value as index → read float mailbox back into PV |
+
+Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[device][0] is a debug flag).
+
+---
+
+## What Pi Source Can vs Cannot Answer
+
+**Fully answered by Pi source code:**
+- SPI transaction format: 24-bit `[R/W|Addr(7)][Data(15:8)][Data(7:0)]`
+- DEVSEL bus: 5-bit GPIO selects up to 32 devices on the SPI bus
+- Two-layer architecture (mailbox vs direct SPI)
+- Read-modify-write vs write-only distinction (empty vs non-empty `parm`)
+- Indirect address/data modes via mailboxes
+- Init: ao PVs pre-read hardware on IOC start
+- Upper 8 bits of SPI return value are FPGA status bits (stripped before use)
+
+**Requires FPGA code to answer:**
+- Register map: what each address (N field) actually controls in the FPGA
+- DEVSEL routing: how the FPGA decodes DEVSEL to select sub-circuits
+- FPGA status bits (upper 8 of 24-bit return): what they mean
+- Exact timing/sequencing requirements for multi-step operations
+
+---
+
+| File | Role |
+|------|------|
+| `spi.c` / `spi.h` | SPI1 hardware driver (bcm2835), DEVSEL GPIO bus |
+| `CollectorSupport.c` / `.h` | Global data struct, conversion coefficients, mutex utils |
+| `CollectorSupport.dbd` | EPICS device registration (ties DTYP strings to handlers) |
+| `CollectorMain.cpp` | IOC main entry point |
+| `CollectorCtl_AO.c` | ao write handler (SPI write) |
+| `CollectorCtl_AI.c` | ai read handler (SPI read) |
+| `CollectorCtl_BI.c` / `_BO.c` | bi/bo single-bit handlers |
+| `CollectorCtl_MBBI.c` / `Mbbo` | mbbi/mbbo multi-bit handlers |
+| `CollectorCtl_Waveform.c` | Waveform record handler |
+| `CollectorSupport_AI/AO/BI/BO/MBBI/MBBO.c` | Higher-level support (mailbox/float PVs) |
+| `CollectorCalc_AI/BI.c` | Calculated PVs (apply conversion coefficients) |
+| `CollectorADCSupport_AI.c` | ADC scanner readout |
+| `CollectorDPRSupport_AI.c` | Dual-port RAM support |
+| `CollectorI2C_AI/AO.c` | I2C device support |
+| `CollectorStep_AI.c` | HV step control logic |
+| `DEVSEL_bus.c` | DEVSEL bus utilities |
+| `ScanADCs.c` | ADC scanning loop |
+| `initTrace.c` | Trace/debug init |
+| `bcm2835.c` / `.h` | Raspberry Pi GPIO/SPI library |
+
+---
+*Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/CollectorApp/src/` — C device support source. Created: 2026-04-05.*
