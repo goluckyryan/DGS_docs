@@ -24,6 +24,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [ANLDAQ.md](ANLDAQ.md) | DAQ GUI (PyQt6) + TCP data receiver; EPICS CA config per system; data flow; TCP protocol proof |
 | [dgs_analysis.md](dgs_analysis.md) | Post-experiment analysis: fastEventConstructor (ROOT), parquet_pysort |
+| [run_procedures.md](run_procedures.md) | Typical DGS run procedures: directory setup, GEBSort, PZ/energy calibration workflow |
 | [expMemory_2008_Chiara.md](expMemory_2008_Chiara.md) | Experiment log: exp2008_Chiara (active); run data locations, cleanup log, monitoring |
 
 ### FPGA Firmware
