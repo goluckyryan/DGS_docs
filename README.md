@@ -15,7 +15,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [overview.md](overview.md) | Full system architecture, hardware inventory, IP map, subsystem map |
 | [hardware_architecture.md](hardware_architecture.md) | Hardware breakdown: DuoGe vs DGS, signal chain, collector box architecture |
-| [hardware_drawings.md](hardware_drawings.md) | Index of schematics, datasheets, and PDF documentation |
+| [reference_index.md](reference_index.md) | Index of schematics, datasheets, and PDF documentation |
 | [wiki_gsdaq.md](wiki_gsdaq.md) | Index of the ANL GS DAQ wiki with key facts and known inaccuracies |
 
 ### DAQ & Data Acquisition
@@ -44,7 +44,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [deep_fpga_building.md](deep_fpga_building.md) | Build toolchain: ISE 14.7 / Vivado 2018.3, Ubuntu 24.04 Docker approach |
 | [link_sys_analysis.md](link_sys_analysis.md) | link_sys.py: 5-stage SERDES link init + timestamp sync sequence |
 | [ttcl.md](ttcl.md) | TTCL spec (v2.1): word/frame/cycle format, all 20 frames, selective propagation |
-| [register_maps.md](register_maps.md) | EPICS register maps for DIG/RTRG/MTRG |
+| [reference_index.md](reference_index.md) | EPICS register maps for DIG/RTRG/MTRG |
 
 ### Hardware & Connectors
 
