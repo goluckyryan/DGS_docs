@@ -2,7 +2,7 @@
 
 This repository contains FPGA firmware for the DGS (Digital Gamma-ray Spectrometer) trigger and readout system, developed at Argonne National Laboratory. The system digitizes signals from germanium gamma-ray detectors and makes real-time trigger decisions to select physics events of interest.
 
-> **Two firmware trees exist:** `fpga/` (active development, more recent) and `raw_FPGA/` (raw upstream/unmodified reference). Architecture is identical; `raw_FPGA/` was last modified a few days before `fpga/`. Use `fpga/` for building production firmware; use `raw_FPGA/` for comparison against unmodified upstream.
+> **Two firmware trees exist:** `fpga/` (active development, more recent) and `FPGA/` (raw upstream/unmodified reference). Architecture is identical; `FPGA/` was last modified a few days before `fpga/`. Use `fpga/` for building production firmware; use `FPGA/` for comparison against unmodified upstream.
 
 ## Table of Contents
 
@@ -483,4 +483,4 @@ See **[BUILDING.md](BUILDING.md)** for the full build guide, including:
 - LD_PRELOAD native patch alternative
 
 ---
-*Source: `DGS_tools_pack/fpga/` and `DGS_tools_pack/raw_FPGA/` (gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05.*
+*Source: `DGS_tools_pack/fpga/` and `DGS_tools_pack/FPGA/` (gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05.*

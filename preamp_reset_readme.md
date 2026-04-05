@@ -173,4 +173,4 @@ WAIT_EDGE (normal operation resumes)
 | `SERDES_RX_Mach.vhd` | Decodes Frame 15 FRONT_END_RESET command from MTRG |
 
 ---
-*Source: `DGS_tools_pack/raw_FPGA/` preamp reset documentation + `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05.*
+*Source: `DGS_tools_pack/FPGA/` preamp reset documentation + `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05.*

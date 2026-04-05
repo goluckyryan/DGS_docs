@@ -152,7 +152,7 @@ DGS is a full software+firmware+hardware stack:
 
 | Repo / Folder | What It Does | Key Tech |
 |---------------|-------------|---------|
-| `raw_FPGA/` | FPGA firmware source (raw/upstream) | VHDL, ISE 13.4/14.7, Vivado 2018.3 |
+| `FPGA/` | FPGA firmware source (raw/upstream) | VHDL, ISE 13.4/14.7, Vivado 2018.3 |
 | `ioc/` | EPICS IOC config + firmware binaries | EPICS db/dbd, VxWorks boot scripts, Git LFS |
 | `vxworks/` | Cross-compiler + IOC build environment | VxWorks 5.5, EPICS 3.14, asyn, sncseq |
 | `ANLDAQ/` | DAQ GUI + data receiver | PyQt6, pyEPICS, C++ TCP receiver |
