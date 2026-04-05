@@ -134,6 +134,17 @@ Run subfolders: `exp2008_019`, `exp2008_020`, ... (runs 1–28 completed as of s
 
 ---
 
+## data0 Retention Policy
+
+**Always keep on data0 (local NVMe):**
+- Run 001 — first run reference
+- Run 005 — early reference run
+- The **last completed run** — so it's immediately accessible for analysis
+
+All other runs: delete from data0 once confirmed on NFS (spot-check MD5 of a few files).
+
+---
+
 ## Cleanup Log
 
 | Date | Action |
