@@ -27,8 +27,8 @@
 - `/gsdaq/Digitizers` — digitizer hardware
 - `/gsdaq/Triggers` — trigger modules
 - `/gsdaq/IOC` → `/gsdaq/Digitizer_IOCs` — IOC info
-- `/gsdaq/The_Slope_Box` — slope box hardware
-- `/gsdaq/The_Slope_Box_Extension` — SBX hardware
+- `/gsdaq/The_Slope_Box` — slope box hardware ✅ visited 2026-04-05 → added to `sbx.md`
+- `/gsdaq/The_Slope_Box_Extension` — SBX hardware ✅ visited 2026-04-05 → added to `sbx.md`
 - `/gsdaq/Liquid_Nitrogen` / `/gsdaq/LN_system` — LN2 system
 - `/gsdaq/Preamplifier` — preamp
 - `/gsdaq/The_Pickoff_Card` — pickoff card

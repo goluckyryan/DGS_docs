@@ -6,10 +6,32 @@
 
 ---
 
+## Slope Box (parent module)
+
+The **Slope Box** is the interface between the detector and the control/monitoring system:
+- Takes 48VDC power from the SBX power board
+- Generates **Ge bias voltage** (~3500V, programmable via EPICS DAC)
+- Generates **BGO bias voltage** (~550–800V, programmable)
+- Has a multiplexed ADC that measures: detector temperature, actual HV, power supply values
+- Connectors: preamp signal output, BGO ring signal, BGO backplug signal, HV output
+- Secured to detector via a metal belt on its underside
+- Slope box function unchanged after upgrade — only VXI→SBX/Collector Box replacement changed how it's controlled
+
+*Source: wiki `/gsdaq/The_Slope_Box`*
+
+---
+
 ## Purpose
 
-The SBX sits between the **Slope Box** and the **Collector Box**. It:
+The SBX sits between the **Slope Box** and the **Collector Box**. It replaces the old VXI system entirely:
 - Converts single-ended analog signals from the Slope Box → **differential signals** for the Collector Box / digitizers
+- Drives a **DVI-I cable** carrying: analog signals + power + communication interface → Collector Box
+- Power board: provides all detector power from a single **48VDC** source
+- Enables a single detector + SBX to run from one **PoE port** (standalone operation)
+- Optional **Raspberry Pi** inside SBX for standalone detector operation (EDM screen for PVs)
+- Eliminates extensive VXI cabling; moves all analog signal conditioning directly to the detector
+
+*Source: wiki `/gsdaq/The_Slope_Box_Extension`*
 - Provides **BGO pattern discrimination** (individual BGO segment hits)
 - Provides **BGO sum** signal
 - Handles **Pickoff** routing of signals to specific digitizer channels
