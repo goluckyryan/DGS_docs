@@ -1,5 +1,7 @@
 # collectorboxpi — EPICS Soft IOC for Collector Box (Raspberry Pi)
 
+> 🔗 **Related:** `sbx.md` — SBX (Slope Box Extension) hardware that this IOC controls | `collectorbox_PVs.md` — full PV list | `gammasphere_geometry.md` — GS hole numbering
+
 ## What It Is
 
 An **EPICS soft IOC** running on Raspberry Pi (aarch64 / Debian 13) that controls and monitors **Collector Box** hardware (CollectorBox_RevA). This repo is currently deployed on **pi0 only (softIOC 201, South-East)**. The other 3 collector boxes (202–204) run on an old piserver setup with no documentation in `DGS_tools_pack`.

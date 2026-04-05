@@ -34,6 +34,30 @@ The SVN tree contains a broad historical archive of DGS development:
 | `DGSFiberExpander` | Fiber expander hardware |
 | `dgsSoftIOC` | Soft IOC (pre-Git version) |
 | `ArdisiaDocuments.zip` | Ardisia documentation |
+| `DigitizerFanout` | Digitizer fanout hardware |
+| `Digitizer_Tester` | Digitizer Tester module (generates test waveforms) |
+| `Documentation` | General DGS documentation |
+| `edmhelp`, `edm-master`, `sbxscreens`, `20230818_edm` | EDM screen files |
+| `FromT` | Trigger hardware files from Todd (trigger card schematics etc.) |
+| `GRETNA_CPLD_CHECK` | GRETNA CPLD check utilities |
+| `gtReceiver` | Legacy data receiver (pre-ANLDAQ); see `gtReceiver6.c` |
+| `HELIOS_Preamp_data` | HELIOS preamp data |
+| `LBL_Digitizer` | LBL digitizer reference files |
+| `Miscellany` | Miscellaneous files |
+| `MyRIAD` | MγRIAD module files |
+| `NewBlackBox` | New black box hardware |
+| `NS_scripts` | NS (network/system?) scripts |
+| `OrCAD`, `Schematics`, `SchematicTagsForTodd` | Schematic files |
+| `Patch_Panel` | Patch panel hardware |
+| `psg` | PSG (pulse/signal generator?) |
+| `salvaged_notes` | Recovered notes from old systems |
+| `sbxl_osc`, `sbxscreens` | SBX oscilloscope + screen files |
+| `SlopeBoxExtension` | SBX hardware + firmware + GS_ID dongle (→ `sbx.md`) |
+| `SlopeBoxInterface` | Slope box interface files |
+| `slopebox_scripts` | Slope box utility scripts |
+| `TrigToTrig` | Trigger-to-trigger interconnect files |
+| `VXI_database` | Legacy VXI system database |
+| `VxWorksDocs` | VxWorks documentation archive |
 
 ---
 
@@ -64,3 +88,5 @@ Useful for:
 - **vxworks/** — `migration.md` references the con6/Solaris-to-Ubuntu migration this SVN contains
 - **fpga/** — FPGA firmware may have early versions in the SVN tree
 - **ioc/** — pre-Git IOC files are in `dgsSoftIOC/`
+- **sbx.md** — `SlopeBoxExtension/` explored: GS_ID dongle, BGO HV map, pickoff card notes
+- **ANLDAQ.md** — `gtReceiver/` is the legacy receiver; current receiver is in ANLDAQ git repo
