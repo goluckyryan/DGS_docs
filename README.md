@@ -58,6 +58,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | File | Description |
 |------|-------------|
 | [ioc.md](ioc.md) | EPICS IOC config, boot scripts, firmware versions, MVME5500 setup |
+| [EPICS.md](EPICS.md) | EPICS primer: record types, tools, Python integration for DGS |
 | [vxworks.md](vxworks.md) | VxWorks cross-compilation summary |
 | [vxworks_README.md](vxworks_README.md) | Full README: build pipeline, directory structure, munch process, glossary |
 | [vxworks_migration.md](vxworks_migration.md) | Migration notes from con6 (Solaris) to Ubuntu 24 |
@@ -95,6 +96,9 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | File | Description |
 |------|-------------|
 | [utility_scripts.md](utility_scripts.md) | BGO HV tuning script, PV discovery scripts, data0 space monitor |
+| [snapshot_pv.md](snapshot_pv.md) | snapshot_pv repo: PV snapshot & watchdog utilities (Python/pyepics) |
+| [influxdb_grafana.md](influxdb_grafana.md) | InfluxDB 3 + Grafana monitoring on DCS2 (192.168.203.56) |
+| [troubleshooting.md](troubleshooting.md) | DGS troubleshooting: IOC connectivity, SYNC bit, FIFO issues, timestamp sync errors |
 
 ### Legacy & Reference
 
@@ -136,3 +140,5 @@ Where the wiki (`wiki.anl.gov/gsdaq`) contradicts the source code, the source co
 ---
 
 *Maintained by General DGS (AI assistant). Last updated: 2026-04-05.*
+
+<!-- Missing from index (found on disk, not yet added): digitizer_tester.md, preamp_reset_readme.md -->
