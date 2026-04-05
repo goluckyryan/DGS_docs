@@ -1,0 +1,129 @@
+# SBX — Slope Box Extension
+
+**Full name:** Slope Box Extension (SBX)  
+**Also called:** Pickoff Card (in some contexts the pickoff is a sub-board of the SBX)  
+**Source:** `DGS_SVN/dgs/SlopeBoxExtension/`, `DGS_SVN/dgs/SlopeBoxInterface/`, wiki `/gsdaq/The_Slope_Box_Extension`
+
+---
+
+## Purpose
+
+The SBX sits between the **Slope Box** and the **Collector Box**. It:
+- Converts single-ended analog signals from the Slope Box → **differential signals** for the Collector Box / digitizers
+- Provides **BGO pattern discrimination** (individual BGO segment hits)
+- Provides **BGO sum** signal
+- Handles **Pickoff** routing of signals to specific digitizer channels
+- Hosts the **GS_ID dongle** — identifies which GS hole this detector occupies
+- Provides **48V power distribution** from Collector Box to Slope Box electronics
+
+---
+
+## Signal Processing
+
+### Input signals (from Slope Box):
+- Ge Center (preamp output)
+- Ge Side A / Side B
+- BGO segment signals (up to 6 sides + 1 back plug = 7 BGOs)
+
+### Output signals (to Collector Box / Digitizers):
+| Signal | Description |
+|--------|-------------|
+| Ge Center | Primary gamma-ray energy contact |
+| Ge Side | Segmented detector side contact (A or B) |
+| BGO Sum | Analog sum of all 7 BGO signals — used for Compton suppression |
+| BGO Pattern | Discriminated individual BGO segment bits — used for Electric Honeycomb (in development) |
+
+### BGO Pattern channel
+- Uses two ranks of analog switches + discriminators
+- Generates multiplexed BGO segment discriminator pattern
+- Time-sliced through MUX — firmware can stop and monitor single BGO signal
+- Rate and source of MUX sync controllable via `MISC_CTL_REG` (should be moved to named register per dev notes)
+
+---
+
+## Pickoff Card
+
+Sub-board within SBX. Routes signals to correct digitizer channels and provides BGO HV control.
+
+### BGO HV demand map (from dev notes)
+| Address | BGO Ring/Pin |
+|---------|-------------|
+| 32 | Ring 4w, pin 5 |
+| 33 | Ring 4, pin 4 |
+| 34 | Ring 3, pin 5 |
+| 35 | Ring 3, pin 4 |
+| 36 | Ring 2, pin 5 |
+| 37 | Ring 2, pin 4 |
+| 38 | Ring 1, pin 5 |
+| 39 | Unknown (doesn't affect ring — possibly 2nd connection to ring 1?) |
+| 40 | Ring 6, pin 5 |
+| 41 | Ring 6, pin 4 |
+| 42 | Ring 5, pin 5 |
+| 43 | Ring 5, pin 4 |
+| 44/45 | Likely back plug (unconfirmed) |
+
+### BGO threshold calibration notes
+- Address 19 = BGO differential offset; address 18 = BGOp threshold (documentation was backwards, fixed)
+- BGOp threshold noise window: ~4 DAC counts
+- DAC step size: 5V/1024 = 4.88 mV → through 4.7k/6.9k divider (68.1%) → **3.32 mV per step**
+- Noise window: ~13 mV
+
+---
+
+## GS_ID Dongle
+
+A small board in the SBX that identifies the **GS hole number** for this detector position.
+- Read by the Raspberry Pi IOC on the Collector Box via SPI
+- `DNG_ID` in scan file = dongle-reported GS hole number = `DetNbr` in EPICS PVs
+- Located in: `DGS_SVN/dgs/SlopeBoxExtension/GS_ID/`
+- Schematic: `GS_ID.pdf`, PCB: `SlopeBoxtExt.brd`
+
+---
+
+## Hardware Versions
+
+| Version | Directory | Notes |
+|---------|-----------|-------|
+| SBXa | `RaspberryPi/SBXa_20211107` | Earlier revision |
+| SBXc3 | `RaspberryPi/sbxc3_src_20220325` | Main production version |
+| SBXL | `RaspberryPi/SBXL` | Later revision |
+| SBXw | `RaspberryPi/sbxw_20211108` | Another variant |
+
+---
+
+## EPICS IOC (Raspberry Pi)
+
+The SBX is controlled via the Collector Box Raspberry Pi soft IOC:
+- **SPI interface** from Pi to SBX boards
+- Key EPICS DB files:
+  - `Pickoff.db` — 448 records per detector
+  - `PickoffDiagCtl.db` — 40 diagnostic control records
+  - `Pickoff_reg.db` — 264 register-level records
+- `GS${DetNbr}_SBX_Present` PV — indicates whether an SBX is connected for this GS hole
+
+---
+
+## Preamp Reset Kill (PRK) — SBX interaction
+
+The SBX differentiator converts Ge preamp reset spikes into large opposite-polarity signals. The digitizer firmware's Preamp Reset Kill (PRK) detects these via an opposite-polarity discriminator and disables the main discriminator during the reset:
+- SBX clamp time: ~200–250 µs
+- Reset rate: every few ms to ~100s of ms (depends on radiation damage)
+- PRK dead time: not significant unless detector needs annealing
+
+---
+
+## Related Files
+- `collectorboxpi.md` — Pi IOC that controls the SBX
+- `collectorbox_PVs.md` — full PV list including Pickoff records
+- `DIG_firmware_expert.md` — Preamp Reset Kill details
+- `gammasphere_geometry.md` — GS hole numbering (what GS_ID dongle reports)
+
+---
+
+## SVN Location
+`DGS_tools_pack/DGS_SVN/dgs/SlopeBoxExtension/`  
+`DGS_tools_pack/DGS_SVN/dgs/SlopeBoxInterface/`
+
+---
+
+*Created: 2026-04-05 (from SVN code reading)*

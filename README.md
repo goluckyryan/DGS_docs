@@ -84,6 +84,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [lnfill.md](lnfill.md) | Liquid nitrogen filling system; valves, tanks, cron jobs, Discord alerts |
 | [preamp_reset_readme.md](preamp_reset_readme.md) | Preamplifier reset handling |
+| [sbx.md](sbx.md) | Slope Box Extension (SBX): signal conversion, BGO pattern, pickoff card, GS_ID dongle, HV map |
 
 ### Legacy & Reference
 
