@@ -18,33 +18,33 @@ DGS is a full software+firmware+hardware stack:
 ### Full Data Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     PHYSICAL DETECTORS                          │
-│          HPGe germanium γ-ray detectors (up to 640 ch)         │
-│          Each cooled by liquid nitrogen (LN) dewars             │
-└──────────────────────────┬──────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                     PHYSICAL DETECTORS                           │
+│          HPGe germanium γ-ray detectors (up to 640 ch)           │
+│          Each cooled by liquid nitrogen (LN) dewars              │
+└──────────────────────────┬───────────────────────────────────────┘
                            │ analog signals
                            ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    DIG — Digitizer (fpga/)                      │
-│  Spartan-3 XC3S5000, ISE 14.7                                   │
-│  10 channels per board, 14-bit ADC at 100 MHz                   │
-│  Per-channel: delay → filter → discriminator (LED/CFD) → hit   │
-│  Buffers accepted events in FIFO                                │
-└───────────┬────────────────────────────────┬────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                    DIG — Digitizer (fpga/)                       │
+│  Spartan-3 XC3S5000, ISE 14.7                                    │
+│  10 channels per board, 14-bit ADC at 100 MHz                    │
+│  Per-channel: delay → filter → discriminator (LED/CFD) → hit     │
+│  Buffers accepted events in FIFO                                 │
+└───────────┬─────────────────────────────────┬────────────────────┘
             │ SERDES (18-bit, 50 MHz)         │ VME bus
             │ hit pattern + energy            │ (event data readout)
             ▼                                 ▼
-┌───────────────────────────┐    ┌───────────────────────────────┐
-│  RTRG — Router (fpga/)    │    │  MVME5500 VME IOC             │
-│  Virtex-4 XC4VLX80        │    │  VxWorks 5.5 RTOS             │
-│  Aggregates 8 DIGs        │    │  gretDet.munch (vxworks/)     │
-│  Computes X/Y multiplicity│    │  DMA readout of DIG FIFOs     │
-└───────────┬───────────┬───┘    │  EPICS IOC (ioc/)             │
-            │ SERDES    │ trigger │  Boot: vme66.cmd / vme99.cmd  │
-            │ (Link L)  │ cmd ▲  └───────────────┬───────────────┘
-            ▼           │        │                │ EPICS CA + TCP data
-┌───────────────────────┴───┐    │                ▼
+┌───────────────────────────┐      ┌───────────────────────────────┐
+│  RTRG — Router (fpga/)    │      │  MVME5500 VME IOC             │
+│  Virtex-4 XC4VLX80        │      │  VxWorks 5.5 RTOS             │
+│  Aggregates 8 DIGs        │      │  gretDet.munch (vxworks/)     │
+│  Computes X/Y multiplicity│      │  DMA readout of DIG FIFOs     │
+└───────────┬───────────┬───┘      │  EPICS IOC (ioc/)             │
+            │ SERDES    │ trigger  │  Boot: vme66.cmd / vme99.cmd  │
+            │ (Link L)  │ cmd ▲    └───────────────┬───────────────┘
+            ▼           └────────┐                 │ EPICS CA + TCP data
+┌───────────────────────────┐    │                 ▼
 │  MTRG — Master Trigger    │    │ ┌───────────────────────────────┐
 │  (fpga/)                  │    │ │  ANLDAQ (anldaq/)             │
 │  Virtex-4 / KU060         │    │ │  commander.py — PyQt6 GUI     │
@@ -52,17 +52,17 @@ DGS is a full software+firmware+hardware stack:
 │  TDC ~1 ns resolution     │    │ │  Run control + live monitor   │
 │  2 µs cycle (20 frames)   │    │ │  tcpReceiverMT — binary files │
 └───────────┬───────────────┘    │ └───────────────┬───────────────┘
-            │ trigger decision   │                  │
-            │ (TTCL, Link L)     │                  │
-            └──► RTRG ──► DIG ───┘                  │
-                                                  │ raw binary files
-                                                  ▼
-                                 ┌───────────────────────────────┐
-                                 │  dgs_analysis/                │
-                                 │  fastEventConstructor (ROOT)  │
-                                 │  parquet_pysort (Parquet)     │
-                                 │  Event building, calibration  │
-                                 └───────────────────────────────┘
+            │ trigger decision   │                 │
+            │ (TTCL, Link L)     │                 │
+            └──► RTRG ──► DIG ───┘                 │
+                                                   │ raw binary files
+                                                   ▼
+                                  ┌───────────────────────────────┐
+                                  │  dgs_analysis/                │
+                                  │  fastEventConstructor (ROOT)  │
+                                  │  parquet_pysort (Parquet)     │
+                                  │  Event building, calibration  │
+                                  └───────────────────────────────┘
 ```
 
 ---
@@ -124,7 +124,6 @@ DGS is a full software+firmware+hardware stack:
 **Other:**
 | Host | IP | OS | Role |
 |------|----|----|------|
-| DCS2.onenet | .56 | Ubuntu 24.04 | InfluxDB, Grafana, health checks |
 | fs2.onenet | .71 | — | NFS/tftp server for collector Pis |
 | Einstor | .1 | — | DHCP server (ANL-managed) |
 
@@ -149,12 +148,11 @@ DGS is a full software+firmware+hardware stack:
 
 ---
 
-## Subsystem Map
+## Subsystem Map in the Pi
 
 | Repo / Folder | What It Does | Key Tech |
 |---------------|-------------|---------|
-| `fpga/` | FPGA firmware source (production) | VHDL, ISE 13.4/14.7, Vivado 2018.3 |
-| `raw_FPGA/` | FPGA firmware source (raw/upstream) | Same as fpga/ |
+| `raw_FPGA/` | FPGA firmware source (raw/upstream) | VHDL, ISE 13.4/14.7, Vivado 2018.3 |
 | `ioc/` | EPICS IOC config + firmware binaries | EPICS db/dbd, VxWorks boot scripts, Git LFS |
 | `vxworks/` | Cross-compiler + IOC build environment | VxWorks 5.5, EPICS 3.14, asyn, sncseq |
 | `ANLDAQ/` | DAQ GUI + data receiver | PyQt6, pyEPICS, C++ TCP receiver |
