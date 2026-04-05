@@ -119,6 +119,57 @@ cd tcpReceiver && make
 
 ---
 
+## VxWorks IOC Data Pipeline (inLoop / outLoop / MiniSender)
+
+**Source:** `DGS_tools_pack/vxworks/dgsDrivers/dgsDriverApp/src/`  
+Authors: John Anderson (inLoop), Michael Oberling (outLoop)
+
+The VME IOC runs three cooperating state machines that read digitizer and trigger FIFOs over the VME bus and hand off data to the TCP sender:
+
+```
+Digitizer FIFO (VME bus)
+    │
+    ▼  inLoop (inLoopSupport.c)
+    │  └─ CheckAndReadDigitizer() / CheckAndReadTrigger()
+    │  └─ Reads raw events from DIG/TRIG FIFOs via VME A32/D32
+    │  └─ Prepends GEB-style header, pushes into shared memory queue
+    │
+    ▼  outLoop (outLoopSupport.c)
+    │  └─ Dequeues buffers from shared memory
+    │  └─ Validates event headers, checks timestamps, tracks data rates
+    │  └─ Handles per-channel raw data length (configurable since 2023-04-10)
+    │  └─ Optionally builds histograms (HISTO_ENABLE) or captures traces (TRACE_ENABLE)
+    │  └─ Hands validated buffers to MiniSender queue
+    │
+    ▼  MiniSender (SendReceiveSupport.c)
+       └─ TCP server on port 9001 (SOCK_STREAM)
+       └─ Accepts connection from tcpReceiverMT
+       └─ Responds to requests with data buffers via send()
+```
+
+### Key data structures
+- `MstrLogicReg[10]` — VME addresses of master logic status registers (one per board)
+- `FIFOStatusReg[10]` — VME addresses of FIFO status registers (one per board)
+- `RawDataLengthReg[10][10]` — configurable raw data length per channel per board (added 2023-04-10)
+- `DigitizerCalcEventSize[10][10]` — computed event size per channel per board
+- `DataRate[board]`, `DataTotal[board]`, `DataLost[board]` — per-board statistics
+- `TotalBuffers_Written`, `TotalBuffers_Lost` — global buffer statistics
+
+### Functions (inLoop)
+- `SetupBoardAddresses()` — maps VME addresses for all boards in a crate
+- `CheckAndReadDigitizer()` — polls DIG FIFO, reads events if available
+- `CheckAndReadTrigger()` — polls TRIG FIFO, reads trigger records
+- `SendEndOfRun()` — signals end-of-run marker into queue
+- `CalcDigMaxEventsPerRead()` — computes max events per VME read cycle
+- `ResetAndReEnableDig()` — resets and re-enables digitizer
+
+### outLoop statistics tracking
+- Prescaled debug output (1 in 0x101 buffers prints status, 1 in 0x4001 prints headers)
+- Per-board error counts + error data (4 error types per board)
+- Per-channel last timestamp tracking for sequence checking
+
+---
+
 ## Connections to Other Subsystems
 
 - **ioc/** — provides EPICS PV definitions (db/dbd) and boot scripts used by ANLDAQ
