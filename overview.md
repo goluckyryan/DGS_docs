@@ -19,11 +19,34 @@ DGS is a full software+firmware+hardware stack:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                     PHYSICAL DETECTORS                           │
-│          HPGe germanium γ-ray detectors (up to 640 ch)           │
-│          Each cooled by liquid nitrogen (LN) dewars              │
+│              HPGe + BGO DETECTORS (up to 110 GS holes)           │
+│  HPGe crystal (LN2 cooled) + up to 7 BGO Compton shield segments │
 └──────────────────────────┬───────────────────────────────────────┘
-                           │ analog signals
+                           │ preamp signals (single-ended)
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│               SLOPE BOX  (1 per detector)                        │
+│  Generates Ge bias HV (~3500V) + BGO bias HV (~550–800V)         │
+│  Multiplexed ADC: temp, actual HV, PSU monitoring                │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ analog signals + 48VDC
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│         SBX — Slope Box Extension  (1 per detector)              │
+│  Single-ended → differential conversion                          │
+│  BGO sum signal + BGO pattern discrimination                     │
+│  GS_ID dongle (identifies GS hole number)                        │
+│  Pickoff Card: routes signals to correct DIG channels            │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ DVI-I cable (signals + power + comms)
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│  COLLECTOR BOX — CollectorBox_RevA  (4 boxes × 28 detectors)     │
+│  Aggregates SBX signals; routes to VME crate digitizers          │
+│  Controlled by Raspberry Pi soft IOC (collectorboxpi/)           │
+│  EPICS PVs: HV, temp, BGO, FET bias, fan speed (1437 PVs/det)   │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ differential analog → VME
                            ▼
 ┌──────────────────────────────────────────────────────────────────┐
 │                    DIG — Digitizer (fpga/)                       │
@@ -73,10 +96,22 @@ DGS is a full software+firmware+hardware stack:
 
 | Board | Chip | Count | Role |
 |-------|------|-------|------|
-| DIG | Spartan-3 XC3S5000 + XC3S400 (VME) | up to 64 | 10-ch digitizer |
+| DIG (MDIG/SDIG) | Spartan-3 XC3S5000 + XC3S400 (VME) | up to 64 | 10-ch digitizer |
 | RTRG | Virtex-4 XC4VLX80 + XC3S400 (VME) | up to 8 | Router trigger |
 | MTRG | XC4VLX80 or KU060 + XC3S400 (VME) + XC95144XL (CPLD) | 1 | Master trigger |
 | MVME5500 | PowerPC 7455 | multiple | IOC computer (one per VME crate) |
+
+### Per-Detector Hardware (outside VME)
+
+| Hardware | Count | Role |
+|----------|-------|------|
+| HPGe detector | up to 110 | Gamma-ray sensing crystal, cooled by LN2 |
+| BGO shield | up to 7 per detector | Compton suppression scintillator segments |
+| Slope Box | 1 per detector | Generates Ge+BGO bias HV; multiplexed ADC for temp/HV monitoring; secured to detector with metal belt |
+| SBX (Slope Box Extension) | 1 per detector | Signal conditioning: single-ended → differential; BGO sum + pattern discrimination; GS_ID dongle; 48VDC power distribution |
+| Pickoff Card | 1 per SBX | Sub-board that routes signals to correct DIG channels; BGO HV demand control |
+| Collector Box (CollectorBox_RevA) | 4 total | Hub for 28 detectors each; aggregates SBX signals via DVI-I cables; interfaces to digitizers + Pi soft IOC |
+| DVI-I cable | 1 per detector | Carries analog signals + power + comms from SBX → Collector Box |
 
 ### Computers (all 192.168.203.x unless noted)
 
@@ -151,15 +186,16 @@ DGS is a full software+firmware+hardware stack:
 ## Subsystem Map in the Pi
 
 | Repo / Folder | What It Does | Key Tech |
-|---------------|-------------|---------|
-| `FPGA/` | FPGA firmware source (raw/upstream) | VHDL, ISE 13.4/14.7, Vivado 2018.3 |
+|---------------|-------------|----------|
+| `FPGA/` | FPGA firmware source (DIG/RTRG/MTRG) | VHDL, ISE 13.4/14.7, Vivado 2018.3 |
 | `ioc/` | EPICS IOC config + firmware binaries | EPICS db/dbd, VxWorks boot scripts, Git LFS |
 | `vxworks/` | Cross-compiler + IOC build environment | VxWorks 5.5, EPICS 3.14, asyn, sncseq |
 | `ANLDAQ/` | DAQ GUI + data receiver | PyQt6, pyEPICS, C++ TCP receiver |
-| `collectorboxpi/` | Collector box HV control (Pi) | EPICS 7.0.10, soft IOC, autosave |
-| `lnfill/` | LN filling system control | Python 3, EPICS CA, InfluxDB, Discord |
+| `collectorboxpi/` | Collector Box soft IOC on Raspberry Pi — controls HV, BGO, temps via SBX/Pickoff/Slope Box | EPICS 7.0.10, soft IOC, autosave, SPI |
+| `lnfill/` | LN filling system — fills HPGe dewars, monitors temps | Python 3, EPICS CA, InfluxDB, Discord |
 | `dgs_analysis/` | Post-experiment analysis | C++ ROOT, Python Parquet |
-| `DGS_SVN/` | Legacy SVN archive | Historical reference |
+| `snapshot_pv/` | PV snapshot + watchdog utilities | Python, pyepics |
+| `DGS_SVN/` | Legacy SVN archive (slope box, trigger history, utility scripts) | Historical reference |
 
 ---
 
