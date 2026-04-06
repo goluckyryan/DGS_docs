@@ -105,7 +105,7 @@ Channel design changes slightly:
 
 ## Pileup Logic
 
-**Pileup counter**: 4-bit counter (max 15). Increments when discriminator fires; decrements when a delayed copy of discriminator bit exits delay chain formed by M2 (pre-rise) + K + K0. In CFD mode, LED (across 'k') used for pileup timing (LED must work for CFD to work; safer to base pileup on LED).
+**Pileup counter**: 4-bit counter (max 15). Increments when discriminator fires; decrements when a delayed copy of discriminator bit exits delay chain formed by M2 (pre-rise) + K + K0. In CFD mode, LED (across 'k') used for pileup timing (LED must work for CFD to work; safer to base pileup on LED). ✅ verified 2026-04-06 — `jta_channel.vhd:L219` (`PILEUP_COUNT : std_logic_vector(3 downto 0)`), overflow at `"1111"` confirmed L1224
 
 Pileup inspection time = m + k0 + k. Example: m=6 µs → max hit rate = 1/400 ns without overflow (2× typical HPGe rise time). Proper holdoff ending at peak prevents overflow. Counter overflow → pileup overflow state → requires software reset.
 
