@@ -136,9 +136,11 @@ Excludes noisy/internal PVs that change constantly:
 - Starts with: `DAQC`
 - Ends with: `RBV`, `LONGIN`, `LONGOUT`, `Lo`, `Hi`, `_counter`, `_TEMP`, `_GeHV`, etc.
 
+> ⚠️ **Filter drift risk:** `watchDog.py` has its **own hardcoded exclusion list** — it does **not** import `pv_filter.py`. As `pv_filter.py` is updated, `watchDog.py`'s filter can silently fall behind. If noisy PVs are added to `pv_filter`, `watchDog.py` must be manually updated too.
+
 ### Implementation details
 - Creates `epics.PV()` objects, does a `get()` to establish connection, then `add_callback()`
-- Callback fires in background thread on every PV change
+- Callback fires in background thread on every PV change; **up to 40 parallel threads** for initial setup (scales with PV count)
 - Log file rotates daily: `pv_history_YYYYMMDD.log`
 - Thread-safe log writes via `threading.Lock()`
 - Graceful shutdown on Ctrl+C: clears all callbacks + EPICS CA cache
@@ -183,7 +185,9 @@ No RBV & Mismatch: 3
 
 ## pv_filter.py — PV Filter
 
-Shared `keep(pv)` function used by both `dumpPVs.py` and external code. Defines which PVs are worth snapshotting (excludes fast-changing or internal PVs).
+Shared `keep(pv)` function used by `dumpPVs.py`, `putPVs.py`, `verifyPVs.py`, and external code. Defines which PVs are worth snapshotting (excludes fast-changing or internal PVs).
+
+> ⚠️ **Not used by `watchDog.py`** — that script has its own separate hardcoded filter (see above). Keep both in sync when adding new noisy PV patterns.
 
 ---
 
