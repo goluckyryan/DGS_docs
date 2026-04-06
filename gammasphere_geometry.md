@@ -87,6 +87,27 @@ Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 
 
 ---
 
+## Detector Installation Database (May 2017)
+
+_Source: `DGS_tools_pack/DGS_SVN/dgs/Documentation/North_db.csv` + `South_db.csv`_
+
+These CSVs record which physical crystals were installed in which GS holes during the May 2017 Gammasphere commissioning. Columns: **GS #** (hole), **Hoze #** (housing ID, e.g. A26/B15), **Det/Ge #** (Ge crystal serial), **HV** (bias voltage in V), **SB #** (slope box number), **SB pos** (position on slope box: T/B/L/R/TL/TR/BL/BR), **BGO #** (BGO crystal number), **BGO Install Date**.
+
+Key observations:
+- Holes 1, 2, 3, 4, 5, 6 have no Ge or HV entry — likely forward/backward beam holes or permanently empty positions
+- GS 53 (north) and GS 58 (south) are explicitly marked `EMPTY`
+- HV ranges from 3000–4800 V (typically 3500–4000 V per crystal)
+- Two crystals noted as ANL serials (`ANL00` at GS 95, `ANL16` at GS 98) rather than numeric serials
+- BGO #s run 1–113 (not contiguous); SBX positions use compass notation (TL=top-left, BR=bottom-right, etc.)
+- Install dates cluster around May 15–31, 2017
+
+> ⚠️ This database reflects the 2017 configuration. Crystal assignments may have changed due to repairs/replacements. Cross-reference with current EPICS PVs (`GS${N}_SBX_Present`, slope box telemetry) for live status.
+
+**North hemisphere summary (GS odd 1–109):** 55 positions; ~43 with Ge crystals installed
+**South hemisphere summary (GS even 2–110):** 55 positions; ~43 with Ge crystals installed
+
+---
+
 ## Related Files
 
 - `angtheta.dat` — one angle per line, line N = GS hole N: `DGS_tools_pack/dgs_analysis/armory/parquet_pysort/angtheta.dat`
