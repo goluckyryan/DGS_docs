@@ -59,6 +59,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [ioc.md](ioc.md) | EPICS IOC config, boot scripts, firmware versions, MVME5500 setup |
 | [EPICS.md](EPICS.md) | EPICS primer: record types, tools, Python integration for DGS |
+| [EPICS_asyn.md](EPICS_asyn.md) | asyn driver support: caput flow diagram, port concept, worker threads, bulk writes, passive hardware callbacks |
 | [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary |
 | [vxworks_migration.md](vxworks_migration.md) | Migration notes from con6 (Solaris) to Ubuntu 24 |
 
