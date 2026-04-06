@@ -68,9 +68,9 @@ The DGS trigger system is organized as a three-tier hierarchy:
 
 | Module | Folder | Chip | Tool | Role |
 |--------|--------|------|------|------|
-| [MTRG](MTRG/README.md) | `MTRG/` | Virtex-4 XC4VLX80 (ISE) / Kintex UltraScale XCK060 (Vivado) | ISE 13.4 / Vivado 2018.3 | Central trigger decision-maker |
-| [RTRG](RTRG/README.md) | `RTRG/` | Virtex-4 XC4VLX80 | ISE 13.4 | Router — aggregates digitizer hits, forwards trigger commands |
-| [DIG](DIG/README.md) | `DIG/` | Spartan-3 XC3S5000 | ISE 14.7 | 10-channel waveform digitizer |
+| [MTRG](MTRG/README.md) | `MTRG/` | Virtex-4 XC4VLX80 (ISE) / Kintex UltraScale XCK060 (Vivado) | ISE 13.4 / Vivado 2018.3 | Central trigger decision-maker | ✅ verified 2026-04-06 — MTRG/Firmware/MAIN_FPGA/trunk/Work13_4/Work13_4.xise |
+| [RTRG](RTRG/README.md) | `RTRG/` | Virtex-4 XC4VLX80 | ISE 13.4 | Router — aggregates digitizer hits, forwards trigger commands | ✅ verified 2026-04-06 — RTRG/Firmware/DGS_Version/MAIN_FPGA/Work13_4/Work13_4.xise |
+| [DIG](DIG/README.md) | `DIG/` | Spartan-3 XC3S5000 | ISE 14.7 | 10-channel waveform digitizer | ✅ verified 2026-04-06 — DIG/MAIN_FPGA/BuildBranches/DGS/Work/BUS_LEFT.xise |
 
 Each module also has a VME FPGA (Spartan-3 XC3S400) that handles VME bus access and programs the main FPGA from flash memory.
 
