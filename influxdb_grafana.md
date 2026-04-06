@@ -98,8 +98,9 @@ GS5_GE_HV_DEMAND_VOLTS value=3000.0 1743890400000000000
 ## Grafana
 
 **URL:** `http://192.168.203.56:3000`
-**Version:** 12.3.1 (Enterprise build)
-**Authentication:** admin credentials required (not accessible from `dcsu` account)
+**Version:** 12.3.1 (Enterprise build) ✅ verified 2026-04-06 — `/api/health` returns `{"version":"12.3.1","database":"ok"}`
+**Commit:** `0d1a5b4420a5e4579b91c239ecb240ea2b247fba` (core); `2a9691bd01b56d649d9fd494d0166752f0891473` (enterprise)
+**Authentication:** admin credentials required (not accessible from `dcsu` account — 401 on `/api/datasources`)
 
 ### Data Sources (inferred)
 Grafana connects to InfluxDB 3 at `http://localhost:8181`. Expected datasources:
