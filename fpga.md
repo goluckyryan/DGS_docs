@@ -72,7 +72,7 @@ The DGS trigger system is organized as a three-tier hierarchy:
 | [RTRG](RTRG/README.md) | `RTRG/` | Virtex-4 XC4VLX80 | ISE 13.4 | Router — aggregates digitizer hits, forwards trigger commands | ✅ verified 2026-04-06 — RTRG/Firmware/DGS_Version/MAIN_FPGA/Work13_4/Work13_4.xise |
 | [DIG](DIG/README.md) | `DIG/` | Spartan-3 XC3S5000 | ISE 14.7 | 10-channel waveform digitizer | ✅ verified 2026-04-06 — DIG/MAIN_FPGA/BuildBranches/DGS/Work/BUS_LEFT.xise |
 
-Each module also has a VME FPGA (Spartan-3 XC3S400) that handles VME bus access and programs the main FPGA from flash memory.
+Each module also has a VME FPGA (Spartan-3 XC3S400) that handles VME bus access and programs the main FPGA from flash memory. ✅ verified 2026-04-06 — DIG/VME_FPGA_ANL/Work11/vme_A32_D32.xise (Device=xc3s400, Spartan3)
 
 ---
 
@@ -88,7 +88,7 @@ The system operates on a **2 µs trigger cycle** divided into 20 frames. Data fl
 Detector signals
     │  (analog)
     ▼
-DIG — ADC (14-bit, 100 MHz)
+DIG — ADC (14-bit, 100 MHz) ✅ verified 2026-04-06 — decimator.vhd:adc_data(13 downto 0); LEFT_RIGHT.ucf: CLK50_OSC×2 = 100 MHz logic clock
     │  Per-channel: delay chain → filters → discriminator → hit flag
     │
     │  SERDES Link A–H (18-bit, 50 MHz, DC-balanced)
