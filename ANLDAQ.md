@@ -4,7 +4,7 @@
 
 ANLDAQ is the **front-end operator interface** for the DGS (and other ANL detector) DAQ systems. It provides:
 - A **PyQt6 GUI** (`commander.py`) for configuring and controlling detector electronics (DIG digitizers, RTRG routers, MTRG master trigger) via EPICS
-- A **multi-threaded C++ TCP receiver** (`tcpReceiverMT`) that collects raw binary data from VME IOCs during runs via TCP (port 9001)
+- A **multi-threaded C++ TCP receiver** (`tcpReceiverMT`) that collects raw binary data from VME IOCs during runs via TCP (port 9001) ✅ verified 2026-04-06 — `tcpReceiverMT.cpp:L55` (`cfg.port = 9001`) + `gui_DataTaking.py:L8,L104` (spawn)
 
 Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS`, `X-array`.
 
