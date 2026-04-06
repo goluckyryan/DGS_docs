@@ -145,6 +145,42 @@ Excludes noisy/internal PVs that change constantly:
 
 ---
 
+## verifyPVs.py — Compare Snapshot vs Live
+
+Compares all PV values in a dump file against live readbacks using `caget`. Parallel threads for speed.
+
+### Usage
+```bash
+source EPICS_env.sh
+python3 verifyPVs.py 20260405_161500_pv_vme01.txt
+```
+
+### Behavior
+- For each PV in the dump file, tries `caget PV_RBV` first; falls back to `caget PV` if no `_RBV` exists
+- Compares snapshot value vs live value with 1e-6 float tolerance
+- Special case: `win_comp_max` / `win_comp_min` PVs — snapshot value × 100 before compare (unit scale difference)
+- Applies `pv_filter.keep()` to skip noisy PVs (same filter as dumpPVs)
+
+### Output categories (color-coded)
+| Category | Meaning |
+|---|---|
+| OK (green) | Value matches snapshot |
+| MISMATCH (yellow) | Value differs from snapshot, has `_RBV` |
+| NO_RBV (blue) | No `_RBV` readback; value differs |
+| UNREADABLE (red) | CA connect timed out / PV not reachable |
+
+### Summary
+```
+--- Results ---
+               OK: 4823
+         Mismatch: 12
+           No RBV: 237
+No RBV & Mismatch: 3
+       Unreadable: 0
+```
+
+---
+
 ## pv_filter.py — PV Filter
 
 Shared `keep(pv)` function used by both `dumpPVs.py` and external code. Defines which PVs are worth snapshotting (excludes fast-changing or internal PVs).
