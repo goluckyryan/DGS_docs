@@ -155,7 +155,7 @@ The SBX differentiator converts Ge preamp reset spikes into large opposite-polar
 - **PRK enable** = `reg_channel_control[3]` (bit 3) ✅ verified 2026-04-06 — `Digitizer.vhd:L1203`
 - Reset rate: every few ms to ~100s of ms (depends on radiation damage)
 - PRK dead time: not significant unless detector needs annealing
-- Note: "SBX clamp time ~200–250 µs" from earlier notes is ⚠️ unverified — source needed (hardware RC time constant, not firmware)
+- **SBX GeCenter clamp time** (SBX Extension FPGA, `PARST_ANALOG_SWITCH_CTL` process, 100 MHz clock): `PARST_SWITCH_COUNT` default = `X"1388"` = 5000; loaded as `5000 & '0'` = 10000 counts at 100 MHz = **100 µs** default clamp duration. Register is 16-bit: bit 15 = enable flag, bits[14:0] = count (× 2 × 10 ns, max ~655 µs). ✅ verified 2026-04-06 — `SlopeboxInt_TopLevel_RevC.vhd:L552,L3208–3237`. Prior claim of "200–250 µs" was incorrect — that figure is not in the firmware source.
 
 ---
 
