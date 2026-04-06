@@ -127,8 +127,8 @@ dgs_pz 350 141 dgs_pz.cal 1.003
 ```
 
 Arguments:
-- `350` — M value (in 10 ns units = 3.50 µs; from `caput GLBL:DIG:m_window`)
-- `141` — K value (in 10 ns units); calculated as sum of all K+D windows:
+- `350` — M value (in 10 ns units = 3.50 µs; from `caput GLBL:DIG:m_window`) ✅ verified 2026-04-06 — `MDigUser.template`: all window PVs use `ESLO=0.010` (µs/count), so raw register = EGU/0.01; 3.5 µs → 350 counts
+- `141` — K value (in 10 ns units); calculated as sum of all K+D windows: ✅ verified 2026-04-06 — k_window, k0_window, d_window, d3_window all use ESLO=0.010 in MDigUser.template
   - K = k_window + d_window + k0_window + d3_window + D2_fixed
   - Example: 0.20 + 0.06 + 0.80 + 0.20 + 0.15 = 1.41 µs = **141 in 10 ns units** *(note: example uses 0.15 µs for D2 — see note below)*
   - Note: D values are included in K per S. Zhu convention (6/25/18); D2 is firmware-internal (not user-settable via EPICS, per JTA 6/26/18). Register name is **reg_d3_window** (addr 0x240–0x264, confusingly named 'd3' in firmware but represents algorithm's 'd2'). Production default = **23 clocks = 0.23 µs** (at 100 MHz). Simulation testbenches use 21–22 clocks. The 0.15 µs figure in the original K-value example may be a specific calibration run's value, not the firmware default. ✅ verified 2026-04-06 — `DIG/MAIN_FPGA/BuildBranches/DGS/Source/Registers.vhd:L186` (`to_std_logic_vector(23,32)`) + `jta_channel.vhd:L59` (comment "delay factor 'd2'" on reg_d3_window port)
