@@ -15,6 +15,14 @@ The RJ45 connector on the digitizer is **not Ethernet-compatible**. It connects 
 
 Carries: TTCL commands (receive), fast event data (transmit), and the 50 MHz system clock (recovered by SER/DES).
 
+```
+  RJ45 (viewed from front, tab down)
+  ┌──────────────────────┐
+  │ 1  2  3  4  5  6  7  8 │
+  └──────────────────────┘
+  Pin 1 = left, Pin 8 = right
+```
+
 | Pin | Signal | Description |
 |-----|--------|-------------|
 | 1 | Auxiliary In0 + | Aux input 0, positive |
@@ -52,6 +60,27 @@ Carries: TTCL commands (receive), fast event data (transmit), and the 50 MHz sys
 | 0 | 11 |
 
 ### Full Pinout
+
+```
+  36-pin Header (3 columns × 12 rows, 2.54mm pitch)
+  Viewed from front panel (pin 1 = top-left)
+
+  Col: [1=GND] [2=Sig+] [3=Sig−]
+  ┌────────┬──────────────┬──────────────┐
+  │ Pin 1  │   Pin 2      │   Pin 3      │  Row 1: GND | Aux0 +  | Aux0 −
+  │ Pin 4  │   Pin 5      │   Pin 6      │  Row 2: GND | Aux1 +  | Aux1 −
+  │ Pin 7  │   Pin 8      │   Pin 9      │  Row 3: GND | Aux2 +  | Aux2 −
+  │ Pin 10 │   Pin 11     │   Pin 12     │  Row 4: GND | Aux3 +  | Aux3 −
+  │ Pin 13 │   Pin 14     │   Pin 15     │  Row 5: GND | Aux4 +  | Aux4 −
+  │ Pin 16 │   Pin 17     │   Pin 18     │  Row 6: GND | Aux5 +  | Aux5 −
+  │ Pin 19 │   Pin 20     │   Pin 21     │  Row 7: GND | Aux6 +  | Aux6 −
+  │ Pin 22 │   Pin 23     │   Pin 24     │  Row 8: GND | Aux7 +  | Aux7 −
+  │ Pin 25 │   Pin 26     │   Pin 27     │  Row 9: GND | Aux8 +  | Aux8 −
+  │ Pin 28 │   Pin 29     │   Pin 30     │  Row10: GND | Aux9 +  | Aux9 −
+  │ Pin 31 │  *Pin 32*    │  *Pin 33*    │  Row11: GND |*Aux10+* |*Aux10−* ← AUX_DIN[10] ExtTTL
+  │ Pin 34 │   Pin 35     │   Pin 36     │  Row12: GND | ClkIn + | ClkIn −
+  └────────┴──────────────┴──────────────┘
+```
 
 | Pin | Function | Pin | Function | Pin | Function |
 |-----|----------|-----|----------|-----|----------|
@@ -139,13 +168,23 @@ Provides all 11 SERDES links (A–H, L, R, U). Mates with **Trigger Paddle Cards
 
 Each link uses **2 rows (one "wafer")** of the connector. Per-link signal layout:
 
+```
+  125-pin Hard Metric connector — per-link layout (2 rows per link)
+  Columns: a   b   c   d   e
+           │   │   │   │   │
+  Row N:  [a+][b+][GND][d+][e+]   a=SERDES_IN+  b=SERDES_OUT+  d=Discrim+  e=Throttle+
+  Row N+1:[a−][b−][GND][d−][e−]   a=SERDES_IN−  b=SERDES_OUT−  d=Discrim−  e=Throttle−
+
+  ⚠️ Links L and R: columns d and e absent (SERDES pairs only)
+```
+
 | Column | Signal | Direction (relative to trigger board) |
 |--------|--------|---------------------------------------|
-| A+ / A− | SERDES IN (receives TTCL/data from downstream) | Input |
-| B+ / B− | SERDES OUT (sends TTCL/data to downstream) | Output |
-| C | GND | — |
-| D+ / D− | LVDS IN — Discriminator bit (fast multiplicity, routed to CPLD) | Input |
-| E+ / E− | LVDS IN — Throttle request (from digitizer FIFO half-full flag) | Input |
+| a+/a− | SERDES IN (receives TTCL/data from downstream) | Input |
+| b+/b− | SERDES OUT (sends TTCL/data to downstream) | Output |
+| c | GND | — |
+| d+/d− | LVDS IN — Discriminator bit (fast multiplicity, routed to CPLD) | Input |
+| e+/e− | LVDS IN — Throttle request (from digitizer FIFO half-full flag) | Input |
 
 > ⚠️ Links **L and R** do **not** have the extra LVDS lines (D/E columns) — SERDES pairs only.
 
