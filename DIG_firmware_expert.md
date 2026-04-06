@@ -8,6 +8,17 @@ _72 pages. Intended for users working directly with firmware parameters._
 
 The 10-channel DIG firmware runs as a continuously operating data pipeline. Each channel is based on multiple delay buffers of varying width. Many timing functions derive from these delay settings.
 
+### ADC Input Range & Linearity
+_Source: [ANL Digitizer Firmware for Advanced Users](https://wiki.anl.gov/gsdaq/ANL_Digitizer_Firmware_for_Advanced_Users) (wiki)_
+
+Inputs are differential. ADC chip nominally supports ±2V differential, but input buffer circuitry limits usable range:
+- **Best linearity:** ±1.2V differential = ±4,916 ADC counts from 0V (nominal 0V = 8,192 counts → range 3,276–13,108)
+- **Relaxed use:** ±1.5V differential = ±6,144 ADC counts (range 2,048–14,336)
+- **Beyond ±1.5V:** marked non-linearity / signal compression
+- Conversion: **4,096 counts/volt** (ADC designed for 16,384 codes over 4V)
+
+Summary: For Ge signals, keep within ±1.2V for best energy resolution; ±1.5V acceptable for most uses.
+
 ---
 
 ## Memory Structures in Xilinx FPGAs
