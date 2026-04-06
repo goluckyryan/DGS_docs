@@ -128,9 +128,11 @@ The SBX is controlled via the Collector Box Raspberry Pi soft IOC:
 ## Preamp Reset Kill (PRK) — SBX interaction
 
 The SBX differentiator converts Ge preamp reset spikes into large opposite-polarity signals. The digitizer firmware's Preamp Reset Kill (PRK) detects these via an opposite-polarity discriminator and disables the main discriminator during the reset:
-- SBX clamp time: ~200–250 µs
+- **Firmware PRK holdoff** = `PREAMP_RESET_DELAY` (8-bit, from `reg_led_threshold[23:16]`) × 512 clock cycles × 10 ns = up to 1.31 ms; testbench default = 0x25 (37) = **~189 µs** ✅ verified 2026-04-06 — `thresh_disc.vhd:L661`, `one_chan_tb.vhd:L360`
+- **PRK enable** = `reg_channel_control[3]` (bit 3) ✅ verified 2026-04-06 — `Digitizer.vhd:L1203`
 - Reset rate: every few ms to ~100s of ms (depends on radiation damage)
 - PRK dead time: not significant unless detector needs annealing
+- Note: "SBX clamp time ~200–250 µs" from earlier notes is ⚠️ unverified — source needed (hardware RC time constant, not firmware)
 
 ---
 
