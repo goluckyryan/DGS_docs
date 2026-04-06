@@ -1,6 +1,7 @@
 # CollectorBox Device Support — EPICS Driver Internals
 
 Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/CollectorApp/src/`
+✅ Key claims verified 2026-04-06 against `CollectorSupport.c` (lines 30–326): 24-bit SPI transactions, CAMAC_IO/camacio link structure, asyn rejection rationale.
 
 ---
 
