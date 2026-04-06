@@ -23,7 +23,7 @@ The SVN tree contains a broad historical archive of DGS development:
 | `con6_EPICS_base` | EPICS base from con6 era |
 | `con6_work` | con6 working files |
 | `daq_system_tags` | DAQ system version tags |
-| `Data_Generator` | Data generator / test tools |
+| `Data_Generator` | **Trigger-chain test injector** — FPGA board that injects programmable discriminator bit patterns into the trigger chain (simulating digitizer hits) via SERDES links. Two firmware variants: `DSSD_MAIN_FPGA/` and `GRETINA_MAIN_FPGA/` (same VHDL, different target system). Contains a CPLD and main FPGA. Key features: 8 SERDES output channels, each with up to 1K discriminator bit patterns loaded via VME RAM tables (16-bit: bits[15:6]=pattern, bits[5:0]=assertion time in clocks); 9th table drives 2 NIM outputs synchronously. Patterns triggered by NIM pulse or Frame12 command (bit15=start now, bit14=start at timestamp rollover). Throttle output can be time-controlled. CPLD drives throttle request lines; main FPGA drives discriminator bits (reversed relative to normal Router pinout). Noted connection quirk: cable swaps SERDES_IN↔OUT and discriminator↔throttle pins. See `DataGenOperationNotes.txt`. |
 | `DB_backup_20240205` | Database backup (Feb 2024) |
 | `Detector_Repair` | Detector repair records/tools |
 | `devel8`, `dgs_devel8` | Development branch 8 |
@@ -31,7 +31,7 @@ The SVN tree contains a broad historical archive of DGS development:
 | `DGS1_clean_folders` | DGS1 (old system) clean directory tree |
 | `DGS1_total_backup` | Full DGS1 backup |
 | `dgsext` | DGS extensions |
-| `DGSFiberExpander` | Fiber expander hardware |
+| `DGSFiberExpander` | **VME Fiber Adapter / Fiber Expander** — PCB #3174 (ANL part `21pc032`, Rev A, Sept 2021). Adapts VME backplane fiber connections to front-panel SFP/fiber connectors. Contains OrCAD schematics, Allegro layout, Gerber fab package, BOM, DRC, and front panel drawings. Vendor quote from Q74173A1 / QT-2873. Likely used to extend SERDES fiber links between crates or VME chassis. |
 | `dgsSoftIOC` | Soft IOC (pre-Git version) |
 | `ArdisiaDocuments.zip` | Ardisia documentation |
 | `DigitizerFanout` | Digitizer fanout hardware |
@@ -42,7 +42,7 @@ The SVN tree contains a broad historical archive of DGS development:
 | `GRETNA_CPLD_CHECK` | GRETNA CPLD check utilities |
 | `gtReceiver` | Legacy C++ data receiver (pre-ANLDAQ); `dgsReceiver/dgsReceiver.cpp` v6.57 by M. Oberling. Writes GEB format (types 14=DGS, 15=DGSTRIG). Also contains `rcvr_merge`, `rcvr_unmerge`, `rcvr_data_scrubber` utilities. Full GEB type table now in `dgs_analysis.md`. |
 | `HELIOS_Preamp_data` | HELIOS preamp data |
-| `LBL_Digitizer` | LBL digitizer reference files |
+| `LBL_Digitizer` | Lawrence Berkeley National Lab digitizer firmware images — binary bitfiles (`chip_top_2.00_009D.bin`, `chip_top_2.00_006e.bin`) and VME MCS file (`vme-30-41.mcs`) from Dec 2014. Historical reference; ANL developed its own digitizer firmware independently. |
 | `Miscellany` | Miscellaneous files |
 | `MyRIAD` | MγRIAD module files |
 | `NewBlackBox` | New black box hardware — contains `RaspberryPi/PreEpicsCode/`: pre-EPICS collector box SPI code (bcm2835 library, `extract_Eprom_b.c`, `Scan_DVI_Power.c`, GPIO/SPI tests); predecessor to current `collectorboxpi/` EPICS soft IOC |
