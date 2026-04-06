@@ -51,34 +51,34 @@ The DIG payload is produced by the digitizer FPGA and forwarded by the IOC sende
 
 ```
 Bytes   Content
-┌──────────────────────────────────────────────────────────────────┐
-│ GEBHeader (16 bytes, added by tcpReceiverMT)             │
-│  [0- 3] type         = 14 (GEB_TYPE_DGS)                 │
-│  [4- 7] payload_len  = packet_length × 4 (bytes)         │
-│  [8-15] timestamp    = 64-bit (10 ns ticks)              │
-├──────────────────────────────────────────────────────────────────┤
-│ DIG Payload (from FPGA, big-endian 32-bit words)         │
-│  Word 0:  0xAAAAAAAA  (sync word)                        │
-│  Word 1:  [31:27]=GEO_ADDR [26:16]=PKT_LEN              │
-│           [15:4]=USER_DEF  [ 3: 0]=CH_ID                │
-│  Word 2:  EVENT_TIMESTAMP[31:0]                          │
-│  Word 3:  [31:26]=HDR_LEN  [25:23]=EVT_TYPE             │
-│           [22]=CFD_ESUM    [21]=TRIG_TS [20]=PEQ_BYPASS  │
-│           [19:16]=HDR_TYPE [15:0]=TIMESTAMP[47:32]       │
-│  Word 4:  FLAGS (VETO, PILEUP, CFD_VALID, PEAK_VALID...) │
-│  Word 5:  CFD_SAMPLE_0 (CFD mode) / padding (LED mode)  │
-│  Word 6:  [27:24]=PILEUP_CNT  [23:0]=SAMPLED_BASELINE   │
-│  Word 7:  LED: TRIG_MON_XTRA / CFD: CFD_SAMPLE_1+2      │
-│  Word 8:  [31:24]=POST_RISE_E[7:0]  [23:0]=PRE_RISE_E   │
-│  Word 9:  [31:16]=PEAK_TIMESTAMP    [15:0]=POST_RISE_E   │
-│  Word 10: [31:16]=TS_OF_TRIGGER     [14]=P2_MODE         │
-│           [13:0]=P2_SUM[13:0]                            │
-│  Word 11: [31:24]=M_SUM[7:0]  [23:0]=MULTIPLEX_DATA     │
-│  Word 12: [31:24]=M_SUM[15:8] [23:0]=EARLY_PRE_RISE_E   │
-│  Word 13: [31:24]=M_SUM[23:16][23:14]=TS_OF_COARSE       │
-│           [13]=COARSE_FIRED  [10]=2ND_THRESH  [9:0]=P2   │
-│  Word 14+: Trace (optional, 2×16-bit ADC samples/word)   │
-└──────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│ GEBHeader (16 bytes, added by tcpReceiverMT)              │
+│  [0- 3] type         = 14 (GEB_TYPE_DGS)                  │
+│  [4- 7] payload_len  = packet_length × 4 (bytes)          │
+│  [8-15] timestamp    = 64-bit (10 ns ticks)               │
+├───────────────────────────────────────────────────────────┤
+│ DIG Payload (from FPGA, big-endian 32-bit words)          │
+│  Word 0:  0xAAAAAAAA  (sync word)                         │
+│  Word 1:  [31:27]=GEO_ADDR [26:16]=PKT_LEN                │
+│           [15:4]=USER_DEF  [ 3: 0]=CH_ID                  │
+│  Word 2:  EVENT_TIMESTAMP[31:0]                           │
+│  Word 3:  [31:26]=HDR_LEN  [25:23]=EVT_TYPE               │
+│           [22]=CFD_ESUM    [21]=TRIG_TS [20]=PEQ_BYPASS   │
+│           [19:16]=HDR_TYPE [15:0]=TIMESTAMP[47:32]        │
+│  Word 4:  FLAGS (VETO, PILEUP, CFD_VALID, PEAK_VALID...)  │
+│  Word 5:  CFD_SAMPLE_0 (CFD mode) / padding (LED mode)    │
+│  Word 6:  [27:24]=PILEUP_CNT  [23:0]=SAMPLED_BASELINE     │
+│  Word 7:  LED: TRIG_MON_XTRA / CFD: CFD_SAMPLE_1+2        │
+│  Word 8:  [31:24]=POST_RISE_E[7:0]  [23:0]=PRE_RISE_E     │
+│  Word 9:  [31:16]=PEAK_TIMESTAMP    [15:0]=POST_RISE_E    │
+│  Word 10: [31:16]=TS_OF_TRIGGER     [14]=P2_MODE          │
+│           [13:0]=P2_SUM[13:0]                             │
+│  Word 11: [31:24]=M_SUM[7:0]  [23:0]=MULTIPLEX_DATA       │
+│  Word 12: [31:24]=M_SUM[15:8] [23:0]=EARLY_PRE_RISE_E     │
+│  Word 13: [31:24]=M_SUM[23:16][23:14]=TS_OF_COARSE        │
+│           [13]=COARSE_FIRED  [10]=2ND_THRESH  [9:0]=P2    │
+│  Word 14+: Trace (optional, 2×16-bit ADC samples/word)    │
+└───────────────────────────────────────────────────────────┘
 ```
 
 ### Header Words (always present)
@@ -134,32 +134,32 @@ Bit   Field                    Notes
 ### Words 5–13 — Energy, Timing, Multiplex
 
 ```
-Word  Bits    Field                     Notes
+Word  Bits    Field                       Notes
 ────────────────────────────────────────────────────────────────────────────
-  5   29:16   CFD_SAMPLE_0              CFD only: interpolation sample 0
-  6   23:0    SAMPLED_BASELINE          Baseline at trigger time
-  6   27:24   PILEUP_COUNT              Pileup count (LED) or bits[1:0] (CFD)
-  7   15:0    TRIG_MON_XTRA_DATA        LED only: trigger monitor extra
-  7   13:0    CFD_SAMPLE_1              CFD only: interpolation sample 1
-  7   29:16   CFD_SAMPLE_2              CFD only: interpolation sample 2
-  8   23:0    PRE_RISE_ENERGY           Energy before rise (trapezoidal filter)
-  8   31:24   POST_RISE_ENERGY[7:0]     Lower 8 bits of post-rise energy
-  9   15:0    POST_RISE_ENERGY[23:8]    Upper 16 bits of post-rise energy
-  9   31:16   PEAK_TIMESTAMP            16-bit peak timestamp (ns within event)
- 10   13:0    P2_SUM[13:0]              P2 sum lower bits
- 10   14      P2_MODE                   P2 mode flag
- 10   15      CAPTURE_PARST_TS          Capture PARST timestamp
- 10   31:16   TS_OF_TRIGGER             16-bit timestamp of trigger relative to event
- 11   23:0    MULTIPLEX_DATA            Multiplex data field
- 11   31:24   LAST_POST_RISE_M_SUM[7:0] Last post-rise M sum lower 8 bits
- 12   23:0    EARLY_PRE_RISE_ENERGY     Early pre-rise energy sum
- 12   31:24   LAST_POST_RISE_M_SUM[15:8] Last post-rise M sum upper 8 bits
- 13    9:0    P2_SUM[23:14]             P2 sum upper bits
- 13   10      SECOND_THRESH_DISC_FLAG   Second threshold discriminator flag
- 13   11      PARST_TSM                 PARST timestamp match
- 13   12      PREVIOUS_CFD_VALID        Previous CFD valid (CFD mode only)
- 13   13      COARSE_FIRED              Coarse discriminator fired
- 13   23:14   TS_OF_COARSE              10-bit coarse discriminator timestamp
+  5   29:16   CFD_SAMPLE_0                CFD only: interpolation sample 0
+  6   23:0    SAMPLED_BASELINE            Baseline at trigger time
+  6   27:24   PILEUP_COUNT                Pileup count (LED) or bits[1:0] (CFD)
+  7   15:0    TRIG_MON_XTRA_DATA          LED only: trigger monitor extra
+  7   13:0    CFD_SAMPLE_1                CFD only: interpolation sample 1
+  7   29:16   CFD_SAMPLE_2                CFD only: interpolation sample 2
+  8   23:0    PRE_RISE_ENERGY             Energy before rise (trapezoidal filter)
+  8   31:24   POST_RISE_ENERGY[7:0]       Lower 8 bits of post-rise energy
+  9   15:0    POST_RISE_ENERGY[23:8]      Upper 16 bits of post-rise energy
+  9   31:16   PEAK_TIMESTAMP              16-bit peak timestamp (ns within event)
+ 10   13:0    P2_SUM[13:0]                P2 sum lower bits
+ 10   14      P2_MODE                     P2 mode flag
+ 10   15      CAPTURE_PARST_TS            Capture PARST timestamp
+ 10   31:16   TS_OF_TRIGGER               16-bit timestamp of trigger relative to event
+ 11   23:0    MULTIPLEX_DATA              Multiplex data field
+ 11   31:24   LAST_POST_RISE_M_SUM[7:0]   Last post-rise M sum lower 8 bits
+ 12   23:0    EARLY_PRE_RISE_ENERGY       Early pre-rise energy sum
+ 12   31:24   LAST_POST_RISE_M_SUM[15:8]  Last post-rise M sum upper 8 bits
+ 13    9:0    P2_SUM[23:14]               P2 sum upper bits
+ 13   10      SECOND_THRESH_DISC_FLAG     Second threshold discriminator flag
+ 13   11      PARST_TSM                   PARST timestamp match
+ 13   12      PREVIOUS_CFD_VALID          Previous CFD valid (CFD mode only)
+ 13   13      COARSE_FIRED                Coarse discriminator fired
+ 13   23:14   TS_OF_COARSE                10-bit coarse discriminator timestamp
  13   31:24   LAST_POST_RISE_M_SUM[23:16] Last post-rise M sum upper 8 bits
 ```
 
@@ -181,58 +181,49 @@ The IOC sends the raw VME trigger packet (16 words). `tcpReceiverMT` **repacks**
 
 ```
 IOC TCP stream: Raw TAC2 VME packet (16 words, 32-bit each, big-endian)
-┌────────────────────────────────────────────────┐
-│ Word  0:  (raw VME status/type word)                │
-│ Word  1:  trigType data                             │
-│ Word  2:  timestamp word (used for GEBHeader ts)    │
-│ Word  3:  timestamp low   → payload[2] low 16       │
-│ Word  4:  timestamp high  → payload[2] high 16      │
-│ Word  5:  wheel                                     │
-│ Word  6:  multiplicity                              │
-│ Word  7:  userRegister                              │
-│ Word  8:  coarseTime                                │
-│ Word  9:  triggerBitMask                            │
-│ Word 10:  4nsCounter[0]                             │
-│ Word 11:  4nsCounter[1]                             │
-│ Word 12:  4nsCounter[2]                             │
-│ Word 13:  4nsCounter[3]                             │
-│ Word 14:  vernierAB                                 │
-│ Word 15:  vernierCD                                 │
-└────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────┐
+│ Word  0:  [15:0] 0xAAAA                           │
+│ Word  1:  [15:0] trigType data                    │
+│ Word  2:  [15:0] timestamp high                   │
+│ Word  3:  [15:0] timestamp middle                 │
+│ Word  4:  [15:0] timestamp low                    │
+│ Word  5:  [15:0] wheel                            │
+│ Word  6:  [15:0] multiplicity                     │
+│ Word  7:  [15:0] userRegister                     │
+│ Word  8:  [15:0] coarseTime                       │
+│ Word  9:  [15:0] triggerBitMask                   │
+│ Word 10:  [15:0] 4nsCounter[0]                    │
+│ Word 11:  [15:0] 4nsCounter[1]                    │
+│ Word 12:  [15:0] 4nsCounter[2]                    │
+│ Word 13:  [15:0] 4nsCounter[3]                    │
+│ Word 14:  [15:12] vernierByte [11 :0] vernierAB   │
+│ Word 15:  [11:0] vernierCD                        │
+└───────────────────────────────────────────────────┘
              │ tcpReceiverMT repacks 16→10 words:
              │ pairs of adjacent 32-bit words are
              │ merged into one word as [hi<<16 | lo]
              ▼
 Saved file: GEBHeader + repacked TAC2 packet (10 words)
-┌────────────────────────────────────────────────┐
-│ GEBHeader (16 bytes):                               │
-│   type = 15 (GEB_TYPE_DGSTRIG)                      │
-│   payload_len = 10 × 4 = 40 bytes                   │
-│   timestamp = extracted from header[2] (VME word 2) │
-├────────────────────────────────────────────────┤
-│ Repacked payload (10 words, DIG-compatible):        │
-│  Word 0: 0xAAAAAAAA  (sync word)                    │
-│  Word 1: (CH_ID=0xA) | (99<<4) | (10<<16)           │
-│           board_id=99, len=10 are sentinel values   │
-│  Word 2: header[4]<<0 | header[3]<<16               │
-│           = ts_high | ts_low<<16                    │
-│  Word 3: header[2] | (0xE<<16) | (3<<26)            │
-│           HDR_TYPE=0xE, HDR_LEN=3                   │
-│  Word 4: (header[1]<<16) | header[5]                │
-│           = trigType<<16 | wheel                    │
-│  Word 5: (header[6]<<16) | header[7]                │
-│           = multiplicity<<16 | userRegister         │
-│  Word 6: (header[8]<<16) | header[9]                │
-│           = coarseTime<<16 | triggerBitMask         │
-│  Word 7: (header[10]<<16) | header[11]              │
-│           = 4nsCounter[0]<<16 | 4nsCounter[1]       │
-│  Word 8: (header[12]<<16) | header[13]              │
-│           = 4nsCounter[2]<<16 | 4nsCounter[3]       │
-│  Word 9: (header[14]<<16) | header[15]              │
-│           = vernierAB<<16 | vernierCD               │
-└────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│ GEBHeader (16 bytes):                                           │
+│   type = 15 (GEB_TYPE_DGSTRIG)                                  │
+│   payload_len = 10 × 4 = 40 bytes                               │
+│   timestamp = extracted from header[2] (VME word 2)             │
+├─────────────────────────────────────────────────────────────────┤
+│ Repacked payload (10 words, DIG-compatible):                    │
+│  Word 0: 0xAAAAAAAA  (sync word)                                │
+│  Word 1: [31:16] data len  [15:4] Board_id [3:0] Ch_id          |
+│  Word 2: [31:16] ts middle     [15:0] ts_low                    │
+│  Word 3: [31:26] 3 [25:16] header_type [15:0] ts_high           │
+│  Word 4: [31:26]  trigType     [15:0] wheel                     │
+│  Word 5: [31:16] multiplicity  [15:0] userRegister              │
+│  Word 6: [31:16] coarseTime    [15:0] triggerBitMask            │
+│  Word 7: [31:16] 4nsCounter[0] [15:0] 4nsCounter[1]             │
+│  Word 8: [31:16] 4nsCounter[2] [15:0] 4nsCounter[3]             │
+│  Word 9: [31:28] vernierByte [27:16] vernierAB [11:0] vernierCD │
+└─────────────────────────────────────────────────────────────────┘
   Source: `tcpReceiverMT.cpp` / `receiver.h:L447–524`
-  Note: board_id=99, CH_ID=0xA are sentinel values identifying this as trigger data.
+  Note: board_id=99, CH_ID=0xA, header_Type=0xE are sentinel values identifying this as trigger data.
 ```
 
 The MTRG TAC-II TDC produces trigger timing data decoded into the `TDC` class:
