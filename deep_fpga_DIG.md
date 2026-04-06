@@ -41,14 +41,14 @@
 
 | Device | Part | Package | Speed | Tool | Role |
 |--------|------|---------|-------|------|------|
-| Main FPGA | xc3s5000 (Spartan-3) | fg900 | -5 | ISE 14.7 | Signal processing, trigger interface, event readout |
+| Main FPGA | xc3s5000 (Spartan-3) | fg900 | -5 | ISE 14.7 | Signal processing, trigger interface, event readout | ✅ verified 2026-04-06 — `DIG/MAIN_FPGA/BuildBranches/DGS/Source/LEFT_RIGHT.ucf:L9` |
 | VME FPGA | xc3s400 (Spartan-3) | fg320 | -5 | ISE 13.4 | VME slave, main FPGA configuration |
 
 ## Memory Resources
 
 ### Internal BRAM
 
-The XC3S5000 contains **104 BRAM blocks** (~1.9 Mb total), each configurable as
+The XC3S5000 contains **104 BRAM blocks** (~1.9 Mb total), each configurable as ✅ verified 2026-04-06 — `DIG/MAIN_FPGA/BuildBranches/SumOverRise/Work/DIGITIZER.syr:L21666` (87/104 BRAMs used in that build)
 1024 × 18-bit dual-port RAM. Approximately 54–56 blocks are used (~52%):
 
 | Use | Blocks | Details |
