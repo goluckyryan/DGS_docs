@@ -306,5 +306,82 @@ for c in 01 02 03; do for b in MDIG1 MDIG2; do caget VME${c}:${b}:trigger_mux_se
 caget VME10:MTRG:Threshold
 ```
 
+---
+
+## 8. Database Definition Files (.dbd)
+
+`.dbd` files are the **schema layer** of EPICS — they define what record types, device supports, and drivers exist. Without them, the IOC cannot interpret `.db` files at load time.
+
+### What a .dbd declares
+
+**Record type definitions** — the fields a record has, their types, defaults:
+```
+recordtype(ai) {
+    field(VAL,  DBF_DOUBLE)  { prompt("Current EGU Value") }
+    field(EGU,  DBF_STRING)  { prompt("Engineering Units") }
+    field(DTYP, DBF_DEVICE)  { prompt("Device Type") }
+    ...
+}
+```
+
+**Device support registrations** — maps `DTYP` strings to C device support structs:
+```
+device(ai, INST_IO,   devAiSoft,   "Soft Channel")
+device(ai, CAMAC_IO,  devAiCamac,  "CAMAC")
+device(ao, INST_IO,   devAoSoft,   "Soft Channel")
+```
+This is how EPICS knows that `field(DTYP, "CAMAC")` maps to `devAiCamac.c`.
+
+**Driver table entries**:
+```
+driver(drvCamac)
+```
+
+**Menu enumerations** (shared across all records):
+```
+menu(menuScan) {
+    choice(menuScanPassive,   "Passive")
+    choice(menuScanEvent,     "Event")
+    choice(menuScan1_second,  "1 second")
+    ...
+}
+```
+
+**Registrar functions** (called at IOC init):
+```
+registrar(myModuleRegister)
+```
+
+### How .dbd files are assembled
+
+At build time, EPICS uses `dbExpand` to merge multiple `.dbd` fragments into one final `.dbd`:
+
+```
+epics-base records (ai.dbd, ao.dbd, ...) \
+    + device support (devSoft.dbd, devCamac.dbd, ...) \
+    + driver (drvCamac.dbd) \
+    → final App.dbd  (loaded by IOC at startup)
+```
+
+In the DGS collector box IOC:
+- `CollectorApp.dbd` is assembled from EPICS base + `CollectorSupport.dbd` (custom device support)
+- Declares the SPI driver and `CAMAC_IO` link type used by all Collector Box PVs
+
+### Mental model: .dbd vs .db vs .cmd
+
+| File | Role | Analogy |
+|------|------|---------|
+| `.dbd` | Schema — what record types and device supports exist | SQL `CREATE TABLE` |
+| `.db` / `.template` | Data — actual PV instances | SQL `INSERT INTO` |
+| `.cmd` | Startup script — load DB, configure hardware, start IOC | Shell script |
+
+### In practice
+
+- You never edit `.dbd` files unless you're writing new device support in C
+- If you add a new DTYP in a `.db` file, it must be registered in a `.dbd` or the IOC will refuse to load
+- `dbd/` directories in EPICS repos contain the fragments; `O.*/` build dirs contain the merged result
+
+---
+
 _Source: EPICS documentation, DGS source code, operational experience._
-_Created: 2026-04-05_
+_Created: 2026-04-05. .dbd section added 2026-04-06._
