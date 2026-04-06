@@ -119,10 +119,10 @@ EPICS CA (5064/5065) → host PC / ANLDAQ
 
 | Pi | IOC # | Name | GS Holes | Status |
 |----|-------|------|-----------|--------|
-| pi0 | 201 | South-East | GS 2–60 (even, 30 det) | New repo (CollectorBox_RevA) |
-| pi1 | 202 | South-West | GS 62–110 (even, 25 det) | Old piserver (undocumented) |
-| pi2 | 203 | North-East | GS 1–59 (odd, 30 det) | Old piserver (undocumented) |
-| pi3 | 204 | North-West | GS 61–109 (odd, 25 det) | Old piserver (undocumented) |
+| pi0 | 201 | South-East | GS 2–60 (even, 30 det) ✅ verified 2026-04-06 — `collectorBox.sh:L8-16` | New repo (CollectorBox_RevA) |
+| pi1 | 202 | South-West | GS 62–110 (even, 25 det) ✅ verified 2026-04-06 — `collectorBox.sh:L19-27` | Old piserver (undocumented) |
+| pi2 | 203 | North-East | GS 1–59 (odd, 30 det) ✅ verified 2026-04-06 — `collectorBox.sh:L30-38` | Old piserver (undocumented) |
+| pi3 | 204 | North-West | GS 61–109 (odd, 25 det) ✅ verified 2026-04-06 — `collectorBox.sh:L41-49` | Old piserver (undocumented) |
 
 ### EPICS CA Port Isolation
 
