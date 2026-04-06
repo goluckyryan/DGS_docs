@@ -294,7 +294,14 @@ NFS root for PXE-booted Raspberry Pi collector boxes.
 | b8:27:eb:5a:d0:8e | .88 | NE | 203 |
 | b8:27:eb:99:19:3f | .149 | NW | 204 |
 
-(7 MAC dirs total in tftpboot — 3 more not in README; may be decommissioned or spare boxes)
+**3 additional MAC dirs** (not in README — spare/decommissioned, hostname not configured):
+- `b8-27-eb-39-f2-ce` — spare Pi (default hostname, no location assigned)
+- `b8-27-eb-91-bd-1b` — spare Pi (default hostname, no location assigned)
+- `b8-27-eb-df-8c-d6` — spare Pi (default hostname, no location assigned)
+
+> ⚠️ Note: README lists NW box as `b8:27:eb:99:19:3f` but tftpboot dir is `b8-27-eb-99-18-3f` (last byte differs: `3f` vs `3f` same, second-to-last `19` vs `18`). One character discrepancy — README may have a typo. Actual dir = `b8-27-eb-99-18-3f`.
+
+*Source: `ssh dcsu@DCS2.onenet "ls /piserver/tftpboot/"` — 2026-04-06*
 
 ---
 
@@ -479,14 +486,50 @@ Link syntax: `#L0 A3 C1 S11 @` = Link / Adapter / Crate / Slot
 
 ## What to Explore Next (Heartbeat G queue)
 
-- [ ] `vol2/global_32/ioc/py_scripts/trace_throttle.py` — read, document
-- [ ] `vol2/global_32/ioc/py_scripts/compare_pvs.py` — read, document
-- [ ] `vol2/dgscalib/` — what's in `bin/` and `calib/`?
+- [x] `vol2/global_32/ioc/py_scripts/trace_throttle.py` — documented 2026-04-05
+- [x] `vol2/global_32/ioc/py_scripts/compare_pvs.py` — documented 2026-04-05
+- [x] piserver extra 3 MACs — identified 2026-04-06 (spare/unassigned Pis)
+- [x] `trace_throttle2.py` — documented 2026-04-06 (see below)
+- [ ] `vol2/dgscalib/` — what's in `bin/` and `calib/`? (partial: dir listed, not read)
 - [ ] `vol4/dgs_testing/GEBSort/` — GEBSort build/config?
 - [ ] `vol3/sbx2022tuning/` — SBX tuning data
-- [ ] piserver extra 3 MACs not in README — identify
 - [ ] `vol2/global_32/edmroot/lncntrl/screens/` — LN EDM screens (grep only, no full reads!)
 - [ ] `vol2/global_32/devel/systems/gs/lnfill/gamln.db` — extract unique PV prefixes/record types for documentation
+
+### trace_throttle2.py — Updated Connectivity Mapper ✅ read 2026-04-06
+*Source: `ssh dcsu@DCS2.onenet "cat /dgsdata/fs2/vol2/global_32/ioc/py_scripts/trace_throttle2.py"` — 2026-04-06*
+
+Revised version of `trace_throttle.py`. Key improvements over v1:
+- Uses `datetime.datetime.now()` correctly (v1 had `datetime.now()` bug)
+- MDIG/SDIG pair verification consolidated into `verify_mdig_sdig_pairs()` function
+- Output now tab-separated with full columns: Crate, MDIG, SDIG, Router, Cable, MDIG_Worked, SDIG_Worked, Status
+- Status values: `OK`, `BOTH_FAILED`, `MDIG_FAILED`, `SDIG_FAILED`, `PAIR_MISMATCH`
+- Still Python 2 syntax (`print` statements, `except Exception, e:`) — needs Python 3 port
+- `write_results()` writes `connectivity_map.txt` with timestamp header
+- Summary prints: total pairs tested, successful, issues
+- Resets global throttle to 0 on exit (including error/interrupt)
+
+### vol2/dgscalib/ — Calibration Data (partial)
+*Source: `ssh dcsu@DCS2.onenet "ls -la /dgsdata/fs2/vol2/dgscalib/bin/ && ls -la /dgsdata/fs2/vol2/dgscalib/calib/"` — 2026-04-06*
+
+**`bin/`** contains:
+- `GEBSort_Runtmp1.log` — 90 KB GEBSort run log (Aug 2021)
+- `gebsort.sh` / `gebsort.sh~` — GEBSort launch script (Nov 2019)
+- `gsfma373/` — experiment directory
+- `map.dat` — detector map file (16 KB, Oct 2019)
+- `README` — small README
+- `scr.txt` — script output (17 KB)
+- `TS.list` — timestamp list (Aug 2021)
+
+**`calib/`** contains:
+- `calib.tar` — archived calibration files
+- `feb6/` — Feb 6 2020 calibration set
+- `fwbase.cc` — C++ base firmware calibration utility
+- `.spe` spectrum files — per-detector (ge9, ge13, ge17, ge33, ge34) from Feb 2020
+- `get_bgocln.cc`, `get_bgodrty.cc`, `get_bgoraw.cc` — BGO calibration extractors (ROOT macros)
+- `get_ecln.cc`, `get_eraw.cc`, `get_pz.cc` — energy/PZ calibration extractors (ROOT macros)
+
+> These are ROOT-based calibration macros for extracting BGO and Ge energy/PZ calibration from `.spe` spectra. Historical reference, likely superseded by current calibration workflows.
 
 ---
 

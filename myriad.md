@@ -31,10 +31,13 @@ Connected to **link R or U** of the Master Trigger (see `connectors.md`).
 - Direct FPGA access via Xilinx JTAG programmer
 
 ### ECL CTL Header (10-pin, 2 differential inputs + 3 differential outputs)
-- Pinout compatible with FERA ADC system cables
+- Pinout compatible with FERA ADC system cables ✅ verified 2026-04-06 — MyRIAD Abridged User Notes.pdf p.3
 - Firmware-defined; current DGS build uses ECL CTL outputs as diagnostics:
-  - **FERA FULL** pair → copy of multiplexed 50 MHz FPGA clock (locked = TTCL sync OK)
-  - **FERA ACK** pair → copy of NIM input 1 (level translator)
+  - **FERA FULL** pair → copy of multiplexed 50 MHz FPGA clock (locked = TTCL sync OK) ✅ verified 2026-04-06 — MyRIAD Abridged User Notes.pdf p.3
+  - **FERA ACK** pair → copy of NIM input 1 (level translator) ✅ verified 2026-04-06 — MyRIAD Abridged User Notes.pdf p.3
+  - **FERA OVF** pair → copy of MyRIAD's internal 50 MHz oscillator (differs from FERA FULL when CLOCK_SEL selects SerDes clock)
+  - **FERA WSI** pair (input) → alternate source for local trigger signal (firmware-selectable vs NIM input 0)
+  - **FERA VETO** pair (input) → readable from status register for testing; no active function in current firmware
 
 ### ECL I/O Header (16 differential ECL signals)
 - Default: 16 receiver inputs (100 Ω termination per differential pair)
@@ -42,7 +45,7 @@ Connected to **link R or U** of the Master Trigger (see `connectors.md`).
 - All signals available to firmware
 
 ### NIM I/O — 8 inputs, 4 outputs
-Layout: two groups of 4 inputs (I), two groups of 2 outputs (O).
+Layout: two groups of 4 inputs (I), two groups of 2 outputs (O). ✅ verified 2026-04-06 — MyRIAD Abridged User Notes.pdf p.5 Fig.1
 
 #### NIM Input Functions
 | Input | Function |
@@ -51,8 +54,8 @@ Layout: two groups of 4 inputs (I), two groups of 2 outputs (O).
 | **NIM In 1** | Local coincidence input — starts coincidence timer after NIM In 0 edge; asserts coincidence if NIM In 1 fires before timeout |
 | NIM In 2–7 | General purpose — counted only (no trigger function as of 2018-04-27) |
 
-- All NIM inputs connected to 16-bit edge counters (sampled at 100 MHz)
-- All NIM input states regularly sent to Master Trigger over SERDES
+- All NIM inputs connected to 16-bit edge counters (sampled at 100 MHz) ✅ verified 2026-04-06 — MyRIAD Abridged User Notes.pdf p.5
+- All NIM input states regularly sent to Master Trigger over SERDES ✅ verified 2026-04-06 — MyRIAD Abridged User Notes.pdf p.5
 
 #### NIM Output Functions
 | Output | Selection | Signal Options |

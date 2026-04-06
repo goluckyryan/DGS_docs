@@ -312,7 +312,7 @@ This sequence is also used for initial lock acquisition (prelock state in Digiti
 
 TAC-II is the trigger system's Time-to-Digital Converter, implemented entirely inside the FPGA fabric using Xilinx Virtex-4 carry-chain primitives. It measures the arrival time of a reference signal (e.g. an RF clock edge on NIM_IN2) relative to the trigger. No external TAC chip is used.
 
-**Resolution:** The trigger user manual states **"better than 300 ps" (single shot, no averaging)** — this is the coarse NIM-to-clock-edge measurement via the Rev D NIM receiver. The vernier carry chain provides sub-ns refinement; estimated effective resolution ~30 ps based on carry-chain tap spacing analysis, but this figure is not explicitly stated in available documentation. ⚠️ unverified — source needed for ~30 ps claim.
+**Resolution:** The trigger user manual states **"better than 300 ps" (single shot, no averaging)** — this is the coarse NIM-to-clock-edge measurement via the Rev D NIM receiver. The vernier carry chain provides sub-ns refinement at **50 ps per tap** (fixed assumption for most applications; actual tap delays vary slightly). ✅ verified 2026-04-05 — TAC.pdf: "simply assuming a fixed delay of 50ps per tap will suffice" + "multiplying that by 50ps (0.050ns)"
 - `Trigger user manual 20140901.pdf` p.6: "better than 300 ps accuracy (single shot, no averaging)" ✅ verified 2026-04-05
 - `raw_FPGA/Firmware_Tags/MasterTrigger/20220705/Source/tdc_chain_cont.vhd`: 4-phase vernier chains (0°/90°/180°/270°), 64-bit per chain ✅ verified 2026-04-05
 
