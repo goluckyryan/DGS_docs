@@ -41,29 +41,29 @@
 │                    DIG — Digitizer (fpga/)                       │
 │  Same hardware as full DGS; 10-ch, 14-bit ADC at 100 MHz         │
 │  Buffers accepted events in FIFO                                 │
-└────────────┬───────────────────────────────┬──────────────────┘
-             │ SERDES                      │ VME bus (event data)
-             ▼                             ▼
-┌──────────────────────┐  ┌───────────────────────────────┐
-│  RTRG — Router Trigger  │  │  MVME5500 VME IOC (VxWorks)    │
-│  Virtex-4 XC4VLX80      │  │  DMA readout of DIG FIFOs      │
-│  Aggregates DIGs        │  │  EPICS IOC (ioc/)              │
-└─────────┬─────────────┘  └───────────────┬───────────────┘
-          │ SERDES (Link L)               │ EPICS CA + TCP data
-          ▼                               ▼
-┌──────────────────────┐  ┌───────────────────────────────┐
-│  MTRG — Master Trigger  │  │  ANLDAQ (anldaq/)              │
-│  Virtex-4 / KU060       │  │  commander.py — PyQt6 GUI      │
-│  Trigger algorithms     │  │  Run control + live monitor    │
-│  2 µs cycle             │  │  tcpReceiverMT — binary files  │
-└───────────┬──────────┘  └───────────────┬───────────────┘
-           │ trigger → RTRG → DIG          │ raw binary files
-                                           ▼
-                            ┌───────────────────────────────┐
-                            │  dgs_analysis/                │
-                            │  fastEventConstructor (ROOT)  │
-                            │  parquet_pysort (Parquet)     │
-                            └───────────────────────────────┘
+└────────────┬───────────────────────────────┬─────────────────────┘
+             │ SERDES                        │ VME bus (event data)
+             ▼                               ▼
+┌─────────────────────────────┐  ┌────────────────────────────────┐
+│  RTRG — Router Trigger      │  │  MVME5500 VME IOC (VxWorks)    │
+│  Virtex-4 XC4VLX80          │  │  DMA readout of DIG FIFOs      │
+│  Aggregates DIGs            │  │  EPICS IOC (ioc/)              │
+└─────────┬───────────────────┘  └───────────┬────────────────────┘
+          │ SERDES (Link L)                  │ EPICS CA + TCP data
+          ▼                                  ▼
+┌─────────────────────────────┐  ┌────────────────────────────────┐
+│  MTRG — Master Trigger      │  │  ANLDAQ (anldaq/)              │
+│  Virtex-4 / KU060           │  │  commander.py — PyQt6 GUI      │
+│  Trigger algorithms         │  │  Run control + live monitor    │
+│  2 µs cycle                 │  │  tcpReceiverMT — binary files  │
+└───────────┬─────────────────┘  └───────────┬────────────────────┘
+            │ trigger → RTRG → DIG           │ raw binary files
+                                             ▼
+                                 ┌────────────────────────────────┐
+                                 │  dgs_analysis/                 │
+                                 │  fastEventConstructor (ROOT)   │
+                                 │  parquet_pysort (Parquet)      │
+                                 └────────────────────────────────┘
 ```
 
 ---
