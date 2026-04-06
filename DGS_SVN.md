@@ -51,7 +51,7 @@ The SVN tree contains a broad historical archive of DGS development:
 | `NS_scripts` | BGO tuning + PV extraction scripts (see `dgs/utility_scripts.md`): `BGO_tune_v2.py`, `extract_PV.py`, `GS_nums.py`, PV list txt files |
 | `OrCAD`, `Schematics`, `SchematicTagsForTodd` | Schematic files |
 | `Patch_Panel` | Patch panel hardware |
-| `psg` | PSG (pulse/signal generator?) |
+| `psg` | **PSG — Code-Generating Spreadsheet system**: reads CSV register map files and auto-generates EPICS `.db` records + CSS/EDM screens. Contains `CodeGeneratingSpreadsheetGeneric/Projects/DGS_Rtrig/fromdgs1.txt` (8,392-line generated EPICS DB output for the Router Trigger — all `asynUInt32Digital` mbbo/mbbi/ao/ai/bi/bo records). Config in `salvaged_notes/dgs_config.txt` references CSV sources: `DGSMasterTriggerRegisterMap.csv`, `DGSRouterTriggerRegisterMap.csv`, `MasterDigitizerRegisterMap.csv`. The CSV files and generator Python script itself are not present in this SVN snapshot. Historical precursor to the `Auto-generate EPICS DB` task (see QUEUE.md). |
 | `salvaged_notes` | Recovered notes from old systems |
 | `sbxl_osc`, `sbxscreens` | SBX oscilloscope + screen files |
 | `SlopeBoxExtension` | SBX hardware + firmware + GS_ID dongle (→ `sbx.md`) |
@@ -76,7 +76,7 @@ Recovered notes and config files from old systems. Explored 2026-04-06.
 | `20180924_notes.txt` | Architecture notes on FIFO readout hierarchy: `inLoop.st` -> `checkDigFIFO()` (in `readDigFIFO.c`) -> `serviceOneBufferDig()`. Documents `rawEvt` struct fields (`board`, `len`, `refcount`, `curptr`, `bptr`, `owner`); queue sizes: `RAW_Q_SIZE=400`, `RAW_BUF_SIZE=512KB`. |
 | `jta_notes_20200501.txt` | JTA notes on VxWorks build environment: `munch` files, EPICS base paths (`/global/devel/base`, `/global/devel/supTop`), EPICS base versions 3.14.10 and 3.14.12.1. Historical context for vxWorks migration. |
 | `ChangeNotes_20220801.txt` | **Key design decision (Aug 2022):** Eliminated requirement that trigger data must look like digitizer data. Updated `SendReceiveSupport.c` and receiver (`dgsReceiver`). Non-digitizer data dumped to `<run_name>_DIAG` file. Type `0xFF` = unspecified (backwards compat); type `0x00` = normal digitizer. Trigger data has GEB type 15=DGSTRIG. Authors: M. Oberling + J. Anderson. |
-| `WikiExtract.txt` | Extracted wiki content (historical) |
+| `WikiExtract.txt` | Firmware flashing procedure (historical): log into dgs1, get `*.bin` from `/Digitizer/MAIN_FPGA/Work11_DGS` (4 flavors: MSTR_digitizer, SLAVE_digitizer, trigger_top, router_top), copy to `/home/dgs/tmadden/DGSDigFirmware`, then run `java -classpath jca-2.3.5.jar:caj-1.1.9.jar:fpgasender.jar plotControl`. Historical Java-based flashing tool (`fpgasender.jar`), superseded by current Python/EPICS approach. |
 | `DecodingTheMakefile.txt` | Notes on EPICS makefile traversal in the con6 build environment |
 
 ---
