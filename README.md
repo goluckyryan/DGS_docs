@@ -66,6 +66,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 | File | Description |
 |------|-------------|
+| [collector_fpga.md](collector_fpga.md) | Collector box FPGA firmware: CtrlFPGA (housekeeping/monitoring), StripeFPGA (relay/stripe/LED), pickoff card FPGAs (SBX Interface + Extension) |
 | [collectorboxpi.md](collectorboxpi.md) | Collector box soft IOC on Raspberry Pi; HV control; PXE boot setup |
 | [collectorbox_PVs.md](collectorbox_PVs.md) | CollectorBox PV list: 1,437 records/detector; GS/MOD/VME_GS/Ge_ID numbering explained |
 | [collectorbox_devicesupport.md](collectorbox_devicesupport.md) | EPICS device support internals: SPI driver, CAMAC_IO link, conversion coefficients |
