@@ -99,7 +99,7 @@ DGS is a full software+firmware+hardware stack:
 | DIG (MDIG/SDIG) | Spartan-3 XC3S5000 + XC3S400 (VME) | up to 64 | 10-ch digitizer |
 | RTRG | Virtex-4 XC4VLX80 + XC3S400 (VME) | up to 8 | Router trigger |
 | MTRG | XC4VLX80 or KU060 + XC3S400 (VME) + XC95144XL (CPLD) | 1 | Master trigger |
-| MVME5500 | PowerPC 7455 | 12 | IOC computer (one per VME crate) |
+| MVME5500 | PowerPC 7455 ⚠️ unverified — source needed | 12 | IOC computer (one per VME crate) |
 
 ### Per-Detector Hardware
 
@@ -161,7 +161,7 @@ DGS is a full software+firmware+hardware stack:
 |--------|-----------|-------------|
 | DGS (Gammasphere) | 5064 | 5065 |
 | DFMA | 5068 | 5069 |
-| SlopeBox | 5074 | 5075 |
+| SlopeBox | 5074 | 5075 | ✅ verified 2026-04-06 — ioc/boot/vme99.cmd:L21-22 |
 
 > DUO and DXA ports are in `overview_SmallSystem.md`.
 
