@@ -30,7 +30,7 @@
 - [The Slope Box](https://wiki.anl.gov/gsdaq/The_Slope_Box) — slope box hardware ✅ visited 2026-04-05 → added to `sbx.md`
 - [The Slope Box Extension](https://wiki.anl.gov/gsdaq/The_Slope_Box_Extension) — SBX hardware ✅ visited 2026-04-05 → added to `sbx.md`
 - [Liquid Nitrogen](https://wiki.anl.gov/gsdaq/Liquid_Nitrogen) / [LN System](https://wiki.anl.gov/gsdaq/LN_system) — LN2 system
-- [Preamplifier](https://wiki.anl.gov/gsdaq/Preamplifier) — preamp
+- [Preamplifier](https://wiki.anl.gov/gsdaq/Preamplifier) — preamp ✅ visited 2026-04-06 → drives Ge central contact + 2 side channels; segmented vs non-segmented types; temp/humidity sensors + self-diagnostics; I2C bus to pickoff card
 - [The Pickoff Card](https://wiki.anl.gov/gsdaq/The_Pickoff_Card) — pickoff card
 
 ### Support Devices
