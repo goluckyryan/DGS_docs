@@ -34,7 +34,7 @@ The SVN tree contains a broad historical archive of DGS development:
 | `DGSFiberExpander` | **VME Fiber Adapter / Fiber Expander** — PCB #3174 (ANL part `21pc032`, Rev A, Sept 2021). Adapts VME backplane fiber connections to front-panel SFP/fiber connectors. Contains OrCAD schematics, Allegro layout, Gerber fab package, BOM, DRC, and front panel drawings. Vendor quote from Q74173A1 / QT-2873. Likely used to extend SERDES fiber links between crates or VME chassis. |
 | `dgsSoftIOC` | Soft IOC (pre-Git version) |
 | `ArdisiaDocuments.zip` | Ardisia documentation |
-| `DigitizerFanout` | Digitizer fanout hardware |
+| `DigitizerFanout` | **Digitizer Fanout PCB** (Aug 2022): RJ45-based LVDS signal fanout board. BOM includes dual LVDS receivers (SN65LVDT9637B ×3), LVDS drivers (FIN1001M5X ×2), clock buffers (NB6N11SMNG ×2), OR/NOR logic gates, RJ45 jacks (Amphenol RJHSE5387 ×2 + vertical male plugs ×4), RJ11 connector ×1. Purpose: fan out SERDES/LVDS differential signals across RJ45 links — likely used to split digitizer trigger/data links to multiple destinations. OrCAD schematic + Allegro layout + BOM + DRC included. |
 | `Digitizer_Tester` | Digitizer Tester module (generates test waveforms) |
 | `Documentation` | General DGS documentation |
 | `edmhelp`, `edm-master`, `20230818_edm` | Legacy EDM screen utilities and dated snapshots |
