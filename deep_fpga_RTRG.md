@@ -229,8 +229,8 @@ The Router also inserts the per-channel veto mask (`VETO[9:0]`) into bits [9:0] 
 | 0x128 | MISC_STAT | Lost lock flags, all-locked status |
 | 0x12C–0x148 | DIAG_COUNTER[1–8] | Diagnostic counters per channel |
 | 0x150 | THROTTLE_STATUS | Per-channel throttle status |
-| 0x158 | CODE_DATE | Firmware build date |
-| 0x15C | CODE_REVISION | Code revision (0x260E = DGS Router v26.0E) |
+| 0x158 | CODE_DATE | Firmware build date — `0x0414` (April 14) ✅ verified 2026-04-06 — TOP.VHD:L392 |
+| 0x15C | CODE_REVISION | Code revision — `0x260E`: bits[15:12]=2 (PCB rev B), bits[11:8]=6 (DGS Router), bits[7:4]=0 (major), bits[3:0]=E (minor) ✅ verified 2026-04-06 — TOP.VHD:L369,L371–390 |
 | 0x1B0–0x1CC | LOCK_COUNTER[1–8] | Lock event counters per link |
 
 ## IP Cores
