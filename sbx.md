@@ -23,7 +23,9 @@ The **Slope Box** is the interface between the detector and the control/monitori
 
 ## Purpose
 
-The SBX sits between the **Slope Box** and the **Collector Box**. It replaces the old VXI system entirely:
+> **Hardware note:** The SBX and Pickoff Card are **pure analog PCBs** — no FPGA, no firmware. All intelligence is in the Raspberry Pi IOC.
+
+The SBX sits between the **Slope Box** and the **Collector Box** (or directly to the digitizer for small systems). It replaces the old VXI system entirely:
 - Converts single-ended analog signals from the Slope Box → **differential signals** for the Collector Box / digitizers
 - Drives a **DVI-I cable** carrying: analog signals + power + communication interface → Collector Box
 - Power board: provides all detector power from a single **48VDC** source
@@ -65,7 +67,16 @@ The SBX sits between the **Slope Box** and the **Collector Box**. It replaces th
 
 ## Pickoff Card
 
-Sub-board within SBX. Routes signals to correct digitizer channels and provides BGO HV control.
+Sub-board within SBX. **Pure analog PCB** — no FPGA, no firmware. It is a hardwired patch panel that maps the 4 conditioned signals per detector to specific DIG input channels:
+
+| Signal | Description |
+|--------|-------------|
+| Ge Center | Primary gamma-ray energy → DIG channel N |
+| Ge Side A/B | Segmented contact → DIG channel N+1 |
+| BGO Sum | Analog sum of 7 BGOs → DIG channel N+2 |
+| BGO Pattern | Discriminated BGO bits → DIG channel N+3 |
+
+The routing is **fixed at fabrication** (hardwired traces), not dynamic. The correct Pickoff card variant must match the physical installation (which GS hole, which Collector Box slot). Also provides BGO HV demand control via DAC (see address map below).
 
 ### BGO HV demand map (from dev notes)
 | Address | BGO Ring/Pin |
@@ -115,12 +126,24 @@ A small board in the SBX that identifies the **GS hole number** for this detecto
 
 ## EPICS IOC (Raspberry Pi)
 
-The SBX is controlled via the Collector Box Raspberry Pi soft IOC:
-- **SPI interface** from Pi to SBX boards
-- Key EPICS DB files:
-  - `Pickoff.db` — 448 records per detector
-  - `PickoffDiagCtl.db` — 40 diagnostic control records
-  - `Pickoff_reg.db` — 264 register-level records
+### Full GS System
+The SBX is controlled via the **Collector Box Raspberry Pi** soft IOC (one Pi per Collector Box, handles up to 28 detectors):
+- **SPI1 hardware interface** via `bcm2835` library at ~50 MHz clock
+- **GPIO 12** (J8 pin 32) used as ADC scanner enable/reset control line
+  - `RESET_ADC_SCANNER()` → GPIO HIGH
+  - `ENABLE_ADC_SCANNER()` → GPIO LOW
+- Source: `collectorboxpi/CollectorBox_RevA/CollectorApp/src/spi.h`, `initTrace.c`
+
+### Small Systems (DUO, DXA)
+- Each SBX has its **own dedicated Raspberry Pi** (sbxh3 @ .164, sbxcc @ .158 for DuoGe)
+- Same SPI + GPIO principle, but Pi talks directly to SBX/Pickoff hardware — **no Collector Box**
+- Software is an **older version**, not present in `DGS_tools_pack` — pending exploration of sbxh3/sbxcc when online
+- Source: `DGS_SVN/dgs/SlopeBoxExtension/RaspberryPi/` (SBXa, SBXc3, SBXL, SBXw variants)
+
+### Common EPICS DB files (full GS)
+- `Pickoff.db` — 448 records per detector
+- `PickoffDiagCtl.db` — 40 diagnostic control records
+- `Pickoff_reg.db` — 264 register-level records
 - `GS${DetNbr}_SBX_Present` PV — indicates whether an SBX is connected for this GS hole
 
 ---
