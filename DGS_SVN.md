@@ -45,8 +45,8 @@ The SVN tree contains a broad historical archive of DGS development:
 | `LBL_Digitizer` | LBL digitizer reference files |
 | `Miscellany` | Miscellaneous files |
 | `MyRIAD` | MγRIAD module files |
-| `NewBlackBox` | New black box hardware |
-| `NS_scripts` | NS (network/system?) scripts |
+| `NewBlackBox` | New black box hardware — contains `RaspberryPi/PreEpicsCode/`: pre-EPICS collector box SPI code (bcm2835 library, `extract_Eprom_b.c`, `Scan_DVI_Power.c`, GPIO/SPI tests); predecessor to current `collectorboxpi/` EPICS soft IOC |
+| `NS_scripts` | BGO tuning + PV extraction scripts (see `dgs/utility_scripts.md`): `BGO_tune_v2.py`, `extract_PV.py`, `GS_nums.py`, PV list txt files |
 | `OrCAD`, `Schematics`, `SchematicTagsForTodd` | Schematic files |
 | `Patch_Panel` | Patch panel hardware |
 | `psg` | PSG (pulse/signal generator?) |
@@ -55,9 +55,9 @@ The SVN tree contains a broad historical archive of DGS development:
 | `SlopeBoxExtension` | SBX hardware + firmware + GS_ID dongle (→ `sbx.md`) |
 | `SlopeBoxInterface` | Slope box interface files |
 | `slopebox_scripts` | Slope box utility scripts |
-| `TrigToTrig` | Trigger-to-trigger interconnect files |
+| `TrigToTrig` | Trigger-to-trigger interconnect PCB (PCB#1446, Rev A, June 2021): GRETINA Trigger Module SERDES I/O; OrCAD schematics + BOM + DRC; Allegro layout; fab package `21KB001` |
 | `VXI_database` | Legacy VXI system database |
-| `VxWorksDocs` | VxWorks documentation archive |
+| `VxWorksDocs` | VxWorks/Tornado 2 reference documentation archive: `hostLib.html`, `msgQLib.html`, `sockLib.html`; Tornado Getting Started + Guide + Release Notes PDFs; VxWorks Programmer's Guide PDF |
 
 ---
 
