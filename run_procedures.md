@@ -131,7 +131,7 @@ Arguments:
 - `141` — K value (in 10 ns units); calculated as sum of all K+D windows:
   - K = k_window + d_window + k0_window + d3_window + D2_fixed(0.15 µs)
   - Example: 0.20 + 0.06 + 0.80 + 0.20 + 0.15 = 1.41 µs = **141 in 10 ns units**
-  - Note: D values are included in K per S. Zhu convention (6/25/18); D2=0.15 µs fixed (not user-settable, per JTA 6/26/18)
+  - Note: D values are included in K per S. Zhu convention (6/25/18); D2=0.15 µs fixed (not user-settable via EPICS, per JTA 6/26/18) ⚠️ unverified — simulation testbench defaults are 22 clocks = 0.22 µs (arb_two_chan_tb.vhd:L92); actual production default unknown; d2_window register exists in firmware (address 0x240–0x264) but not exposed in EPICS IOC templates
 - `dgs_pz.cal` — output calibration file
 - `1.003` — PZ fudge factor (FF); determined from energy vs baseline spectra
 
