@@ -53,8 +53,8 @@ The SVN tree contains a broad historical archive of DGS development:
 | `salvaged_notes` | Recovered notes from old systems |
 | `sbxl_osc`, `sbxscreens` | SBX oscilloscope + screen files |
 | `SlopeBoxExtension` | SBX hardware + firmware + GS_ID dongle (→ `sbx.md`) |
-| `SlopeBoxInterface` | Slope box interface files |
-| `slopebox_scripts` | Slope box utility scripts |
+| `SlopeBoxInterface` | Slope box interface hardware: schematics, PCB layout, pickoff card design, power budget lab notes, RPi interface. `Documentation/LabNotes/SlopeBoxCurrentDraw.txt` (2018-05-07, JTA) measured per-rail current draw (no detector connected): +12V=105mA (1.26W), -12V=113mA (1.36W), +24V=21mA (0.5W), +5V=81mA (0.4W) → total ~3.5W idle, ~5.7W with HV on. Estimated total per-detector (slope box + Pickoff Rev B + RPi): ~22W → requires 802.3at PoE (30W/port); 802.3af (15.4W/port) insufficient. Power supply recommendation: CUI PYB30-Q48-T512 converter. |
+| `slopebox_scripts` | BGO HV sweep + counter averaging scripts: `BGO_Sweep_test` (sweeps `GS000_BGO_HV0..13` from 0→250 DAC in steps, averages `GS000_BGO[1-7]Sum_counter`), `caget_avg` (shell: reads PV N times, averages numeric value), `Avg_all_BGO_count` (reads all 8 BGO counter PVs via `caget_avg`). Run from `/global/devel/scripts/`. Legacy — see `utility_scripts.md` for current Python equivalents. |
 | `TrigToTrig` | Trigger-to-trigger interconnect PCB (PCB#1446, Rev A, June 2021): GRETINA Trigger Module SERDES I/O; OrCAD schematics + BOM + DRC; Allegro layout; fab package `21KB001` |
 | `VXI_database` | Legacy VXI system database |
 | `VxWorksDocs` | VxWorks/Tornado 2 reference documentation archive: `hostLib.html`, `msgQLib.html`, `sockLib.html`; Tornado Getting Started + Guide + Release Notes PDFs; VxWorks Programmer's Guide PDF |
