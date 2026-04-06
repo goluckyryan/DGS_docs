@@ -40,7 +40,7 @@ The SVN tree contains a broad historical archive of DGS development:
 | `edmhelp`, `edm-master`, `sbxscreens`, `20230818_edm` | EDM screen files |
 | `FromT` | Trigger hardware files from Todd (trigger card schematics etc.) |
 | `GRETNA_CPLD_CHECK` | GRETNA CPLD check utilities |
-| `gtReceiver` | Legacy data receiver (pre-ANLDAQ); see `gtReceiver6.c` |
+| `gtReceiver` | Legacy C++ data receiver (pre-ANLDAQ); `dgsReceiver/dgsReceiver.cpp` v6.57 by M. Oberling. Writes GEB format (types 14=DGS, 15=DGSTRIG). Also contains `rcvr_merge`, `rcvr_unmerge`, `rcvr_data_scrubber` utilities. Full GEB type table now in `dgs_analysis.md`. |
 | `HELIOS_Preamp_data` | HELIOS preamp data |
 | `LBL_Digitizer` | LBL digitizer reference files |
 | `Miscellany` | Miscellaneous files |

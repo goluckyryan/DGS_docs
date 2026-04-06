@@ -156,6 +156,37 @@ Raw DGS binary files use the GEB format:
 
 `TRASH_DATA` markers in files are skipped via `skipTrash()` cursor logic.
 
+### GEB Type Codes
+_Source: `DGS_SVN/dgs/gtReceiver/dgsReceiver/dgsReceiver.cpp` — list from Torben (GRETINA), as of 2021-12-07_
+
+| Code | GEB Type | Notes |
+|------|----------|-------|
+| 1 | `GEB_TYPE_DECOMP` | Decomposed GRETINA |
+| 2 | `GEB_TYPE_RAW` | Raw GRETINA |
+| 3 | `GEB_TYPE_TRACK` | Tracked |
+| 4 | `GEB_TYPE_BGS` | BGS detector |
+| 5 | `GEB_TYPE_S800_RAW` | S800 spectrometer raw |
+| 6 | `GEB_TYPE_NSCLnonevent` | NSCL non-event |
+| 7 | `GEB_TYPE_GT_SCALER` | GRETINA scaler |
+| 8 | `GEB_TYPE_GT_MOD29` | GRETINA Module 29 |
+| 9 | `GEB_TYPE_S800PHYSDATA` | S800 physics data |
+| 10 | `GEB_TYPE_NSCLNONEVTS` | NSCL non-events |
+| 11 | `GEB_TYPE_G4SIM` | Geant4 simulation |
+| 12 | `GEB_TYPE_CHICO` | CHICO detector |
+| **14** | **`GEB_TYPE_DGS`** | **DGS digitizer data** |
+| **15** | **`GEB_TYPE_DGSTRIG`** | **DGS trigger data** |
+| 16 | `GEB_TYPE_DFMA` | DFMA (Digital Fast Multiplicity Array) |
+| 17 | `GEB_TYPE_PHOSWICH` | Phoswich detector |
+| 18 | `GEB_TYPE_PHOSWICHAUX` | Phoswich aux |
+| 19 | `GEB_TYPE_GODDESS` | GODDESS array |
+| 20 | `GEB_TYPE_LABR` | LaBr3 detector |
+| 21 | `GEB_TYPE_LENDA` | LENDA neutron detector |
+| 22 | `GEB_TYPE_GODDESSAUX` | GODDESS aux |
+| 23 | `GEB_TYPE_XA` | X-Array |
+| 24 | `MAX_GEB_TYPE` | |
+
+Note: type 13 is absent (unassigned). DGS uses types 14 (digitizer hits) and 15 (trigger data).
+
 ---
 
 ## Connections to Other Subsystems
