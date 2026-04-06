@@ -15,51 +15,77 @@ DGS is a full software+firmware+hardware stack:
 
 ---
 
-## Signal Chain (Detector → Data)
+## Full Data Flow
 
 ```
-HPGe + BGO DETECTORS (up to 110 GS holes)
-  HPGe crystal (LN2 cooled) + up to 7 BGO Compton shield segments
-  │ preamp signals (single-ended)
-  ▼
-SLOPE BOX (1 per detector)
-  Generates Ge bias HV (~3500V) + BGO bias HV (~550–800V)
-  Multiplexed ADC: temp, actual HV, PSU monitoring
-  │ analog signals + 48VDC
-  ▼
-SBX — Slope Box Extension (1 per detector)
-  Single-ended → differential conversion
-  BGO sum signal + BGO pattern discrimination
-  GS_ID dongle (identifies GS hole number)
-  Pickoff Card: routes signals to correct DIG channels
-  │ DVI-I cable (signals + power + comms)
-  ▼
-COLLECTOR BOX — CollectorBox_RevA (4 boxes × 28 detectors)
-  Aggregates SBX signals; routes to VME crate digitizers
-  Controlled by Raspberry Pi soft IOC (collectorboxpi/)
-  EPICS PVs: HV, temp, BGO, FET bias, fan speed (1437 PVs/det)
-  │ differential analog → VME
-  ▼
-DIG — Digitizer (10 ch, Spartan-3 XC3S5000)
-  14-bit ADC at 100 MHz; per-channel LED/CFD discriminator
-  Buffers accepted events in FIFO
-  │ SERDES (hit pattern)        │ VME bus (event data)
-  ▼                             ▼
-RTRG — Router Trigger         MVME5500 VME IOC (VxWorks)
-  Virtex-4, aggregates 8 DIGs    DMA readout of DIG FIFOs
-  Computes X/Y multiplicity      EPICS IOC (ioc/)
-  │ SERDES (Link L)
-  ▼
-MTRG — Master Trigger (Virtex-4 / KU060)
-  Runs trigger algorithms; 2 µs cycle (20 frames)
-  TDC ~1 ns resolution
-  │ trigger decision → RTRG → DIG
-  ▼
-ANLDAQ — PyQt6 GUI + tcpReceiverMT
-  Run control, board config, live monitor, binary file writing
-  │ raw binary files
-  ▼
-dgs_analysis — fastEventConstructor (ROOT) + parquet_pysort
+┌──────────────────────────────────────────────────────────────────┐
+│              HPGe + BGO DETECTORS (up to 110 GS holes)           │
+│  HPGe crystal (LN2 cooled) + up to 7 BGO Compton shield segments │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ preamp signals (single-ended)
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│               SLOPE BOX  (1 per detector)                        │
+│  Generates Ge bias HV (~3500V) + BGO bias HV (~550–800V)         │
+│  Multiplexed ADC: temp, actual HV, PSU monitoring                │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ analog signals + 48VDC
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│         SBX — Slope Box Extension  (1 per detector)              │
+│  Single-ended → differential conversion                          │
+│  BGO sum signal + BGO pattern discrimination                     │
+│  GS_ID dongle (identifies GS hole number)                        │
+│  Pickoff Card: routes signals to correct DIG channels            │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ DVI-I cable (signals + power + comms)
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│  COLLECTOR BOX — CollectorBox_RevA  (4 boxes × 28 detectors)     │
+│  Aggregates SBX signals; routes to VME crate digitizers          │
+│  Controlled by Raspberry Pi soft IOC (collectorboxpi/)           │
+│  EPICS PVs: HV, temp, BGO, FET bias, fan speed (1437 PVs/det)   │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ differential analog → VME
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    DIG — Digitizer (fpga/)                       │
+│  Spartan-3 XC3S5000, ISE 14.7                                    │
+│  10 channels per board, 14-bit ADC at 100 MHz                    │
+│  Per-channel: delay → filter → discriminator (LED/CFD) → hit     │
+│  Buffers accepted events in FIFO                                 │
+└───────────┬─────────────────────────────────┬────────────────────┘
+            │ SERDES (18-bit, 50 MHz)         │ VME bus
+            │ hit pattern + energy            │ (event data readout)
+            ▼                                 ▼
+┌───────────────────────────┐      ┌───────────────────────────────┐
+│  RTRG — Router (fpga/)    │      │  MVME5500 VME IOC             │
+│  Virtex-4 XC4VLX80        │      │  VxWorks 5.5 RTOS             │
+│  Aggregates 8 DIGs        │      │  gretDet.munch (vxworks/)     │
+│  Computes X/Y multiplicity│      │  DMA readout of DIG FIFOs     │
+└───────────┬───────────┬───┘      │  EPICS IOC (ioc/)             │
+            │ SERDES    │ trigger  │  Boot: vme66.cmd / vme99.cmd  │
+            │ (Link L)  │ cmd ▲    └───────────────┬───────────────┘
+            ▼           └────────┐                 │ EPICS CA + TCP data
+┌───────────────────────────┐    │                 ▼
+│  MTRG — Master Trigger    │    │ ┌───────────────────────────────┐
+│  (fpga/)                  │    │ │  ANLDAQ (anldaq/)             │
+│  Virtex-4 / KU060         │    │ │  commander.py — PyQt6 GUI     │
+│  Runs trigger algorithms  │    │ │  DIG/RTR/MTRG board control   │
+│  TDC ~1 ns resolution     │    │ │  Run control + live monitor   │
+│  2 µs cycle (20 frames)   │    │ │  tcpReceiverMT — binary files │
+└───────────┬───────────────┘    │ └───────────────┬───────────────┘
+            │ trigger decision   │                 │
+            │ (TTCL, Link L)     │                 │
+            └──► RTRG ──► DIG ───┘                 │
+                                                   │ raw binary files
+                                                   ▼
+                                  ┌───────────────────────────────┐
+                                  │  dgs_analysis/                │
+                                  │  fastEventConstructor (ROOT)  │
+                                  │  parquet_pysort (Parquet)     │
+                                  │  Event building, calibration  │
+                                  └───────────────────────────────┘
 ```
 
 ---
