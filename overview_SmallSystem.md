@@ -88,6 +88,19 @@
 | DuoGe (DUO) | 5080 | 5081 |
 | DUB | 5078 | 5079 |
 
+### DUB System Computers
+
+| Name | IP (.203.x) | OS | Function |
+|------|-------------|-----|----------|
+| dub1 | .95 | Rocky 8.7 | DUB DAQ host |
+| dub1ts | .96 | — | Terminal server |
+| dub1ioc1 | .97 | VxWorks | VME IOC 1 |
+| dub1ioc2 | .98 | VxWorks | VME IOC 2 |
+| dub1ioc3 | .99 | VxWorks | VME IOC 3 |
+| mpod1 | .221 | — | Iseg MPOD HV controller |
+
+_Source: [wiki: Computers and networks](https://wiki.anl.gov/gsdaq/Computers_and_networks) ✅ visited 2026-04-06_
+
 ### Notes
 - Uses the same DIG/RTRG/MTRG FPGA hardware chain as full DGS, scaled down
 - SBX Raspberry Pis (sbxh3, sbxcc) run the `collectorboxpi/` soft IOC
@@ -105,10 +118,21 @@
 |--------|-----------|-------------|
 | DXA | 5072 | 5073 |
 
+### Network / Computers
+
+| Name | IP (.203.x) | OS | Function |
+|------|-------------|-----|----------|
+| dgs8 | .185 | Rocky 8.7 | X-Array DAQ host |
+| xa_ts1 | .216 | — | Terminal server |
+| xa_ioc1 | .212 | VxWorks | VME IOC 1 |
+| xa_ioc2 | .213 | VxWorks | VME IOC 2 |
+| xa_ioc3 | .214 | VxWorks | VME IOC 3 |
+
+_Source: [wiki: Computers and networks](https://wiki.anl.gov/gsdaq/Computers_and_networks) ✅ visited 2026-04-06_
+
 ### Notes
 - Shares onenet (192.168.203.x) network with DGS and DUO
 - EPICS CA port separation provides logical isolation from full DGS (5064/5065)
-- Specific computer IPs not yet documented — add here when known
 
 ---
 

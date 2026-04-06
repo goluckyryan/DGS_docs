@@ -173,6 +173,8 @@
 - `/gsdaq/Some_problems_and_their_solutions` ✅ visited 2026-04-05 → stub page, one useful entry (IOC troubleshooting) — troubleshooting ✅ visited 2026-04-05 → `troubleshooting.md`
 - `/gsdaq/ANL_Digitizer_Firmware_for_Advanced_Users` — advanced firmware guide ✅ visited 2026-04-06 → ADC linearity specs added to `DIG_firmware_expert.md` (Overview section)
 - `/gsdaq/High_Purity_Germanium_(HPGe)_and_BGO` — HPGe + BGO details
+- `/gsdaq/Computers_and_networks` — full IP/hostname table for all onenet systems ✅ visited 2026-04-06 → X-Array + DUB computer IPs added to `overview_SmallSystem.md`
+- `/gsdaq/Firmware_documentation` — firmware docs list
 
 ---
 
