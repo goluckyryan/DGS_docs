@@ -26,59 +26,55 @@ asyn is a **broker** between EPICS records and hardware:
 
 ---
 
-## Full caput Flow (ASCII)
+## Full caput Flow
 
+```mermaid
+sequenceDiagram
+    participant U as caput (User Machine)
+    participant CA as CA Server Thread (IOC)
+    participant REC as Record Processing (IOC)
+    participant PM as asyn Port Manager (IOC)
+    participant WT as asyn Worker Thread (IOC)
+    participant HW as VME Bus / FPGA Register
+
+    U->>CA: caput VME01:MDIG1:threshold0 100<br/>(Channel Access UDP/TCP)
+    CA->>REC: dbPutField(record, value=100)
+    REC->>REC: Validate value, apply limits
+    REC->>PM: asynInt32->write(port=VME01_MDIG1, value=100)
+    PM-->>REC: Returns immediately (non-blocking)
+    Note over REC,CA: CA server thread is free
+    PM->>WT: Wake worker thread with queued request
+    WT->>HW: vmeWrite32(baseAddr + 0x0010, 100)
+    Note over WT,HW: Blocks in worker thread (~microseconds)
+    HW-->>WT: VME bus write complete
+    WT->>PM: Callback: status=OK
+    PM->>REC: Update record alarm status (no alarm)
 ```
-USER MACHINE                        IOC (VxWorks on MVME5500)
-─────────────────                   ──────────────────────────────────────────
 
-[caput VME01:MDIG1:threshold0 100]
-   │
-   │  Channel Access (UDP/TCP)
-   │  over onenet (192.168.203.x)
-   ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  CA SERVER THREAD  (epics-base, runs inside IOC process)        │
-│  Receives put request over network                              │
-│  Looks up record "VME01:MDIG1:threshold0" in PV database        │
-│  Calls dbPutField(record, value=100)                            │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │ (same process, function call)
-                            ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  RECORD PROCESSING  (epics-base, ao/longout record)             │
-│  Runs in CA server thread                                       │
-│  Validates value, applies limits                                │
-│  Calls device support: write_ao()                               │
-│  → sees DTYP="asynInt32", calls asynInt32->write()              │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │ (same process, queues work)
-                            ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  ASYN PORT MANAGER  (asyn library, inside IOC process)          │
-│  Receives write request for port "VME01_MDIG1", addr=0          │
-│  If port free: hands to worker thread immediately               │
-│  If port busy: queues the request                               │
-│  CA server thread returns immediately (non-blocking) ◄──────┐  │
-└───────────────────────────┬─────────────────────────────────┼──┘
-                            │ (wakes up worker thread)        │
-                            ▼                                 │
-┌─────────────────────────────────────────────────────────────┐  │
-│  ASYN WORKER THREAD  (1 per port, inside IOC process)       │  │
-│  Calls driver: myDriver->writeInt32(user, value=100)        │  │
-│  → driver translates: register_offset = 0x0010             │  │
-│  → calls vmeWrite32(baseAddr + 0x0010, 100)                 │  │
-│    (blocks until VME bus completes — microseconds)          │  │
-│  VME bus write completes                                    │  │
-│  Driver calls callback: "done, status=OK"                   │──┘
-└───────────────────────────┬─────────────────────────────────┘
-                            │ (hardware write)
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  VME BUS → FPGA REGISTER (DIG / RTRG / MTRG board)         │
-│  Passive hardware — just accepts the write                  │
-│  No acknowledgment from hardware needed                     │
-└─────────────────────────────────────────────────────────────┘
+## Full caget Flow
+
+```mermaid
+sequenceDiagram
+    participant U as caget (User Machine)
+    participant CA as CA Server Thread (IOC)
+    participant SCAN as EPICS Scan Thread (IOC)
+    participant PM as asyn Port Manager (IOC)
+    participant WT as asyn Worker Thread (IOC)
+    participant HW as VME Bus / FPGA Register
+
+    Note over SCAN,HW: Periodic scan (e.g. every 1 second)
+    SCAN->>PM: asynInt32->read(port=VME01_MDIG1, addr=0)
+    PM->>WT: Wake worker thread
+    WT->>HW: vmeRead32(baseAddr + 0x0010)
+    Note over WT,HW: Blocks in worker thread (~microseconds)
+    HW-->>WT: Returns register value=100
+    WT->>PM: Callback: value=100, status=OK
+    PM->>SCAN: Deliver value to record VAL field
+    SCAN->>CA: Notify monitors (camonitor clients)
+
+    U->>CA: caget VME01:MDIG1:threshold0<br/>(Channel Access)
+    CA-->>U: Returns current VAL=100 from record cache
+    Note over U,CA: caget reads cached value — no VME access triggered
 ```
 
 ---
@@ -127,19 +123,23 @@ Port names are abstract strings — asyn works the same way for VME, serial, USB
 
 When pyepics fires 100 `caput` calls at once with `wait=False`:
 
+```mermaid
+flowchart TD
+    A["100 caput requests arrive at IOC"] --> B[CA Server distributes by port]
+    B --> C["Port VME01_MDIG1\n50 requests queued"]
+    B --> D["Port VME01_MDIG2\n50 requests queued"]
+    C --> E["Worker Thread 1\ndrains queue one-by-one\nVME write ~1µs each"]
+    D --> F["Worker Thread 2\ndrains queue one-by-one\n(runs in parallel with Thread 1)"]
+    E --> G[VME Bus Arbiter]
+    F --> G
+    G --> H[FPGA Registers]
 ```
-100 caput requests arrive at IOC
-        │
-        ▼
-CA server distributes by port:
-  50 → port "VME01_MDIG1"   (1 worker thread, 1 queue)
-  50 → port "VME01_MDIG2"   (1 worker thread, 1 queue)
-        │                         │
-        ▼                         ▼
-  QUEUE of 50 requests      QUEUE of 50 requests
-  Worker drains one-by-one  Worker drains one-by-one
-  (VME writes ~1µs each)    (in parallel with MDIG1)
-```
+
+**Key rules:**
+- 1 worker thread per port → writes to one board are always serialized
+- Multiple ports run in parallel → MDIG1 and MDIG2 writes are concurrent
+- No 100 threads needed — the queue absorbs the burst
+- VME bus arbiter handles physical contention
 
 - **1 worker thread per port** — writes to one board are always serialized (hardware can only handle one VME access at a time)
 - **Multiple ports run in parallel** — MDIG1 and MDIG2 writes happen truly concurrently
