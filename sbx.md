@@ -101,6 +101,14 @@ The routing is **fixed at fabrication** (hardwired traces), not dynamic. The cor
 - DAC step size: 5V/1024 = 4.88 mV → through 4.7k/6.9k divider (68.1%) → **3.32 mV per step**
 - Noise window: ~13 mV
 
+### Nominal BGO HV operating point
+- **180 DAC units per tube** — established from `SVN/dgs/sbxscreens/Std_Test.sh` (JTA, 2021-04-02), the cross-test commissioning script
+- BGO HV sweep range used during tuning: **0 → 250 DAC units** (from `slopebox_scripts/BGO_Sweep_test`)
+- Ge/BGO HV both switched off first; BGO HV0-13 all set to 180 then BGO HV supply enabled; Ge HV enabled last
+- DC offset DACs (GeCenter, GeSide, BGOsum, BGOpattern): **150 DAC units** nominal
+- Ge threshold: **600 DAC units** nominal
+- `PARST_AutoClampDwell`: **10000** (preamp reset clamp dwell time)
+
 ---
 
 ## GS_ID Dongle

@@ -37,7 +37,9 @@ The SVN tree contains a broad historical archive of DGS development:
 | `DigitizerFanout` | Digitizer fanout hardware |
 | `Digitizer_Tester` | Digitizer Tester module (generates test waveforms) |
 | `Documentation` | General DGS documentation |
-| `edmhelp`, `edm-master`, `sbxscreens`, `20230818_edm` | EDM screen files |
+| `edmhelp`, `edm-master`, `20230818_edm` | Legacy EDM screen utilities and dated snapshots |
+| `screens/` | **Legacy EDM control screens** (141 `.edl` files): full DGS operator GUI before PyQt migration — includes `BigSummary.edl`, `CAGMrunControl.edl`, `BGSrunControl.edl`, IOC status, BGO rates, CLO (collector) channel/board/global screens, trigger lock, digitizer enable, analog GS, aux I/O control, acq status. Historical reference; current GUI is PyQt6 (`ANLDAQ/`). |
+| `sbxscreens/` | **SBX EDM screens + commissioning scripts**: 20 `.edl` files (CollectorBox, PowerBoard, PickoffCtl, PickoffStatus, PreampData, SlopeBox_CTL, SlopeBoxrunControl, SlopeBoxSelect, RAM_Buffer, dgsTrigCntrl, etc.) + `PV.list` (201-line doc of CAMAC I/O record types: bi/bo, mbbi/mbbo, ai/ao with ANDmask, shift-factor, read-modify-write semantics) + `Std_Test.sh` (SBX cross-test setup script by JTA 2021-04-02: sets ScanMode=3, Ge/BGO HV off, DAC offsets=150, Ge threshold=600, then BGO HV0-13 all to 180, enables HV, sets `PARST_AutoClampDwell=10000`) + `D0_Std_Test.sh` / `D99_Std_Test.sh` (same for detector 0 and 99). Nominal BGO HV: **180 DAC units** per tube (from Std_Test.sh). |
 | `FromT` | Trigger hardware files from Todd (trigger card schematics etc.) |
 | `GRETNA_CPLD_CHECK` | GRETNA CPLD check utilities |
 | `gtReceiver` | Legacy C++ data receiver (pre-ANLDAQ); `dgsReceiver/dgsReceiver.cpp` v6.57 by M. Oberling. Writes GEB format (types 14=DGS, 15=DGSTRIG). Also contains `rcvr_merge`, `rcvr_unmerge`, `rcvr_data_scrubber` utilities. Full GEB type table now in `dgs_analysis.md`. |
@@ -57,7 +59,7 @@ The SVN tree contains a broad historical archive of DGS development:
 | `slopebox_scripts` | BGO HV sweep + counter averaging scripts: `BGO_Sweep_test` (sweeps `GS000_BGO_HV0..13` from 0→250 DAC in steps, averages `GS000_BGO[1-7]Sum_counter`), `caget_avg` (shell: reads PV N times, averages numeric value), `Avg_all_BGO_count` (reads all 8 BGO counter PVs via `caget_avg`). Run from `/global/devel/scripts/`. Legacy — see `utility_scripts.md` for current Python equivalents. |
 | `TrigToTrig` | Trigger-to-trigger interconnect PCB (PCB#1446, Rev A, June 2021): GRETINA Trigger Module SERDES I/O; OrCAD schematics + BOM + DRC; Allegro layout; fab package `21KB001` |
 | `VXI_database` | Legacy VXI system database |
-| `VxWorksDocs` | VxWorks/Tornado 2 reference documentation archive: `hostLib.html`, `msgQLib.html`, `sockLib.html`; Tornado Getting Started + Guide + Release Notes PDFs; VxWorks Programmer's Guide PDF |
+| `VxWorksDocs/` | **VxWorks/Tornado 2 reference documentation archive**: `hostLib.html` (host library API), `msgQLib.html` + `msgQShow.html` + `msgQSmLib.html` (message queue APIs), `sockLib.html` (socket library); `Tornado-getStart.pdf` (Getting Started guide), `Tornado-Guide.pdf` (Tornado 2 IDE guide), `Tornado-Releasenotes.pdf` (release notes), `Vx-Progr-Guide1.pdf` (VxWorks Programmer's Guide). Useful when reading IOC/VxWorks source code — documents the APIs used in `inLoop.st`, `SendReceiveSupport.c`, etc. |
 
 ---
 
