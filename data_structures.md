@@ -30,9 +30,56 @@ Other type codes (1–13, 16–23) are GRETINA/NSCL/S800/aux detector formats �
 
 ---
 
+## Note: IOC Output vs Saved File Format
+
+The **IOC TCP sender** and the **tcpReceiverMT saved file** differ:
+
+| | IOC TCP stream | Saved binary file |
+|--|----------------|-------------------|
+| **DIG data** | Raw DIG payload only (no GEB header) | GEBHeader (type=14) + DIG payload |
+| **TAC2/trigger data** | Raw 16-word VME trigger packet | Receiver repacks → 10-word DIG-compatible packet, then GEBHeader (type=15) prepended |
+
+The receiver (`tcpReceiverMT`) adds GEB headers to DIG data and **repacks** TAC2 data from the 16-word VME format into a compact 10-word format before saving.
+
+---
+
 ## 2. DIG Event Payload (GEB type 14)
 
 The DIG payload is produced by the digitizer FPGA and forwarded by the IOC sender. It is decoded into the `DIG` class. Payload is big-endian 32-bit words (`ntohl()` applied on read).
+
+### DIG Event Layout (ASCII)
+
+```
+Bytes   Content
+┌──────────────────────────────────────────────────────────────────┐
+│ GEBHeader (16 bytes, added by tcpReceiverMT)             │
+│  [0- 3] type         = 14 (GEB_TYPE_DGS)                 │
+│  [4- 7] payload_len  = packet_length × 4 (bytes)         │
+│  [8-15] timestamp    = 64-bit (10 ns ticks)              │
+├──────────────────────────────────────────────────────────────────┤
+│ DIG Payload (from FPGA, big-endian 32-bit words)         │
+│  Word 0:  0xAAAAAAAA  (sync word)                        │
+│  Word 1:  [31:27]=GEO_ADDR [26:16]=PKT_LEN              │
+│           [15:4]=USER_DEF  [ 3: 0]=CH_ID                │
+│  Word 2:  EVENT_TIMESTAMP[31:0]                          │
+│  Word 3:  [31:26]=HDR_LEN  [25:23]=EVT_TYPE             │
+│           [22]=CFD_ESUM    [21]=TRIG_TS [20]=PEQ_BYPASS  │
+│           [19:16]=HDR_TYPE [15:0]=TIMESTAMP[47:32]       │
+│  Word 4:  FLAGS (VETO, PILEUP, CFD_VALID, PEAK_VALID...) │
+│  Word 5:  CFD_SAMPLE_0 (CFD mode) / padding (LED mode)  │
+│  Word 6:  [27:24]=PILEUP_CNT  [23:0]=SAMPLED_BASELINE   │
+│  Word 7:  LED: TRIG_MON_XTRA / CFD: CFD_SAMPLE_1+2      │
+│  Word 8:  [31:24]=POST_RISE_E[7:0]  [23:0]=PRE_RISE_E   │
+│  Word 9:  [31:16]=PEAK_TIMESTAMP    [15:0]=POST_RISE_E   │
+│  Word 10: [31:16]=TS_OF_TRIGGER     [14]=P2_MODE         │
+│           [13:0]=P2_SUM[13:0]                            │
+│  Word 11: [31:24]=M_SUM[7:0]  [23:0]=MULTIPLEX_DATA     │
+│  Word 12: [31:24]=M_SUM[15:8] [23:0]=EARLY_PRE_RISE_E   │
+│  Word 13: [31:24]=M_SUM[23:16][23:14]=TS_OF_COARSE       │
+│           [13]=COARSE_FIRED  [10]=2ND_THRESH  [9:0]=P2   │
+│  Word 14+: Trace (optional, 2×16-bit ADC samples/word)   │
+└──────────────────────────────────────────────────────────────────┘
+```
 
 ### Header Words (always present)
 
@@ -127,6 +174,56 @@ Raw 16-bit ADC samples packed into 32-bit words (2 samples per word):
 ---
 
 ## 3. TAC-II / TDC Payload (GEB type 15)
+
+### TAC2 Repacking (IOC → Receiver)
+
+The IOC sends the raw VME trigger packet (16 words). `tcpReceiverMT` **repacks** it into a 10-word DIG-compatible format before saving.
+
+```
+IOC TCP stream: Raw TAC2 VME packet (16 words, big-endian)
+┌────────────────────────────────────────────────┐
+│ Word  0: header[0]                                  │
+│ Word  1: timestamp[31:0]   (header[1])              │
+│ Word  2: [15:0]=timestamp[47:32], [31:16]=other      │
+│ Word  3: timestamp low     (header[3])              │
+│ Word  4: timestamp high    (header[4])              │
+│ Word  5: TAC data[0]                                 │
+│ Word  6: TAC data[1]                                 │
+│ Word  7: TAC data[2]                                 │
+│ Word  8: TAC data[3]                                 │
+│ Word  9: TAC data[4]                                 │
+│ Word 10: TAC data[5]                                 │
+│ Word 11: TAC data[6]                                 │
+│ Word 12: TAC data[7]                                 │
+│ Word 13: TAC data[8]                                 │
+│ Word 14: TAC data[9]                                 │
+│ Word 15: TAC data[10]                                │
+└────────────────────────────────────────────────┘
+             │ tcpReceiverMT repacks into 10-word format
+             ▼
+Saved file: GEBHeader + repacked TAC2 packet (10 words)
+┌────────────────────────────────────────────────┐
+│ GEBHeader (16 bytes):                               │
+│   type = 15 (GEB_TYPE_DGSTRIG)                      │
+│   payload_len = 10 × 4 = 40 bytes                   │
+│   timestamp = extracted from VME words [3:4]        │
+├────────────────────────────────────────────────┤
+│ Repacked payload (10 words, DIG-compatible):        │
+│  Word 0: 0xAAAAAAAA  (sync word)                    │
+│  Word 1: CH_ID=0xA, board_id=99<<4, len=10<<16      │
+│  Word 2: header[4]<<16 | header[3]  (ts low)        │
+│  Word 3: header[2] | 0xE<<16 | 3<<26               │
+│           HDR_TYPE=0xE, HDR_LEN=3                   │
+│  Word 4: header[1]<<16 | header[5]                  │
+│  Word 5: header[6]<<16  | header[7]                 │
+│  Word 6: header[8]<<16  | header[9]                 │
+│  Word 7: header[10]<<16 | header[11]                │
+│  Word 8: header[12]<<16 | header[13]                │
+│  Word 9: header[14]<<16 | header[15]                │
+└────────────────────────────────────────────────┘
+  Source: `tcpReceiverMT.cpp` / `receiver.h:L447–524`
+  Note: board_id=99, CH_ID=0xA are sentinel values identifying this as trigger data.
+```
 
 The MTRG TAC-II TDC produces trigger timing data decoded into the `TDC` class:
 
