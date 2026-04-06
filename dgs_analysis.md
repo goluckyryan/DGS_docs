@@ -83,7 +83,40 @@ Key files:
 
 ### gray_apps
 
-Additional analysis applications (contents not fully explored).
+**GrayCAL** — Python GUI toolkit for gamma-ray energy calibration of HPGe detectors. Written by M.P. Carpenter (mpcarp19). Requires Python 3.13+.
+
+**Status:** Active development; not for external distribution (see README_GrayCAL.md).
+
+**Install:**
+```bash
+conda env create -f environment.yml && conda activate grayapps
+# or
+./setup_venv.sh && pip install -e .
+```
+
+**Run:** `graycal` (after install) or `python main.py`
+
+**Structure (62 Python files):**
+
+| Path | Contents |
+|------|----------|
+| `src/GrayCAL/core/` | Core logic: `SpectrumData`, `BatchFit`, `CalibrationPoints`, `IsotopeGammaData`, `SyntheticSpectrumGenerator`, `FileReader`, `radware_eff` |
+| `src/GrayCAL/gui/` | PyQt/Plotly GUI: `SpectrumViewer`, `FitsViewer`, `CalibrationViewer`, `autofit_dialog`, `batchfit_dialog`, `polezero_dialog`, `calpts_window`, etc. |
+| `src/GrayCAL/utils/` | Settings, file I/O, utilities |
+| `data/isotopes/` | Known gamma-ray source data (JSON format) |
+
+**Features:**
+- Load/manage radioactive source data (JSON)
+- Visualize HPGe gamma-ray spectra interactively (Plotly-based)
+- Automated peak fitting (`autofit`, `batchfit`)
+- Pole-zero correction dialog
+- Calibration point management and energy calibration
+- Synthetic spectrum generation (random or isotope-based) for testing
+- Radware efficiency (`radware_eff.py`) support
+
+**Planned:** Isotopic source identification, efficiency calibration, Doppler-broadened peak fitting.
+
+_Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06_
 
 ---
 
