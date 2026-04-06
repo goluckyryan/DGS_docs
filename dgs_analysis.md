@@ -203,6 +203,18 @@ python working/pz_from_parquet.py $expFolder/Parquet/decode/exp2008_003_dgs.parq
 
 Higher-level run processing wrapper.
 
+### BenchmarkTAC2_021.sh
+
+Performance comparison script for the three event-building approaches:
+```bash
+./working/BenchmarkTAC2_021.sh [THREADS]
+```
+- Runs `EventBuilder_Q`, `EventBuilder_PQ`, and `parquet_pysort` against the `TAC2_021` dataset
+- Reports wall time + output size for each; prints Q/PQS, PQ/PQS, and Q/PQ speedup ratios
+- Default: 8 threads; uses `TIMEWIN=1000` (ticks) for fair apples-to-apples comparison
+- Requires ROOT environment (`/opt/root/bin/thisroot.sh`) and Python venv (`.venv/`)
+- Output log: `working/benchmark_output/benchmark_<timestamp>.log`
+
 ---
 
 ## Data Format: GEB (GRETINA Event Builder)
