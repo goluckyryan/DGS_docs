@@ -31,1522 +31,1539 @@ Which crystal is installed →  Ge_Prefix + Ge_ID      (e.g. module 3, crystal 0
 
 ---
 
+## PV Nature Reference
+
+Each PV table includes a **Nature** column:
+
+| Nature | Meaning | Snapshot? |
+|--------|---------|----------|
+| `Config` | Writable setting — persists across restarts, snapshot-safe | ✅ Included |
+| `Monitor` | Read-only hardware readback (temp, HV actual, counters, status) | ❌ Excluded |
+| `Diag` | Diagnostic / debug / ILA / printf control | ❌ Excluded |
+| `Reset` | One-shot reset bit | ❌ Excluded |
+| `Global` | Global fanout PV — managed by IOC startup | ❌ Excluded |
+| `Register` | Raw hardware register (`reg_*`) | ❌ Excluded |
+
+See `snapshot_pv/pv_filter.py` for the implementation.
+
+---
+
 ## CollectorDiagCtl.db (71 records)
 
-| Type | PV Name |
-|------|----------|
-| bo | `GS${DetNbr}_CTL_AO_printf_ctl` |
-| bo | `GS${DetNbr}_CTL_AI_printf_ctl` |
-| bo | `GS${DetNbr}_CTL_BI_printf_ctl` |
-| bo | `GS${DetNbr}_CTL_BO_printf_ctl` |
-| bo | `GS${DetNbr}_CTL_WF_printf_ctl` |
-| bo | `GS${DetNbr}_CTL_WF_data_print_ctl` |
-| bo | `GS${DetNbr}_CTL_MBBI_printf_ctl` |
-| bo | `GS${DetNbr}_AI_printf_ctl` |
-| bo | `GS${DetNbr}_AO_printf_ctl` |
-| bo | `GS${DetNbr}_BI_printf_ctl` |
-| bo | `GS${DetNbr}_BO_printf_ctl` |
-| bo | `GS${DetNbr}_MBBI_printf_ctl` |
-| bo | `GS${DetNbr}_MBBO_printf_ctl` |
-| bo | `GS${DetNbr}_Calc_AI_printf_ctl` |
-| bo | `GS${DetNbr}_Calc_BI_printf_ctl` |
-| bo | `GS${DetNbr}_I2C_AI_printf_ctl` |
-| bo | `GS${DetNbr}_I2C_AO_printf_ctl` |
-| bo | `GS${DetNbr}_Step_AI_printf_ctl` |
-| ao | `GS${DetNbr}_PointerControl` |
-| ao | `GS${DetNbr}_PrintAddrMatch` |
-| bo | `GS${DetNbr}_DBG_Match_Nidx` |
-| bo | `GS${DetNbr}_DBG_Match_Cidx` |
-| bo | `GS${DetNbr}_ControlAllPrints` |
-| bo | `GS${DetNbr}_ResetBufferPointer` |
-| bo | `GS${DetNbr}_DumpAllMailboxes` |
-| bo | `GS${DetNbr}_ClearDataBuffer` |
-| ao | `GS${DetNbr}_Buf0ReadDepth` |
-| bo | `GS${DetNbr}_BufTestData` |
-| bo | `GS${DetNbr}_ClrBufAndGo` |
-| waveform | `GS${DetNbr}_TestWaveRec` |
-| waveform | `GS${DetNbr}_TestProtectionRec` |
-| bo | `GS${DetNbr}_ProcWaveRec` |
-| ao | `GS${DetNbr}_ReadIntMailbox` |
-| ao | `GS${DetNbr}_ReadFloatMailbox` |
-| ai | `GS${DetNbr}_TestBanksel1` |
-| ai | `GS${DetNbr}_TestBanksel2` |
-| ai | `GS${DetNbr}_TestBanksel3` |
-| ai | `GS${DetNbr}_TestBanksel4` |
-| ai | `GS${DetNbr}_TestBanksel5` |
-| ai | `GS${DetNbr}_TestBanksel6` |
-| ai | `GS${DetNbr}_TestBanksel7` |
-| ai | `GS${DetNbr}_ReadDongle1` |
-| ai | `GS${DetNbr}_ReadDongle2` |
-| ai | `GS${DetNbr}_ReadDongle3` |
-| ai | `GS${DetNbr}_ReadDongle4` |
-| ai | `GS${DetNbr}_ReadDongle5` |
-| ai | `GS${DetNbr}_ReadDongle6` |
-| ai | `GS${DetNbr}_ReadDongle7` |
-| ai | `GS${DetNbr}_ReadDongle8` |
-| ai | `GS${DetNbr}_ReadDongle9` |
-| ai | `GS${DetNbr}_ReadDongle10` |
-| ai | `GS${DetNbr}_ReadDongle11` |
-| ai | `GS${DetNbr}_ReadDongle12` |
-| ai | `GS${DetNbr}_ReadDongle13` |
-| ai | `GS${DetNbr}_ReadDongle14` |
-| ai | `GS${DetNbr}_ReadDongle15` |
-| ai | `GS${DetNbr}_ReadDongle16` |
-| ai | `GS${DetNbr}_ReadDongle17` |
-| ai | `GS${DetNbr}_ReadDongle18` |
-| ai | `GS${DetNbr}_ReadDongle19` |
-| ai | `GS${DetNbr}_ReadDongle20` |
-| ai | `GS${DetNbr}_ReadDongle21` |
-| ai | `GS${DetNbr}_ReadDongle22` |
-| ai | `GS${DetNbr}_ReadDongle23` |
-| ai | `GS${DetNbr}_ReadDongle24` |
-| ai | `GS${DetNbr}_ReadDongle25` |
-| ai | `GS${DetNbr}_ReadDongle26` |
-| ai | `GS${DetNbr}_ReadDongle27` |
-| ai | `GS${DetNbr}_ReadDongle28` |
-| ai | `GS${DetNbr}_ReadDongle29` |
-| ai | `GS${DetNbr}_ReadDongle30` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| bo | Diag | `GS${DetNbr}_CTL_AO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_AI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_BI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_BO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_WF_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_WF_data_print_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_MBBI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_AI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_AO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_BI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_BO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_MBBI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_MBBO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_Calc_AI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_Calc_BI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_I2C_AI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_I2C_AO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_Step_AI_printf_ctl` |
+| ao | Diag | `GS${DetNbr}_PointerControl` |
+| ao | Diag | `GS${DetNbr}_PrintAddrMatch` |
+| bo | Diag | `GS${DetNbr}_DBG_Match_Nidx` |
+| bo | Diag | `GS${DetNbr}_DBG_Match_Cidx` |
+| bo | Diag | `GS${DetNbr}_ControlAllPrints` |
+| bo | Reset | `GS${DetNbr}_ResetBufferPointer` |
+| bo | Diag | `GS${DetNbr}_DumpAllMailboxes` |
+| bo | Diag | `GS${DetNbr}_ClearDataBuffer` |
+| ao | Diag | `GS${DetNbr}_Buf0ReadDepth` |
+| bo | Diag | `GS${DetNbr}_BufTestData` |
+| bo | Diag | `GS${DetNbr}_ClrBufAndGo` |
+| waveform | Diag | `GS${DetNbr}_TestWaveRec` |
+| waveform | Diag | `GS${DetNbr}_TestProtectionRec` |
+| bo | Diag | `GS${DetNbr}_ProcWaveRec` |
+| ao | Diag | `GS${DetNbr}_ReadIntMailbox` |
+| ao | Diag | `GS${DetNbr}_ReadFloatMailbox` |
+| ai | Monitor | `GS${DetNbr}_TestBanksel1` |
+| ai | Monitor | `GS${DetNbr}_TestBanksel2` |
+| ai | Monitor | `GS${DetNbr}_TestBanksel3` |
+| ai | Monitor | `GS${DetNbr}_TestBanksel4` |
+| ai | Monitor | `GS${DetNbr}_TestBanksel5` |
+| ai | Monitor | `GS${DetNbr}_TestBanksel6` |
+| ai | Monitor | `GS${DetNbr}_TestBanksel7` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle1` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle2` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle3` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle4` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle5` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle6` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle7` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle8` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle9` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle10` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle11` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle12` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle13` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle14` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle15` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle16` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle17` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle18` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle19` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle20` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle21` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle22` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle23` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle24` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle25` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle26` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle27` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle28` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle29` |
+| ai | Monitor | `GS${DetNbr}_ReadDongle30` |
 
 ## CtrlFPGA.db (16 records)
 
-| Type | PV Name |
-|------|----------|
-| bo | `GS${DetNbr}_ctl_reset_startup_rom` |
-| bo | `GS${DetNbr}_ctl_master_reset` |
-| bo | `GS${DetNbr}_ctl_serial_reset` |
-| bo | `GS${DetNbr}_ctl_reset_cmd_fifo` |
-| bo | `GS${DetNbr}_ctl_transactor_go` |
-| bo | `GS${DetNbr}_MON_ADC_RESET` |
-| bo | `GS${DetNbr}_CTL_FPGA_LED` |
-| bo | `GS${DetNbr}_NIM_OUT1` |
-| bo | `GS${DetNbr}_NIM_OUT2` |
-| bo | `GS${DetNbr}_ADC_scanner_reset` |
-| bo | `GS${DetNbr}_ADC_transactor_fifo_rst` |
-| bo | `GS${DetNbr}_ADC_transactor_reset` |
-| mbbo | `GS${DetNbr}_ctl_ila_subsel` |
-| mbbo | `GS${DetNbr}_ctl_ila_sel_code` |
-| bo | `GS${DetNbr}_ctl_ila_clock_sel` |
-| ao | `GS${DetNbr}_DPRAM_Banksel` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| bo | Reset | `GS${DetNbr}_ctl_reset_startup_rom` |
+| bo | Reset | `GS${DetNbr}_ctl_master_reset` |
+| bo | Reset | `GS${DetNbr}_ctl_serial_reset` |
+| bo | Reset | `GS${DetNbr}_ctl_reset_cmd_fifo` |
+| bo | Diag | `GS${DetNbr}_ctl_transactor_go` |
+| bo | Diag | `GS${DetNbr}_MON_ADC_RESET` |
+| bo | Config | `GS${DetNbr}_CTL_FPGA_LED` |
+| bo | Config | `GS${DetNbr}_NIM_OUT1` |
+| bo | Config | `GS${DetNbr}_NIM_OUT2` |
+| bo | Reset | `GS${DetNbr}_ADC_scanner_reset` |
+| bo | Diag | `GS${DetNbr}_ADC_transactor_fifo_rst` |
+| bo | Reset | `GS${DetNbr}_ADC_transactor_reset` |
+| mbbo | Diag | `GS${DetNbr}_ctl_ila_subsel` |
+| mbbo | Diag | `GS${DetNbr}_ctl_ila_sel_code` |
+| bo | Diag | `GS${DetNbr}_ctl_ila_clock_sel` |
+| ao | Diag | `GS${DetNbr}_DPRAM_Banksel` |
 
 ## CtrlFPGA_reg.db (121 records)
 
-| Type | PV Name |
-|------|----------|
-| ai | `GS${DetNbr}_ctl_bank_readback` |
-| ao | `GS${DetNbr}_ctl_pulsed_control` |
-| ao | `GS${DetNbr}_FPGA_CTL_REG` |
-| ao | `GS${DetNbr}_ctl_ila_control` |
-| ao | `GS${DetNbr}_scanner_INITIAL_ROM_ADDRESS` |
-| ao | `GS${DetNbr}_ADC_transactor_FIFO` |
-| ai | `GS${DetNbr}_pi_gpio_readback_1` |
-| ai | `GS${DetNbr}_pi_gpio_readback_2` |
-| ai | `GS${DetNbr}_Code_Date` |
-| ai | `GS${DetNbr}_Code_Revision` |
-| ai | `GS${DetNbr}_S1_DVI1_GndFault_I` |
-| ai | `GS${DetNbr}_S1_DVI2_GndFault_I` |
-| ai | `GS${DetNbr}_S1_DVI3_GndFault_I` |
-| ai | `GS${DetNbr}_S1_DVI4_GndFault_I` |
-| ai | `GS${DetNbr}_S1_DVI5_GndFault_I` |
-| ai | `GS${DetNbr}_S1_DVI1_48V_I` |
-| ai | `GS${DetNbr}_S1_DVI2_48V_I` |
-| ai | `GS${DetNbr}_S1_DVI3_48V_I` |
-| ai | `GS${DetNbr}_S1_DVI4_48V_I` |
-| ai | `GS${DetNbr}_S1_DVI5_48V_I` |
-| ai | `GS${DetNbr}_S1_12V` |
-| ai | `GS${DetNbr}_S1_25V` |
-| ai | `GS${DetNbr}_S1_33V` |
-| ai | `GS${DetNbr}_S1_ADC_OFFSET` |
-| ai | `GS${DetNbr}_S1_ADC_VCC` |
-| ai | `GS${DetNbr}_S1_ADC_TEMP` |
-| ai | `GS${DetNbr}_S1_ADC_GAIN` |
-| ai | `GS${DetNbr}_S1_ADC_REF` |
-| ai | `GS${DetNbr}_S3_DVI1_GndFault_I` |
-| ai | `GS${DetNbr}_S3_DVI2_GndFault_I` |
-| ai | `GS${DetNbr}_S3_DVI3_GndFault_I` |
-| ai | `GS${DetNbr}_S3_DVI4_GndFault_I` |
-| ai | `GS${DetNbr}_S3_DVI5_GndFault_I` |
-| ai | `GS${DetNbr}_S3_DVI1_48V_I` |
-| ai | `GS${DetNbr}_S3_DVI2_48V_I` |
-| ai | `GS${DetNbr}_S3_DVI3_48V_I` |
-| ai | `GS${DetNbr}_S3_DVI4_48V_I` |
-| ai | `GS${DetNbr}_S3_DVI5_48V_I` |
-| ai | `GS${DetNbr}_S3_12V` |
-| ai | `GS${DetNbr}_S3_25V` |
-| ai | `GS${DetNbr}_S3_33V` |
-| ai | `GS${DetNbr}_S3_ADC_OFFSET` |
-| ai | `GS${DetNbr}_S3_ADC_VCC` |
-| ai | `GS${DetNbr}_S3_ADC_TEMP` |
-| ai | `GS${DetNbr}_S3_ADC_GAIN` |
-| ai | `GS${DetNbr}_S3_ADC_REF` |
-| ai | `GS${DetNbr}_S5_DVI1_GndFault_I` |
-| ai | `GS${DetNbr}_S5_DVI2_GndFault_I` |
-| ai | `GS${DetNbr}_S5_DVI3_GndFault_I` |
-| ai | `GS${DetNbr}_S5_DVI4_GndFault_I` |
-| ai | `GS${DetNbr}_S5_DVI5_GndFault_I` |
-| ai | `GS${DetNbr}_S5_DVI1_48V_I` |
-| ai | `GS${DetNbr}_S5_DVI2_48V_I` |
-| ai | `GS${DetNbr}_S5_DVI3_48V_I` |
-| ai | `GS${DetNbr}_S5_DVI4_48V_I` |
-| ai | `GS${DetNbr}_S5_DVI5_48V_I` |
-| ai | `GS${DetNbr}_S5_12V` |
-| ai | `GS${DetNbr}_S5_25V` |
-| ai | `GS${DetNbr}_S5_33V` |
-| ai | `GS${DetNbr}_S5_ADC_OFFSET` |
-| ai | `GS${DetNbr}_S5_ADC_VCC` |
-| ai | `GS${DetNbr}_S5_ADC_TEMP` |
-| ai | `GS${DetNbr}_S5_ADC_GAIN` |
-| ai | `GS${DetNbr}_S5_ADC_REF` |
-| ai | `GS${DetNbr}_S2_DVI1_GndFault_I` |
-| ai | `GS${DetNbr}_S2_DVI2_GndFault_I` |
-| ai | `GS${DetNbr}_S2_DVI3_GndFault_I` |
-| ai | `GS${DetNbr}_S2_DVI4_GndFault_I` |
-| ai | `GS${DetNbr}_S2_DVI5_GndFault_I` |
-| ai | `GS${DetNbr}_S2_DVI1_48V_I` |
-| ai | `GS${DetNbr}_S2_DVI2_48V_I` |
-| ai | `GS${DetNbr}_S2_DVI3_48V_I` |
-| ai | `GS${DetNbr}_S2_DVI4_48V_I` |
-| ai | `GS${DetNbr}_S2_DVI5_48V_I` |
-| ai | `GS${DetNbr}_S2_12V` |
-| ai | `GS${DetNbr}_S2_25V` |
-| ai | `GS${DetNbr}_S2_33V` |
-| ai | `GS${DetNbr}_S2_ADC_OFFSET` |
-| ai | `GS${DetNbr}_S2_ADC_VCC` |
-| ai | `GS${DetNbr}_S2_ADC_TEMP` |
-| ai | `GS${DetNbr}_S2_ADC_GAIN` |
-| ai | `GS${DetNbr}_S2_ADC_REF` |
-| ai | `GS${DetNbr}_S4_DVI1_GndFault_I` |
-| ai | `GS${DetNbr}_S4_DVI2_GndFault_I` |
-| ai | `GS${DetNbr}_S4_DVI3_GndFault_I` |
-| ai | `GS${DetNbr}_S4_DVI4_GndFault_I` |
-| ai | `GS${DetNbr}_S4_DVI5_GndFault_I` |
-| ai | `GS${DetNbr}_S4_DVI5_48V_I` |
-| ai | `GS${DetNbr}_S4_DVI4_48V_I` |
-| ai | `GS${DetNbr}_S4_DVI3_48V_I` |
-| ai | `GS${DetNbr}_S4_DVI2_48V_I` |
-| ai | `GS${DetNbr}_S4_DVI1_48V_I` |
-| ai | `GS${DetNbr}_S4_12V` |
-| ai | `GS${DetNbr}_S4_25V` |
-| ai | `GS${DetNbr}_S4_33V` |
-| ai | `GS${DetNbr}_S4_ADC_OFFSET` |
-| ai | `GS${DetNbr}_S4_ADC_VCC` |
-| ai | `GS${DetNbr}_S4_ADC_TEMP` |
-| ai | `GS${DetNbr}_S4_ADC_GAIN` |
-| ai | `GS${DetNbr}_S4_ADC_REF` |
-| ai | `GS${DetNbr}_S6_DVI1_GndFault_I` |
-| ai | `GS${DetNbr}_S6_DVI2_GndFault_I` |
-| ai | `GS${DetNbr}_S6_DVI3_GndFault_I` |
-| ai | `GS${DetNbr}_S6_DVI4_GndFault_I` |
-| ai | `GS${DetNbr}_S6_DVI5_GndFault_I` |
-| ai | `GS${DetNbr}_S6_DVI5_48V_I` |
-| ai | `GS${DetNbr}_S6_DVI4_48V_I` |
-| ai | `GS${DetNbr}_S6_DVI3_48V_I` |
-| ai | `GS${DetNbr}_S6_DVI2_48V_I` |
-| ai | `GS${DetNbr}_S6_DVI1_48V_I` |
-| ai | `GS${DetNbr}_BGO_FPGA_33V` |
-| ai | `GS${DetNbr}_BGO_FPGA_25V` |
-| ai | `GS${DetNbr}_S6_12V` |
-| ai | `GS${DetNbr}_S6_25V` |
-| ai | `GS${DetNbr}_S6_33V` |
-| ai | `GS${DetNbr}_BGO_FPGA_12V` |
-| ai | `GS${DetNbr}_S6_ADC_OFFSET` |
-| ai | `GS${DetNbr}_S6_ADC_VCC` |
-| ai | `GS${DetNbr}_S6_ADC_TEMP` |
-| ai | `GS${DetNbr}_S6_ADC_GAIN` |
-| ai | `GS${DetNbr}_S6_ADC_REF` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| ai | Monitor | `GS${DetNbr}_ctl_bank_readback` |
+| ao | Diag | `GS${DetNbr}_ctl_pulsed_control` |
+| ao | Config | `GS${DetNbr}_FPGA_CTL_REG` |
+| ao | Diag | `GS${DetNbr}_ctl_ila_control` |
+| ao | Config | `GS${DetNbr}_scanner_INITIAL_ROM_ADDRESS` |
+| ao | Diag | `GS${DetNbr}_ADC_transactor_FIFO` |
+| ai | Monitor | `GS${DetNbr}_pi_gpio_readback_1` |
+| ai | Monitor | `GS${DetNbr}_pi_gpio_readback_2` |
+| ai | Monitor | `GS${DetNbr}_Code_Date` |
+| ai | Monitor | `GS${DetNbr}_Code_Revision` |
+| ai | Monitor | `GS${DetNbr}_S1_DVI1_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S1_DVI2_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S1_DVI3_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S1_DVI4_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S1_DVI5_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S1_DVI1_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S1_DVI2_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S1_DVI3_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S1_DVI4_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S1_DVI5_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S1_12V` |
+| ai | Monitor | `GS${DetNbr}_S1_25V` |
+| ai | Monitor | `GS${DetNbr}_S1_33V` |
+| ai | Monitor | `GS${DetNbr}_S1_ADC_OFFSET` |
+| ai | Monitor | `GS${DetNbr}_S1_ADC_VCC` |
+| ai | Monitor | `GS${DetNbr}_S1_ADC_TEMP` |
+| ai | Monitor | `GS${DetNbr}_S1_ADC_GAIN` |
+| ai | Monitor | `GS${DetNbr}_S1_ADC_REF` |
+| ai | Monitor | `GS${DetNbr}_S3_DVI1_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S3_DVI2_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S3_DVI3_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S3_DVI4_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S3_DVI5_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S3_DVI1_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S3_DVI2_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S3_DVI3_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S3_DVI4_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S3_DVI5_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S3_12V` |
+| ai | Monitor | `GS${DetNbr}_S3_25V` |
+| ai | Monitor | `GS${DetNbr}_S3_33V` |
+| ai | Monitor | `GS${DetNbr}_S3_ADC_OFFSET` |
+| ai | Monitor | `GS${DetNbr}_S3_ADC_VCC` |
+| ai | Monitor | `GS${DetNbr}_S3_ADC_TEMP` |
+| ai | Monitor | `GS${DetNbr}_S3_ADC_GAIN` |
+| ai | Monitor | `GS${DetNbr}_S3_ADC_REF` |
+| ai | Monitor | `GS${DetNbr}_S5_DVI1_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S5_DVI2_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S5_DVI3_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S5_DVI4_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S5_DVI5_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S5_DVI1_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S5_DVI2_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S5_DVI3_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S5_DVI4_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S5_DVI5_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S5_12V` |
+| ai | Monitor | `GS${DetNbr}_S5_25V` |
+| ai | Monitor | `GS${DetNbr}_S5_33V` |
+| ai | Monitor | `GS${DetNbr}_S5_ADC_OFFSET` |
+| ai | Monitor | `GS${DetNbr}_S5_ADC_VCC` |
+| ai | Monitor | `GS${DetNbr}_S5_ADC_TEMP` |
+| ai | Monitor | `GS${DetNbr}_S5_ADC_GAIN` |
+| ai | Monitor | `GS${DetNbr}_S5_ADC_REF` |
+| ai | Monitor | `GS${DetNbr}_S2_DVI1_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S2_DVI2_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S2_DVI3_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S2_DVI4_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S2_DVI5_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S2_DVI1_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S2_DVI2_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S2_DVI3_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S2_DVI4_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S2_DVI5_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S2_12V` |
+| ai | Monitor | `GS${DetNbr}_S2_25V` |
+| ai | Monitor | `GS${DetNbr}_S2_33V` |
+| ai | Monitor | `GS${DetNbr}_S2_ADC_OFFSET` |
+| ai | Monitor | `GS${DetNbr}_S2_ADC_VCC` |
+| ai | Monitor | `GS${DetNbr}_S2_ADC_TEMP` |
+| ai | Monitor | `GS${DetNbr}_S2_ADC_GAIN` |
+| ai | Monitor | `GS${DetNbr}_S2_ADC_REF` |
+| ai | Monitor | `GS${DetNbr}_S4_DVI1_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S4_DVI2_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S4_DVI3_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S4_DVI4_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S4_DVI5_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S4_DVI5_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S4_DVI4_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S4_DVI3_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S4_DVI2_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S4_DVI1_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S4_12V` |
+| ai | Monitor | `GS${DetNbr}_S4_25V` |
+| ai | Monitor | `GS${DetNbr}_S4_33V` |
+| ai | Monitor | `GS${DetNbr}_S4_ADC_OFFSET` |
+| ai | Monitor | `GS${DetNbr}_S4_ADC_VCC` |
+| ai | Monitor | `GS${DetNbr}_S4_ADC_TEMP` |
+| ai | Monitor | `GS${DetNbr}_S4_ADC_GAIN` |
+| ai | Monitor | `GS${DetNbr}_S4_ADC_REF` |
+| ai | Monitor | `GS${DetNbr}_S6_DVI1_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S6_DVI2_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S6_DVI3_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S6_DVI4_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S6_DVI5_GndFault_I` |
+| ai | Monitor | `GS${DetNbr}_S6_DVI5_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S6_DVI4_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S6_DVI3_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S6_DVI2_48V_I` |
+| ai | Monitor | `GS${DetNbr}_S6_DVI1_48V_I` |
+| ai | Monitor | `GS${DetNbr}_BGO_FPGA_33V` |
+| ai | Monitor | `GS${DetNbr}_BGO_FPGA_25V` |
+| ai | Monitor | `GS${DetNbr}_S6_12V` |
+| ai | Monitor | `GS${DetNbr}_S6_25V` |
+| ai | Monitor | `GS${DetNbr}_S6_33V` |
+| ai | Monitor | `GS${DetNbr}_BGO_FPGA_12V` |
+| ai | Monitor | `GS${DetNbr}_S6_ADC_OFFSET` |
+| ai | Monitor | `GS${DetNbr}_S6_ADC_VCC` |
+| ai | Monitor | `GS${DetNbr}_S6_ADC_TEMP` |
+| ai | Monitor | `GS${DetNbr}_S6_ADC_GAIN` |
+| ai | Monitor | `GS${DetNbr}_S6_ADC_REF` |
 
 ## DetSpec.db (2 records)
 
-| Type | PV Name |
-|------|----------|
-| ao | `MOD${DetNbr}_DS_GEHV` |
-| ai | `MOD${DetNbr}_DV_GEHV` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| ao | Config | `MOD${DetNbr}_DS_GEHV` |
+| ai | Monitor | `MOD${DetNbr}_DV_GEHV` |
 
 ## HV_STEP.db (9 records)
 
-| Type | PV Name |
-|------|----------|
-| bi | `GS${DetNbr}_StepInterlock1` |
-| bi | `GS${DetNbr}_StepInterlock2` |
-| ao | `GS${DetNbr}_GE_HV_DEMAND_VOLTS` |
-| ao | `GS${DetNbr}_GE_HV_STEP_SIZE` |
-| ao | `GS${DetNbr}_GE_HV_HYSTERESIS` |
-| ao | `GS${DetNbr}_GE_HV_ABSMAX` |
-| ai | `GS${DetNbr}_Adjust_HV_DAC` |
-| ai | `GS${DetNbr}_GE_HV_DEMAND_DAC` |
-| ao | `GS${DetNbr}_MANUAL_GE_HV_DEMAND` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| bi | Monitor | `GS${DetNbr}_StepInterlock1` |
+| bi | Monitor | `GS${DetNbr}_StepInterlock2` |
+| ao | Config | `GS${DetNbr}_GE_HV_DEMAND_VOLTS` |
+| ao | Config | `GS${DetNbr}_GE_HV_STEP_SIZE` |
+| ao | Config | `GS${DetNbr}_GE_HV_HYSTERESIS` |
+| ao | Config | `GS${DetNbr}_GE_HV_ABSMAX` |
+| ai | Monitor | `GS${DetNbr}_Adjust_HV_DAC` |
+| ai | Monitor | `GS${DetNbr}_GE_HV_DEMAND_DAC` |
+| ao | Config | `GS${DetNbr}_MANUAL_GE_HV_DEMAND` |
 
 ## Pickoff.db (448 records)
 
-| Type | PV Name |
-|------|----------|
-| bo | `GS${DetNbr}_ResetBufferAddr` |
-| bo | `GS${DetNbr}_ClearSyncError` |
-| bo | `GS${DetNbr}_ResetAllI2C` |
-| bo | `GS${DetNbr}_ResetDongleScanner` |
-| bo | `GS${DetNbr}_ResetTraceFIFO` |
-| bo | `GS${DetNbr}_ResetPreampScanner` |
-| bo | `GS${DetNbr}_ResetCounters` |
-| bo | `GS${DetNbr}_DONGLE_FIFO_DATA_READY` |
-| bo | `GS${DetNbr}_RunPreampI2C` |
-| bo | `GS${DetNbr}_RunPowerI2C` |
-| bo | `GS${DetNbr}_MeasPARSTGo` |
-| bo | `GS${DetNbr}_ResetPowerScanner` |
-| bo | `GS${DetNbr}_SoftBootFPGA` |
-| bo | `GS${DetNbr}_ResetCollectorDAC` |
-| bo | `GS${DetNbr}_ResetSlopeBoxScan` |
-| ai | `GS${DetNbr}_DPRAM_Banksel_RBV` |
-| bi | `GS${DetNbr}_DPRAM_BankChk` |
-| bo | `GS${DetNbr}_Reset_Ge_switches` |
-| bo | `GS${DetNbr}_Reset_BGO_switches` |
-| bo | `GS${DetNbr}_BGO_DiscbitCntMode` |
-| bo | `GS${DetNbr}_PA_RST_CountMode` |
-| bo | `GS${DetNbr}_PA_RST_WidthEnbl` |
-| mbbo | `GS${DetNbr}_PA_RST_WidthEdgeSel` |
-| bo | `GS${DetNbr}_PreampI2C_OE_CTL` |
-| bo | `GS${DetNbr}_ResetAllScanMachines` |
-| bo | `GS${DetNbr}_UseTrigClock` |
-| bo | `GS${DetNbr}_PwrI2C_FIFO_RESET` |
-| bo | `GS${DetNbr}_PreampI2C_FIFO_RESET` |
-| bo | `GS${DetNbr}_DongleI2CFifoReset` |
-| bo | `GS${DetNbr}_ResetAllI2CMach` |
-| bo | `GS${DetNbr}_PowerBoardI2CEnable` |
-| ao | `GS${DetNbr}_BGOpSelectionDwell` |
-| ao | `GS${DetNbr}_BGOpStaticAddress` |
-| bo | `GS${DetNbr}_BGOpMuxMode` |
-| mbbo | `GS${DetNbr}_GeCenterTimeConstant` |
-| mbbo | `GS${DetNbr}_GeCenterGain` |
-| mbbo | `GS${DetNbr}_GeSideInputSelect` |
-| mbbo | `GS${DetNbr}_BGOSumAttenuation` |
-| mbbo | `GS${DetNbr}_BGOpSelect` |
-| ao | `GS${DetNbr}_GeCenter_DCOffset` |
-| ao | `GS${DetNbr}_GeSide_DCOffset` |
-| ao | `GS${DetNbr}_BGOsum_DCOffset` |
-| ao | `GS${DetNbr}_BGOpattern_DCOffset` |
-| ao | `GS${DetNbr}_Ge_Threshold` |
-| ao | `GS${DetNbr}_BGO_Threshold` |
-| ao | `GS${DetNbr}_GeSideB_Offset` |
-| ao | `GS${DetNbr}_PARST_ClampVoltage` |
-| ao | `GS${DetNbr}_Power_I2C_BitDelay` |
-| ao | `GS${DetNbr}_Preamp_I2C_BitDelay` |
-| ao | `GS${DetNbr}_BGO_DiscbitMask` |
-| bo | `GS${DetNbr}_BGOSum_DiscbitMask` |
-| bo | `GS${DetNbr}_BGO_OSERDES_DataCtl` |
-| bi | `GS${DetNbr}_DONGLE_COMMAND_FIFO_FULL` |
-| bi | `GS${DetNbr}_PWR_COMMAND_FIFO_FULL` |
-| bi | `GS${DetNbr}_PREAMP_COMMAND_FIFO_FULL` |
-| bi | `GS${DetNbr}_xDONGLE_LOOP_OUT` |
-| bi | `GS${DetNbr}_PiPresenceSense` |
-| bi | `GS${DetNbr}_DONGLE_COMMAND_FIFO_EMPTY` |
-| bi | `GS${DetNbr}_PreampI2CFIFOEmpty` |
-| bi | `GS${DetNbr}_PwrI2CFIFOEmpty` |
-| mbbo | `GS${DetNbr}_GeSide_MarkerSel` |
-| mbbo | `GS${DetNbr}_BGOMultiplicityThresh` |
-| ai | `GS${DetNbr}_Calc_PARST_msec` |
-| mbbo | `GS${DetNbr}_Buffer0DataSel` |
-| bo | `GS${DetNbr}_ResetBuffer0` |
-| bo | `GS${DetNbr}_Buffer0_Mode` |
-| bo | `GS${DetNbr}_Buffer_Cntr_ClkSel` |
-| mbbo | `GS${DetNbr}_Buffer0_ShiftFactor` |
-| ai | `GS${DetNbr}_Buffer0StateMon` |
-| bi | `GS${DetNbr}_RamBuffer0Active` |
-| ao | `GS${DetNbr}_SCAN_MATCH_VALUE` |
-| mbbo | `GS${DetNbr}_ILASubSelect` |
-| mbbo | `GS${DetNbr}_ILA_MainSelect` |
-| bo | `GS${DetNbr}_ILA_ClockSpeed` |
-| bo | `GS${DetNbr}_ILA_others_subsel` |
-| bo | `GS${DetNbr}_ILA_Tag_Bit` |
-| ao | `GS${DetNbr}_PA_ScanStrtAddr` |
-| ai | `GS${DetNbr}_SlopeBox_ID` |
-| mbbo | `GS${DetNbr}_Slopebox_Scan_control` |
-| mbbi | `GS${DetNbr}_Slopebox_Scan_control_RBV` |
-| bo | `GS${DetNbr}_DelaySBData` |
-| bo | `GS${DetNbr}_DelaySBClk` |
-| bi | `GS${DetNbr}_SlopeBoxBGOInterlock` |
-| bi | `GS${DetNbr}_SlopeBoxGe_HV_On` |
-| bi | `GS${DetNbr}_SlopeBoxBGO_HV_On` |
-| bi | `GS${DetNbr}_SlopeBoxTempHigh` |
-| ai | `GS${DetNbr}_SlopeBoxTemperatureRaw` |
-| mbbi | `GS${DetNbr}_TEST_POINT_TIE_VAL` |
-| bi | `GS${DetNbr}_DONGLE_SCAN_RUNNING` |
-| bi | `GS${DetNbr}_DONGLE_SCAN_ABORT` |
-| bi | `GS${DetNbr}_DONGLE_SCAN_RESET` |
-| bi | `GS${DetNbr}_PREAMP_SCAN_RUNNING` |
-| bi | `GS${DetNbr}_PREAMP_SCAN_ABORT` |
-| bi | `GS${DetNbr}_PREAMP_SCAN_RESET` |
-| bi | `GS${DetNbr}_POWER_SCAN_RUNNING` |
-| bi | `GS${DetNbr}_POWER_SCAN_ABORT` |
-| bi | `GS${DetNbr}_POWER_SCAN_RESET` |
-| ao | `GS${DetNbr}_PWR_ScanStrtAddr` |
-| ao | `GS${DetNbr}_Dongle_ScanStrtAddr` |
-| ai | `GS${DetNbr}_PA_SCAN_ROM_ERR_ADDR` |
-| mbbi | `GS${DetNbr}_PA_SCAN_ROM_ERR_TYPE` |
-| ai | `GS${DetNbr}_PWR_SCAN_ROM_ERR_ADDR` |
-| mbbi | `GS${DetNbr}_PWR_SCAN_ROM_ERR_TYPE` |
-| ai | `GS${DetNbr}_DONGLE_SCAN_ROM_ERR_ADDR` |
-| mbbi | `GS${DetNbr}_DONGLE_SCAN_ROM_ERR_TYPE` |
-| ai | `GS${DetNbr}_TrigClkCntr` |
-| ao | `GS${DetNbr}_PARST_AutoClampDwell` |
-| bo | `GS${DetNbr}_PARST_AutoDigClamp` |
-| bo | `GS${DetNbr}_ReadBuffer0` |
-| ai | `GS${DetNbr}_NoGUI_RdBuf0` |
-| ao | `GS${DetNbr}_RAM_BUF_PRESCALE` |
-| ao | `GS${DetNbr}_BGO_HV0` |
-| ao | `GS${DetNbr}_BGO_HV1` |
-| ao | `GS${DetNbr}_BGO_HV2` |
-| ao | `GS${DetNbr}_BGO_HV3` |
-| ao | `GS${DetNbr}_BGO_HV4` |
-| ao | `GS${DetNbr}_BGO_HV5` |
-| ao | `GS${DetNbr}_BGO_HV6` |
-| ao | `GS${DetNbr}_BGO_HV7` |
-| ao | `GS${DetNbr}_BGO_HV8` |
-| ao | `GS${DetNbr}_BGO_HV9` |
-| ao | `GS${DetNbr}_BGO_HV10` |
-| ao | `GS${DetNbr}_BGO_HV11` |
-| ao | `GS${DetNbr}_BGO_HV12` |
-| ao | `GS${DetNbr}_BGO_HV13` |
-| mbbo | `GS${DetNbr}_GE_HV_CTRL` |
-| mbbo | `GS${DetNbr}_BGO_HV_CTRL` |
-| ao | `GS${DetNbr}_DIRECT_MANUAL_GE_HV_DEMAND` |
-| mbbo | `GS${DetNbr}_Preamp_QI_ClkSel` |
-| bo | `GS${DetNbr}_PA_QI_Mode` |
-| bo | `GS${DetNbr}_FakePiGreenLED` |
-| bo | `GS${DetNbr}_FakePiRedLED` |
-| bo | `GS${DetNbr}_DongleLED` |
-| ao | `GS${DetNbr}_I2CScanRomAddrMatch` |
-| bo | `GS${DetNbr}_DisablePARSTRecognition` |
-| bi | `GS${DetNbr}_AlarmSpeed` |
-| bi | `GS${DetNbr}_FanFault` |
-| bi | `GS${DetNbr}_RemoteTempHigh` |
-| bi | `GS${DetNbr}_RemoteTempLow` |
-| bi | `GS${DetNbr}_RemoteTempTHERM` |
-| bi | `GS${DetNbr}_RemoteDiodeError` |
-| bi | `GS${DetNbr}_LocalTempHigh` |
-| bi | `GS${DetNbr}_LocalTempLow` |
-| ao | `GS${DetNbr}_DPRAM_Banksel` |
-| ai | `GS${DetNbr}_Preamp_P0_B0` |
-| ai | `GS${DetNbr}_Preamp_P0_B1` |
-| ai | `GS${DetNbr}_Preamp_P0_B2` |
-| ai | `GS${DetNbr}_Preamp_P0_B3` |
-| ai | `GS${DetNbr}_Preamp_P0_B4` |
-| ai | `GS${DetNbr}_Preamp_P0_B5` |
-| ai | `GS${DetNbr}_Preamp_P0_B6` |
-| ai | `GS${DetNbr}_Preamp_P0_B7` |
-| ai | `GS${DetNbr}_Preamp_P0_B8` |
-| ai | `GS${DetNbr}_Preamp_P0_B9` |
-| ai | `GS${DetNbr}_Preamp_P0_B10` |
-| ai | `GS${DetNbr}_Preamp_P0_B11` |
-| ai | `GS${DetNbr}_Preamp_P0_B12` |
-| ai | `GS${DetNbr}_Preamp_P0_B13` |
-| ai | `GS${DetNbr}_Preamp_P0_B14` |
-| ai | `GS${DetNbr}_Preamp_P0_B15` |
-| ai | `GS${DetNbr}_Preamp_P1_B0` |
-| ai | `GS${DetNbr}_Preamp_P1_B1` |
-| ai | `GS${DetNbr}_Preamp_P1_B2` |
-| ai | `GS${DetNbr}_Preamp_P1_B3` |
-| ai | `GS${DetNbr}_Preamp_P1_B4` |
-| ai | `GS${DetNbr}_Preamp_P1_B5` |
-| ai | `GS${DetNbr}_Preamp_P1_B6` |
-| ai | `GS${DetNbr}_Preamp_P1_B7` |
-| ai | `GS${DetNbr}_Preamp_P1_B8` |
-| ai | `GS${DetNbr}_Preamp_P1_B9` |
-| ai | `GS${DetNbr}_Preamp_P1_B10` |
-| ai | `GS${DetNbr}_Preamp_P1_B11` |
-| ai | `GS${DetNbr}_Preamp_P1_B12` |
-| ai | `GS${DetNbr}_Preamp_P1_B13` |
-| ai | `GS${DetNbr}_Preamp_P1_B14` |
-| ai | `GS${DetNbr}_Preamp_P1_B15` |
-| ai | `GS${DetNbr}_Preamp_P2_B0` |
-| ai | `GS${DetNbr}_Preamp_P2_B1` |
-| ai | `GS${DetNbr}_Preamp_P2_B2` |
-| ai | `GS${DetNbr}_Preamp_P2_B3` |
-| ai | `GS${DetNbr}_Preamp_P2_B4` |
-| ai | `GS${DetNbr}_Preamp_P2_B5` |
-| ai | `GS${DetNbr}_Preamp_P2_B6` |
-| ai | `GS${DetNbr}_Preamp_P2_B7` |
-| ai | `GS${DetNbr}_Preamp_P2_B8` |
-| ai | `GS${DetNbr}_Preamp_P2_B9` |
-| ai | `GS${DetNbr}_Preamp_P2_B10` |
-| ai | `GS${DetNbr}_Preamp_P2_B11` |
-| ai | `GS${DetNbr}_Preamp_P2_B12` |
-| ai | `GS${DetNbr}_Preamp_P2_B13` |
-| ai | `GS${DetNbr}_Preamp_P2_B14` |
-| ai | `GS${DetNbr}_Preamp_P2_B15` |
-| ai | `GS${DetNbr}_Preamp_P3_B0` |
-| ai | `GS${DetNbr}_Preamp_P3_B1` |
-| ai | `GS${DetNbr}_Preamp_P3_B2` |
-| ai | `GS${DetNbr}_Preamp_P3_B3` |
-| ai | `GS${DetNbr}_Preamp_P3_B4` |
-| ai | `GS${DetNbr}_Preamp_P3_B5` |
-| ai | `GS${DetNbr}_Preamp_P3_B6` |
-| ai | `GS${DetNbr}_Preamp_P3_B7` |
-| ai | `GS${DetNbr}_Preamp_P3_B8` |
-| ai | `GS${DetNbr}_Preamp_P3_B9` |
-| ai | `GS${DetNbr}_Preamp_P3_B10` |
-| ai | `GS${DetNbr}_Preamp_P3_B11` |
-| ai | `GS${DetNbr}_Preamp_P3_B12` |
-| ai | `GS${DetNbr}_Preamp_P3_B13` |
-| ai | `GS${DetNbr}_Preamp_P3_B14` |
-| ai | `GS${DetNbr}_Preamp_P3_B15` |
-| ai | `GS${DetNbr}_Preamp_P4_B0` |
-| ai | `GS${DetNbr}_Preamp_P4_B1` |
-| ai | `GS${DetNbr}_Preamp_P4_B2` |
-| ai | `GS${DetNbr}_Preamp_P4_B3` |
-| ai | `GS${DetNbr}_Preamp_P4_B4` |
-| ai | `GS${DetNbr}_Preamp_P4_B5` |
-| ai | `GS${DetNbr}_Preamp_P4_B6` |
-| ai | `GS${DetNbr}_Preamp_P4_B7` |
-| ai | `GS${DetNbr}_Preamp_P4_B8` |
-| ai | `GS${DetNbr}_Preamp_P4_B9` |
-| ai | `GS${DetNbr}_Preamp_P4_B10` |
-| ai | `GS${DetNbr}_Preamp_P4_B11` |
-| ai | `GS${DetNbr}_Preamp_P4_B12` |
-| ai | `GS${DetNbr}_Preamp_P4_B13` |
-| ai | `GS${DetNbr}_Preamp_P4_B14` |
-| ai | `GS${DetNbr}_Preamp_P4_B15` |
-| ai | `GS${DetNbr}_Preamp_P5_B0` |
-| ai | `GS${DetNbr}_Preamp_P5_B1` |
-| ai | `GS${DetNbr}_Preamp_P5_B2` |
-| ai | `GS${DetNbr}_Preamp_P5_B3` |
-| ai | `GS${DetNbr}_Preamp_P5_B4` |
-| ai | `GS${DetNbr}_Preamp_P5_B5` |
-| ai | `GS${DetNbr}_Preamp_P5_B6` |
-| ai | `GS${DetNbr}_Preamp_P5_B7` |
-| ai | `GS${DetNbr}_Preamp_P5_B8` |
-| ai | `GS${DetNbr}_Preamp_P5_B9` |
-| ai | `GS${DetNbr}_Preamp_P5_B10` |
-| ai | `GS${DetNbr}_Preamp_P5_B11` |
-| ai | `GS${DetNbr}_Preamp_P5_B12` |
-| ai | `GS${DetNbr}_Preamp_P5_B13` |
-| ai | `GS${DetNbr}_Preamp_P5_B14` |
-| ai | `GS${DetNbr}_Preamp_P5_B15` |
-| ai | `GS${DetNbr}_Preamp_P6_B0` |
-| ai | `GS${DetNbr}_Preamp_P6_B1` |
-| ai | `GS${DetNbr}_Preamp_P6_B2` |
-| ai | `GS${DetNbr}_Preamp_P6_B3` |
-| ai | `GS${DetNbr}_Preamp_P6_B4` |
-| ai | `GS${DetNbr}_Preamp_P6_B5` |
-| ai | `GS${DetNbr}_Preamp_P6_B6` |
-| ai | `GS${DetNbr}_Preamp_P6_B7` |
-| ai | `GS${DetNbr}_Preamp_P6_B8` |
-| ai | `GS${DetNbr}_Preamp_P6_B9` |
-| ai | `GS${DetNbr}_Preamp_P6_B10` |
-| ai | `GS${DetNbr}_Preamp_P6_B11` |
-| ai | `GS${DetNbr}_Preamp_P6_B12` |
-| ai | `GS${DetNbr}_Preamp_P6_B13` |
-| ai | `GS${DetNbr}_Preamp_P6_B14` |
-| ai | `GS${DetNbr}_Preamp_P6_B15` |
-| ai | `GS${DetNbr}_Preamp_P7_B0` |
-| ai | `GS${DetNbr}_Preamp_P7_B1` |
-| ai | `GS${DetNbr}_Preamp_P7_B2` |
-| ai | `GS${DetNbr}_Preamp_P7_B3` |
-| ai | `GS${DetNbr}_Preamp_P7_B4` |
-| ai | `GS${DetNbr}_Preamp_P7_B5` |
-| ai | `GS${DetNbr}_Preamp_P7_B6` |
-| ai | `GS${DetNbr}_Preamp_P7_B7` |
-| ai | `GS${DetNbr}_Preamp_P7_B8` |
-| ai | `GS${DetNbr}_Preamp_P7_B9` |
-| ai | `GS${DetNbr}_Preamp_P7_B10` |
-| ai | `GS${DetNbr}_Preamp_P7_B11` |
-| ai | `GS${DetNbr}_Preamp_P7_B12` |
-| ai | `GS${DetNbr}_Preamp_P7_B13` |
-| ai | `GS${DetNbr}_Preamp_P7_B14` |
-| ai | `GS${DetNbr}_Preamp_P7_B15` |
-| ai | `GS${DetNbr}_Preamp_P8_B0` |
-| ai | `GS${DetNbr}_Preamp_P8_B1` |
-| ai | `GS${DetNbr}_Preamp_P8_B2` |
-| ai | `GS${DetNbr}_Preamp_P8_B3` |
-| ai | `GS${DetNbr}_Preamp_P8_B4` |
-| ai | `GS${DetNbr}_Preamp_P8_B5` |
-| ai | `GS${DetNbr}_Preamp_P8_B6` |
-| ai | `GS${DetNbr}_Preamp_P8_B7` |
-| ai | `GS${DetNbr}_Preamp_P8_B8` |
-| ai | `GS${DetNbr}_Preamp_P8_B9` |
-| ai | `GS${DetNbr}_Preamp_P8_B10` |
-| ai | `GS${DetNbr}_Preamp_P8_B11` |
-| ai | `GS${DetNbr}_Preamp_P8_B12` |
-| ai | `GS${DetNbr}_Preamp_P8_B13` |
-| ai | `GS${DetNbr}_Preamp_P8_B14` |
-| ai | `GS${DetNbr}_Preamp_P8_B15` |
-| ai | `GS${DetNbr}_Preamp_digpot_B0` |
-| ai | `GS${DetNbr}_Preamp_digpot_B1` |
-| ai | `GS${DetNbr}_Preamp_digpot_B2` |
-| ai | `GS${DetNbr}_Preamp_digpot_B3` |
-| ai | `GS${DetNbr}_Preamp_digpot_B4` |
-| ai | `GS${DetNbr}_Preamp_digpot_B5` |
-| ai | `GS${DetNbr}_Preamp_digpot_B6` |
-| ai | `GS${DetNbr}_Preamp_digpot_B7` |
-| ai | `GS${DetNbr}_Preamp_digpot_B8` |
-| ai | `GS${DetNbr}_Preamp_digpot_B9` |
-| ai | `GS${DetNbr}_Preamp_digpot_B10` |
-| ai | `GS${DetNbr}_Preamp_digpot_B11` |
-| ai | `GS${DetNbr}_Preamp_digpot_B12` |
-| ai | `GS${DetNbr}_Preamp_digpot_B13` |
-| ai | `GS${DetNbr}_Preamp_digpot_B14` |
-| ai | `GS${DetNbr}_Preamp_digpot_B15` |
-| ai | `GS${DetNbr}_Dongle_P0_B0` |
-| ai | `GS${DetNbr}_Dongle_P0_B1` |
-| ai | `GS${DetNbr}_Dongle_P0_B2` |
-| ai | `GS${DetNbr}_Dongle_P0_B3` |
-| ai | `GS${DetNbr}_Dongle_P0_B4` |
-| ai | `GS${DetNbr}_Dongle_P0_B5` |
-| ai | `GS${DetNbr}_Dongle_P0_B6` |
-| ai | `GS${DetNbr}_Dongle_P0_B7` |
-| ai | `GS${DetNbr}_Dongle_P0_B8` |
-| ai | `GS${DetNbr}_Dongle_P0_B9` |
-| ai | `GS${DetNbr}_Dongle_P0_B10` |
-| ai | `GS${DetNbr}_Dongle_P0_B11` |
-| ai | `GS${DetNbr}_Dongle_P0_B12` |
-| ai | `GS${DetNbr}_Dongle_P0_B13` |
-| ai | `GS${DetNbr}_Dongle_P0_B14` |
-| ai | `GS${DetNbr}_Dongle_P0_B15` |
-| ai | `GS${DetNbr}_Dongle_P1_B0` |
-| ai | `GS${DetNbr}_Dongle_P1_B1` |
-| ai | `GS${DetNbr}_Dongle_P1_B2` |
-| ai | `GS${DetNbr}_Dongle_P1_B3` |
-| ai | `GS${DetNbr}_Dongle_P1_B4` |
-| ai | `GS${DetNbr}_Dongle_P1_B5` |
-| ai | `GS${DetNbr}_Dongle_P1_B6` |
-| ai | `GS${DetNbr}_Dongle_P1_B7` |
-| ai | `GS${DetNbr}_Dongle_P1_B8` |
-| ai | `GS${DetNbr}_Dongle_P1_B9` |
-| ai | `GS${DetNbr}_Dongle_P1_B10` |
-| ai | `GS${DetNbr}_Dongle_P1_B11` |
-| ai | `GS${DetNbr}_Dongle_P1_B12` |
-| ai | `GS${DetNbr}_Dongle_P1_B13` |
-| ai | `GS${DetNbr}_Dongle_P1_B14` |
-| ai | `GS${DetNbr}_Dongle_P1_B15` |
-| ai | `GS${DetNbr}_Dongle_P2_B0` |
-| ai | `GS${DetNbr}_Dongle_P2_B1` |
-| ai | `GS${DetNbr}_Dongle_P2_B2` |
-| ai | `GS${DetNbr}_Dongle_P2_B3` |
-| ai | `GS${DetNbr}_Dongle_P2_B4` |
-| ai | `GS${DetNbr}_Dongle_P2_B5` |
-| ai | `GS${DetNbr}_Dongle_P2_B6` |
-| ai | `GS${DetNbr}_Dongle_P2_B7` |
-| ai | `GS${DetNbr}_Dongle_P2_B8` |
-| ai | `GS${DetNbr}_Dongle_P2_B9` |
-| ai | `GS${DetNbr}_Dongle_P2_B10` |
-| ai | `GS${DetNbr}_Dongle_P2_B11` |
-| ai | `GS${DetNbr}_Dongle_P2_B12` |
-| ai | `GS${DetNbr}_Dongle_P2_B13` |
-| ai | `GS${DetNbr}_Dongle_P2_B14` |
-| ai | `GS${DetNbr}_Dongle_P2_B15` |
-| ai | `GS${DetNbr}_Dongle_P3_B0` |
-| ai | `GS${DetNbr}_Dongle_P3_B1` |
-| ai | `GS${DetNbr}_Dongle_P3_B2` |
-| ai | `GS${DetNbr}_Dongle_P3_B3` |
-| ai | `GS${DetNbr}_Dongle_P3_B4` |
-| ai | `GS${DetNbr}_Dongle_P3_B5` |
-| ai | `GS${DetNbr}_Dongle_P3_B6` |
-| ai | `GS${DetNbr}_Dongle_P3_B7` |
-| ai | `GS${DetNbr}_Dongle_P3_B8` |
-| ai | `GS${DetNbr}_Dongle_P3_B9` |
-| ai | `GS${DetNbr}_Dongle_P3_B10` |
-| ai | `GS${DetNbr}_Dongle_P3_B11` |
-| ai | `GS${DetNbr}_Dongle_P3_B12` |
-| ai | `GS${DetNbr}_Dongle_P3_B13` |
-| ai | `GS${DetNbr}_Dongle_P3_B14` |
-| ai | `GS${DetNbr}_Dongle_P3_B15` |
-| ai | `GS${DetNbr}_Dongle_P4_B0` |
-| ai | `GS${DetNbr}_Dongle_P4_B1` |
-| ai | `GS${DetNbr}_Dongle_P4_B2` |
-| ai | `GS${DetNbr}_Dongle_P4_B3` |
-| ai | `GS${DetNbr}_Dongle_P4_B4` |
-| ai | `GS${DetNbr}_Dongle_P4_B5` |
-| ai | `GS${DetNbr}_Dongle_P4_B6` |
-| ai | `GS${DetNbr}_Dongle_P4_B7` |
-| ai | `GS${DetNbr}_Dongle_P4_B8` |
-| ai | `GS${DetNbr}_Dongle_P4_B9` |
-| ai | `GS${DetNbr}_Dongle_P4_B10` |
-| ai | `GS${DetNbr}_Dongle_P4_B11` |
-| ai | `GS${DetNbr}_Dongle_P4_B12` |
-| ai | `GS${DetNbr}_Dongle_P4_B13` |
-| ai | `GS${DetNbr}_Dongle_P4_B14` |
-| ai | `GS${DetNbr}_Dongle_P4_B15` |
-| ai | `GS${DetNbr}_Dongle_P5_B0` |
-| ai | `GS${DetNbr}_Dongle_P5_B1` |
-| ai | `GS${DetNbr}_Dongle_P5_B2` |
-| ai | `GS${DetNbr}_Dongle_P5_B3` |
-| ai | `GS${DetNbr}_Dongle_P5_B4` |
-| ai | `GS${DetNbr}_Dongle_P5_B5` |
-| ai | `GS${DetNbr}_Dongle_P5_B6` |
-| ai | `GS${DetNbr}_Dongle_P5_B7` |
-| ai | `GS${DetNbr}_Dongle_P5_B8` |
-| ai | `GS${DetNbr}_Dongle_P5_B9` |
-| ai | `GS${DetNbr}_Dongle_P5_B10` |
-| ai | `GS${DetNbr}_Dongle_P5_B11` |
-| ai | `GS${DetNbr}_Dongle_P5_B12` |
-| ai | `GS${DetNbr}_Dongle_P5_B13` |
-| ai | `GS${DetNbr}_Dongle_P5_B14` |
-| ai | `GS${DetNbr}_Dongle_P5_B15` |
-| ai | `GS${DetNbr}_Dongle_P6_B0` |
-| ai | `GS${DetNbr}_Dongle_P6_B1` |
-| ai | `GS${DetNbr}_Dongle_P6_B2` |
-| ai | `GS${DetNbr}_Dongle_P6_B3` |
-| ai | `GS${DetNbr}_Dongle_P6_B4` |
-| ai | `GS${DetNbr}_Dongle_P6_B5` |
-| ai | `GS${DetNbr}_Dongle_P6_B6` |
-| ai | `GS${DetNbr}_Dongle_P6_B7` |
-| ai | `GS${DetNbr}_Dongle_P6_B8` |
-| ai | `GS${DetNbr}_Dongle_P6_B9` |
-| ai | `GS${DetNbr}_Dongle_P6_B10` |
-| ai | `GS${DetNbr}_Dongle_P6_B11` |
-| ai | `GS${DetNbr}_Dongle_P6_B12` |
-| ai | `GS${DetNbr}_Dongle_P6_B13` |
-| ai | `GS${DetNbr}_Dongle_P6_B14` |
-| ai | `GS${DetNbr}_Dongle_P6_B15` |
-| ai | `GS${DetNbr}_Dongle_P7_B0` |
-| ai | `GS${DetNbr}_Dongle_P7_B1` |
-| ai | `GS${DetNbr}_Dongle_P7_B2` |
-| ai | `GS${DetNbr}_Dongle_P7_B3` |
-| ai | `GS${DetNbr}_Dongle_P7_B4` |
-| ai | `GS${DetNbr}_Dongle_P7_B5` |
-| ai | `GS${DetNbr}_Dongle_P7_B6` |
-| ai | `GS${DetNbr}_Dongle_P7_B7` |
-| ai | `GS${DetNbr}_Dongle_P7_B8` |
-| ai | `GS${DetNbr}_Dongle_P7_B9` |
-| ai | `GS${DetNbr}_Dongle_P7_B10` |
-| ai | `GS${DetNbr}_Dongle_P7_B11` |
-| ai | `GS${DetNbr}_Dongle_P7_B12` |
-| ai | `GS${DetNbr}_Dongle_P7_B13` |
-| ai | `GS${DetNbr}_Dongle_P7_B14` |
-| ai | `GS${DetNbr}_Dongle_P7_B15` |
-| ai | `GS${DetNbr}_Dongle_P8_B0` |
-| ai | `GS${DetNbr}_Dongle_P8_B1` |
-| ai | `GS${DetNbr}_Dongle_P8_B2` |
-| ai | `GS${DetNbr}_Dongle_P8_B3` |
-| ai | `GS${DetNbr}_Dongle_P8_B4` |
-| ai | `GS${DetNbr}_Dongle_P8_B5` |
-| ai | `GS${DetNbr}_Dongle_P8_B6` |
-| ai | `GS${DetNbr}_Dongle_P8_B7` |
-| ai | `GS${DetNbr}_Dongle_P8_B8` |
-| ai | `GS${DetNbr}_Dongle_P8_B9` |
-| ai | `GS${DetNbr}_Dongle_P8_B10` |
-| ai | `GS${DetNbr}_Dongle_P8_B11` |
-| ai | `GS${DetNbr}_Dongle_P8_B12` |
-| ai | `GS${DetNbr}_Dongle_P8_B13` |
-| ai | `GS${DetNbr}_Dongle_P8_B14` |
-| ai | `GS${DetNbr}_Dongle_P8_B15` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| bo | Reset | `GS${DetNbr}_ResetBufferAddr` |
+| bo | Config | `GS${DetNbr}_ClearSyncError` |
+| bo | Reset | `GS${DetNbr}_ResetAllI2C` |
+| bo | Reset | `GS${DetNbr}_ResetDongleScanner` |
+| bo | Reset | `GS${DetNbr}_ResetTraceFIFO` |
+| bo | Reset | `GS${DetNbr}_ResetPreampScanner` |
+| bo | Reset | `GS${DetNbr}_ResetCounters` |
+| bo | Diag | `GS${DetNbr}_DONGLE_FIFO_DATA_READY` |
+| bo | Config | `GS${DetNbr}_RunPreampI2C` |
+| bo | Config | `GS${DetNbr}_RunPowerI2C` |
+| bo | Config | `GS${DetNbr}_MeasPARSTGo` |
+| bo | Reset | `GS${DetNbr}_ResetPowerScanner` |
+| bo | Config | `GS${DetNbr}_SoftBootFPGA` |
+| bo | Reset | `GS${DetNbr}_ResetCollectorDAC` |
+| bo | Reset | `GS${DetNbr}_ResetSlopeBoxScan` |
+| ai | Diag | `GS${DetNbr}_DPRAM_Banksel_RBV` |
+| bi | Monitor | `GS${DetNbr}_DPRAM_BankChk` |
+| bo | Reset | `GS${DetNbr}_Reset_Ge_switches` |
+| bo | Reset | `GS${DetNbr}_Reset_BGO_switches` |
+| bo | Config | `GS${DetNbr}_BGO_DiscbitCntMode` |
+| bo | Reset | `GS${DetNbr}_PA_RST_CountMode` |
+| bo | Reset | `GS${DetNbr}_PA_RST_WidthEnbl` |
+| mbbo | Reset | `GS${DetNbr}_PA_RST_WidthEdgeSel` |
+| bo | Config | `GS${DetNbr}_PreampI2C_OE_CTL` |
+| bo | Reset | `GS${DetNbr}_ResetAllScanMachines` |
+| bo | Config | `GS${DetNbr}_UseTrigClock` |
+| bo | Reset | `GS${DetNbr}_PwrI2C_FIFO_RESET` |
+| bo | Reset | `GS${DetNbr}_PreampI2C_FIFO_RESET` |
+| bo | Reset | `GS${DetNbr}_DongleI2CFifoReset` |
+| bo | Reset | `GS${DetNbr}_ResetAllI2CMach` |
+| bo | Config | `GS${DetNbr}_PowerBoardI2CEnable` |
+| ao | Config | `GS${DetNbr}_BGOpSelectionDwell` |
+| ao | Config | `GS${DetNbr}_BGOpStaticAddress` |
+| bo | Config | `GS${DetNbr}_BGOpMuxMode` |
+| mbbo | Config | `GS${DetNbr}_GeCenterTimeConstant` |
+| mbbo | Config | `GS${DetNbr}_GeCenterGain` |
+| mbbo | Config | `GS${DetNbr}_GeSideInputSelect` |
+| mbbo | Config | `GS${DetNbr}_BGOSumAttenuation` |
+| mbbo | Config | `GS${DetNbr}_BGOpSelect` |
+| ao | Config | `GS${DetNbr}_GeCenter_DCOffset` |
+| ao | Config | `GS${DetNbr}_GeSide_DCOffset` |
+| ao | Config | `GS${DetNbr}_BGOsum_DCOffset` |
+| ao | Config | `GS${DetNbr}_BGOpattern_DCOffset` |
+| ao | Config | `GS${DetNbr}_Ge_Threshold` |
+| ao | Config | `GS${DetNbr}_BGO_Threshold` |
+| ao | Config | `GS${DetNbr}_GeSideB_Offset` |
+| ao | Config | `GS${DetNbr}_PARST_ClampVoltage` |
+| ao | Config | `GS${DetNbr}_Power_I2C_BitDelay` |
+| ao | Config | `GS${DetNbr}_Preamp_I2C_BitDelay` |
+| ao | Config | `GS${DetNbr}_BGO_DiscbitMask` |
+| bo | Config | `GS${DetNbr}_BGOSum_DiscbitMask` |
+| bo | Config | `GS${DetNbr}_BGO_OSERDES_DataCtl` |
+| bi | Monitor | `GS${DetNbr}_DONGLE_COMMAND_FIFO_FULL` |
+| bi | Monitor | `GS${DetNbr}_PWR_COMMAND_FIFO_FULL` |
+| bi | Monitor | `GS${DetNbr}_PREAMP_COMMAND_FIFO_FULL` |
+| bi | Monitor | `GS${DetNbr}_xDONGLE_LOOP_OUT` |
+| bi | Monitor | `GS${DetNbr}_PiPresenceSense` |
+| bi | Monitor | `GS${DetNbr}_DONGLE_COMMAND_FIFO_EMPTY` |
+| bi | Monitor | `GS${DetNbr}_PreampI2CFIFOEmpty` |
+| bi | Monitor | `GS${DetNbr}_PwrI2CFIFOEmpty` |
+| mbbo | Config | `GS${DetNbr}_GeSide_MarkerSel` |
+| mbbo | Config | `GS${DetNbr}_BGOMultiplicityThresh` |
+| ai | Monitor | `GS${DetNbr}_Calc_PARST_msec` |
+| mbbo | Diag | `GS${DetNbr}_Buffer0DataSel` |
+| bo | Reset | `GS${DetNbr}_ResetBuffer0` |
+| bo | Diag | `GS${DetNbr}_Buffer0_Mode` |
+| bo | Config | `GS${DetNbr}_Buffer_Cntr_ClkSel` |
+| mbbo | Diag | `GS${DetNbr}_Buffer0_ShiftFactor` |
+| ai | Monitor | `GS${DetNbr}_Buffer0StateMon` |
+| bi | Monitor | `GS${DetNbr}_RamBuffer0Active` |
+| ao | Diag | `GS${DetNbr}_SCAN_MATCH_VALUE` |
+| mbbo | Diag | `GS${DetNbr}_ILASubSelect` |
+| mbbo | Diag | `GS${DetNbr}_ILA_MainSelect` |
+| bo | Diag | `GS${DetNbr}_ILA_ClockSpeed` |
+| bo | Diag | `GS${DetNbr}_ILA_others_subsel` |
+| bo | Diag | `GS${DetNbr}_ILA_Tag_Bit` |
+| ao | Config | `GS${DetNbr}_PA_ScanStrtAddr` |
+| ai | Monitor | `GS${DetNbr}_SlopeBox_ID` |
+| mbbo | Config | `GS${DetNbr}_Slopebox_Scan_control` |
+| mbbi | Monitor | `GS${DetNbr}_Slopebox_Scan_control_RBV` |
+| bo | Config | `GS${DetNbr}_DelaySBData` |
+| bo | Config | `GS${DetNbr}_DelaySBClk` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxBGOInterlock` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxGe_HV_On` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxBGO_HV_On` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxTempHigh` |
+| ai | Monitor | `GS${DetNbr}_SlopeBoxTemperatureRaw` |
+| mbbi | Diag | `GS${DetNbr}_TEST_POINT_TIE_VAL` |
+| bi | Monitor | `GS${DetNbr}_DONGLE_SCAN_RUNNING` |
+| bi | Reset | `GS${DetNbr}_DONGLE_SCAN_ABORT` |
+| bi | Reset | `GS${DetNbr}_DONGLE_SCAN_RESET` |
+| bi | Monitor | `GS${DetNbr}_PREAMP_SCAN_RUNNING` |
+| bi | Reset | `GS${DetNbr}_PREAMP_SCAN_ABORT` |
+| bi | Reset | `GS${DetNbr}_PREAMP_SCAN_RESET` |
+| bi | Monitor | `GS${DetNbr}_POWER_SCAN_RUNNING` |
+| bi | Reset | `GS${DetNbr}_POWER_SCAN_ABORT` |
+| bi | Reset | `GS${DetNbr}_POWER_SCAN_RESET` |
+| ao | Config | `GS${DetNbr}_PWR_ScanStrtAddr` |
+| ao | Config | `GS${DetNbr}_Dongle_ScanStrtAddr` |
+| ai | Monitor | `GS${DetNbr}_PA_SCAN_ROM_ERR_ADDR` |
+| mbbi | Monitor | `GS${DetNbr}_PA_SCAN_ROM_ERR_TYPE` |
+| ai | Monitor | `GS${DetNbr}_PWR_SCAN_ROM_ERR_ADDR` |
+| mbbi | Monitor | `GS${DetNbr}_PWR_SCAN_ROM_ERR_TYPE` |
+| ai | Monitor | `GS${DetNbr}_DONGLE_SCAN_ROM_ERR_ADDR` |
+| mbbi | Monitor | `GS${DetNbr}_DONGLE_SCAN_ROM_ERR_TYPE` |
+| ai | Monitor | `GS${DetNbr}_TrigClkCntr` |
+| ao | Config | `GS${DetNbr}_PARST_AutoClampDwell` |
+| bo | Config | `GS${DetNbr}_PARST_AutoDigClamp` |
+| bo | Monitor | `GS${DetNbr}_ReadBuffer0` |
+| ai | Monitor | `GS${DetNbr}_NoGUI_RdBuf0` |
+| ao | Diag | `GS${DetNbr}_RAM_BUF_PRESCALE` |
+| ao | Config | `GS${DetNbr}_BGO_HV0` |
+| ao | Config | `GS${DetNbr}_BGO_HV1` |
+| ao | Config | `GS${DetNbr}_BGO_HV2` |
+| ao | Config | `GS${DetNbr}_BGO_HV3` |
+| ao | Config | `GS${DetNbr}_BGO_HV4` |
+| ao | Config | `GS${DetNbr}_BGO_HV5` |
+| ao | Config | `GS${DetNbr}_BGO_HV6` |
+| ao | Config | `GS${DetNbr}_BGO_HV7` |
+| ao | Config | `GS${DetNbr}_BGO_HV8` |
+| ao | Config | `GS${DetNbr}_BGO_HV9` |
+| ao | Config | `GS${DetNbr}_BGO_HV10` |
+| ao | Config | `GS${DetNbr}_BGO_HV11` |
+| ao | Config | `GS${DetNbr}_BGO_HV12` |
+| ao | Config | `GS${DetNbr}_BGO_HV13` |
+| mbbo | Config | `GS${DetNbr}_GE_HV_CTRL` |
+| mbbo | Config | `GS${DetNbr}_BGO_HV_CTRL` |
+| ao | Config | `GS${DetNbr}_DIRECT_MANUAL_GE_HV_DEMAND` |
+| mbbo | Config | `GS${DetNbr}_Preamp_QI_ClkSel` |
+| bo | Config | `GS${DetNbr}_PA_QI_Mode` |
+| bo | Diag | `GS${DetNbr}_FakePiGreenLED` |
+| bo | Diag | `GS${DetNbr}_FakePiRedLED` |
+| bo | Config | `GS${DetNbr}_DongleLED` |
+| ao | Diag | `GS${DetNbr}_I2CScanRomAddrMatch` |
+| bo | Config | `GS${DetNbr}_DisablePARSTRecognition` |
+| bi | Monitor | `GS${DetNbr}_AlarmSpeed` |
+| bi | Monitor | `GS${DetNbr}_FanFault` |
+| bi | Monitor | `GS${DetNbr}_RemoteTempHigh` |
+| bi | Monitor | `GS${DetNbr}_RemoteTempLow` |
+| bi | Monitor | `GS${DetNbr}_RemoteTempTHERM` |
+| bi | Monitor | `GS${DetNbr}_RemoteDiodeError` |
+| bi | Monitor | `GS${DetNbr}_LocalTempHigh` |
+| bi | Monitor | `GS${DetNbr}_LocalTempLow` |
+| ao | Diag | `GS${DetNbr}_DPRAM_Banksel` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B0` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B1` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B2` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B3` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B4` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B5` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B6` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B7` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B8` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B9` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B10` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B11` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B12` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B13` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B14` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P0_B15` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B0` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B1` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B2` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B3` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B4` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B5` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B6` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B7` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B8` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B9` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B10` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B11` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B12` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B13` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B14` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P1_B15` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B0` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B1` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B2` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B3` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B4` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B5` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B6` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B7` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B8` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B9` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B10` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B11` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B12` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B13` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B14` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P2_B15` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B0` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B1` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B2` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B3` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B4` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B5` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B6` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B7` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B8` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B9` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B10` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B11` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B12` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B13` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B14` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P3_B15` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B0` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B1` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B2` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B3` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B4` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B5` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B6` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B7` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B8` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B9` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B10` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B11` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B12` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B13` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B14` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P4_B15` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B0` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B1` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B2` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B3` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B4` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B5` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B6` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B7` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B8` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B9` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B10` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B11` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B12` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B13` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B14` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P5_B15` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B0` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B1` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B2` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B3` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B4` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B5` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B6` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B7` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B8` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B9` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B10` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B11` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B12` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B13` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B14` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P6_B15` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B0` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B1` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B2` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B3` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B4` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B5` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B6` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B7` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B8` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B9` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B10` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B11` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B12` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B13` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B14` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P7_B15` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B0` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B1` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B2` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B3` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B4` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B5` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B6` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B7` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B8` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B9` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B10` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B11` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B12` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B13` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B14` |
+| ai | Monitor | `GS${DetNbr}_Preamp_P8_B15` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B0` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B1` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B2` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B3` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B4` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B5` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B6` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B7` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B8` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B9` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B10` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B11` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B12` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B13` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B14` |
+| ai | Monitor | `GS${DetNbr}_Preamp_digpot_B15` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B0` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B1` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B2` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B3` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B4` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B5` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B6` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B7` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B8` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B9` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B10` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B11` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B12` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B13` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B14` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P0_B15` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B0` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B1` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B2` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B3` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B4` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B5` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B6` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B7` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B8` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B9` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B10` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B11` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B12` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B13` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B14` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P1_B15` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B0` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B1` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B2` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B3` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B4` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B5` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B6` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B7` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B8` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B9` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B10` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B11` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B12` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B13` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B14` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P2_B15` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B0` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B1` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B2` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B3` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B4` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B5` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B6` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B7` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B8` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B9` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B10` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B11` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B12` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B13` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B14` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P3_B15` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B0` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B1` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B2` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B3` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B4` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B5` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B6` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B7` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B8` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B9` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B10` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B11` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B12` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B13` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B14` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P4_B15` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B0` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B1` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B2` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B3` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B4` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B5` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B6` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B7` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B8` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B9` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B10` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B11` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B12` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B13` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B14` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P5_B15` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B0` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B1` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B2` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B3` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B4` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B5` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B6` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B7` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B8` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B9` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B10` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B11` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B12` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B13` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B14` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P6_B15` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B0` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B1` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B2` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B3` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B4` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B5` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B6` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B7` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B8` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B9` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B10` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B11` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B12` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B13` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B14` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P7_B15` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B0` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B1` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B2` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B3` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B4` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B5` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B6` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B7` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B8` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B9` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B10` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B11` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B12` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B13` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B14` |
+| ai | Monitor | `GS${DetNbr}_Dongle_P8_B15` |
 
 ## PickoffDiagCtl.db (40 records)
 
-| Type | PV Name |
-|------|----------|
-| bo | `GS${DetNbr}_CTL_AO_printf_ctl` |
-| bo | `GS${DetNbr}_CTL_AI_printf_ctl` |
-| bo | `GS${DetNbr}_CTL_BI_printf_ctl` |
-| bo | `GS${DetNbr}_CTL_BO_printf_ctl` |
-| bo | `GS${DetNbr}_CTL_WF_printf_ctl` |
-| bo | `GS${DetNbr}_CTL_WF_data_print_ctl` |
-| bo | `GS${DetNbr}_CTL_MBBI_printf_ctl` |
-| bo | `GS${DetNbr}_AI_printf_ctl` |
-| bo | `GS${DetNbr}_AO_printf_ctl` |
-| bo | `GS${DetNbr}_BI_printf_ctl` |
-| bo | `GS${DetNbr}_BO_printf_ctl` |
-| bo | `GS${DetNbr}_MBBI_printf_ctl` |
-| bo | `GS${DetNbr}_MBBO_printf_ctl` |
-| bo | `GS${DetNbr}_Calc_AI_printf_ctl` |
-| bo | `GS${DetNbr}_Calc_BI_printf_ctl` |
-| bo | `GS${DetNbr}_I2C_AI_printf_ctl` |
-| bo | `GS${DetNbr}_I2C_AO_printf_ctl` |
-| bo | `GS${DetNbr}_Step_AI_printf_ctl` |
-| ao | `GS${DetNbr}_PointerControl` |
-| ao | `GS${DetNbr}_PrintAddrMatch` |
-| bo | `GS${DetNbr}_DBG_Match_Nidx` |
-| bo | `GS${DetNbr}_DBG_Match_Cidx` |
-| bo | `GS${DetNbr}_ControlAllPrints` |
-| bo | `GS${DetNbr}_ResetBufferPointer` |
-| bo | `GS${DetNbr}_DumpAllMailboxes` |
-| bo | `GS${DetNbr}_ClearDataBuffer` |
-| ao | `GS${DetNbr}_Buf0ReadDepth` |
-| bo | `GS${DetNbr}_BufTestData` |
-| bo | `GS${DetNbr}_ClrBufAndGo` |
-| waveform | `GS${DetNbr}_TestWaveRec` |
-| bo | `GS${DetNbr}_ProcWaveRec` |
-| ao | `GS${DetNbr}_ReadIntMailbox` |
-| ao | `GS${DetNbr}_ReadFloatMailbox` |
-| bi | `GS${DetNbr}_COMM_OK` |
-| bi | `GS${DetNbr}_PLL_INPUT_SEL` |
-| bi | `GS${DetNbr}_TRIG_CLK_PRESENT` |
-| bi | `GS${DetNbr}_ANY_BGO_DISCBIT_SET` |
-| bi | `GS${DetNbr}_LATCHED_SYNC_ERR` |
-| bi | `GS${DetNbr}_SCANNING_ACTIVE` |
-| bi | `GS${DetNbr}_SLOPEBOX_CMD_PENDING` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| bo | Diag | `GS${DetNbr}_CTL_AO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_AI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_BI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_BO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_WF_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_WF_data_print_ctl` |
+| bo | Diag | `GS${DetNbr}_CTL_MBBI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_AI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_AO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_BI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_BO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_MBBI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_MBBO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_Calc_AI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_Calc_BI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_I2C_AI_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_I2C_AO_printf_ctl` |
+| bo | Diag | `GS${DetNbr}_Step_AI_printf_ctl` |
+| ao | Diag | `GS${DetNbr}_PointerControl` |
+| ao | Diag | `GS${DetNbr}_PrintAddrMatch` |
+| bo | Diag | `GS${DetNbr}_DBG_Match_Nidx` |
+| bo | Diag | `GS${DetNbr}_DBG_Match_Cidx` |
+| bo | Diag | `GS${DetNbr}_ControlAllPrints` |
+| bo | Reset | `GS${DetNbr}_ResetBufferPointer` |
+| bo | Diag | `GS${DetNbr}_DumpAllMailboxes` |
+| bo | Diag | `GS${DetNbr}_ClearDataBuffer` |
+| ao | Diag | `GS${DetNbr}_Buf0ReadDepth` |
+| bo | Diag | `GS${DetNbr}_BufTestData` |
+| bo | Diag | `GS${DetNbr}_ClrBufAndGo` |
+| waveform | Diag | `GS${DetNbr}_TestWaveRec` |
+| bo | Diag | `GS${DetNbr}_ProcWaveRec` |
+| ao | Diag | `GS${DetNbr}_ReadIntMailbox` |
+| ao | Diag | `GS${DetNbr}_ReadFloatMailbox` |
+| bi | Monitor | `GS${DetNbr}_COMM_OK` |
+| bi | Monitor | `GS${DetNbr}_PLL_INPUT_SEL` |
+| bi | Monitor | `GS${DetNbr}_TRIG_CLK_PRESENT` |
+| bi | Monitor | `GS${DetNbr}_ANY_BGO_DISCBIT_SET` |
+| bi | Monitor | `GS${DetNbr}_LATCHED_SYNC_ERR` |
+| bi | Monitor | `GS${DetNbr}_SCANNING_ACTIVE` |
+| bi | Monitor | `GS${DetNbr}_SLOPEBOX_CMD_PENDING` |
 
 ## Pickoff_reg.db (264 records)
 
-| Type | PV Name |
-|------|----------|
-| ai | `GS${DetNbr}_FPGA_CTL_REG_RBV` |
-| ai | `GS${DetNbr}_PA_RESET_COUNT_RBV` |
-| ai | `GS${DetNbr}_BGOP_MUX_CTL_REG_RBV` |
-| ai | `GS${DetNbr}_GE_CENTER_TAU_RBV` |
-| ai | `GS${DetNbr}_GE_CENTER_GAIN_RBV` |
-| ai | `GS${DetNbr}_GE_SIDE_SEL_RBV` |
-| ai | `GS${DetNbr}_BGO_SUM_GAIN_RBV` |
-| ai | `GS${DetNbr}_BGO_PATTERN_SEL_RBV` |
-| ai | `GS${DetNbr}_GE_CENTER_OFFSET_RBV` |
-| ai | `GS${DetNbr}_GE_SIDE_OFFSET_RBV` |
-| ai | `GS${DetNbr}_BGO_SUM_OFFSET_RBV` |
-| ai | `GS${DetNbr}_BGO_PATTERN_OFFSET_RBV` |
-| ai | `GS${DetNbr}_GE_RESET_THRESHOLD_RBV` |
-| ai | `GS${DetNbr}_BGO_DISCBIT_THRESHOLD_RBV` |
-| ai | `GS${DetNbr}_GE_SIDEB_OFFSET_RBV` |
-| ai | `GS${DetNbr}_PARST_CLAMP_DC_VAL_RBV` |
-| ai | `GS${DetNbr}_PA_RST_Width` |
-| ai | `GS${DetNbr}_SCAN_ROM_MATCH_REG_RBV` |
-| ai | `GS${DetNbr}_HISTO_MAX_VAL_REG_RBV` |
-| ao | `GS${DetNbr}_HistogramMaxVal` |
-| ao | `GS${DetNbr}_BufferAddress` |
-| ai | `GS${DetNbr}_NO_GUI_SLOPEBOX_DATA0` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA1` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA2` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA3` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA4` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA5` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA6` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA7` |
-| ai | `GS${DetNbr}_RAMBuffer0_lastdata` |
-| ai | `GS${DetNbr}_SCANNER_GENERAL_STATUS` |
-| ai | `GS${DetNbr}_RAMBuffer0_maxdata` |
-| ai | `GS${DetNbr}_PREAMP_GO_COUNT` |
-| ai | `GS${DetNbr}_PWR_GO_COUNT` |
-| ai | `GS${DetNbr}_DONGLE_GO_COUNT` |
-| ai | `GS${DetNbr}_RAMBuffer0_mindata` |
-| ai | `GS${DetNbr}_PREAMP_ACK_ERR_COUNT` |
-| ai | `GS${DetNbr}_POWER_ACK_ERR_COUNT` |
-| ai | `GS${DetNbr}_DONGLE_ACK_ERR_COUNT` |
-| ai | `GS${DetNbr}_RAMBuffer0_Average` |
-| ai | `GS${DetNbr}_RAMBuffer0_DataCount` |
-| ai | `GS${DetNbr}_TRACE_FIFO_RD_PORT` |
-| ai | `GS${DetNbr}_RAM_BUF_TIME_COUNT` |
-| ai | `GS${DetNbr}_RAM_BUF_PRESCALE_REG` |
-| ai | `GS${DetNbr}_TIMESTAMP_LOW` |
-| ai | `GS${DetNbr}_BGO1_counter` |
-| ai | `GS${DetNbr}_BGO2_counter` |
-| ai | `GS${DetNbr}_BGO3_counter` |
-| ai | `GS${DetNbr}_BGO4_counter` |
-| ai | `GS${DetNbr}_BGO5_counter` |
-| ai | `GS${DetNbr}_BGO6_counter` |
-| ai | `GS${DetNbr}_BGO7_counter` |
-| ai | `GS${DetNbr}_BGOSum_counter` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND0_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND1_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND2_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND3_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND4_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND5_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND6_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND7_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND8_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND9_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND10_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND11_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND12_RBV` |
-| ai | `GS${DetNbr}_BGO_DAC_DEMAND13_RBV` |
-| ai | `GS${DetNbr}_SLOPE_BOX_HV_CTL_RBV` |
-| ai | `GS${DetNbr}_SLOPE_BOX_GEHV_DEMAND_RBV` |
-| ai | `GS${DetNbr}_TRACE_FIFO_DATA_COUNT` |
-| ai | `GS${DetNbr}_CenterFETBiasHi` |
-| ai | `GS${DetNbr}_CenterFETBiasLo` |
-| ai | `GS${DetNbr}_SideFETBiasHi` |
-| ai | `GS${DetNbr}_SideFETBiasLo` |
-| ai | `GS${DetNbr}_CenterFETcurrentHi` |
-| ai | `GS${DetNbr}_CenterFETcurrentLo` |
-| ai | `GS${DetNbr}_SideFETcurrentHi` |
-| ai | `GS${DetNbr}_SideFETcurrentLo` |
-| ai | `GS${DetNbr}_CenterFETVDSHi` |
-| ai | `GS${DetNbr}_CenterFETVDSLo` |
-| ai | `GS${DetNbr}_SideB_OffsetHi` |
-| ai | `GS${DetNbr}_SideB_OffsetLo` |
-| ai | `GS${DetNbr}_SideFETVDSHi` |
-| ai | `GS${DetNbr}_SideFETVDSLo` |
-| ai | `GS${DetNbr}_SideA_OffsetHi` |
-| ai | `GS${DetNbr}_SideA_OffsetLo` |
-| ai | `GS${DetNbr}_ADC1X_OffsetA_GainHi` |
-| ai | `GS${DetNbr}_ADC1X_OffsetA_GainLo` |
-| ai | `GS${DetNbr}_ADC1X_OffsetB_GainHi` |
-| ai | `GS${DetNbr}_ADC1X_OffsetB_GainLo` |
-| ai | `GS${DetNbr}_ADC4X_OffsetA_GainHi` |
-| ai | `GS${DetNbr}_ADC4X_OffsetA_GainLo` |
-| ai | `GS${DetNbr}_ADC4X_OffsetB_GainHi` |
-| ai | `GS${DetNbr}_ADC4X_OffsetB_GainLo` |
-| ai | `GS${DetNbr}_TempSensorTemp` |
-| ai | `GS${DetNbr}_HumidityRawData` |
-| ai | `GS${DetNbr}_PreampPCBTemp` |
-| ai | `GS${DetNbr}_PreampSecretValue` |
-| ai | `GS${DetNbr}_PwrLocalTempMSB` |
-| ai | `GS${DetNbr}_PwrCollectorTempMSB` |
-| ai | `GS${DetNbr}_PwrTempExtended` |
-| ai | `GS${DetNbr}_PwrStatus` |
-| ai | `GS${DetNbr}_PwrFanSpeedRaw` |
-| ai | `GS${DetNbr}_FanControlStat1` |
-| ai | `GS${DetNbr}_FanControlStat2` |
-| ai | `GS${DetNbr}_UNUSED122` |
-| ao | `GS${DetNbr}_DONGLE_WRITE_PORT` |
-| ao | `GS${DetNbr}_PreampWritePort` |
-| ao | `GS${DetNbr}_PowerBrdWritePort` |
-| ai | `GS${DetNbr}_Code_Date` |
-| ai | `GS${DetNbr}_Code_Revision` |
-| ai | `GS${DetNbr}_PreampEEPROM_p0_w0` |
-| ai | `GS${DetNbr}_PreampEEPROM_p0_w1` |
-| ai | `GS${DetNbr}_PreampEEPROM_p0_w2` |
-| ai | `GS${DetNbr}_PreampEEPROM_p0_w3` |
-| ai | `GS${DetNbr}_PreampEEPROM_p0_w4` |
-| ai | `GS${DetNbr}_PreampEEPROM_p0_w5` |
-| ai | `GS${DetNbr}_PreampEEPROM_p0_w6` |
-| ai | `GS${DetNbr}_PreampEEPROM_p0_w7` |
-| ai | `GS${DetNbr}_PreampEEPROM_p1_w0` |
-| ai | `GS${DetNbr}_PreampEEPROM_p1_w1` |
-| ai | `GS${DetNbr}_PreampEEPROM_p1_w2` |
-| ai | `GS${DetNbr}_PreampEEPROM_p1_w3` |
-| ai | `GS${DetNbr}_PreampEEPROM_p1_w4` |
-| ai | `GS${DetNbr}_PreampEEPROM_p1_w5` |
-| ai | `GS${DetNbr}_PreampEEPROM_p1_w6` |
-| ai | `GS${DetNbr}_PreampEEPROM_p1_w7` |
-| ai | `GS${DetNbr}_PreampEEPROM_p2_w0` |
-| ai | `GS${DetNbr}_PreampEEPROM_p2_w1` |
-| ai | `GS${DetNbr}_PreampEEPROM_p2_w2` |
-| ai | `GS${DetNbr}_PreampEEPROM_p2_w3` |
-| ai | `GS${DetNbr}_PreampEEPROM_p2_w4` |
-| ai | `GS${DetNbr}_PreampEEPROM_p2_w5` |
-| ai | `GS${DetNbr}_PreampEEPROM_p2_w6` |
-| ai | `GS${DetNbr}_PreampEEPROM_p2_w7` |
-| ai | `GS${DetNbr}_PreampEEPROM_p3_w0` |
-| ai | `GS${DetNbr}_PreampEEPROM_p3_w1` |
-| ai | `GS${DetNbr}_PreampEEPROM_p3_w2` |
-| ai | `GS${DetNbr}_PreampEEPROM_p3_w3` |
-| ai | `GS${DetNbr}_PreampEEPROM_p3_w4` |
-| ai | `GS${DetNbr}_PreampEEPROM_p3_w5` |
-| ai | `GS${DetNbr}_PreampEEPROM_p3_w6` |
-| ai | `GS${DetNbr}_PreampEEPROM_p3_w7` |
-| ai | `GS${DetNbr}_PreampEEPROM_p4_w0` |
-| ai | `GS${DetNbr}_PreampEEPROM_p4_w1` |
-| ai | `GS${DetNbr}_PreampEEPROM_p4_w2` |
-| ai | `GS${DetNbr}_PreampEEPROM_p4_w3` |
-| ai | `GS${DetNbr}_PreampEEPROM_p4_w4` |
-| ai | `GS${DetNbr}_PreampEEPROM_p4_w5` |
-| ai | `GS${DetNbr}_PreampEEPROM_p4_w6` |
-| ai | `GS${DetNbr}_PreampEEPROM_p4_w7` |
-| ai | `GS${DetNbr}_PreampEEPROM_p5_w0` |
-| ai | `GS${DetNbr}_PreampEEPROM_p5_w1` |
-| ai | `GS${DetNbr}_PreampEEPROM_p5_w2` |
-| ai | `GS${DetNbr}_PreampEEPROM_p5_w3` |
-| ai | `GS${DetNbr}_PreampEEPROM_p5_w4` |
-| ai | `GS${DetNbr}_PreampEEPROM_p5_w5` |
-| ai | `GS${DetNbr}_PreampEEPROM_p5_w6` |
-| ai | `GS${DetNbr}_PreampEEPROM_p5_w7` |
-| ai | `GS${DetNbr}_PreampEEPROM_p6_w0` |
-| ai | `GS${DetNbr}_PreampEEPROM_p6_w1` |
-| ai | `GS${DetNbr}_PreampEEPROM_p6_w2` |
-| ai | `GS${DetNbr}_PreampEEPROM_p6_w3` |
-| ai | `GS${DetNbr}_PreampEEPROM_p6_w4` |
-| ai | `GS${DetNbr}_PreampEEPROM_p6_w5` |
-| ai | `GS${DetNbr}_PreampEEPROM_p6_w6` |
-| ai | `GS${DetNbr}_PreampEEPROM_p6_w7` |
-| ai | `GS${DetNbr}_PreampEEPROM_p7_w0` |
-| ai | `GS${DetNbr}_PreampEEPROM_p7_w1` |
-| ai | `GS${DetNbr}_PreampEEPROM_p7_w2` |
-| ai | `GS${DetNbr}_PreampEEPROM_p7_w3` |
-| ai | `GS${DetNbr}_PreampEEPROM_p7_w4` |
-| ai | `GS${DetNbr}_PreampEEPROM_p7_w5` |
-| ai | `GS${DetNbr}_PreampEEPROM_p7_w6` |
-| ai | `GS${DetNbr}_PreampEEPROM_p7_w7` |
-| ai | `GS${DetNbr}_PreampEEPROM_p8_w0` |
-| ai | `GS${DetNbr}_PreampEEPROM_p8_w1` |
-| ai | `GS${DetNbr}_PreampEEPROM_p8_w2` |
-| ai | `GS${DetNbr}_PreampEEPROM_p8_w3` |
-| ai | `GS${DetNbr}_PreampEEPROM_p8_w4` |
-| ai | `GS${DetNbr}_PreampEEPROM_p8_w5` |
-| ai | `GS${DetNbr}_PreampEEPROM_p8_w6` |
-| ai | `GS${DetNbr}_PreampEEPROM_p8_w7` |
-| ai | `GS${DetNbr}_PreampEEPROM_digpot_w0` |
-| ai | `GS${DetNbr}_PreampEEPROM_digpot_w1` |
-| ai | `GS${DetNbr}_PreampEEPROM_digpot_w2` |
-| ai | `GS${DetNbr}_PreampEEPROM_digpot_w3` |
-| ai | `GS${DetNbr}_PreampEEPROM_digpot_w4` |
-| ai | `GS${DetNbr}_PreampEEPROM_digpot_w5` |
-| ai | `GS${DetNbr}_PreampEEPROM_digpot_w6` |
-| ai | `GS${DetNbr}_PreampEEPROM_digpot_w7` |
-| ai | `GS${DetNbr}_DongleEEPROM_p0_w0` |
-| ai | `GS${DetNbr}_DongleEEPROM_p0_w1` |
-| ai | `GS${DetNbr}_DongleEEPROM_p0_w2` |
-| ai | `GS${DetNbr}_DongleEEPROM_p0_w3` |
-| ai | `GS${DetNbr}_DongleEEPROM_p0_w4` |
-| ai | `GS${DetNbr}_DongleEEPROM_p0_w5` |
-| ai | `GS${DetNbr}_DongleEEPROM_p0_w6` |
-| ai | `GS${DetNbr}_DongleEEPROM_p0_w7` |
-| ai | `GS${DetNbr}_DongleEEPROM_p1_w0` |
-| ai | `GS${DetNbr}_DongleEEPROM_p1_w1` |
-| ai | `GS${DetNbr}_DongleEEPROM_p1_w2` |
-| ai | `GS${DetNbr}_DongleEEPROM_p1_w3` |
-| ai | `GS${DetNbr}_DongleEEPROM_p1_w4` |
-| ai | `GS${DetNbr}_DongleEEPROM_p1_w5` |
-| ai | `GS${DetNbr}_DongleEEPROM_p1_w6` |
-| ai | `GS${DetNbr}_DongleEEPROM_p1_w7` |
-| ai | `GS${DetNbr}_DongleEEPROM_p2_w0` |
-| ai | `GS${DetNbr}_DongleEEPROM_p2_w1` |
-| ai | `GS${DetNbr}_DongleEEPROM_p2_w2` |
-| ai | `GS${DetNbr}_DongleEEPROM_p2_w3` |
-| ai | `GS${DetNbr}_DongleEEPROM_p2_w4` |
-| ai | `GS${DetNbr}_DongleEEPROM_p2_w5` |
-| ai | `GS${DetNbr}_DongleEEPROM_p2_w6` |
-| ai | `GS${DetNbr}_DongleEEPROM_p2_w7` |
-| ai | `GS${DetNbr}_DongleEEPROM_p3_w0` |
-| ai | `GS${DetNbr}_DongleEEPROM_p3_w1` |
-| ai | `GS${DetNbr}_DongleEEPROM_p3_w2` |
-| ai | `GS${DetNbr}_DongleEEPROM_p3_w3` |
-| ai | `GS${DetNbr}_DongleEEPROM_p3_w4` |
-| ai | `GS${DetNbr}_DongleEEPROM_p3_w5` |
-| ai | `GS${DetNbr}_DongleEEPROM_p3_w6` |
-| ai | `GS${DetNbr}_DongleEEPROM_p3_w7` |
-| ai | `GS${DetNbr}_DongleEEPROM_p4_w0` |
-| ai | `GS${DetNbr}_DongleEEPROM_p4_w1` |
-| ai | `GS${DetNbr}_DongleEEPROM_p4_w2` |
-| ai | `GS${DetNbr}_DongleEEPROM_p4_w3` |
-| ai | `GS${DetNbr}_DongleEEPROM_p4_w4` |
-| ai | `GS${DetNbr}_DongleEEPROM_p4_w5` |
-| ai | `GS${DetNbr}_DongleEEPROM_p4_w6` |
-| ai | `GS${DetNbr}_DongleEEPROM_p4_w7` |
-| ai | `GS${DetNbr}_DongleEEPROM_p5_w0` |
-| ai | `GS${DetNbr}_DongleEEPROM_p5_w1` |
-| ai | `GS${DetNbr}_DongleEEPROM_p5_w2` |
-| ai | `GS${DetNbr}_DongleEEPROM_p5_w3` |
-| ai | `GS${DetNbr}_DongleEEPROM_p5_w4` |
-| ai | `GS${DetNbr}_DongleEEPROM_p5_w5` |
-| ai | `GS${DetNbr}_DongleEEPROM_p5_w6` |
-| ai | `GS${DetNbr}_DongleEEPROM_p5_w7` |
-| ai | `GS${DetNbr}_DongleEEPROM_p6_w0` |
-| ai | `GS${DetNbr}_DongleEEPROM_p6_w1` |
-| ai | `GS${DetNbr}_DongleEEPROM_p6_w2` |
-| ai | `GS${DetNbr}_DongleEEPROM_p6_w3` |
-| ai | `GS${DetNbr}_DongleEEPROM_p6_w4` |
-| ai | `GS${DetNbr}_DongleEEPROM_p6_w5` |
-| ai | `GS${DetNbr}_DongleEEPROM_p6_w6` |
-| ai | `GS${DetNbr}_DongleEEPROM_p6_w7` |
-| ai | `GS${DetNbr}_DongleEEPROM_p7_w0` |
-| ai | `GS${DetNbr}_DongleEEPROM_p7_w1` |
-| ai | `GS${DetNbr}_DongleEEPROM_p7_w2` |
-| ai | `GS${DetNbr}_DongleEEPROM_p7_w3` |
-| ai | `GS${DetNbr}_DongleEEPROM_p7_w4` |
-| ai | `GS${DetNbr}_DongleEEPROM_p7_w5` |
-| ai | `GS${DetNbr}_DongleEEPROM_p7_w6` |
-| ai | `GS${DetNbr}_DongleEEPROM_p7_w7` |
-| ai | `GS${DetNbr}_DongleEEPROM_p8_w0` |
-| ai | `GS${DetNbr}_DongleEEPROM_p8_w1` |
-| ai | `GS${DetNbr}_DongleEEPROM_p8_w2` |
-| ai | `GS${DetNbr}_DongleEEPROM_p8_w3` |
-| ai | `GS${DetNbr}_DongleEEPROM_p8_w4` |
-| ai | `GS${DetNbr}_DongleEEPROM_p8_w5` |
-| ai | `GS${DetNbr}_DongleEEPROM_p8_w6` |
-| ai | `GS${DetNbr}_DongleEEPROM_p8_w7` |
-| ai | `GS${DetNbr}_GS_ID` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| ai | Monitor | `GS${DetNbr}_FPGA_CTL_REG_RBV` |
+| ai | Monitor | `GS${DetNbr}_PA_RESET_COUNT_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGOP_MUX_CTL_REG_RBV` |
+| ai | Monitor | `GS${DetNbr}_GE_CENTER_TAU_RBV` |
+| ai | Monitor | `GS${DetNbr}_GE_CENTER_GAIN_RBV` |
+| ai | Monitor | `GS${DetNbr}_GE_SIDE_SEL_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_SUM_GAIN_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_PATTERN_SEL_RBV` |
+| ai | Monitor | `GS${DetNbr}_GE_CENTER_OFFSET_RBV` |
+| ai | Monitor | `GS${DetNbr}_GE_SIDE_OFFSET_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_SUM_OFFSET_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_PATTERN_OFFSET_RBV` |
+| ai | Monitor | `GS${DetNbr}_GE_RESET_THRESHOLD_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DISCBIT_THRESHOLD_RBV` |
+| ai | Monitor | `GS${DetNbr}_GE_SIDEB_OFFSET_RBV` |
+| ai | Monitor | `GS${DetNbr}_PARST_CLAMP_DC_VAL_RBV` |
+| ai | Reset | `GS${DetNbr}_PA_RST_Width` |
+| ai | Monitor | `GS${DetNbr}_SCAN_ROM_MATCH_REG_RBV` |
+| ai | Monitor | `GS${DetNbr}_HISTO_MAX_VAL_REG_RBV` |
+| ao | Config | `GS${DetNbr}_HistogramMaxVal` |
+| ao | Diag | `GS${DetNbr}_BufferAddress` |
+| ai | Monitor | `GS${DetNbr}_NO_GUI_SLOPEBOX_DATA0` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA1` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA2` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA3` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA4` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA5` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA6` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA7` |
+| ai | Monitor | `GS${DetNbr}_RAMBuffer0_lastdata` |
+| ai | Monitor | `GS${DetNbr}_SCANNER_GENERAL_STATUS` |
+| ai | Monitor | `GS${DetNbr}_RAMBuffer0_maxdata` |
+| ai | Monitor | `GS${DetNbr}_PREAMP_GO_COUNT` |
+| ai | Monitor | `GS${DetNbr}_PWR_GO_COUNT` |
+| ai | Monitor | `GS${DetNbr}_DONGLE_GO_COUNT` |
+| ai | Monitor | `GS${DetNbr}_RAMBuffer0_mindata` |
+| ai | Monitor | `GS${DetNbr}_PREAMP_ACK_ERR_COUNT` |
+| ai | Monitor | `GS${DetNbr}_POWER_ACK_ERR_COUNT` |
+| ai | Monitor | `GS${DetNbr}_DONGLE_ACK_ERR_COUNT` |
+| ai | Monitor | `GS${DetNbr}_RAMBuffer0_Average` |
+| ai | Monitor | `GS${DetNbr}_RAMBuffer0_DataCount` |
+| ai | Monitor | `GS${DetNbr}_TRACE_FIFO_RD_PORT` |
+| ai | Monitor | `GS${DetNbr}_RAM_BUF_TIME_COUNT` |
+| ai | Diag | `GS${DetNbr}_RAM_BUF_PRESCALE_REG` |
+| ai | Monitor | `GS${DetNbr}_TIMESTAMP_LOW` |
+| ai | Monitor | `GS${DetNbr}_BGO1_counter` |
+| ai | Monitor | `GS${DetNbr}_BGO2_counter` |
+| ai | Monitor | `GS${DetNbr}_BGO3_counter` |
+| ai | Monitor | `GS${DetNbr}_BGO4_counter` |
+| ai | Monitor | `GS${DetNbr}_BGO5_counter` |
+| ai | Monitor | `GS${DetNbr}_BGO6_counter` |
+| ai | Monitor | `GS${DetNbr}_BGO7_counter` |
+| ai | Monitor | `GS${DetNbr}_BGOSum_counter` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND0_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND1_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND2_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND3_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND4_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND5_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND6_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND7_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND8_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND9_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND10_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND11_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND12_RBV` |
+| ai | Monitor | `GS${DetNbr}_BGO_DAC_DEMAND13_RBV` |
+| ai | Monitor | `GS${DetNbr}_SLOPE_BOX_HV_CTL_RBV` |
+| ai | Monitor | `GS${DetNbr}_SLOPE_BOX_GEHV_DEMAND_RBV` |
+| ai | Monitor | `GS${DetNbr}_TRACE_FIFO_DATA_COUNT` |
+| ai | Monitor | `GS${DetNbr}_CenterFETBiasHi` |
+| ai | Monitor | `GS${DetNbr}_CenterFETBiasLo` |
+| ai | Monitor | `GS${DetNbr}_SideFETBiasHi` |
+| ai | Monitor | `GS${DetNbr}_SideFETBiasLo` |
+| ai | Monitor | `GS${DetNbr}_CenterFETcurrentHi` |
+| ai | Monitor | `GS${DetNbr}_CenterFETcurrentLo` |
+| ai | Monitor | `GS${DetNbr}_SideFETcurrentHi` |
+| ai | Monitor | `GS${DetNbr}_SideFETcurrentLo` |
+| ai | Monitor | `GS${DetNbr}_CenterFETVDSHi` |
+| ai | Monitor | `GS${DetNbr}_CenterFETVDSLo` |
+| ai | Monitor | `GS${DetNbr}_SideB_OffsetHi` |
+| ai | Monitor | `GS${DetNbr}_SideB_OffsetLo` |
+| ai | Monitor | `GS${DetNbr}_SideFETVDSHi` |
+| ai | Monitor | `GS${DetNbr}_SideFETVDSLo` |
+| ai | Monitor | `GS${DetNbr}_SideA_OffsetHi` |
+| ai | Monitor | `GS${DetNbr}_SideA_OffsetLo` |
+| ai | Monitor | `GS${DetNbr}_ADC1X_OffsetA_GainHi` |
+| ai | Monitor | `GS${DetNbr}_ADC1X_OffsetA_GainLo` |
+| ai | Monitor | `GS${DetNbr}_ADC1X_OffsetB_GainHi` |
+| ai | Monitor | `GS${DetNbr}_ADC1X_OffsetB_GainLo` |
+| ai | Monitor | `GS${DetNbr}_ADC4X_OffsetA_GainHi` |
+| ai | Monitor | `GS${DetNbr}_ADC4X_OffsetA_GainLo` |
+| ai | Monitor | `GS${DetNbr}_ADC4X_OffsetB_GainHi` |
+| ai | Monitor | `GS${DetNbr}_ADC4X_OffsetB_GainLo` |
+| ai | Monitor | `GS${DetNbr}_TempSensorTemp` |
+| ai | Monitor | `GS${DetNbr}_HumidityRawData` |
+| ai | Monitor | `GS${DetNbr}_PreampPCBTemp` |
+| ai | Monitor | `GS${DetNbr}_PreampSecretValue` |
+| ai | Monitor | `GS${DetNbr}_PwrLocalTempMSB` |
+| ai | Monitor | `GS${DetNbr}_PwrCollectorTempMSB` |
+| ai | Monitor | `GS${DetNbr}_PwrTempExtended` |
+| ai | Monitor | `GS${DetNbr}_PwrStatus` |
+| ai | Monitor | `GS${DetNbr}_PwrFanSpeedRaw` |
+| ai | Monitor | `GS${DetNbr}_FanControlStat1` |
+| ai | Monitor | `GS${DetNbr}_FanControlStat2` |
+| ai | Monitor | `GS${DetNbr}_UNUSED122` |
+| ao | Config | `GS${DetNbr}_DONGLE_WRITE_PORT` |
+| ao | Config | `GS${DetNbr}_PreampWritePort` |
+| ao | Config | `GS${DetNbr}_PowerBrdWritePort` |
+| ai | Monitor | `GS${DetNbr}_Code_Date` |
+| ai | Monitor | `GS${DetNbr}_Code_Revision` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p0_w0` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p0_w1` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p0_w2` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p0_w3` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p0_w4` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p0_w5` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p0_w6` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p0_w7` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p1_w0` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p1_w1` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p1_w2` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p1_w3` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p1_w4` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p1_w5` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p1_w6` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p1_w7` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p2_w0` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p2_w1` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p2_w2` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p2_w3` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p2_w4` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p2_w5` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p2_w6` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p2_w7` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p3_w0` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p3_w1` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p3_w2` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p3_w3` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p3_w4` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p3_w5` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p3_w6` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p3_w7` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p4_w0` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p4_w1` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p4_w2` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p4_w3` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p4_w4` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p4_w5` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p4_w6` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p4_w7` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p5_w0` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p5_w1` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p5_w2` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p5_w3` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p5_w4` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p5_w5` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p5_w6` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p5_w7` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p6_w0` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p6_w1` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p6_w2` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p6_w3` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p6_w4` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p6_w5` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p6_w6` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p6_w7` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p7_w0` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p7_w1` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p7_w2` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p7_w3` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p7_w4` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p7_w5` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p7_w6` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p7_w7` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p8_w0` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p8_w1` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p8_w2` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p8_w3` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p8_w4` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p8_w5` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p8_w6` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_p8_w7` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_digpot_w0` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_digpot_w1` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_digpot_w2` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_digpot_w3` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_digpot_w4` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_digpot_w5` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_digpot_w6` |
+| ai | Monitor | `GS${DetNbr}_PreampEEPROM_digpot_w7` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p0_w0` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p0_w1` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p0_w2` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p0_w3` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p0_w4` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p0_w5` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p0_w6` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p0_w7` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p1_w0` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p1_w1` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p1_w2` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p1_w3` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p1_w4` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p1_w5` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p1_w6` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p1_w7` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p2_w0` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p2_w1` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p2_w2` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p2_w3` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p2_w4` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p2_w5` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p2_w6` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p2_w7` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p3_w0` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p3_w1` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p3_w2` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p3_w3` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p3_w4` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p3_w5` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p3_w6` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p3_w7` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p4_w0` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p4_w1` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p4_w2` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p4_w3` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p4_w4` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p4_w5` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p4_w6` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p4_w7` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p5_w0` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p5_w1` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p5_w2` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p5_w3` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p5_w4` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p5_w5` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p5_w6` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p5_w7` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p6_w0` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p6_w1` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p6_w2` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p6_w3` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p6_w4` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p6_w5` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p6_w6` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p6_w7` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p7_w0` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p7_w1` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p7_w2` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p7_w3` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p7_w4` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p7_w5` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p7_w6` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p7_w7` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p8_w0` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p8_w1` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p8_w2` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p8_w3` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p8_w4` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p8_w5` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p8_w6` |
+| ai | Monitor | `GS${DetNbr}_DongleEEPROM_p8_w7` |
+| ai | Monitor | `GS${DetNbr}_GS_ID` |
 
 ## PowerBoardCalcChain.db (10 records)
 
-| Type | PV Name |
-|------|----------|
-| bi | `GS${DetNbr}_PwrPlus5Good` |
-| bi | `GS${DetNbr}_PwrMinus5Good` |
-| bi | `GS${DetNbr}_PwrPlus12Good` |
-| bi | `GS${DetNbr}_PwrMinus12Good` |
-| bi | `GS${DetNbr}_PwrPlus24Good` |
-| bi | `GS${DetNbr}_PwrPoeNotReady` |
-| bi | `GS${DetNbr}_PwrTempOK` |
-| ai | `GS${DetNbr}_Calc_PWRTemp` |
-| ai | `GS${DetNbr}_Calc_PWRPickTemp` |
-| ai | `GS${DetNbr}_Calc_FanRPM` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| bi | Monitor | `GS${DetNbr}_PwrPlus5Good` |
+| bi | Monitor | `GS${DetNbr}_PwrMinus5Good` |
+| bi | Monitor | `GS${DetNbr}_PwrPlus12Good` |
+| bi | Monitor | `GS${DetNbr}_PwrMinus12Good` |
+| bi | Monitor | `GS${DetNbr}_PwrPlus24Good` |
+| bi | Monitor | `GS${DetNbr}_PwrPoeNotReady` |
+| bi | Monitor | `GS${DetNbr}_PwrTempOK` |
+| ai | Monitor | `GS${DetNbr}_Calc_PWRTemp` |
+| ai | Monitor | `GS${DetNbr}_Calc_PWRPickTemp` |
+| ai | Monitor | `GS${DetNbr}_Calc_FanRPM` |
 
 ## PreampCalcChain.db (16 records)
 
-| Type | PV Name |
-|------|----------|
-| ai | `GS${DetNbr}_Calc_CenterFETBias` |
-| ai | `GS${DetNbr}_Calc_SideFETBias` |
-| ai | `GS${DetNbr}_Calc_CenterFETcurrent` |
-| ai | `GS${DetNbr}_Calc_SideFETcurrent` |
-| ai | `GS${DetNbr}_Calc_CenterFETVDS` |
-| ai | `GS${DetNbr}_Calc_SideBOffset` |
-| ai | `GS${DetNbr}_Calc_SideVDS` |
-| ai | `GS${DetNbr}_Calc_SideAOffset` |
-| ai | `GS${DetNbr}_Calc_1X_OffsetA_Gain` |
-| ai | `GS${DetNbr}_Calc_1X_OffsetB_Gain` |
-| ai | `GS${DetNbr}_Calc_4X_OffsetA_Gain` |
-| ai | `GS${DetNbr}_Calc_4X_OffsetB_Gain` |
-| ai | `GS${DetNbr}_Calc_ChamberTemp` |
-| ai | `GS${DetNbr}_Calc_ChamberHumidity` |
-| ai | `GS${DetNbr}_Calc_PCBTemp` |
-| ai | `GS${DetNbr}_Calc_PT500_Temp` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| ai | Monitor | `GS${DetNbr}_Calc_CenterFETBias` |
+| ai | Monitor | `GS${DetNbr}_Calc_SideFETBias` |
+| ai | Monitor | `GS${DetNbr}_Calc_CenterFETcurrent` |
+| ai | Monitor | `GS${DetNbr}_Calc_SideFETcurrent` |
+| ai | Monitor | `GS${DetNbr}_Calc_CenterFETVDS` |
+| ai | Monitor | `GS${DetNbr}_Calc_SideBOffset` |
+| ai | Monitor | `GS${DetNbr}_Calc_SideVDS` |
+| ai | Monitor | `GS${DetNbr}_Calc_SideAOffset` |
+| ai | Monitor | `GS${DetNbr}_Calc_1X_OffsetA_Gain` |
+| ai | Monitor | `GS${DetNbr}_Calc_1X_OffsetB_Gain` |
+| ai | Monitor | `GS${DetNbr}_Calc_4X_OffsetA_Gain` |
+| ai | Monitor | `GS${DetNbr}_Calc_4X_OffsetB_Gain` |
+| ai | Monitor | `GS${DetNbr}_Calc_ChamberTemp` |
+| ai | Monitor | `GS${DetNbr}_Calc_ChamberHumidity` |
+| ai | Monitor | `GS${DetNbr}_Calc_PCBTemp` |
+| ai | Monitor | `GS${DetNbr}_Calc_PT500_Temp` |
 
 ## SlopeBox.db (26 records)
 
-| Type | PV Name |
-|------|----------|
-| ai | `GS${DetNbr}_SBX_Present` |
-| ai | `GS${DetNbr}_Dig_Channel` |
-| ai | `GS${DetNbr}_Dig_Index` |
-| ai | `GS${DetNbr}_VME_Index` |
-| ai | `True_GS${DetNbr}_to_VME_GS` |
-| ai | `VME_GS${VMEGS}_to_True_GS` |
-| ai | `GS${DetNbr}_Ge_Prefix` |
-| ai | `GS${DetNbr}_Ge_ID` |
-| ai | `GS${DetNbr}_Ge_Type` |
-| ai | `GS${DetNbr}_Ge_MCA_Resolution` |
-| ai | `GS${DetNbr}_Ge_MCA_Reset_Period` |
-| ai | `GS${DetNbr}_Ge_MCA_GR` |
-| ai | `GS${DetNbr}_Ge_MCA_Depletion_Voltage` |
-| bi | `GS${DetNbr}_Pi_ID` |
-| ai | `GS${DetNbr}_Conv_Temp` |
-| ai | `GS${DetNbr}_Conv_Resistance` |
-| ai | `GS${DetNbr}_Conv_GeHV` |
-| ai | `GS${DetNbr}_Conv_24V` |
-| ai | `GS${DetNbr}_Conv_minus12V` |
-| ai | `GS${DetNbr}_Conv_BGO450` |
-| ai | `GS${DetNbr}_Conv_BGO400` |
-| ai | `GS${DetNbr}_Conv_plus12V` |
-| ai | `GS${DetNbr}_Conv_5V` |
-| ao | `GS${DetNbr}_User_HV_Demand_Volts` |
-| ai | `GS${DetNbr}_Calc_User_HV_Setval` |
-| ao | `GS${DetNbr}_CHAINED_GE_HV_DEMAND` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| ai | Monitor | `GS${DetNbr}_SBX_Present` |
+| ai | Monitor | `GS${DetNbr}_Dig_Channel` |
+| ai | Monitor | `GS${DetNbr}_Dig_Index` |
+| ai | Monitor | `GS${DetNbr}_VME_Index` |
+| ai | Monitor | `True_GS${DetNbr}_to_VME_GS` |
+| ai | Monitor | `VME_GS${VMEGS}_to_True_GS` |
+| ai | Monitor | `GS${DetNbr}_Ge_Prefix` |
+| ai | Monitor | `GS${DetNbr}_Ge_ID` |
+| ai | Monitor | `GS${DetNbr}_Ge_Type` |
+| ai | Monitor | `GS${DetNbr}_Ge_MCA_Resolution` |
+| ai | Reset | `GS${DetNbr}_Ge_MCA_Reset_Period` |
+| ai | Monitor | `GS${DetNbr}_Ge_MCA_GR` |
+| ai | Monitor | `GS${DetNbr}_Ge_MCA_Depletion_Voltage` |
+| bi | Monitor | `GS${DetNbr}_Pi_ID` |
+| ai | Monitor | `GS${DetNbr}_Conv_Temp` |
+| ai | Monitor | `GS${DetNbr}_Conv_Resistance` |
+| ai | Monitor | `GS${DetNbr}_Conv_GeHV` |
+| ai | Monitor | `GS${DetNbr}_Conv_24V` |
+| ai | Monitor | `GS${DetNbr}_Conv_minus12V` |
+| ai | Monitor | `GS${DetNbr}_Conv_BGO450` |
+| ai | Monitor | `GS${DetNbr}_Conv_BGO400` |
+| ai | Monitor | `GS${DetNbr}_Conv_plus12V` |
+| ai | Monitor | `GS${DetNbr}_Conv_5V` |
+| ao | Config | `GS${DetNbr}_User_HV_Demand_Volts` |
+| ai | Monitor | `GS${DetNbr}_Calc_User_HV_Setval` |
+| ao | Config | `GS${DetNbr}_CHAINED_GE_HV_DEMAND` |
 
 ## StrpFPGA.db (294 records)
 
-| Type | PV Name |
-|------|----------|
-| bo | `GS${DetNbr}_irly_s1_1` |
-| bo | `GS${DetNbr}_irly_s1_2` |
-| bo | `GS${DetNbr}_irly_s1_3` |
-| bo | `GS${DetNbr}_irly_s1_4` |
-| bo | `GS${DetNbr}_irly_s1_5` |
-| bo | `GS${DetNbr}_grly_s1_1` |
-| bo | `GS${DetNbr}_grly_s1_2` |
-| bo | `GS${DetNbr}_grly_s1_3` |
-| bo | `GS${DetNbr}_grly_s1_4` |
-| bo | `GS${DetNbr}_grly_s1_5` |
-| bo | `GS${DetNbr}_prly_s1_1` |
-| bo | `GS${DetNbr}_prly_s1_2` |
-| bo | `GS${DetNbr}_prly_s1_3` |
-| bo | `GS${DetNbr}_prly_s1_4` |
-| bo | `GS${DetNbr}_prly_s1_5` |
-| bo | `GS${DetNbr}_irly_s2_1` |
-| bo | `GS${DetNbr}_irly_s2_2` |
-| bo | `GS${DetNbr}_irly_s2_3` |
-| bo | `GS${DetNbr}_irly_s2_4` |
-| bo | `GS${DetNbr}_irly_s2_5` |
-| bo | `GS${DetNbr}_grly_s2_1` |
-| bo | `GS${DetNbr}_grly_s2_2` |
-| bo | `GS${DetNbr}_grly_s2_3` |
-| bo | `GS${DetNbr}_grly_s2_4` |
-| bo | `GS${DetNbr}_grly_s2_5` |
-| bo | `GS${DetNbr}_prly_s2_1` |
-| bo | `GS${DetNbr}_prly_s2_2` |
-| bo | `GS${DetNbr}_prly_s2_3` |
-| bo | `GS${DetNbr}_prly_s2_4` |
-| bo | `GS${DetNbr}_prly_s2_5` |
-| bo | `GS${DetNbr}_irly_s3_1` |
-| bo | `GS${DetNbr}_irly_s3_2` |
-| bo | `GS${DetNbr}_irly_s3_3` |
-| bo | `GS${DetNbr}_irly_s3_4` |
-| bo | `GS${DetNbr}_irly_s3_5` |
-| bo | `GS${DetNbr}_grly_s3_1` |
-| bo | `GS${DetNbr}_grly_s3_2` |
-| bo | `GS${DetNbr}_grly_s3_3` |
-| bo | `GS${DetNbr}_grly_s3_4` |
-| bo | `GS${DetNbr}_grly_s3_5` |
-| bo | `GS${DetNbr}_prly_s3_1` |
-| bo | `GS${DetNbr}_prly_s3_2` |
-| bo | `GS${DetNbr}_prly_s3_3` |
-| bo | `GS${DetNbr}_prly_s3_4` |
-| bo | `GS${DetNbr}_prly_s3_5` |
-| bo | `GS${DetNbr}_irly_s4_1` |
-| bo | `GS${DetNbr}_irly_s4_2` |
-| bo | `GS${DetNbr}_irly_s4_3` |
-| bo | `GS${DetNbr}_irly_s4_4` |
-| bo | `GS${DetNbr}_irly_s4_5` |
-| bo | `GS${DetNbr}_grly_s4_1` |
-| bo | `GS${DetNbr}_grly_s4_2` |
-| bo | `GS${DetNbr}_grly_s4_3` |
-| bo | `GS${DetNbr}_grly_s4_4` |
-| bo | `GS${DetNbr}_grly_s4_5` |
-| bo | `GS${DetNbr}_prly_s4_1` |
-| bo | `GS${DetNbr}_prly_s4_2` |
-| bo | `GS${DetNbr}_prly_s4_3` |
-| bo | `GS${DetNbr}_prly_s4_4` |
-| bo | `GS${DetNbr}_prly_s4_5` |
-| bo | `GS${DetNbr}_irly_s5_1` |
-| bo | `GS${DetNbr}_irly_s5_2` |
-| bo | `GS${DetNbr}_irly_s5_3` |
-| bo | `GS${DetNbr}_irly_s5_4` |
-| bo | `GS${DetNbr}_irly_s5_5` |
-| bo | `GS${DetNbr}_grly_s5_1` |
-| bo | `GS${DetNbr}_grly_s5_2` |
-| bo | `GS${DetNbr}_grly_s5_3` |
-| bo | `GS${DetNbr}_grly_s5_4` |
-| bo | `GS${DetNbr}_grly_s5_5` |
-| bo | `GS${DetNbr}_prly_s5_1` |
-| bo | `GS${DetNbr}_prly_s5_2` |
-| bo | `GS${DetNbr}_prly_s5_3` |
-| bo | `GS${DetNbr}_prly_s5_4` |
-| bo | `GS${DetNbr}_prly_s5_5` |
-| bo | `GS${DetNbr}_irly_s6_1` |
-| bo | `GS${DetNbr}_irly_s6_2` |
-| bo | `GS${DetNbr}_irly_s6_3` |
-| bo | `GS${DetNbr}_irly_s6_4` |
-| bo | `GS${DetNbr}_irly_s6_5` |
-| bo | `GS${DetNbr}_grly_s6_1` |
-| bo | `GS${DetNbr}_grly_s6_2` |
-| bo | `GS${DetNbr}_grly_s6_3` |
-| bo | `GS${DetNbr}_grly_s6_4` |
-| bo | `GS${DetNbr}_grly_s6_5` |
-| bo | `GS${DetNbr}_prly_s6_1` |
-| bo | `GS${DetNbr}_prly_s6_2` |
-| bo | `GS${DetNbr}_prly_s6_3` |
-| bo | `GS${DetNbr}_prly_s6_4` |
-| bo | `GS${DetNbr}_prly_s6_5` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s1_1` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s1_2` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s1_3` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s1_4` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s1_5` |
-| bo | `GS${DetNbr}_crly_earth_s1` |
-| bo | `GS${DetNbr}_crly_signal_s1` |
-| bo | `GS${DetNbr}_trig_sync_enable_s1` |
-| bo | `GS${DetNbr}_manual_sync_s1` |
-| bo | `GS${DetNbr}_clock_output_enable_override_s1` |
-| bo | `GS${DetNbr}_manual_clock_output_enable_state_s1` |
-| bo | `GS${DetNbr}_clock_source_override_s1` |
-| bo | `GS${DetNbr}_manual_clock_source_select_s1` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s2_1` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s2_2` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s2_3` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s2_4` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s2_5` |
-| bo | `GS${DetNbr}_crly_earth_s2` |
-| bo | `GS${DetNbr}_crly_signal_s2` |
-| bo | `GS${DetNbr}_trig_sync_enable_s2` |
-| bo | `GS${DetNbr}_manual_sync_s2` |
-| bo | `GS${DetNbr}_clock_output_enable_override_s2` |
-| bo | `GS${DetNbr}_manual_clock_output_enable_state_s2` |
-| bo | `GS${DetNbr}_clock_source_override_s2` |
-| bo | `GS${DetNbr}_manual_clock_source_select_s2` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s3_1` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s3_2` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s3_3` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s3_4` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s3_5` |
-| bo | `GS${DetNbr}_crly_earth_s3` |
-| bo | `GS${DetNbr}_crly_signal_s3` |
-| bo | `GS${DetNbr}_trig_sync_enable_s3` |
-| bo | `GS${DetNbr}_manual_sync_s3` |
-| bo | `GS${DetNbr}_clock_output_enable_override_s3` |
-| bo | `GS${DetNbr}_manual_clock_output_enable_state_s3` |
-| bo | `GS${DetNbr}_clock_source_override_s3` |
-| bo | `GS${DetNbr}_manual_clock_source_select_s3` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s4_1` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s4_2` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s4_3` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s4_4` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s4_5` |
-| bo | `GS${DetNbr}_crly_earth_s4` |
-| bo | `GS${DetNbr}_crly_signal_s4` |
-| bo | `GS${DetNbr}_trig_sync_enable_s4` |
-| bo | `GS${DetNbr}_manual_sync_s4` |
-| bo | `GS${DetNbr}_clock_output_enable_override_s4` |
-| bo | `GS${DetNbr}_manual_clock_output_enable_state_s4` |
-| bo | `GS${DetNbr}_clock_source_override_s4` |
-| bo | `GS${DetNbr}_manual_clock_source_select_s4` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s5_1` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s5_2` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s5_3` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s5_4` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s5_5` |
-| bo | `GS${DetNbr}_crly_earth_s5` |
-| bo | `GS${DetNbr}_crly_signal_s5` |
-| bo | `GS${DetNbr}_trig_sync_enable_s5` |
-| bo | `GS${DetNbr}_manual_sync_s5` |
-| bo | `GS${DetNbr}_clock_output_enable_override_s5` |
-| bo | `GS${DetNbr}_manual_clock_output_enable_state_s5` |
-| bo | `GS${DetNbr}_clock_source_override_s5` |
-| bo | `GS${DetNbr}_manual_clock_source_select_s5` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s6_1` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s6_2` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s6_3` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s6_4` |
-| bo | `GS${DetNbr}_clock_and_sync_enable_s6_5` |
-| bo | `GS${DetNbr}_crly_earth_s6` |
-| bo | `GS${DetNbr}_crly_signal_s6` |
-| bo | `GS${DetNbr}_trig_sync_enable_s6` |
-| bo | `GS${DetNbr}_manual_sync_s6` |
-| bo | `GS${DetNbr}_clock_output_enable_override_s6` |
-| bo | `GS${DetNbr}_manual_clock_output_enable_state_s6` |
-| bo | `GS${DetNbr}_clock_source_override_s6` |
-| bo | `GS${DetNbr}_manual_clock_source_select_s6` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s1_1` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s1_2` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s1_3` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s1_4` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s1_5` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s1_1` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s1_2` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s1_3` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s1_4` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s1_5` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s2_1` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s2_2` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s2_3` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s2_4` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s2_5` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s2_1` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s2_2` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s2_3` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s2_4` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s2_5` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s3_1` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s3_2` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s3_3` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s3_4` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s3_5` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s3_1` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s3_2` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s3_3` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s3_4` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s3_5` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s4_1` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s4_2` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s4_3` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s4_4` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s4_5` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s4_1` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s4_2` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s4_3` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s4_4` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s4_5` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s5_1` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s5_2` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s5_3` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s5_4` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s5_5` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s5_1` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s5_2` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s5_3` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s5_4` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s5_5` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s6_1` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s6_2` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s6_3` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s6_4` |
-| bo | `GS${DetNbr}_sbx_spi_tristate_s6_5` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s6_1` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s6_2` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s6_3` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s6_4` |
-| bo | `GS${DetNbr}_sbx_clock_sync_tristate_s6_5` |
-| ai | `GS${DetNbr}_stripe_id_s1` |
-| bi | `GS${DetNbr}_sbx_clock_source_s1` |
-| bi | `GS${DetNbr}_sbx_clock_enable_s1` |
-| bi | `GS${DetNbr}_dcm_trig_locked_s1` |
-| bi | `GS${DetNbr}_dcm_osc_locked_s1` |
-| ai | `GS${DetNbr}_stripe_id_s2` |
-| bi | `GS${DetNbr}_sbx_clock_source_s2` |
-| bi | `GS${DetNbr}_sbx_clock_enable_s2` |
-| bi | `GS${DetNbr}_dcm_trig_locked_s2` |
-| bi | `GS${DetNbr}_dcm_osc_locked_s2` |
-| ai | `GS${DetNbr}_stripe_id_s3` |
-| bi | `GS${DetNbr}_sbx_clock_source_s3` |
-| bi | `GS${DetNbr}_sbx_clock_enable_s3` |
-| bi | `GS${DetNbr}_dcm_trig_locked_s3` |
-| bi | `GS${DetNbr}_dcm_osc_locked_s3` |
-| ai | `GS${DetNbr}_stripe_id_s4` |
-| bi | `GS${DetNbr}_sbx_clock_source_s4` |
-| bi | `GS${DetNbr}_sbx_clock_enable_s4` |
-| bi | `GS${DetNbr}_dcm_trig_locked_s4` |
-| bi | `GS${DetNbr}_dcm_osc_locked_s4` |
-| ai | `GS${DetNbr}_stripe_id_s5` |
-| bi | `GS${DetNbr}_sbx_clock_source_s5` |
-| bi | `GS${DetNbr}_sbx_clock_enable_s5` |
-| bi | `GS${DetNbr}_dcm_trig_locked_s5` |
-| bi | `GS${DetNbr}_dcm_osc_locked_s5` |
-| ai | `GS${DetNbr}_stripe_id_s6` |
-| bi | `GS${DetNbr}_sbx_clock_source_s6` |
-| bi | `GS${DetNbr}_sbx_clock_enable_s6` |
-| bi | `GS${DetNbr}_dcm_trig_locked_s6` |
-| bi | `GS${DetNbr}_dcm_osc_locked_s6` |
-| mbbo | `GS${DetNbr}_led_s2_5` |
-| mbbo | `GS${DetNbr}_led_s2_4` |
-| mbbo | `GS${DetNbr}_led_s2_3` |
-| mbbo | `GS${DetNbr}_led_s2_2` |
-| mbbo | `GS${DetNbr}_led_s2_1` |
-| mbbo | `GS${DetNbr}_led_s1_5` |
-| mbbo | `GS${DetNbr}_led_s1_4` |
-| mbbo | `GS${DetNbr}_led_s1_3` |
-| mbbo | `GS${DetNbr}_led_s4_5` |
-| mbbo | `GS${DetNbr}_led_s4_4` |
-| mbbo | `GS${DetNbr}_led_s4_3` |
-| mbbo | `GS${DetNbr}_led_s4_2` |
-| mbbo | `GS${DetNbr}_led_s4_1` |
-| mbbo | `GS${DetNbr}_led_s3_5` |
-| mbbo | `GS${DetNbr}_led_s3_4` |
-| mbbo | `GS${DetNbr}_led_s3_3` |
-| mbbo | `GS${DetNbr}_led_s6_5` |
-| mbbo | `GS${DetNbr}_led_s6_4` |
-| mbbo | `GS${DetNbr}_led_s6_3` |
-| mbbo | `GS${DetNbr}_led_s6_2` |
-| mbbo | `GS${DetNbr}_led_s6_1` |
-| mbbo | `GS${DetNbr}_led_s5_5` |
-| mbbo | `GS${DetNbr}_led_s5_4` |
-| mbbo | `GS${DetNbr}_led_s5_3` |
-| mbbo | `GS${DetNbr}_led_s1_2` |
-| mbbo | `GS${DetNbr}_led_s1_1` |
-| mbbo | `GS${DetNbr}_led_tip_s1_s2` |
-| mbbo | `GS${DetNbr}_led_stat_s1_s2` |
-| mbbo | `GS${DetNbr}_led_s3_2` |
-| mbbo | `GS${DetNbr}_led_s3_1` |
-| mbbo | `GS${DetNbr}_led_tip_s3_s4` |
-| mbbo | `GS${DetNbr}_led_stat_s3_s4` |
-| mbbo | `GS${DetNbr}_led_s5_2` |
-| mbbo | `GS${DetNbr}_led_s5_1` |
-| mbbo | `GS${DetNbr}_led_tip_s5_s6` |
-| mbbo | `GS${DetNbr}_led_stat_s5_s6` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| bo | Config | `GS${DetNbr}_irly_s1_1` |
+| bo | Config | `GS${DetNbr}_irly_s1_2` |
+| bo | Config | `GS${DetNbr}_irly_s1_3` |
+| bo | Config | `GS${DetNbr}_irly_s1_4` |
+| bo | Config | `GS${DetNbr}_irly_s1_5` |
+| bo | Config | `GS${DetNbr}_grly_s1_1` |
+| bo | Config | `GS${DetNbr}_grly_s1_2` |
+| bo | Config | `GS${DetNbr}_grly_s1_3` |
+| bo | Config | `GS${DetNbr}_grly_s1_4` |
+| bo | Config | `GS${DetNbr}_grly_s1_5` |
+| bo | Config | `GS${DetNbr}_prly_s1_1` |
+| bo | Config | `GS${DetNbr}_prly_s1_2` |
+| bo | Config | `GS${DetNbr}_prly_s1_3` |
+| bo | Config | `GS${DetNbr}_prly_s1_4` |
+| bo | Config | `GS${DetNbr}_prly_s1_5` |
+| bo | Config | `GS${DetNbr}_irly_s2_1` |
+| bo | Config | `GS${DetNbr}_irly_s2_2` |
+| bo | Config | `GS${DetNbr}_irly_s2_3` |
+| bo | Config | `GS${DetNbr}_irly_s2_4` |
+| bo | Config | `GS${DetNbr}_irly_s2_5` |
+| bo | Config | `GS${DetNbr}_grly_s2_1` |
+| bo | Config | `GS${DetNbr}_grly_s2_2` |
+| bo | Config | `GS${DetNbr}_grly_s2_3` |
+| bo | Config | `GS${DetNbr}_grly_s2_4` |
+| bo | Config | `GS${DetNbr}_grly_s2_5` |
+| bo | Config | `GS${DetNbr}_prly_s2_1` |
+| bo | Config | `GS${DetNbr}_prly_s2_2` |
+| bo | Config | `GS${DetNbr}_prly_s2_3` |
+| bo | Config | `GS${DetNbr}_prly_s2_4` |
+| bo | Config | `GS${DetNbr}_prly_s2_5` |
+| bo | Config | `GS${DetNbr}_irly_s3_1` |
+| bo | Config | `GS${DetNbr}_irly_s3_2` |
+| bo | Config | `GS${DetNbr}_irly_s3_3` |
+| bo | Config | `GS${DetNbr}_irly_s3_4` |
+| bo | Config | `GS${DetNbr}_irly_s3_5` |
+| bo | Config | `GS${DetNbr}_grly_s3_1` |
+| bo | Config | `GS${DetNbr}_grly_s3_2` |
+| bo | Config | `GS${DetNbr}_grly_s3_3` |
+| bo | Config | `GS${DetNbr}_grly_s3_4` |
+| bo | Config | `GS${DetNbr}_grly_s3_5` |
+| bo | Config | `GS${DetNbr}_prly_s3_1` |
+| bo | Config | `GS${DetNbr}_prly_s3_2` |
+| bo | Config | `GS${DetNbr}_prly_s3_3` |
+| bo | Config | `GS${DetNbr}_prly_s3_4` |
+| bo | Config | `GS${DetNbr}_prly_s3_5` |
+| bo | Config | `GS${DetNbr}_irly_s4_1` |
+| bo | Config | `GS${DetNbr}_irly_s4_2` |
+| bo | Config | `GS${DetNbr}_irly_s4_3` |
+| bo | Config | `GS${DetNbr}_irly_s4_4` |
+| bo | Config | `GS${DetNbr}_irly_s4_5` |
+| bo | Config | `GS${DetNbr}_grly_s4_1` |
+| bo | Config | `GS${DetNbr}_grly_s4_2` |
+| bo | Config | `GS${DetNbr}_grly_s4_3` |
+| bo | Config | `GS${DetNbr}_grly_s4_4` |
+| bo | Config | `GS${DetNbr}_grly_s4_5` |
+| bo | Config | `GS${DetNbr}_prly_s4_1` |
+| bo | Config | `GS${DetNbr}_prly_s4_2` |
+| bo | Config | `GS${DetNbr}_prly_s4_3` |
+| bo | Config | `GS${DetNbr}_prly_s4_4` |
+| bo | Config | `GS${DetNbr}_prly_s4_5` |
+| bo | Config | `GS${DetNbr}_irly_s5_1` |
+| bo | Config | `GS${DetNbr}_irly_s5_2` |
+| bo | Config | `GS${DetNbr}_irly_s5_3` |
+| bo | Config | `GS${DetNbr}_irly_s5_4` |
+| bo | Config | `GS${DetNbr}_irly_s5_5` |
+| bo | Config | `GS${DetNbr}_grly_s5_1` |
+| bo | Config | `GS${DetNbr}_grly_s5_2` |
+| bo | Config | `GS${DetNbr}_grly_s5_3` |
+| bo | Config | `GS${DetNbr}_grly_s5_4` |
+| bo | Config | `GS${DetNbr}_grly_s5_5` |
+| bo | Config | `GS${DetNbr}_prly_s5_1` |
+| bo | Config | `GS${DetNbr}_prly_s5_2` |
+| bo | Config | `GS${DetNbr}_prly_s5_3` |
+| bo | Config | `GS${DetNbr}_prly_s5_4` |
+| bo | Config | `GS${DetNbr}_prly_s5_5` |
+| bo | Config | `GS${DetNbr}_irly_s6_1` |
+| bo | Config | `GS${DetNbr}_irly_s6_2` |
+| bo | Config | `GS${DetNbr}_irly_s6_3` |
+| bo | Config | `GS${DetNbr}_irly_s6_4` |
+| bo | Config | `GS${DetNbr}_irly_s6_5` |
+| bo | Config | `GS${DetNbr}_grly_s6_1` |
+| bo | Config | `GS${DetNbr}_grly_s6_2` |
+| bo | Config | `GS${DetNbr}_grly_s6_3` |
+| bo | Config | `GS${DetNbr}_grly_s6_4` |
+| bo | Config | `GS${DetNbr}_grly_s6_5` |
+| bo | Config | `GS${DetNbr}_prly_s6_1` |
+| bo | Config | `GS${DetNbr}_prly_s6_2` |
+| bo | Config | `GS${DetNbr}_prly_s6_3` |
+| bo | Config | `GS${DetNbr}_prly_s6_4` |
+| bo | Config | `GS${DetNbr}_prly_s6_5` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s1_1` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s1_2` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s1_3` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s1_4` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s1_5` |
+| bo | Config | `GS${DetNbr}_crly_earth_s1` |
+| bo | Config | `GS${DetNbr}_crly_signal_s1` |
+| bo | Config | `GS${DetNbr}_trig_sync_enable_s1` |
+| bo | Config | `GS${DetNbr}_manual_sync_s1` |
+| bo | Config | `GS${DetNbr}_clock_output_enable_override_s1` |
+| bo | Config | `GS${DetNbr}_manual_clock_output_enable_state_s1` |
+| bo | Config | `GS${DetNbr}_clock_source_override_s1` |
+| bo | Config | `GS${DetNbr}_manual_clock_source_select_s1` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s2_1` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s2_2` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s2_3` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s2_4` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s2_5` |
+| bo | Config | `GS${DetNbr}_crly_earth_s2` |
+| bo | Config | `GS${DetNbr}_crly_signal_s2` |
+| bo | Config | `GS${DetNbr}_trig_sync_enable_s2` |
+| bo | Config | `GS${DetNbr}_manual_sync_s2` |
+| bo | Config | `GS${DetNbr}_clock_output_enable_override_s2` |
+| bo | Config | `GS${DetNbr}_manual_clock_output_enable_state_s2` |
+| bo | Config | `GS${DetNbr}_clock_source_override_s2` |
+| bo | Config | `GS${DetNbr}_manual_clock_source_select_s2` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s3_1` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s3_2` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s3_3` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s3_4` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s3_5` |
+| bo | Config | `GS${DetNbr}_crly_earth_s3` |
+| bo | Config | `GS${DetNbr}_crly_signal_s3` |
+| bo | Config | `GS${DetNbr}_trig_sync_enable_s3` |
+| bo | Config | `GS${DetNbr}_manual_sync_s3` |
+| bo | Config | `GS${DetNbr}_clock_output_enable_override_s3` |
+| bo | Config | `GS${DetNbr}_manual_clock_output_enable_state_s3` |
+| bo | Config | `GS${DetNbr}_clock_source_override_s3` |
+| bo | Config | `GS${DetNbr}_manual_clock_source_select_s3` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s4_1` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s4_2` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s4_3` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s4_4` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s4_5` |
+| bo | Config | `GS${DetNbr}_crly_earth_s4` |
+| bo | Config | `GS${DetNbr}_crly_signal_s4` |
+| bo | Config | `GS${DetNbr}_trig_sync_enable_s4` |
+| bo | Config | `GS${DetNbr}_manual_sync_s4` |
+| bo | Config | `GS${DetNbr}_clock_output_enable_override_s4` |
+| bo | Config | `GS${DetNbr}_manual_clock_output_enable_state_s4` |
+| bo | Config | `GS${DetNbr}_clock_source_override_s4` |
+| bo | Config | `GS${DetNbr}_manual_clock_source_select_s4` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s5_1` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s5_2` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s5_3` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s5_4` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s5_5` |
+| bo | Config | `GS${DetNbr}_crly_earth_s5` |
+| bo | Config | `GS${DetNbr}_crly_signal_s5` |
+| bo | Config | `GS${DetNbr}_trig_sync_enable_s5` |
+| bo | Config | `GS${DetNbr}_manual_sync_s5` |
+| bo | Config | `GS${DetNbr}_clock_output_enable_override_s5` |
+| bo | Config | `GS${DetNbr}_manual_clock_output_enable_state_s5` |
+| bo | Config | `GS${DetNbr}_clock_source_override_s5` |
+| bo | Config | `GS${DetNbr}_manual_clock_source_select_s5` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s6_1` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s6_2` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s6_3` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s6_4` |
+| bo | Config | `GS${DetNbr}_clock_and_sync_enable_s6_5` |
+| bo | Config | `GS${DetNbr}_crly_earth_s6` |
+| bo | Config | `GS${DetNbr}_crly_signal_s6` |
+| bo | Config | `GS${DetNbr}_trig_sync_enable_s6` |
+| bo | Config | `GS${DetNbr}_manual_sync_s6` |
+| bo | Config | `GS${DetNbr}_clock_output_enable_override_s6` |
+| bo | Config | `GS${DetNbr}_manual_clock_output_enable_state_s6` |
+| bo | Config | `GS${DetNbr}_clock_source_override_s6` |
+| bo | Config | `GS${DetNbr}_manual_clock_source_select_s6` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s1_1` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s1_2` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s1_3` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s1_4` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s1_5` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s1_1` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s1_2` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s1_3` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s1_4` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s1_5` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s2_1` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s2_2` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s2_3` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s2_4` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s2_5` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s2_1` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s2_2` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s2_3` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s2_4` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s2_5` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s3_1` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s3_2` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s3_3` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s3_4` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s3_5` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s3_1` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s3_2` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s3_3` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s3_4` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s3_5` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s4_1` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s4_2` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s4_3` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s4_4` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s4_5` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s4_1` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s4_2` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s4_3` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s4_4` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s4_5` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s5_1` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s5_2` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s5_3` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s5_4` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s5_5` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s5_1` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s5_2` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s5_3` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s5_4` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s5_5` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s6_1` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s6_2` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s6_3` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s6_4` |
+| bo | Config | `GS${DetNbr}_sbx_spi_tristate_s6_5` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s6_1` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s6_2` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s6_3` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s6_4` |
+| bo | Config | `GS${DetNbr}_sbx_clock_sync_tristate_s6_5` |
+| ai | Monitor | `GS${DetNbr}_stripe_id_s1` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_source_s1` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_enable_s1` |
+| bi | Monitor | `GS${DetNbr}_dcm_trig_locked_s1` |
+| bi | Monitor | `GS${DetNbr}_dcm_osc_locked_s1` |
+| ai | Monitor | `GS${DetNbr}_stripe_id_s2` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_source_s2` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_enable_s2` |
+| bi | Monitor | `GS${DetNbr}_dcm_trig_locked_s2` |
+| bi | Monitor | `GS${DetNbr}_dcm_osc_locked_s2` |
+| ai | Monitor | `GS${DetNbr}_stripe_id_s3` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_source_s3` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_enable_s3` |
+| bi | Monitor | `GS${DetNbr}_dcm_trig_locked_s3` |
+| bi | Monitor | `GS${DetNbr}_dcm_osc_locked_s3` |
+| ai | Monitor | `GS${DetNbr}_stripe_id_s4` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_source_s4` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_enable_s4` |
+| bi | Monitor | `GS${DetNbr}_dcm_trig_locked_s4` |
+| bi | Monitor | `GS${DetNbr}_dcm_osc_locked_s4` |
+| ai | Monitor | `GS${DetNbr}_stripe_id_s5` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_source_s5` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_enable_s5` |
+| bi | Monitor | `GS${DetNbr}_dcm_trig_locked_s5` |
+| bi | Monitor | `GS${DetNbr}_dcm_osc_locked_s5` |
+| ai | Monitor | `GS${DetNbr}_stripe_id_s6` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_source_s6` |
+| bi | Monitor | `GS${DetNbr}_sbx_clock_enable_s6` |
+| bi | Monitor | `GS${DetNbr}_dcm_trig_locked_s6` |
+| bi | Monitor | `GS${DetNbr}_dcm_osc_locked_s6` |
+| mbbo | Config | `GS${DetNbr}_led_s2_5` |
+| mbbo | Config | `GS${DetNbr}_led_s2_4` |
+| mbbo | Config | `GS${DetNbr}_led_s2_3` |
+| mbbo | Config | `GS${DetNbr}_led_s2_2` |
+| mbbo | Config | `GS${DetNbr}_led_s2_1` |
+| mbbo | Config | `GS${DetNbr}_led_s1_5` |
+| mbbo | Config | `GS${DetNbr}_led_s1_4` |
+| mbbo | Config | `GS${DetNbr}_led_s1_3` |
+| mbbo | Config | `GS${DetNbr}_led_s4_5` |
+| mbbo | Config | `GS${DetNbr}_led_s4_4` |
+| mbbo | Config | `GS${DetNbr}_led_s4_3` |
+| mbbo | Config | `GS${DetNbr}_led_s4_2` |
+| mbbo | Config | `GS${DetNbr}_led_s4_1` |
+| mbbo | Config | `GS${DetNbr}_led_s3_5` |
+| mbbo | Config | `GS${DetNbr}_led_s3_4` |
+| mbbo | Config | `GS${DetNbr}_led_s3_3` |
+| mbbo | Config | `GS${DetNbr}_led_s6_5` |
+| mbbo | Config | `GS${DetNbr}_led_s6_4` |
+| mbbo | Config | `GS${DetNbr}_led_s6_3` |
+| mbbo | Config | `GS${DetNbr}_led_s6_2` |
+| mbbo | Config | `GS${DetNbr}_led_s6_1` |
+| mbbo | Config | `GS${DetNbr}_led_s5_5` |
+| mbbo | Config | `GS${DetNbr}_led_s5_4` |
+| mbbo | Config | `GS${DetNbr}_led_s5_3` |
+| mbbo | Config | `GS${DetNbr}_led_s1_2` |
+| mbbo | Config | `GS${DetNbr}_led_s1_1` |
+| mbbo | Config | `GS${DetNbr}_led_tip_s1_s2` |
+| mbbo | Config | `GS${DetNbr}_led_stat_s1_s2` |
+| mbbo | Config | `GS${DetNbr}_led_s3_2` |
+| mbbo | Config | `GS${DetNbr}_led_s3_1` |
+| mbbo | Config | `GS${DetNbr}_led_tip_s3_s4` |
+| mbbo | Config | `GS${DetNbr}_led_stat_s3_s4` |
+| mbbo | Config | `GS${DetNbr}_led_s5_2` |
+| mbbo | Config | `GS${DetNbr}_led_s5_1` |
+| mbbo | Config | `GS${DetNbr}_led_tip_s5_s6` |
+| mbbo | Config | `GS${DetNbr}_led_stat_s5_s6` |
 
 ## StrpFPGA_reg.db (42 records)
 
-| Type | PV Name |
-|------|----------|
-| ao | `GS${DetNbr}_stripe_control_s1` |
-| ao | `GS${DetNbr}_stripe_control_s2` |
-| ao | `GS${DetNbr}_stripe_control_s3` |
-| ao | `GS${DetNbr}_stripe_control_s4` |
-| ao | `GS${DetNbr}_stripe_control_s5` |
-| ao | `GS${DetNbr}_stripe_control_s6` |
-| ao | `GS${DetNbr}_tristate_control_s1` |
-| ao | `GS${DetNbr}_tristate_control_s2` |
-| ao | `GS${DetNbr}_tristate_control_s3` |
-| ao | `GS${DetNbr}_tristate_control_s4` |
-| ao | `GS${DetNbr}_tristate_control_s5` |
-| ao | `GS${DetNbr}_tristate_control_s6` |
-| ai | `GS${DetNbr}_stripe_status_s1` |
-| ai | `GS${DetNbr}_stripe_status_s2` |
-| ai | `GS${DetNbr}_stripe_status_s3` |
-| ai | `GS${DetNbr}_stripe_status_s4` |
-| ai | `GS${DetNbr}_stripe_status_s5` |
-| ai | `GS${DetNbr}_stripe_status_s6` |
-| ao | `GS${DetNbr}_led_control_s1_1` |
-| ao | `GS${DetNbr}_sandbox_reg_s2_1` |
-| ao | `GS${DetNbr}_led_control_s3_1` |
-| ao | `GS${DetNbr}_sandbox_reg_s4_1` |
-| ao | `GS${DetNbr}_led_control_s5_1` |
-| ao | `GS${DetNbr}_sandbox_reg_s6_1` |
-| ao | `GS${DetNbr}_led_control_s1_2` |
-| ao | `GS${DetNbr}_sandbox_reg_s2_2` |
-| ao | `GS${DetNbr}_led_control_s3_2` |
-| ao | `GS${DetNbr}_sandbox_reg_s4_2` |
-| ao | `GS${DetNbr}_led_control_s5_2` |
-| ao | `GS${DetNbr}_sandbox_reg_s6_2` |
-| ai | `GS${DetNbr}_reserved_s1` |
-| ai | `GS${DetNbr}_reserved_s2` |
-| ai | `GS${DetNbr}_reserved_s3` |
-| ai | `GS${DetNbr}_reserved_s4` |
-| ai | `GS${DetNbr}_reserved_s5` |
-| ai | `GS${DetNbr}_reserved_s6` |
-| ai | `GS${DetNbr}_code_revision_s1` |
-| ai | `GS${DetNbr}_code_revision_s2` |
-| ai | `GS${DetNbr}_code_revision_s3` |
-| ai | `GS${DetNbr}_code_revision_s4` |
-| ai | `GS${DetNbr}_code_revision_s5` |
-| ai | `GS${DetNbr}_code_revision_s6` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| ao | Config | `GS${DetNbr}_stripe_control_s1` |
+| ao | Config | `GS${DetNbr}_stripe_control_s2` |
+| ao | Config | `GS${DetNbr}_stripe_control_s3` |
+| ao | Config | `GS${DetNbr}_stripe_control_s4` |
+| ao | Config | `GS${DetNbr}_stripe_control_s5` |
+| ao | Config | `GS${DetNbr}_stripe_control_s6` |
+| ao | Config | `GS${DetNbr}_tristate_control_s1` |
+| ao | Config | `GS${DetNbr}_tristate_control_s2` |
+| ao | Config | `GS${DetNbr}_tristate_control_s3` |
+| ao | Config | `GS${DetNbr}_tristate_control_s4` |
+| ao | Config | `GS${DetNbr}_tristate_control_s5` |
+| ao | Config | `GS${DetNbr}_tristate_control_s6` |
+| ai | Monitor | `GS${DetNbr}_stripe_status_s1` |
+| ai | Monitor | `GS${DetNbr}_stripe_status_s2` |
+| ai | Monitor | `GS${DetNbr}_stripe_status_s3` |
+| ai | Monitor | `GS${DetNbr}_stripe_status_s4` |
+| ai | Monitor | `GS${DetNbr}_stripe_status_s5` |
+| ai | Monitor | `GS${DetNbr}_stripe_status_s6` |
+| ao | Config | `GS${DetNbr}_led_control_s1_1` |
+| ao | Config | `GS${DetNbr}_sandbox_reg_s2_1` |
+| ao | Config | `GS${DetNbr}_led_control_s3_1` |
+| ao | Config | `GS${DetNbr}_sandbox_reg_s4_1` |
+| ao | Config | `GS${DetNbr}_led_control_s5_1` |
+| ao | Config | `GS${DetNbr}_sandbox_reg_s6_1` |
+| ao | Config | `GS${DetNbr}_led_control_s1_2` |
+| ao | Config | `GS${DetNbr}_sandbox_reg_s2_2` |
+| ao | Config | `GS${DetNbr}_led_control_s3_2` |
+| ao | Config | `GS${DetNbr}_sandbox_reg_s4_2` |
+| ao | Config | `GS${DetNbr}_led_control_s5_2` |
+| ao | Config | `GS${DetNbr}_sandbox_reg_s6_2` |
+| ai | Monitor | `GS${DetNbr}_reserved_s1` |
+| ai | Monitor | `GS${DetNbr}_reserved_s2` |
+| ai | Monitor | `GS${DetNbr}_reserved_s3` |
+| ai | Monitor | `GS${DetNbr}_reserved_s4` |
+| ai | Monitor | `GS${DetNbr}_reserved_s5` |
+| ai | Monitor | `GS${DetNbr}_reserved_s6` |
+| ai | Monitor | `GS${DetNbr}_code_revision_s1` |
+| ai | Monitor | `GS${DetNbr}_code_revision_s2` |
+| ai | Monitor | `GS${DetNbr}_code_revision_s3` |
+| ai | Monitor | `GS${DetNbr}_code_revision_s4` |
+| ai | Monitor | `GS${DetNbr}_code_revision_s5` |
+| ai | Monitor | `GS${DetNbr}_code_revision_s6` |
 
 ## unused_cable.db (39 records)
 
-| Type | PV Name |
-|------|----------|
-| ai | `GS${DetNbr}_SBX_Present` |
-| ai | `GS${DetNbr}_Dig_Channel` |
-| ai | `GS${DetNbr}_Dig_Index` |
-| ai | `GS${DetNbr}_VME_Index` |
-| ai | `True_GS${DetNbr}_to_VME_GS` |
-| ai | `VME_GS${VMEGS}_to_True_GS` |
-| ai | `GS${DetNbr}_Ge_Prefix` |
-| ai | `GS${DetNbr}_Ge_ID` |
-| ai | `GS${DetNbr}_NO_GUI_SLOPEBOX_DATA0` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA1` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA2` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA3` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA4` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA5` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA6` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA7` |
-| bi | `GS${DetNbr}_SlopeBoxBGOInterlock` |
-| bi | `GS${DetNbr}_SlopeBoxGe_HV_On` |
-| bi | `GS${DetNbr}_SlopeBoxBGO_HV_On` |
-| bi | `GS${DetNbr}_SlopeBoxTempHigh` |
-| ai | `GS${DetNbr}_SlopeBoxTemperatureRaw` |
-| ai | `GS${DetNbr}_Conv_Temp` |
-| ai | `GS${DetNbr}_Conv_Resistance` |
-| calcout | `MOD${DetNbr}_DV_TEMP` |
-| mbbo | `MOD${DetNbr}_DV_EN` |
-| mbbo | `GS${DetNbr}_GE_HV_CTRL` |
-| mbbo | `GS${DetNbr}_BGO_HV_CTRL` |
-| mbbo | `GS${DetNbr}_Slopebox_Scan_control` |
-| mbbi | `GS${DetNbr}_Slopebox_Scan_control_RBV` |
-| ai | `GS${DetNbr}_Conv_GeHV` |
-| ai | `GS${DetNbr}_Conv_24V` |
-| ai | `GS${DetNbr}_Conv_minus12V` |
-| ai | `GS${DetNbr}_Conv_BGO450` |
-| ai | `GS${DetNbr}_Conv_BGO400` |
-| ai | `GS${DetNbr}_Conv_plus12V` |
-| ai | `GS${DetNbr}_Conv_5V` |
-| ai | `GS${DetNbr}_SLOPE_BOX_HV_CTL_RBV` |
-| ai | `GS${DetNbr}_Code_Date` |
-| ai | `GS${DetNbr}_Code_Revision` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| ai | Monitor | `GS${DetNbr}_SBX_Present` |
+| ai | Monitor | `GS${DetNbr}_Dig_Channel` |
+| ai | Monitor | `GS${DetNbr}_Dig_Index` |
+| ai | Monitor | `GS${DetNbr}_VME_Index` |
+| ai | Monitor | `True_GS${DetNbr}_to_VME_GS` |
+| ai | Monitor | `VME_GS${VMEGS}_to_True_GS` |
+| ai | Monitor | `GS${DetNbr}_Ge_Prefix` |
+| ai | Monitor | `GS${DetNbr}_Ge_ID` |
+| ai | Monitor | `GS${DetNbr}_NO_GUI_SLOPEBOX_DATA0` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA1` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA2` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA3` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA4` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA5` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA6` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA7` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxBGOInterlock` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxGe_HV_On` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxBGO_HV_On` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxTempHigh` |
+| ai | Monitor | `GS${DetNbr}_SlopeBoxTemperatureRaw` |
+| ai | Monitor | `GS${DetNbr}_Conv_Temp` |
+| ai | Monitor | `GS${DetNbr}_Conv_Resistance` |
+| calcout | Monitor | `MOD${DetNbr}_DV_TEMP` |
+| mbbo | Config | `MOD${DetNbr}_DV_EN` |
+| mbbo | Config | `GS${DetNbr}_GE_HV_CTRL` |
+| mbbo | Config | `GS${DetNbr}_BGO_HV_CTRL` |
+| mbbo | Config | `GS${DetNbr}_Slopebox_Scan_control` |
+| mbbi | Monitor | `GS${DetNbr}_Slopebox_Scan_control_RBV` |
+| ai | Monitor | `GS${DetNbr}_Conv_GeHV` |
+| ai | Monitor | `GS${DetNbr}_Conv_24V` |
+| ai | Monitor | `GS${DetNbr}_Conv_minus12V` |
+| ai | Monitor | `GS${DetNbr}_Conv_BGO450` |
+| ai | Monitor | `GS${DetNbr}_Conv_BGO400` |
+| ai | Monitor | `GS${DetNbr}_Conv_plus12V` |
+| ai | Monitor | `GS${DetNbr}_Conv_5V` |
+| ai | Monitor | `GS${DetNbr}_SLOPE_BOX_HV_CTL_RBV` |
+| ai | Monitor | `GS${DetNbr}_Code_Date` |
+| ai | Monitor | `GS${DetNbr}_Code_Revision` |
 
 ## unused_dvi.db (1 records)
 
-| Type | PV Name |
-|------|----------|
-| ai | `VME_GS${VMEGS}_to_True_GS` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| ai | Monitor | `VME_GS${VMEGS}_to_True_GS` |
 
 ## unused_gs.db (38 records)
 
-| Type | PV Name |
-|------|----------|
-| ai | `GS${DetNbr}_SBX_Present` |
-| ai | `GS${DetNbr}_Dig_Channel` |
-| ai | `GS${DetNbr}_Dig_Index` |
-| ai | `GS${DetNbr}_VME_Index` |
-| ai | `True_GS${DetNbr}_to_VME_GS` |
-| ai | `GS${DetNbr}_Ge_Prefix` |
-| ai | `GS${DetNbr}_Ge_ID` |
-| ai | `GS${DetNbr}_NO_GUI_SLOPEBOX_DATA0` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA1` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA2` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA3` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA4` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA5` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA6` |
-| ai | `GS${DetNbr}_LAST_SLOPEBOX_DATA7` |
-| bi | `GS${DetNbr}_SlopeBoxBGOInterlock` |
-| bi | `GS${DetNbr}_SlopeBoxGe_HV_On` |
-| bi | `GS${DetNbr}_SlopeBoxBGO_HV_On` |
-| bi | `GS${DetNbr}_SlopeBoxTempHigh` |
-| ai | `GS${DetNbr}_SlopeBoxTemperatureRaw` |
-| ai | `GS${DetNbr}_Conv_Temp` |
-| ai | `GS${DetNbr}_Conv_Resistance` |
-| calcout | `MOD${DetNbr}_DV_TEMP` |
-| mbbo | `MOD${DetNbr}_DV_EN` |
-| mbbo | `GS${DetNbr}_GE_HV_CTRL` |
-| mbbo | `GS${DetNbr}_BGO_HV_CTRL` |
-| mbbo | `GS${DetNbr}_Slopebox_Scan_control` |
-| mbbi | `GS${DetNbr}_Slopebox_Scan_control_RBV` |
-| ai | `GS${DetNbr}_Conv_GeHV` |
-| ai | `GS${DetNbr}_Conv_24V` |
-| ai | `GS${DetNbr}_Conv_minus12V` |
-| ai | `GS${DetNbr}_Conv_BGO450` |
-| ai | `GS${DetNbr}_Conv_BGO400` |
-| ai | `GS${DetNbr}_Conv_plus12V` |
-| ai | `GS${DetNbr}_Conv_5V` |
-| ai | `GS${DetNbr}_SLOPE_BOX_HV_CTL_RBV` |
-| ai | `GS${DetNbr}_Code_Date` |
-| ai | `GS${DetNbr}_Code_Revision` |
+| Type | Nature | PV Name |
+|------|--------|----------|
+| ai | Monitor | `GS${DetNbr}_SBX_Present` |
+| ai | Monitor | `GS${DetNbr}_Dig_Channel` |
+| ai | Monitor | `GS${DetNbr}_Dig_Index` |
+| ai | Monitor | `GS${DetNbr}_VME_Index` |
+| ai | Monitor | `True_GS${DetNbr}_to_VME_GS` |
+| ai | Monitor | `GS${DetNbr}_Ge_Prefix` |
+| ai | Monitor | `GS${DetNbr}_Ge_ID` |
+| ai | Monitor | `GS${DetNbr}_NO_GUI_SLOPEBOX_DATA0` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA1` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA2` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA3` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA4` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA5` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA6` |
+| ai | Monitor | `GS${DetNbr}_LAST_SLOPEBOX_DATA7` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxBGOInterlock` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxGe_HV_On` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxBGO_HV_On` |
+| bi | Monitor | `GS${DetNbr}_SlopeBoxTempHigh` |
+| ai | Monitor | `GS${DetNbr}_SlopeBoxTemperatureRaw` |
+| ai | Monitor | `GS${DetNbr}_Conv_Temp` |
+| ai | Monitor | `GS${DetNbr}_Conv_Resistance` |
+| calcout | Monitor | `MOD${DetNbr}_DV_TEMP` |
+| mbbo | Config | `MOD${DetNbr}_DV_EN` |
+| mbbo | Config | `GS${DetNbr}_GE_HV_CTRL` |
+| mbbo | Config | `GS${DetNbr}_BGO_HV_CTRL` |
+| mbbo | Config | `GS${DetNbr}_Slopebox_Scan_control` |
+| mbbi | Monitor | `GS${DetNbr}_Slopebox_Scan_control_RBV` |
+| ai | Monitor | `GS${DetNbr}_Conv_GeHV` |
+| ai | Monitor | `GS${DetNbr}_Conv_24V` |
+| ai | Monitor | `GS${DetNbr}_Conv_minus12V` |
+| ai | Monitor | `GS${DetNbr}_Conv_BGO450` |
+| ai | Monitor | `GS${DetNbr}_Conv_BGO400` |
+| ai | Monitor | `GS${DetNbr}_Conv_plus12V` |
+| ai | Monitor | `GS${DetNbr}_Conv_5V` |
+| ai | Monitor | `GS${DetNbr}_SLOPE_BOX_HV_CTL_RBV` |
+| ai | Monitor | `GS${DetNbr}_Code_Date` |
+| ai | Monitor | `GS${DetNbr}_Code_Revision` |
 
 ---
 

@@ -25,6 +25,23 @@ VME{CC}:{BOARD}:{register}
 
 ---
 
+## PV Nature Reference
+
+Each PV table includes a **Nature** column describing the role of the PV:
+
+| Nature | Meaning | Snapshot? |
+|--------|---------|----------|
+| `Config` | Writable setting — persists across restarts, user-facing physics config | ✅ Included |
+| `Monitor` | Read-only hardware readback — temp, actual HV, counters, status, lock flags | ❌ Excluded |
+| `Diag` | Diagnostic / debug / ILA / printf control — not physics config | ❌ Excluded |
+| `Reset` | One-shot reset bit — dangerous to blindly restore | ❌ Excluded |
+| `Global` | Global fanout PV — managed by IOC startup sequence, not snapshot | ❌ Excluded |
+| `Register` | Raw hardware register (`reg_*`) — auto-updated by Config PV writes | ❌ Excluded |
+
+The `snapshot_pv/pv_filter.py` script implements these exclusions automatically for both `dumpPVs.py` and `putPVs.py`.
+
+---
+
 ## 1. Digitizer PVs — MDIG / SDIG (MDigUser.template)
 
 Pattern: `VME{CC}:{MDIG1|SDIG1|...}:{register}`
@@ -32,12 +49,19 @@ Pattern: `VME{CC}:{MDIG1|SDIG1|...}:{register}`
 
 ### 1a. Board-wide (single instance per board)
 
-| Register | RBV? | Type | Description |
-|----------|------|------|-------------|
-| `trigger_mux_select` | ✓ | mbbo | Trigger source: 0=IntAcptAll, 1=ExtTTL, 2=ExtTTCL (normal), 3=Diag |
-| `master_logic_enable` | ✓ | bo | Enable master acquisition logic |
-| `master_fifo_reset` | — | bo | Reset output FIFO |
-| `master_counter_reset` | ✓ | bo | Reset all counters |
+| Register | RBV? | Type | Nature | Description |
+|----------|------|------|--------|-------------|
+| `trigger_mux_select` | ✓ | mbbo | Config | Trigger source: 0=IntAcptAll, 1=ExtTTL, 2=ExtTTCL (normal), 3=Diag |
+| `master_logic_enable` | ✓ | bo | Global | Global fanout — handled by IOC startup |
+| `master_fifo_reset` | — | bo | Reset | Reset output FIFO |
+| `master_counter_reset` | ✓ | bo | Reset | Reset all counters |
+| `vme_clk_ctrl` | ✓ | bo | Global | VME clock control — managed by IOC startup |
+| `FifoNum` | ✓ | mbbo | Config | Readout FIFO select (soft channel) |
+| `diag_isync` | ✓ | bo | Diag | Diagnostic use only (per DESC) |
+| `sd_sync` | ✓ | bo | Config | SERDES sync mode enable |
+| `sd_sm_lost_lock_flag_rst` | ✓ | bo | Reset | SERDES lost-lock flag reset |
+| `sd_line_loopback_en` | ✓ | bo | Diag | SERDES line loopback (test mode) |
+| `sd_local_loopback_en` | ✓ | bo | Diag | SERDES local loopback (test mode) |
 | `ts_counter_reset` | ✓ | bo | Reset timestamp counter |
 | `ts_counter_mode` | ✓ | mbbo | Timestamp counter mode |
 | `latch_timestamp` | — | bo | Latch current timestamp |
@@ -141,58 +165,57 @@ Pattern: `VME{CC}:{MDIG1|SDIG1|...}:{register}`
 
 Pattern: `VME{CC}:{BOARD}:{register}N` and `VME{CC}:{BOARD}:{register}N_RBV`
 
-| Register | RBV? | Type | Description |
-|----------|------|------|-------------|
-| `channel_enableN` | ✓ | bo | Enable channel N |
-| `coarse_thresholdN` | ✓ | ao | Coarse discriminator threshold |
-| `led_thresholdN` | ✓ | ao | LED (low-energy) threshold |
-| `CFD_fractionN` | ✓ | ao | CFD fraction (0–1 scale) |
-| `preamp_reset_delayN` | ✓ | ao | Preamp reset delay |
-| `preamp_reset_delay_enN` | ✓ | bo | Enable preamp reset delay |
-| `disc_widthN` | ✓ | ao | Discriminator width |
-| `coarse_widthN` | ✓ | ao | Coarse discriminator width |
-| `trigger_polarityN` | ✓ | bo | Trigger polarity (0=pos, 1=neg) |
-| `pileup_modeN` | ✓ | mbbo | Pileup handling mode |
-| `pileup_extension_enableN` | ✓ | bo | Enable pileup extension |
-| `pileup_waveform_only_modeN` | ✓ | bo | Pileup waveform-only mode |
-| `event_extension_modeN` | ✓ | mbbo | Event extension mode |
-| `enable_dec_pauseN` | ✓ | bo | Enable decimation pause |
-| `downsample_factorN` | ✓ | mbbo | Downsampling factor |
-| `write_flagsN` | ✓ | mbbo | Write flags (event fields to include) |
-| `raw_data_delayN` | ✓ | ao | Raw waveform delay (samples) |
-| `raw_data_lengthN` | ✓ | ao | Raw waveform length (samples) |
-| `k_windowN` | ✓ | ao | K window (energy filter) |
-| `k0_windowN` | ✓ | ao | K0 window (baseline) |
-| `m_windowN` | ✓ | ao | M window (peaking time) |
-| `d_windowN` | ✓ | ao | D window (gap) |
-| `d3_windowN` | ✓ | ao | D3 window |
-| `p1_windowN` | ✓ | ao | P1 window |
-| `p2_windowN` | ✓ | ao | P2 window |
-| `P2_modeN` | ✓ | mbbo | P2 mode |
-| `trig_ts_modeN` | ✓ | mbbo | Trigger timestamp mode |
-| `ahit_count_modeN` | ✓ | mbbo | Accepted hit counter mode |
-| `ahit_countN_RBV` | — | longin | Accepted hit count readback |
-| `disc_count_modeN` | ✓ | mbbo | Discriminator counter mode |
-| `disc_countN_RBV` | — | longin | Discriminator count readback |
-| `event_count_modeN` | ✓ | mbbo | Event counter mode |
-| `accepted_event_countN_RBV` | — | longin | Accepted event count readback |
-| `dropped_event_count_modeN` | ✓ | mbbo | Dropped event counter mode |
-| `dropped_event_countN_RBV` | — | longin | Dropped event count readback |
-| `hilo_count_modeN` | ✓ | mbbo | Hi-lo counter mode |
-| `hihilolo_count_modeN` | ✓ | mbbo | HiHi-LoLo counter mode |
-| `HILO_EDGE_LEVEL_SELN` | ✓ | mbbo | Hi-lo edge/level select |
-| `counter_resetN` | ✓ | bo | Reset this channel counter |
-| `overflow_flag_chanN_RBV` | — | bi | Overflow flag for channel N |
-| `MultiplexWordSelectN` | ✓ | mbbo | Multiplex word select |
-| `cfd_esum_modeN` | ✓ | mbbo | CFD energy sum mode |
-| `ext_disc_selN` | ✓ | mbbo | External discriminator select |
-| `ext_disc_srcN` | ✓ | mbbo | External discriminator source |
-| `ahit_count_modeN` | ✓ | mbbo | Accepted hit count mode |
-| `Early_pre_m_selN` | ✓ | mbbo | Early pre-M select |
-| `MARK_EXTENDED_AS_ACCEPTEDN` | ✓ | bo | Mark extended events as accepted |
-| `Phase_offsetN_RBV` | — | longin | Phase offset readback |
-| `led_green_stateN_RBV` | — | bi | Green LED state (0–12) |
-| `led_red_stateN_RBV` | — | bi | Red LED state (0–12) |
+| Register | RBV? | Type | Nature | Description |
+|----------|------|------|--------|-------------|
+| `channel_enableN` | ✓ | bo | Config | Enable channel N |
+| `coarse_thresholdN` | ✓ | ao | Config | Coarse discriminator threshold |
+| `led_thresholdN` | ✓ | ao | Config | LED (low-energy) threshold |
+| `CFD_fractionN` | ✓ | ao | Config | CFD fraction (0–1 scale) |
+| `preamp_reset_delayN` | ✓ | ao | Config | Preamp reset delay |
+| `preamp_reset_delay_enN` | ✓ | bo | Config | Enable preamp reset delay |
+| `disc_widthN` | ✓ | ao | Config | Discriminator width |
+| `coarse_widthN` | ✓ | ao | Config | Coarse discriminator width |
+| `trigger_polarityN` | ✓ | bo | Config | Trigger polarity (0=pos, 1=neg) |
+| `pileup_modeN` | ✓ | mbbo | Config | Pileup handling mode |
+| `pileup_extension_enableN` | ✓ | bo | Config | Enable pileup extension |
+| `pileup_waveform_only_modeN` | ✓ | bo | Config | Pileup waveform-only mode |
+| `event_extension_modeN` | ✓ | mbbo | Config | Event extension mode |
+| `enable_dec_pauseN` | ✓ | bo | Config | Enable decimation pause |
+| `downsample_factorN` | ✓ | mbbo | Config | Downsampling factor |
+| `write_flagsN` | ✓ | mbbo | Config | Write flags (event fields to include) |
+| `raw_data_delayN` | ✓ | ao | Config | Raw waveform delay (samples) |
+| `raw_data_lengthN` | ✓ | ao | Config | Raw waveform length (samples) |
+| `k_windowN` | ✓ | ao | Config | K window (energy filter) |
+| `k0_windowN` | ✓ | ao | Config | K0 window (baseline) |
+| `m_windowN` | ✓ | ao | Config | M window (peaking time) |
+| `d_windowN` | ✓ | ao | Config | D window (gap) |
+| `d3_windowN` | ✓ | ao | Config | D3 window |
+| `p1_windowN` | ✓ | ao | Config | P1 window |
+| `p2_windowN` | ✓ | ao | Config | P2 window |
+| `P2_modeN` | ✓ | mbbo | Config | P2 mode |
+| `trig_ts_modeN` | ✓ | mbbo | Config | Trigger timestamp mode |
+| `ahit_count_modeN` | ✓ | mbbo | Config | Accepted hit counter mode |
+| `ahit_countN_RBV` | — | longin | Monitor | Accepted hit count readback |
+| `disc_count_modeN` | ✓ | mbbo | Config | Discriminator counter mode |
+| `disc_countN_RBV` | — | longin | Monitor | Discriminator count readback |
+| `event_count_modeN` | ✓ | mbbo | Config | Event counter mode |
+| `accepted_event_countN_RBV` | — | longin | Monitor | Accepted event count readback |
+| `dropped_event_count_modeN` | ✓ | mbbo | Config | Dropped event counter mode |
+| `dropped_event_countN_RBV` | — | longin | Monitor | Dropped event count readback |
+| `hilo_count_modeN` | ✓ | mbbo | Config | Hi-lo counter mode |
+| `hihilolo_count_modeN` | ✓ | mbbo | Config | HiHi-LoLo counter mode |
+| `HILO_EDGE_LEVEL_SELN` | ✓ | mbbo | Config | Hi-lo edge/level select |
+| `counter_resetN` | ✓ | bo | Reset | Reset this channel counter |
+| `overflow_flag_chanN_RBV` | — | bi | Monitor | Overflow flag for channel N |
+| `MultiplexWordSelectN` | ✓ | mbbo | Config | Multiplex word select |
+| `cfd_esum_modeN` | ✓ | mbbo | Config | CFD energy sum mode |
+| `ext_disc_selN` | ✓ | mbbo | Config | External discriminator select |
+| `ext_disc_srcN` | ✓ | mbbo | Config | External discriminator source |
+| `Early_pre_m_selN` | ✓ | mbbo | Config | Early pre-M select (timing) |
+| `MARK_EXTENDED_AS_ACCEPTEDN` | ✓ | bo | Config | Mark extended events as accepted |
+| `Phase_offsetN_RBV` | — | longin | Monitor | Phase offset readback |
+| `led_green_stateN_RBV` | — | bi | Monitor | Green LED state |
+| `led_red_stateN_RBV` | — | bi | Monitor | Red LED state |
 
 ---
 
@@ -204,43 +227,43 @@ RTRG boards: VME03=RTR1, VME06=RTR2, VME09=RTR3, VME12=RTR4
 
 ### 2a. Board-wide Controls
 
-| Register | RBV? | Description |
-|----------|------|-------------|
-| `Threshold` | ✓ | Global multiplicity threshold |
-| `ASSERTION_DELAY` | ✓ | Trigger assertion delay |
-| `OVERLAP_DELAY` | ✓ | Overlap delay |
-| `PULSE_COUNTDOWN` | ✓ | Pulse countdown |
-| `THROTTLE_WIDTH` | ✓ | Throttle pulse width |
-| `THROTTLE_FILTER_TIME` | ✓ | Throttle filter time |
-| `THROTTLE_TIME_RANGE` | ✓ | Throttle time range |
-| `NIM_THROTTLE_SELECT` | ✓ | NIM throttle select |
-| `ENABLE_VETO` | ✓ | Enable veto input |
-| `FORCE_THRTL_ON` | — | Force throttle on |
-| `FORCE_THRTL_OFF` | — | Force throttle off |
-| `ENBL_DISCBIT_DELAY` | ✓ | Enable discriminator bit delay |
-| `LOAD_DISCBIT_DELAYS` | — | Load discriminator bit delays |
-| `BIT_5_OFFSET` | ✓ | Bit 5 offset |
-| `DIAG_THROTTLE_TYPE` | ✓ | Diagnostic throttle type |
-| `CLEAR_DIAG_COUNTERS` | — | Clear diagnostic counters |
-| `X_SELECT` | ✓ | X multiplicity select |
-| `Y_SELECT` | ✓ | Y multiplicity select |
-| `FS_SEL` | ✓ | Fast strobe select |
-| `ClkSrc` | ✓ | Clock source |
-| `LEDControl` | ✓ | LED control |
-| `NIMSrc1` | ✓ | NIM output source 1 |
-| `NIMSrc2` | ✓ | NIM output source 2 |
-| `PEHLRU` | ✓ | PE mask H/L/R/U links |
-| `PEEFG` | ✓ | PE mask E/F/G links |
-| `PEABCD` | ✓ | PE mask A/B/C/D links |
-| `RESET_LINK_INIT` | — | Reset link initialization |
-| `SM_LOST_LOCK_RESET` | — | SM lost lock reset |
-| `STRINGENT_LOCK` | ✓ | Stringent lock mode |
-| `LOCK_ACK` | — | Lock acknowledge |
-| `LOCK_RETRY` | — | Lock retry |
+| Register | RBV? | Nature | Description |
+|----------|------|--------|-------------|
+| `Threshold` | ✓ | Config | Global multiplicity threshold |
+| `ASSERTION_DELAY` | ✓ | Config | Trigger assertion delay |
+| `OVERLAP_DELAY` | ✓ | Config | Overlap delay |
+| `PULSE_COUNTDOWN` | ✓ | Config | Pulse countdown |
+| `THROTTLE_WIDTH` | ✓ | Config | Throttle pulse width |
+| `THROTTLE_FILTER_TIME` | ✓ | Config | Throttle filter time |
+| `THROTTLE_TIME_RANGE` | ✓ | Config | Throttle time range |
+| `NIM_THROTTLE_SELECT` | ✓ | Config | NIM throttle select |
+| `ENABLE_VETO` | ✓ | Config | Enable veto input |
+| `FORCE_THRTL_ON` | — | Diag | Force throttle on (test) |
+| `FORCE_THRTL_OFF` | — | Diag | Force throttle off (test) |
+| `ENBL_DISCBIT_DELAY` | ✓ | Config | Enable discriminator bit delay |
+| `LOAD_DISCBIT_DELAYS` | — | Reset | Load discriminator bit delays (one-shot) |
+| `BIT_5_OFFSET` | ✓ | Config | Bit 5 offset |
+| `DIAG_THROTTLE_TYPE` | ✓ | Diag | Diagnostic throttle type |
+| `CLEAR_DIAG_COUNTERS` | — | Reset | Clear diagnostic counters |
+| `X_SELECT` | ✓ | Config | X multiplicity select |
+| `Y_SELECT` | ✓ | Config | Y multiplicity select |
+| `FS_SEL` | ✓ | Config | Fast strobe select |
+| `ClkSrc` | ✓ | Config | Clock source |
+| `LEDControl` | ✓ | Config | LED control |
+| `NIMSrc1` | ✓ | Config | NIM output source 1 |
+| `NIMSrc2` | ✓ | Config | NIM output source 2 |
+| `PEHLRU` | ✓ | Config | PE mask H/L/R/U links |
+| `PEEFG` | ✓ | Config | PE mask E/F/G links |
+| `PEABCD` | ✓ | Config | PE mask A/B/C/D links |
+| `RESET_LINK_INIT` | — | Reset | Reset link initialization |
+| `SM_LOST_LOCK_RESET` | — | Reset | SM lost lock reset |
+| `STRINGENT_LOCK` | ✓ | Config | Stringent lock mode |
+| `LOCK_ACK` | — | Reset | Lock acknowledge (one-shot) |
+| `LOCK_RETRY` | — | Reset | Lock retry (one-shot) |
 
 ### 2b. Per-Link Registers (suffix = link letter A–H, L, R, U)
 
-| Register | RBV? | Description |
+| Register | RBV? | Nature | Description |
 |----------|------|-------------|
 | `LINK_{x}` | ✓ | Enable link x |
 | `ILM_{x}` | ✓ | Inhibit link mask for link x |
@@ -263,7 +286,7 @@ RTRG boards: VME03=RTR1, VME06=RTR2, VME09=RTR3, VME12=RTR4
 
 ### 2c. Per-Link Per-Channel Registers (link A–H, channel 0–9)
 
-| Register | RBV? | Description |
+| Register | RBV? | Nature | Description |
 |----------|------|-------------|
 | `DISCRIMINATOR_DELAY_{x}_N` | ✓ | Discrim delay for link x, ch N |
 | `XMAP_{x}_N` | ✓ | X-multiplicity map for link x, ch N |
@@ -278,7 +301,7 @@ Pattern: `VME10:MTRG:{register}` (single MTRG in VME10)
 
 ### 3a. Trigger / Threshold Controls
 
-| Register | RBV? | Description |
+| Register | RBV? | Nature | Description |
 |----------|------|-------------|
 | `Threshold` | ✓ | Global multiplicity threshold |
 | `COINC_OVERLAP_DELAY` | ✓ | Coincidence overlap delay |
@@ -314,7 +337,7 @@ Pattern: `VME10:MTRG:{register}` (single MTRG in VME10)
 
 ### 3b. TAC-II / TDC Controls
 
-| Register | RBV? | Description |
+| Register | RBV? | Nature | Description |
 |----------|------|-------------|
 | `NUM_TDC_WORDS` | ✓ | Number of TDC words per event |
 | `NUM_TRIG_WORDS` | ✓ | Number of trigger words |
@@ -333,7 +356,7 @@ Pattern: `VME10:MTRG:{register}` (single MTRG in VME10)
 
 ### 3c. Link Controls (per-link L/R/U or A–H)
 
-| Register | RBV? | Description |
+| Register | RBV? | Nature | Description |
 |----------|------|-------------|
 | `EN_LINK_L` / `EN_LINK_R` | ✓ | Enable Link L/R |
 | `EN_MYRIAD_LINK_U` | ✓ | Enable MγRIAD Link U |
@@ -361,7 +384,7 @@ Pattern: `VME10:MTRG:{register}` (single MTRG in VME10)
 
 ### 3d. Trigger Monitor / Rate Counters
 
-| Register | RBV? | Description |
+| Register | RBV? | Nature | Description |
 |----------|------|-------------|
 | `TRIG_MON_SEL` | ✓ | Trigger monitor select |
 | `TRIG_MON_COLL_RESET` | — | Reset trigger monitor collector |
@@ -401,7 +424,7 @@ EPICS CA port: part of collector box soft IOC on each Raspberry Pi
 
 ### 4a. SlopeBox / Detector Identification (SlopeBox.db)
 
-| Register | Description |
+| Register | Nature | Description |
 |----------|-------------|
 | `GS{N}_SBX_Present` | SBX dongle present flag |
 | `GS{N}_Dig_Channel` | Digitizer channel (0–9) this detector is connected to |
@@ -420,7 +443,7 @@ EPICS CA port: part of collector box soft IOC on each Raspberry Pi
 
 ### 4b. HV Controls (HV_STEP.db + Pickoff.db)
 
-| Register | Description |
+| Register | Nature | Description |
 |----------|-------------|
 | `MOD{N}_DS_GEHV` | Ge HV demand setpoint (from IOC config) |
 | `MOD{N}_DV_GEHV` | Ge HV demand readback |
@@ -440,7 +463,7 @@ EPICS CA port: part of collector box soft IOC on each Raspberry Pi
 
 ### 4c. Temperature / Power Monitoring (SlopeBox.db + Pickoff.db)
 
-| Register | Description |
+| Register | Nature | Description |
 |----------|-------------|
 | `GS{N}_Conv_Temp` | Converted temperature |
 | `GS{N}_Conv_Resistance` | Converted resistance (PT100/PT500) |
@@ -458,7 +481,7 @@ EPICS CA port: part of collector box soft IOC on each Raspberry Pi
 
 ### 4d. Ctrl FPGA (CtrlFPGA.db)
 
-| Register | Description |
+| Register | Nature | Description |
 |----------|-------------|
 | `GS{N}_ctl_master_reset` | Master reset |
 | `GS{N}_ctl_serial_reset` | Serial reset |
@@ -475,7 +498,7 @@ EPICS CA port: part of collector box soft IOC on each Raspberry Pi
 
 ### 4e. BGO Pickoff (Pickoff.db — key registers)
 
-| Register | Description |
+| Register | Nature | Description |
 |----------|-------------|
 | `GS{N}_BGO_Threshold` | BGO discriminator threshold |
 | `GS{N}_BGOMultiplicityThresh` | BGO multiplicity threshold |
@@ -512,7 +535,7 @@ EPICS CA port: part of collector box soft IOC on each Raspberry Pi
 
 ### 5a. System-wide (from boot/vme*.cmd OTHER section)
 
-| Register | Description |
+| Register | Nature | Description |
 |----------|-------------|
 | `DAQC{NN}_CV_CRATENUM` | Crate number PV (N=01–12) |
 | `DAQC{NN}_CV_InLoop{1}` | In-loop status flag |
