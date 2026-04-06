@@ -183,4 +183,93 @@ sudo systemctl restart systemd-journald
 - **DCS2.onenet** — external monitoring host (InfluxDB, Grafana, ping health checks)
 
 ---
-*Source: `DGS_tools_pack/lnfill/` (git repo on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05.*
+
+## Operations & Troubleshooting (from wiki.anl.gov/gsdaq/LN_system)
+
+### Accessing the LN Fill System Remotely
+
+```sh
+ssh -X gamop@sonata   # (or ssh -X gamop@ln2con, where findhose works)
+ssh -X dgs@dgs1
+lnmain                # launch LN EPICS control pages
+```
+> Account on sonata (green gateway machine) required — contact Ken Teh if needed.
+
+### Viewing the lnfill IOC Console
+
+```sh
+# On ln2con:
+cu -s 9600 -l /dev/ttyS0
+```
+
+### When to Reboot the lnfill IOC
+
+- **Valve overtime:** reboot IOC so the dialer alarm re-engages
+- **Temperature alarm only:** reboot not necessary
+
+### Manual Fill of One Detector (Remote)
+
+Used when a detector warms up before the next scheduled fill, or after fixing a clogged bayonet:
+
+1. Open the valve for the desired tank
+2. Open the associated exhaust valve for the line
+3. Wait for temperature at exhaust valve to bottom out (liquid is present)
+4. Return exhaust valve to **auto mode**
+5. Open the valve to the target detector
+6. Wait for temperature at detector return to bottom out
+7. Return detector valve to **auto mode**
+8. Return tank valve to **auto mode**
+
+### Overtime Troubleshooting
+
+- Clean bayonet
+- Check for leaks in line
+- After fixing: do a manual fill, then **reboot the IOC**
+
+### Undertime Troubleshooting
+
+- Fill manually after tank fill (or check for bad sensor)
+- Reboot lnfill if needed
+
+### Blown Fuse on AB Module
+
+If multiple detectors show overtime on the same manifold → likely a blown fuse on an AB I/O module:
+1. Look for red 'fuse' indicator on the module
+2. Replace fuse and locate the bad valve
+3. Switch to another fill line and disable the bad valve that caused the short
+
+### Finding the Fill Line for a Detector (`findhose`)
+
+On `ln2con`, run:
+```sh
+findhose
+```
+Returns the fill line associated with any warming detector.
+
+### Setting Temperature Thresholds (`set_hilo_lim`)
+
+```sh
+# On ln2con, as gamop:
+cd /home/gamop/lnfill_logs
+
+# View current thresholds for detector 107:
+set_hilo_lim 107
+# MOD107_DV_TEMP.HIHI 91
+# MOD107_DV_TEMP.HIGH 86
+# MOD107_DV_TEMP       78.4
+# MOD107_DV_TEMP.LOW  66
+# MOD107_DV_TEMP.LOLO 61
+
+# Set thresholds centered on 78K (±10 HIGH/LOW, ±20 HIHI/LOLO):
+set_hilo_lim 107 78
+```
+
+> Set limits when detectors are cold and stable.
+
+### Fill Timing Notes
+
+- Do **not** start a full GS fill between 8 PM and midnight while GT is present
+- If a detector starts warming < 1 hour before next scheduled fill → leave it alone and wait; manual fill at that point risks undertime problems
+
+---
+*Source: `DGS_tools_pack/lnfill/` (git repo on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05. Operations section added from wiki.anl.gov/gsdaq/LN_system: 2026-04-06.*
