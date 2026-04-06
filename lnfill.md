@@ -184,7 +184,7 @@ sudo systemctl restart systemd-journald
 
 ---
 
-## Operations & Troubleshooting (from wiki.anl.gov/gsdaq/LN_system)
+## Operations & Troubleshooting (from [wiki: LN System](https://wiki.anl.gov/gsdaq/LN_system))
 
 ### Accessing the LN Fill System Remotely
 
@@ -272,4 +272,4 @@ set_hilo_lim 107 78
 - If a detector starts warming < 1 hour before next scheduled fill → leave it alone and wait; manual fill at that point risks undertime problems
 
 ---
-*Source: `DGS_tools_pack/lnfill/` (git repo on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05. Operations section added from wiki.anl.gov/gsdaq/LN_system: 2026-04-06.*
+*Source: `DGS_tools_pack/lnfill/` (git repo on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05. Operations section added from [wiki: LN System](https://wiki.anl.gov/gsdaq/LN_system): 2026-04-06.*

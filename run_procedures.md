@@ -182,4 +182,4 @@ See `gammasphere_geometry.md` for the GS hole geometry.
 
 ---
 
-*Created: 2026-04-05 from wiki `/gsdaq/Typical_DGS_run_procedures`*
+*Created: 2026-04-05 from [wiki: Typical DGS Run Procedures](https://wiki.anl.gov/gsdaq/Typical_DGS_run_procedures)*

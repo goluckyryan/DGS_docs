@@ -2,7 +2,7 @@
 
 **Full name:** Slope Box Extension (SBX)  
 **Also called:** Pickoff Card (in some contexts the pickoff is a sub-board of the SBX)  
-**Source:** `DGS_SVN/dgs/SlopeBoxExtension/`, `DGS_SVN/dgs/SlopeBoxInterface/`, wiki `/gsdaq/The_Slope_Box_Extension`
+**Source:** `DGS_SVN/dgs/SlopeBoxExtension/`, `DGS_SVN/dgs/SlopeBoxInterface/`, [wiki: The Slope Box Extension](https://wiki.anl.gov/gsdaq/The_Slope_Box_Extension)
 
 ---
 
@@ -17,7 +17,7 @@ The **Slope Box** is the interface between the detector and the control/monitori
 - Secured to detector via a metal belt on its underside
 - Slope box function unchanged after upgrade — only VXI→SBX/Collector Box replacement changed how it's controlled
 
-*Source: wiki `/gsdaq/The_Slope_Box`*
+*Source: [wiki: The Slope Box](https://wiki.anl.gov/gsdaq/The_Slope_Box)*
 
 ---
 
@@ -33,7 +33,7 @@ The SBX sits between the **Slope Box** and the **Collector Box** (or directly to
 - Optional **Raspberry Pi** inside SBX for standalone detector operation (EDM screen for PVs)
 - Eliminates extensive VXI cabling; moves all analog signal conditioning directly to the detector
 
-*Source: wiki `/gsdaq/The_Slope_Box_Extension`*
+*Source: [wiki: The Slope Box Extension](https://wiki.anl.gov/gsdaq/The_Slope_Box_Extension)*
 - Provides **BGO pattern discrimination** (individual BGO segment hits)
 - Provides **BGO sum** signal
 - Handles **Pickoff** routing of signals to specific digitizer channels

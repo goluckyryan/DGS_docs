@@ -8,41 +8,41 @@
 ## Wiki Structure
 
 ### Understanding Gammasphere Interactively
-- `/gsdaq/Interactive_Image_Map` — clickable block diagram of the system
-- `/gsdaq/Gammasphere` — overview of GS hardware and DAQ
-- `/gsdaq/DGS_Commander_EDM_Screens` — EDM GUI screens for run control
-- `/gsdaq/DAQ_system` — full DAQ system description with network table
+- [Interactive Image Map](https://wiki.anl.gov/gsdaq/Interactive_Image_Map) — clickable block diagram of the system
+- [Gammasphere](https://wiki.anl.gov/gsdaq/Gammasphere) — overview of GS hardware and DAQ
+- [DGS Commander EDM Screens](https://wiki.anl.gov/gsdaq/DGS_Commander_EDM_Screens) — EDM GUI screens for run control
+- [DAQ System](https://wiki.anl.gov/gsdaq/DAQ_system) — full DAQ system description with network table
 
 ### Digital Gammasphere Upgrade Project
-- `/gsdaq/Digital_Gammasphere_Upgrade_Project` — top-level page
-- `/gsdaq/User_Guides_for_Experiments` — experiment user guides
-- `/gsdaq/Advanced_User_Guides` — DGS Commander EPICS, GEBSort, firmware advanced guide, triggers & digitizers
-- `/gsdaq/Expert_Documentation` — ANL Digitizer Firmware for Experts, piserver instructions
+- [Digital Gammasphere Upgrade Project](https://wiki.anl.gov/gsdaq/Digital_Gammasphere_Upgrade_Project) — top-level page
+- [User Guides for Experiments](https://wiki.anl.gov/gsdaq/User_Guides_for_Experiments) — experiment user guides
+- [Advanced User Guides](https://wiki.anl.gov/gsdaq/Advanced_User_Guides) — DGS Commander EPICS, GEBSort, firmware advanced guide, triggers & digitizers
+- [Expert Documentation](https://wiki.anl.gov/gsdaq/Expert_Documentation) — ANL Digitizer Firmware for Experts, piserver instructions
 
 ### Hardware Pages
-- `/gsdaq/Gammasphere_Detectors` — HPGe + BGO, segmented vs non-segmented
-- `/gsdaq/Detector_Signals` — GeCenter, GeSides, BGOSum, BGOPattern, Clean/Dirty events, Electric Honeycomb
-- `/gsdaq/Collector_Box` — collector box hardware, layout, stripes, electric honeycomb, replaces VXI
-- `/gsdaq/VME_Crates` — VME crate info
-- `/gsdaq/Digitizers` — digitizer hardware
-- `/gsdaq/Triggers` — trigger modules
-- `/gsdaq/IOC` → `/gsdaq/Digitizer_IOCs` — IOC info
-- `/gsdaq/The_Slope_Box` — slope box hardware ✅ visited 2026-04-05 → added to `sbx.md`
-- `/gsdaq/The_Slope_Box_Extension` — SBX hardware ✅ visited 2026-04-05 → added to `sbx.md`
-- `/gsdaq/Liquid_Nitrogen` / `/gsdaq/LN_system` — LN2 system
-- `/gsdaq/Preamplifier` — preamp
-- `/gsdaq/The_Pickoff_Card` — pickoff card
+- [Gammasphere Detectors](https://wiki.anl.gov/gsdaq/Gammasphere_Detectors) — HPGe + BGO, segmented vs non-segmented
+- [Detector Signals](https://wiki.anl.gov/gsdaq/Detector_Signals) — GeCenter, GeSides, BGOSum, BGOPattern, Clean/Dirty events, Electric Honeycomb
+- [Collector Box](https://wiki.anl.gov/gsdaq/Collector_Box) — collector box hardware, layout, stripes, electric honeycomb, replaces VXI
+- [VME Crates](https://wiki.anl.gov/gsdaq/VME_Crates) — VME crate info
+- [Digitizers](https://wiki.anl.gov/gsdaq/Digitizers) — digitizer hardware
+- [Triggers](https://wiki.anl.gov/gsdaq/Triggers) — trigger modules
+- [IOC](https://wiki.anl.gov/gsdaq/IOC) / [Digitizer IOCs](https://wiki.anl.gov/gsdaq/Digitizer_IOCs) — IOC info
+- [The Slope Box](https://wiki.anl.gov/gsdaq/The_Slope_Box) — slope box hardware ✅ visited 2026-04-05 → added to `sbx.md`
+- [The Slope Box Extension](https://wiki.anl.gov/gsdaq/The_Slope_Box_Extension) — SBX hardware ✅ visited 2026-04-05 → added to `sbx.md`
+- [Liquid Nitrogen](https://wiki.anl.gov/gsdaq/Liquid_Nitrogen) / [LN System](https://wiki.anl.gov/gsdaq/LN_system) — LN2 system
+- [Preamplifier](https://wiki.anl.gov/gsdaq/Preamplifier) — preamp
+- [The Pickoff Card](https://wiki.anl.gov/gsdaq/The_Pickoff_Card) — pickoff card
 
 ### Support Devices
-- `/gsdaq/CrateAndBoardMapping` — VME crate naming (VME01–VME11 + VME32=trigger crate)
-- `/gsdaq/Network_Accessible_Power_Control_Units_of_DGS` — PDU control
-- MyRIAD user manual PDF: `https://wiki.anl.gov/wiki_gsdaq/images/4/40/MyRIAD_User_Manaual.pdf`
+- [Crate and Board Mapping](https://wiki.anl.gov/gsdaq/CrateAndBoardMapping) — VME crate naming (VME01–VME11 + VME32=trigger crate)
+- [Network Accessible Power Control Units](https://wiki.anl.gov/gsdaq/Network_Accessible_Power_Control_Units_of_DGS) — PDU control
+- [MyRIAD User Manual PDF](https://wiki.anl.gov/wiki_gsdaq/images/4/40/MyRIAD_User_Manaual.pdf)
 
 ### On-Site Experts
-- `/gsdaq/Building_the_Entire_System`
-- `/gsdaq/Linking_Systems_Together`
-- `/gsdaq/Updating_Firmware_in_Digitizers_and_Triggers`
-- `/gsdaq/IOC_Code_Design`
+- [Building the Entire System](https://wiki.anl.gov/gsdaq/Building_the_Entire_System)
+- [Linking Systems Together](https://wiki.anl.gov/gsdaq/Linking_Systems_Together)
+- [Updating Firmware in Digitizers and Triggers](https://wiki.anl.gov/gsdaq/Updating_Firmware_in_Digitizers_and_Triggers)
+- [IOC Code Design](https://wiki.anl.gov/gsdaq/IOC_Code_Design)
 
 ---
 

@@ -1,6 +1,6 @@
 # DGS Troubleshooting Guide
 
-**Sources:** `wiki.anl.gov/gsdaq/Some_problems_and_their_solutions` + operational experience
+**Sources:** [wiki: Some Problems and Their Solutions](https://wiki.anl.gov/gsdaq/Some_problems_and_their_solutions) + operational experience
 
 ---
 
@@ -47,7 +47,7 @@ Open the terminal window for the miscreant IOC from DGS Commander.
 
 **Check:** Use Router channel FIFOs to verify real discriminator data (bits 9:0) is arriving.
 
-*(Source: wiki `/gsdaq/Triggers_and_digitizers` — see `wiki_gsdaq.md`)*
+*(Source: [wiki: Triggers and Digitizers](https://wiki.anl.gov/gsdaq/Triggers_and_digitizers) — see `wiki_gsdaq.md`)*
 
 ---
 
@@ -59,7 +59,7 @@ Open the terminal window for the miscreant IOC from DGS Commander.
 
 **Fix:** Clear SYNC bit in Router's `LINK_LRU_CTRL` register.
 
-*(Source: wiki `/gsdaq/Triggers_and_digitizers`)*
+*(Source: [wiki: Triggers and Digitizers](https://wiki.anl.gov/gsdaq/Triggers_and_digitizers))*
 
 ---
 
@@ -114,4 +114,4 @@ Key issues documented:
 
 ---
 
-*Source: wiki `/gsdaq/Some_problems_and_their_solutions` + `wiki_gsdaq.md` trigger setup section + operational notes. Created: 2026-04-05.*
+*Source: [wiki: Some Problems and Their Solutions](https://wiki.anl.gov/gsdaq/Some_problems_and_their_solutions) + `wiki_gsdaq.md` trigger setup section + operational notes. Created: 2026-04-05.*
