@@ -254,4 +254,14 @@ The Router also inserts the per-channel veto mask (`VETO[9:0]`) into bits [9:0] 
 | `MAIN_FPGA/Work13_4/experimental_router_top.bit` | Experimental variant |
 
 ---
+
+## See Also
+
+- `dgs/fpga.md` — System-level overview: trigger hierarchy, throttle mechanism, SERDES link summary
+- `dgs/deep_fpga_DIG.md` — DIG firmware: upstream multiplicity bits the RTRG receives, downstream command frames DIG acts on
+- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG firmware: trigger algorithms consuming RTRG multiplicity data
+- `dgs/ttcl.md` — TTCL: frame 12 (inter-trigger) and frame 14 (remote trigger) that RTRG replaces with null before forwarding to DIG
+- `dgs/connectors.md` — RTRG connector pinouts: 125-pin SERDES links, NIM I/O, CPLD ribbons
+
+---
 *Source: `DGS_tools_pack/raw_FPGA/Rtr4704*/` — VHDL source + bitfiles. Created: 2026-04-05.*

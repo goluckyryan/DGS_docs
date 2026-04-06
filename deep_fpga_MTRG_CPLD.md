@@ -78,3 +78,12 @@ Chip select 6 (binary 110):
 
 - VME data bus: bidirectional with direction control
 - Connector buffers: separate direction controls for AB, CD, and SUM groups
+
+---
+
+## See Also
+
+- `dgs/deep_fpga_MTRG.md` — MTRG overview: all three devices (Main FPGA + VME FPGA + CPLD)
+- `dgs/deep_fpga_MTRG_MAIN.md` — Main FPGA: receives the fast strobe analog multiplicity sum from this CPLD
+- `dgs/fpga.md` — System overview: fast strobe latency (~1 µs) vs full SERDES trigger cycle (2 µs)
+- `dgs/sbx.md` — Slope Box Extension: sources of the BGO sum signals this CPLD aggregates

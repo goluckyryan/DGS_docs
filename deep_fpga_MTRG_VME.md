@@ -124,3 +124,12 @@ ChipScope ILA cores for debug:
 | `chipscope_ila_80_64_d4096` | 80+64-bit ILA, 4096 depth |
 
 ChipScope projects: `ChipScope/A32D32_VME_1x64.cpj`, `A32D32_VME_2x64.cpj`
+
+---
+
+## See Also
+
+- `dgs/deep_fpga_MTRG.md` — MTRG overview: all three devices (Main FPGA + VME FPGA + CPLD)
+- `dgs/deep_fpga_MTRG_MAIN.md` — Main FPGA: the device this VME FPGA programs and controls
+- `dgs/fpga.md` — VME control hierarchy: how all VME FPGAs fit into the system
+- `dgs/ioc.md` — EPICS IOC: the software that drives VME A32/D32 register writes
