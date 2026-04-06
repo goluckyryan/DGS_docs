@@ -117,7 +117,21 @@ g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
 
 **In practice:** use `working/RunParquet` — drives all 3 stages from `expInfo.sh` automatically.
 
-_Source: `dgs_analysis/armory/parquet_pysort/README.md` — updated 2026-04-06_
+**Ultimate goal:** Roaring bitmap index — for each energy bin, a roaring bitmap stores the set of `event_id`s containing a hit, enabling rapid energy-gated coincidence queries without scanning the full dataset.
+
+**Threading details:**
+- `decode.py`: `ThreadPoolExecutor`, one worker per tid; GE/BGO files submitted as sub-tasks for overlapping I/O. Requires **Python 3.14.3t (free-threaded / no-GIL)** for true parallelism.
+- `event_builder.py`: Reads all input into one Arrow table, splits into N chunks, calls C++ `build_events()` per chunk in parallel. Column renames (`header_ts→gs_ts`, etc.) are zero-copy Arrow references — no `.to_pylist()`.
+- `decode.py --write-threads N`: Output split into `_000.parquet`, `_001.parquet`, … — feed multiple files to `event_builder.py`.
+
+**Algo notes:**
+- Algo 1 (SZ_1, low-rate): Baseline via exponential avg (`alpha=0.01`), only updated when `dtev ≥ 250 µs`.
+- Algo 2 (SZ_2, high-rate): Two regimes based on `dtev` vs `dgs_SZ_t1`/`dgs_SZ_t2`; extrapolates baseline from pre-learned factor when `dtev < dgs_SZ_t2`. Both require `base > 10.0` for nonzero energy.
+- `pileup_count` extraction in `jta.c` has a known bit-shift bug that always produces 0; replicated as-is for compatibility.
+
+**GEBSort reference:** `GEBSort.cxx:GEBGetEv()` — coincidence grouping: `while ((TS - curTS) < dTS)`. Default `dTS=500`. `jta.c:DGSEvDecompose_v3()` parses payloads (big-endian swap, 48-bit timestamp from words 1+2, `trigger_timestamp` only in header types 7/8).
+
+_Source: `dgs_analysis/armory/parquet_pysort/CLAUDE.md` + `README.md` — updated 2026-04-06_
 
 ### gray_apps
 
