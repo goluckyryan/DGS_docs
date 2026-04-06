@@ -65,21 +65,59 @@ make EventBuilder_PQ
 
 ### parquet_pysort — Python/C++ Parquet Pipeline
 
-**Purpose:** Decodes DGS binary data to Parquet format, sorts events, builds event structure.
+**Purpose:** Converts raw GRETINA GEB binary data into Apache Parquet for analysis. 3-stage pipeline.
 
-Key files:
+**Pipeline stages:**
+
+| Stage | Script | Input → Output |
+|-------|--------|----------------|
+| 1 | `make_filemap_dgs.py` | Run dir + `map.dat` → `<exp>_<run>_fileMap.dat` (board/chan → tid/tpe mapping) |
+| 2 | `decode.py` + C++ lib | Filemap + raw GEB files → `<exp>_<run>_dgs.parquet` (hit-level, timestamp-sorted) |
+| 3 | `event_builder.py` | Hits parquet → `<exp>_<run>_events.parquet` (coincidence events) |
+
+**Decode output schema** (`_dgs.parquet`):
+- `tid`, `header_ts`, `trigger_ts`, `sum1`, `sum2`
+- `e_raw`, `e_cal`, `e_dc` (Doppler-corrected)
+- `CSflag` (Compton suppression), `pileup_count`
+
+**Events output schema** (`_events.parquet`):
+- `event_id`, `gs_mult`, `gs_hitid`
+- `gs_ts`, `gs_cryid`
+- `gs_eraw`, `gs_ecal`, `gs_edc`, `gs_flag`
+
+**C++ decode operations** (in `dgs_decode_lib.cpp`):
+- Pole-zero correction
+- Energy algorithms: algo 0 / SZ_1 / SZ_2
+- Gain + offset calibration
+- Doppler correction
+- Compton suppression flag
+
+**Event builder:** timestamp coincidence window `(ts − first_ts) < timewin`; N parallel threads with boundary merge and global `event_id` assignment.
+
+**Key files:**
 | File | Role |
 |------|------|
-| `decode.py` | Main decoder |
-| `dgs_decode_lib.cpp` | C++ decode library |
-| `geb_format.py` | GEB format definitions |
-| `event_builder.py` | Event building logic |
-| `make_filemap_dgs.py` | Build file map for dataset |
-| `read_parquet.py` | Read/inspect Parquet output |
+| `decode.py` | Stage 2 decoder (drives C++ lib) |
+| `dgs_decode_lib.cpp` | C++ shared lib — pole-zero, energy, calibration |
+| `geb_format.py` | GEB header/payload format definitions |
+| `event_builder.py` | Stage 3 coincidence event builder |
+| `make_filemap_dgs.py` | Stage 1 filemap builder |
+| `read_parquet.py` | Inspect output (`--info`, `--head`, `--where`, `--to-csv`) |
+| `PQDecode.chat` | Decode config: algo, MM, KK, threads, etc. |
+| `PQMerge.chat` | Merge config |
 | `dgs_gain.cal` | Gain calibration |
 | `dgs_pz.cal` | Pole-zero calibration |
-| `angtheta.dat` | Angular/theta data |
-| `map.dat` | Detector mapping |
+| `angtheta.dat` | Angle/theta lookup (for Doppler correction) |
+| `map.dat` | DAQ id → tid/tpe mapping |
+
+**Build C++ lib:**
+```bash
+g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
+```
+
+**In practice:** use `working/RunParquet` — drives all 3 stages from `expInfo.sh` automatically.
+
+_Source: `dgs_analysis/armory/parquet_pysort/README.md` — updated 2026-04-06_
 
 ### gray_apps
 
