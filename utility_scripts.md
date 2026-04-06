@@ -78,7 +78,7 @@ Legacy bash scripts for BGO counter averaging and sweeping:
 - **`caget_avg`** — reads a PV N times (1 s apart), returns average. Usage: `./caget_avg <PV> <N_samples>`
 - **`Avg_all_BGO_count`** — runs `caget_avg` on all 7 BGO counters + BGO sum for one detector
   - PVs: `GS000_BGO1_counter` … `GS000_BGO7_counter`, `GS000_BGOSum_counter`
-- **`BGO_Sweep_test`** — BGO sweep test script
+- **`BGO_Sweep_test`** — BGO HV sweep: iterates DAC values 0–250 (in steps: 0,25,50,...250) across 14 HV channels (`GS000_BGO_HV0`–`GS000_BGO_HV13`), calls `Avg_all_BGO_count` at each step to log BGO counter rates. Sweeps odd tubes first, then even. PV pattern: `GS000_BGO_HV{0..13}`, `GS000_BGO{1..7}_counter`, `GS000_BGOSum_counter`.
 - **`BGO_counter_sweep.ods`** — spreadsheet for sweep analysis
 
 ---
