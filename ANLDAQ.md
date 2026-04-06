@@ -511,6 +511,35 @@ _Source: `gui_scalar.py` commit `0f3f2df` 2026-04-06 (code-verified)_
 
 ---
 
+## Trigger Setup Scripts (`gui/scripts/`)
+
+The `scripts/` directory contains 5 staged shell scripts that initialize the full trigger chain via `caput`. They are invoked by the GUI's "SERDES Link-Up" button (`Serdes_Linkup.sh`).
+
+| Stage | Script | What It Does |
+|-------|--------|--------------|
+| 1 | `trig_setup_Stage1.sh` | Set MTRG to local clock; enable all SERDES links; drive SYNC pattern out all A–H/L/U links |
+| 2 | `trig_setup_Stage2.sh` | Initialize all RTRGs to local clock; set Link L to receive MTRG SYNC; drive SYNC back to MTRG; set router channel masks |
+| 3 | `trig_setup_Stage3.sh` | Read and verify lock status on all active MTRG↔RTRG and RTRG↔DIG links |
+| 4 | `trig_setup_Stage4.sh` | Switch digitizers to send SYNC to their Router; verify Router sees lock on all enabled DIG links |
+| 5 | `trig_setup_Stage5.sh` | Flip DIGs and RTRGs (in order) from SYNC to real data; verify nothing erroneous after each flip |
+
+Key details:
+- All stages read a `SYSTEM_DEFINES.sh` file (passed as arg 1) that defines `MT_VME_LEADER`, `LIST_OF_ROUTERS`, etc.
+- Stage 1 sets `ClkSrc` and all `LINK_L_PROPAGATE_Fx` registers on MTRG
+- Stage 2 loops over `LIST_OF_ROUTERS` with bash substring extraction (`${RTR:6:3}`) to parse VME address
+- Stage 5 clears SYNC bits (the gotcha described in `troubleshooting.md`) — this is the final step that lets real data flow
+- `basic_settings_LED.py` — sets LED thresholds across all channels from a defaults file
+- `enableScriptList.txt` — lists which scripts are enabled in the GUI
+
+**Important EPICS write caveat** (from `Serdes_Linkup.sh` comments):
+- Writing to a **whole-register PV** (e.g. `VME10:MTRG:reg_INPUT_LINK_MASK`) updates that PV and its `_RBV`, but does **NOT** update the "breakout" bit PVs (e.g. `ILM_A` through `ILM_H`)
+- Writing to a **breakout PV** updates the register and the whole-reg `_RBV`, but does **NOT** update the whole-reg PV itself
+- **Scripts must always use breakout PVs** (not whole-reg PVs) to match what the GUI displays
+
+_Source: `ANLDAQ/gui/scripts/trig_setup_Stage*.sh` + `Serdes_Linkup.sh` (code-verified 2026-04-06)_
+
+---
+
 ## Notes
 
 
