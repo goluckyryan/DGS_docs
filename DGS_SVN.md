@@ -61,6 +61,24 @@ The SVN tree contains a broad historical archive of DGS development:
 
 ---
 
+## `salvaged_notes/` — Key Historical Documents
+
+Recovered notes and config files from old systems. Explored 2026-04-06.
+
+| File | Contents |
+|------|----------|
+| `DGS_systemdef.txt` | VME crate to board assignment map: VME01-12, each with MDIG1/SDIG1/MDIG2/SDIG2 pairs (VME06 and VME10 have only one pair -- fewer detectors) |
+| `dgs_config.txt` | Python config for DB/screen generation scripts. Defines CSV register map sources (`DGSMasterTriggerRegisterMap.csv`, `DGSRouterTriggerRegisterMap.csv`, `MasterDigitizerRegisterMap.csv`), VME crate/slot assignments (MTRG in crate 32 slot 3; VME01-12 with MDIG/SDIG in slots 3-6), and EPICS runtime path (`/global/devel`). Historical precursor to current IOC config. |
+| `FW_MAINT_README.txt` | Firmware flashing note: refers to old Java-based EPICS client (`flashdgs.js`, `runJEpics`) on con6 -- historical, superseded by current Python/EPICS approach |
+| `NotesOnInloop.txt` | Detailed analysis (JTA) of `inLoop.st` state machine PV hooks and queue usage: `SCAN_FOR_DATA` calls `transferDigFifoData()` and `DigitizerTypeFHeader()` with type codes (0=empty, 1=end-of-run, 2=error). Confirms `TypeOfBoard` (board_type) field is populated but not used by receiver. |
+| `20180924_notes.txt` | Architecture notes on FIFO readout hierarchy: `inLoop.st` -> `checkDigFIFO()` (in `readDigFIFO.c`) -> `serviceOneBufferDig()`. Documents `rawEvt` struct fields (`board`, `len`, `refcount`, `curptr`, `bptr`, `owner`); queue sizes: `RAW_Q_SIZE=400`, `RAW_BUF_SIZE=512KB`. |
+| `jta_notes_20200501.txt` | JTA notes on VxWorks build environment: `munch` files, EPICS base paths (`/global/devel/base`, `/global/devel/supTop`), EPICS base versions 3.14.10 and 3.14.12.1. Historical context for vxWorks migration. |
+| `ChangeNotes_20220801.txt` | **Key design decision (Aug 2022):** Eliminated requirement that trigger data must look like digitizer data. Updated `SendReceiveSupport.c` and receiver (`dgsReceiver`). Non-digitizer data dumped to `<run_name>_DIAG` file. Type `0xFF` = unspecified (backwards compat); type `0x00` = normal digitizer. Trigger data has GEB type 15=DGSTRIG. Authors: M. Oberling + J. Anderson. |
+| `WikiExtract.txt` | Extracted wiki content (historical) |
+| `DecodingTheMakefile.txt` | Notes on EPICS makefile traversal in the con6 build environment |
+
+---
+
 ## `findFile.sh`
 
 A utility to locate files within the large SVN tree by name pattern.
