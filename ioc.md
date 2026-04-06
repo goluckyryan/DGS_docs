@@ -164,11 +164,34 @@ Database files in `db/` define all Process Variables exposed by the IOC. These P
 
 ---
 
+## findAllPV.py — PV Discovery Tool
+
+`ioc/findAllPV.py` generates `All_PV.json` — the master PV list consumed by the ANLDAQ GUI.
+
+**How it works:**
+1. Parses `dbLoadRecords("template.db", "MACRO=val,...")` lines from IOC startup scripts
+2. Reads each `.template` / `.db` file with macro substitution applied
+3. Extracts all `record(type, "PV_name")` declarations
+4. Detects whether an `_RBV` readback exists for each PV
+5. Outputs `All_PV.json`: a list of `[PV_name, {"Type": "IN"|"OUT", "RBV": "Exist"|"None"}]`
+
+**Output:** `ioc/All_PV.json` — 13,887 entries (as of 2026-04-06)
+
+**When to regenerate:** after changing IOC boot scripts, adding/removing DB templates, or modifying PV names
+
+```bash
+cd ioc && python3 findAllPV.py
+```
+
+> **Note:** This satisfies the ANLDAQ GUI's PV discovery need. The open QUEUE task ("Auto-generate EPICS DB + PV list from FPGA register map") aims to go further upstream — generating the `.template` DB files themselves from the FPGA register map, so `findAllPV.py` can then derive `All_PV.json` automatically.
+
+---
+
 ## Connections to Other Subsystems
 
 - **vxworks/** — provides the `gretDet.munch` binary stored in `bin/`
 - **fpga/** — provides the `.bin` firmware files stored in `firmware/`
-- **ANLDAQ** — reads/writes the EPICS PVs defined in `db/` and `dbd/`
+- **ANLDAQ** — reads/writes the EPICS PVs defined in `db/` and `dbd/`; uses `findAllPV.py`-generated `All_PV.json` for PV discovery
 - **collectorboxpi/** — parallel IOC for collector box hardware (different platform)
 
 ---
