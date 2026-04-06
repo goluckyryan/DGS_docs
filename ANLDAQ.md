@@ -164,12 +164,14 @@ commander.py (PyQt6 GUI)               tcpReceiverMT (C++ server)
 
 | System | CA Server Port | CA Repeater Port | Terminal Server | IOC IPs |
 |--------|---------------|-----------------|----------------|---------|
-| DGS | 5064 | 5065 | 192.168.203.186, 192.168.203.91 | .141–.145, .177–.183 (12 VMEs) | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:45-46` |
+| DGS | 5064 | 5065 | 192.168.203.186, 192.168.203.91 | .141–.145, .177–.183 (12 VMEs) |
 | DFMA | 5068 | 5069 | — | — |
 | DXA | 5072 | 5073 | 192.168.203.47 | .212, .213 |
 | SlopeBox | 5074 | 5075 | 192.168.203.139 | — |
 | DUB | 5078 | 5079 | — | — |
 | DUO | 5080 | 5081 | 192.168.203.54 | 192.168.203.81 |
+
+✅ DGS ports (5064/5065) and IOC IPs verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L45-46`
 
 **DGS VME IOC IPs:** 192.168.203.141–145, 177–183 (12 crates total)
 
@@ -459,3 +461,15 @@ The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet for
 - `EPICS_para.sh` auto-patches `EPICS/softIOC/configure/RELEASE` with the correct `EPICS_BASE` path — never edit that file manually
 - PV list (`ioc/All_PV.json`) must be regenerated after any IOC boot script or DB file changes
 - The GUI will attempt to auto-source `EPICS_para.sh` if it wasn't sourced manually
+
+---
+
+## See Also
+
+- `dgs/ioc.md` — EPICS IOC boot scripts, DB files, PV definitions
+- `dgs/vxworks.md` — VxWorks build pipeline (produces the firmware ANLDAQ talks to)
+- `dgs/fpga.md` — DIG/RTRG/MTRG firmware overview
+- `dgs/dgs_analysis.md` — Downstream analysis (fastEventConstructor, parquet_pysort) consuming `tcpReceiverMT` output
+- `dgs/snapshot_pv.md` — PV snapshot utility (`dumpPVs.py` / `putPVs.py`) invoked by `start_run.sh`
+- `dgs/ttcl.md` — TTCL trigger timing (feeds the MTRG TAC-II data decoded in `class_TDC.h`)
+- `dgs/DIG_firmware_expert.md` — DIG firmware details; confirms packet format matched by `class_DIG.h`
