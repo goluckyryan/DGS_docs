@@ -9,7 +9,8 @@ _Indexed: 2026-04-05_
 | Pages | Size | File | Notes |
 |-------|------|------|-------|
 | 72 | 2.4MB | `Firmware/Digitizer/ANL Digitizer Firmware for Experts.pdf` | ✅ **Documented** → `memory/dgs/DIG_firmware_expert.md` |
-| 58 | 1.6MB | `Firmware/Digitizer/ANL Firmware for LBL Digitizer.pdf` | ANL firmware on LBL hardware variant |
+| — | — | `Non-Expert ANL Firmware - ANL version.pdf` | **Not in local docs** (wiki only). Shorter intro for scientists — recommended first read before Experts doc. |
+| 58 | 1.6MB | `Firmware/Digitizer/ANL Firmware for LBL Digitizer.pdf` | ANL firmware on LBL hardware variant — **superseded** by Non-Expert + Experts docs |
 | 242 | 1.5MB | `Firmware/Digitizer/Initial Draft - Digitizer Registers.pdf` | Full register map for the digitizer |
 | 36 | 547KB | `Firmware/Digitizer/LED-only ANL digitizer firmware.pdf` | Older/simpler leading-edge-only build |
 | 1 | 120KB | `Firmware/Digitizer/Understanding_FPGAs.pdf` | Background FPGA concepts (single diagram) |
@@ -65,6 +66,8 @@ _Indexed: 2026-04-05_
 |-------|------|------|-------|
 | 53 | 1.1MB | `Modules/Digitizer-Specification-RevA-v2 0.pdf` | Hardware spec for the digitizer module |
 | 26 | 488KB | `Modules/DGS trigger system firmware user guide.pdf` | System-level trigger operation guide |
+| — | — | `Firmware/Master_Trigger/Interfacing Digital Gammasphere with other detectors and systems.docx` | Interfacing DGS with external detector systems (local .docx, not PDF) |
+| — | — | `TripletPulseNotesTake2.doc` | Demos Digitizer Tester: effects of integration time + readout length on complex waveforms (local .doc, wiki ref: TripletPulseNotesTake2.pdf) |
 | 25 | 500KB | `Modules/Trigger user manual 20140901.pdf` | Trigger user manual (2014) |
 | 2 | 145KB | `Modules/Trigger user manual extract.pdf` | Short extract from trigger manual |
 | 14 | 247KB | `Modules/MYRIAD_Module_Specification.pdf` | MYRIAD module spec |
