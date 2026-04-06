@@ -118,6 +118,30 @@ conda env create -f environment.yml && conda activate grayapps
 
 _Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06_
 
+### GrayMAN — Gamma-Ray MultiPeak Analyzer Network
+
+**Full name:** GrayMAN (Gamma-Ray MultiPeak Analyzer Network)
+
+A separate PyQt6 GUI application for multi-peak gamma-ray spectrum analysis. Uses matplotlib (not Plotly) for rendering. Distinct from GrayCAL — focuses on peak detection, fitting, and analysis rather than calibration workflow.
+
+**Structure:**
+
+| Path | Contents |
+|------|----------|
+| `src/GrayMAN/core/` | `SpectrumData`, `fitting`, `peak_detection`, `snip`, `spectrum_model` |
+| `src/GrayMAN/gui/` | `GammaSpectrumAnalyzer` (main window), `canvas` (matplotlib), `matrix_viewer`, `dialogs` |
+| `src/GrayMAN/utils/` | Utilities |
+
+**Features:**
+- Interactive matplotlib-based spectrum viewer with sidebar + command window
+- Multi-peak fitting and automatic peak detection (`core/fitting.py`, `core/peak_detection.py`)
+- SNIP background subtraction (`core/snip.py`)
+- Matrix/2D spectrum viewer (`gui/matrix_viewer.py`)
+
+**Run:** `python src/GrayMAN/main.py`
+
+_Source: `dgs_analysis/armory/gray_apps/src/GrayMAN/` — explored 2026-04-06_
+
 ---
 
 ## working/ — Experiment-Specific Scripts & Calibration
