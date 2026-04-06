@@ -230,7 +230,61 @@ PV objects keep the TCP connection open — much faster for repeated access than
 
 ---
 
-## 6. EPICS DB File Syntax
+## 6. DGS PV Hierarchy — User PVs vs reg_* vs DAQC
+
+The DGS IOC exposes PVs at three distinct layers:
+
+```
+Layer 1 — User PVs (config, writable)
+  VME01:MDIG1:CFD_fraction0         (ao, scaled %, user-facing)
+  VME01:MDIG1:channel_enable0       (bo, enable/disable)
+  VME01:MDIG1:coarse_threshold0     (ao, ADC counts)
+       │
+       │ asyn write → read-modify-write on hardware register
+       ▼
+Layer 2 — Raw Register PVs (reg_*)
+  VME01:MDIG1:reg_CFD_fraction0     (asynUInt32Digital, raw bit field)
+  VME01:MDIG1:reg_channel_control0  (asynUInt32Digital, full 32-bit register)
+       │
+       │ VME bus write
+       ▼
+Layer 3 — FPGA Hardware Register
+  Physical 32-bit register on DIG/RTRG/MTRG board
+```
+
+### reg_* PVs
+
+- **What:** Raw FPGA register records — one per hardware register, 32-bit
+- **How:** `DTYP=asynUInt32Digital` with a bit mask (`asynMask`) for bit-field access
+- **Why they exist:** User PVs write individual bit fields within a shared register; the `reg_*` PV represents the full register. The asyn driver does read-modify-write using the mask.
+- **Rule:** Never set `reg_*` PVs directly — set the user-facing PVs instead. The `reg_*` records update automatically.
+- **In snapshots:** Always excluded from `dumpPVs.py` and `putPVs.py` via `pv_filter.py` (`EXCLUDE_CONTAINS: 'reg_'`)
+- **RBV variants:** `reg_*_RBV` are `bi` records scanning at 1 second — read the hardware register back for monitoring
+
+### DAQC PVs (DAQ Crate monitoring)
+
+- **What:** Per-crate data acquisition performance monitoring PVs
+- **Naming:** `DAQC{NN}_*` where `NN` = crate number (01–12 for DGS; 66 for DuoGe)
+- **All read-only** — `ai`, `mbbi` record types, reflect live runtime state
+- **Key PVs:**
+
+| PV Pattern | Description |
+|------------|-------------|
+| `DAQC{NN}_CV_CRATENUM` | Crate number |
+| `DAQC{NN}_CV_InLoop1` | MB/s read rate from DIG FIFOs |
+| `DAQC{NN}_CV_InLoop2` | Type-F buffer count (raw) |
+| `DAQC{NN}_CV_InLoop3` | VME transfer count |
+| `DAQC{NN}_CV_InLoop4` | Result of last transfer |
+| `DAQC{NN}_CV_BuffersAvail` | Available DMA buffers |
+| `DAQC{NN}_CV_SendRate` | TCP send rate |
+| `DAQC{NN}_OL_BufLostPercent` | Buffer loss percentage |
+| `DAQC{NN}_BoardType{N}` | Board type in VME slot N |
+
+- **In snapshots:** Always excluded (`EXCLUDE_STARTSWITH: 'DAQC'`) — runtime stats, not config
+
+---
+
+## 7. EPICS DB File Syntax
 
 A `.db` file defines records:
 
