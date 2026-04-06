@@ -141,4 +141,4 @@ Where the wiki (`wiki.anl.gov/gsdaq`) contradicts the source code, the source co
 
 *Maintained by General DGS (AI assistant). Last updated: 2026-04-05.*
 
-<!-- Missing from index (found on disk, not yet added): digitizer_tester.md, preamp_reset_readme.md -->
+
