@@ -6,7 +6,7 @@
 
 An **EPICS soft IOC** running on Raspberry Pi (aarch64 / Debian 13) that controls and monitors **Collector Box** hardware (CollectorBox_RevA). This repo is currently deployed on **pi0 only (softIOC 201, South-East)**. The other 3 collector boxes (202–204) run on an old piserver setup with no documentation in `DGS_tools_pack`.
 
-Compiled against **EPICS 7.0.10**. Self-contained repo: includes `epics-base` and `autosave` as git submodules.
+Compiled against **EPICS 7.0.10** (patch level 1). Self-contained repo: includes `epics-base` and `autosave` as git submodules. ✅ verified 2026-04-06 — collectorboxpi/epics-base/configure/CONFIG_BASE_VERSION; autosave tag R5-11 ✅ verified 2026-04-06 — collectorboxpi/autosave/documentation/RELEASE_NOTES
 
 ---
 
@@ -14,7 +14,7 @@ Compiled against **EPICS 7.0.10**. Self-contained repo: includes `epics-base` an
 
 - **Hardware:** CollectorBox_RevA boards
 - **Platform:** Raspberry Pi (aarch64), Debian 13
-- **PXE Boot:** Pi boots over network from `fs2.onenet` (192.168.203.71) via DHCP/tftp on Einstor (192.168.203.1)
+- **PXE Boot:** Pi boots over network from `fs2.onenet` (192.168.203.71) via DHCP/tftp on Einstor (192.168.203.1) ✅ verified 2026-04-06 — ping fs2.onenet resolves 192.168.203.71 live
 - **Collector Pi IDs:** pi0, pi1, pi2, pi3 (identified by MAC address)
 - **MAC → hostname mapping:**
   - `b8:27:eb:39:f2:ce` → pi0
