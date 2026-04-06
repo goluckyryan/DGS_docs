@@ -45,14 +45,13 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [deep_fpga_building.md](deep_fpga_building.md) | Build toolchain: ISE 14.7 / Vivado 2018.3, Ubuntu 24.04 Docker approach |
 | [link_sys_analysis.md](link_sys_analysis.md) | link_sys.py: 5-stage SERDES link init + timestamp sync sequence |
 | [ttcl.md](ttcl.md) | TTCL spec (v2.1): word/frame/cycle format, all 20 frames, selective propagation |
-| [reference_index.md](reference_index.md) | EPICS register maps for DIG/RTRG/MTRG |
+
 
 ### Hardware & Connectors
 
 | File | Description |
 |------|-------------|
-| [connectors.md](connectors.md) | Digitizer connector pinouts: RJ45 (TTCL/SER/DES), 36-pin Aux I/O (ExtTTL = AUX_DIN[10] pins 32/33) |
-| [connectors.md](connectors.md) | MTRG/RTRG connector pinouts: 125-pin SERDES (links A–H/L/R/U), NIM I/O (NIM IN 1=aux trig, NIM IN 2=TDC/RF), CPLD ribbons |
+| [connectors.md](connectors.md) | All connector pinouts: DIG RJ45 (TTCL/SER/DES), 36-pin Aux I/O (ExtTTL = AUX_DIN[10] pins 32/33); MTRG/RTRG 125-pin SERDES (links A–H/L/R/U), NIM I/O (NIM IN 1=aux trig, NIM IN 2=TDC/RF), CPLD ribbons. ASCII pin diagrams included. |
 
 ### EPICS IOC
 
@@ -81,15 +80,20 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [Xarray_PVs.md](Xarray_PVs.md) | X-Array system PV list |
 | [teststand_PVs.md](teststand_PVs.md) | Test stand PV list |
 
-### Liquid Nitrogen & Support
+### Detector Interface Hardware
 
 | File | Description |
 |------|-------------|
-| [lnfill.md](lnfill.md) | Liquid nitrogen filling system; valves, tanks, cron jobs, Discord alerts |
+| [sbx.md](sbx.md) | Slope Box + SBX: HV generation, signal conditioning, BGO pattern/sum, pickoff card (hardwired routing), GS_ID dongle, Pi IOC (SPI/GPIO); no FPGA |
 | [myriad.md](myriad.md) | MγRIAD module: aux detector interface, NIM I/O pinout, ECL connectors, TTCL link, DGS usage |
 | [digitizer_tester.md](digitizer_tester.md) | Digitizer Tester: dual 200 MHz 16-bit DAC, analog switch matrix (10ch), TTCL link, waveform generation |
-| [preamp_reset_readme.md](preamp_reset_readme.md) | Preamplifier reset handling |
-| [sbx.md](sbx.md) | Slope Box Extension (SBX): signal conversion, BGO pattern, pickoff card, GS_ID dongle, HV map |
+| [preamp_reset_readme.md](preamp_reset_readme.md) | Preamplifier reset handling: PRK holdoff timing, PREAMP_RESET_DELAY register |
+
+### Liquid Nitrogen
+
+| File | Description |
+|------|-------------|
+| [lnfill.md](lnfill.md) | LN filling system: valves, tanks, fill schedule, cron jobs, Discord alerts, ops procedures (overtime, manual fill, findhose) |
 
 ### Utilities & Operations
 
@@ -99,7 +103,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [utility_scripts.md](utility_scripts.md) | BGO HV tuning script, PV discovery scripts, data0 space monitor |
 | [snapshot_pv.md](snapshot_pv.md) | snapshot_pv repo: PV snapshot & watchdog utilities (Python/pyepics) |
 | [influxdb_grafana.md](influxdb_grafana.md) | InfluxDB 3 + Grafana monitoring on DCS2 (192.168.203.56) |
-| [troubleshooting.md](troubleshooting.md) | DGS troubleshooting: IOC connectivity, SYNC bit, FIFO issues, timestamp sync errors |
+
 
 ### Legacy & Reference
 
@@ -140,6 +144,6 @@ Where the wiki (`wiki.anl.gov/gsdaq`) contradicts the source code, the source co
 
 ---
 
-*Maintained by General DGS (AI assistant). Last updated: 2026-04-05.*
+*Maintained by General DGS (AI assistant). Last updated: 2026-04-06.*
 
 
