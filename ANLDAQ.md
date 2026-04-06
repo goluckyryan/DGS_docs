@@ -456,7 +456,39 @@ The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet for
 
 ---
 
+## GUI: Detector Array Window (`gui_Det.py`)
+
+`DetWindow` — opened via "SBX / CollectorBox" button in DGS Commander. Shows all 110 detectors laid out by collector box group.
+
+### Detector → Collector Box Mapping
+_Source: `gui_Det.py` header comment (code-verified 2026-04-06)_
+
+| Group | CollectorBox | Detector Numbers | Count | Formula |
+|-------|-------------|-----------------|-------|---------|
+| North-East (NE) | CB 203 | 1, 3, 5, …, 59 (odd) | 30 | 2i+1, i=0..29 |
+| South-East (SE) | CB 201 | 2, 4, 6, …, 60 (even) | 30 | 2i, i=1..30 |
+| North-West (NW) | CB 204 | 61, 63, 65, …, 109 (odd) | 25 | 2i+1, i=30..54 |
+| South-West (SW) | CB 202 | 62, 64, 66, …, 110 (even) | 25 | 2i, i=31..55 |
+
+NW and SW only occupy 25 of 30 cable slots; last 5 slots per CB are physically empty (dummy cells).
+
+The window has two tabs:
+- **DV Monitor tab** — 2×2 grid of group boxes (NE/SE/NW/SW), one cell per detector showing live PV values
+- **HV tab** — high voltage status per detector
+
+## GUI: Scalar Window (`gui_scalar.py`)
+
+`ScalarWindow` — "Scalar - All Digitizers" window. Shows all digitizer boards in a scrollable grid of GroupBoxes. Per channel per board, displays (live PV, timer-updated):
+- `led_threshold` — LED threshold setting
+- `disc_count` — discriminator fire count
+- `ahit_count` — accepted hit count
+
+_Source: `gui_scalar.py` commit `0f3f2df` 2026-04-06 (code-verified)_
+
+---
+
 ## Notes
+
 
 - `EPICS_para.sh` auto-patches `EPICS/softIOC/configure/RELEASE` with the correct `EPICS_BASE` path — never edit that file manually
 - PV list (`ioc/All_PV.json`) must be regenerated after any IOC boot script or DB file changes
