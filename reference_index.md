@@ -1,6 +1,6 @@
 # DGS Reference Index — Register Maps & Hardware Drawings
 
-_Merged from `reference_index.md` and `reference_index.md` (2026-04-05)_
+_Created: 2026-04-04. Last updated: 2026-04-06._
 
 ---
 

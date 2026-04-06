@@ -1,6 +1,6 @@
 # DGS Connector Pinouts
 
-_Merged from `connectors.md` and `connectors.md` (2026-04-05)_
+_Created: 2026-04-05. Last updated: 2026-04-06._
 
 ---
 
