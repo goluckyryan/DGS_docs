@@ -152,3 +152,17 @@ All systems share the **same physical network (onenet, 192.168.203.x)** but are 
 | Collector boxes | — | 4 |
 | Raspberry Pis | 1 | 4 (+ pi5-dgs admin) |
 | IOC boards (MVME5500) | 1 | 12 |
+
+---
+
+## See Also
+
+- `overview_DGS.md` — Full Gammasphere system overview (signal chain, network map, software stack)
+- `overview_SmallSystem.md` — DuoGe (DUO) and X-Array (DXA) small system details
+- `fpga.md` — FPGA firmware architecture (trigger cycle, signal flow, PEQ details)
+- `collectorboxpi.md` — Collector box Raspberry Pi soft IOC (SPI, PXE boot, HV control)
+- `ioc.md` — EPICS IOC configuration (MVME5500 boot, firmware versions, VME setup)
+
+---
+
+*Source: DGS_tools_pack code exploration, link_sys_analysis.md, nfs_layout.md. Created: 2026-04-05. Updated: 2026-04-06.*
