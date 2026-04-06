@@ -180,48 +180,55 @@ Raw 16-bit ADC samples packed into 32-bit words (2 samples per word):
 The IOC sends the raw VME trigger packet (16 words). `tcpReceiverMT` **repacks** it into a 10-word DIG-compatible format before saving.
 
 ```
-IOC TCP stream: Raw TAC2 packed packet (10 words, big-endian)
-Each word carries two 16-bit fields packed together.
+IOC TCP stream: Raw TAC2 VME packet (16 words, 32-bit each, big-endian)
 ┌────────────────────────────────────────────────┐
-│ Word 0: header / status                             │
-│ Word 1: header                                      │
-│ Word 2: [31:16]=timestamp[47:32]  [15:0]=ts_high    │
-│ Word 3: (other timestamp fields)                    │
-│ Word 4: [31:16]=trigType          [15:0]=wheel       │
-│ Word 5: [31:16]=multiplicity      [15:0]=userReg     │
-│ Word 6: [31:16]=coarseTime        [15:0]=trigBitMask │
-│ Word 7: [31:16]=4nsCounter[0]     [15:0]=4nsCounter[1]│
-│ Word 8: [31:16]=4nsCounter[2]     [15:0]=4nsCounter[3]│
-│ Word 9: [31:16]=vernierAB         [15:0]=vernierCD   │
+│ Word  0:  (raw VME status/type word)                │
+│ Word  1:  trigType data                             │
+│ Word  2:  timestamp word (used for GEBHeader ts)    │
+│ Word  3:  timestamp low   → payload[2] low 16       │
+│ Word  4:  timestamp high  → payload[2] high 16      │
+│ Word  5:  wheel                                     │
+│ Word  6:  multiplicity                              │
+│ Word  7:  userRegister                              │
+│ Word  8:  coarseTime                                │
+│ Word  9:  triggerBitMask                            │
+│ Word 10:  4nsCounter[0]                             │
+│ Word 11:  4nsCounter[1]                             │
+│ Word 12:  4nsCounter[2]                             │
+│ Word 13:  4nsCounter[3]                             │
+│ Word 14:  vernierAB                                 │
+│ Word 15:  vernierCD                                 │
 └────────────────────────────────────────────────┘
-             │ tcpReceiverMT repacks into 10-word format
+             │ tcpReceiverMT repacks 16→10 words:
+             │ pairs of adjacent 32-bit words are
+             │ merged into one word as [hi<<16 | lo]
              ▼
 Saved file: GEBHeader + repacked TAC2 packet (10 words)
 ┌────────────────────────────────────────────────┐
 │ GEBHeader (16 bytes):                               │
 │   type = 15 (GEB_TYPE_DGSTRIG)                      │
 │   payload_len = 10 × 4 = 40 bytes                   │
-│   timestamp = extracted from VME words [3:4]        │
+│   timestamp = extracted from header[2] (VME word 2) │
 ├────────────────────────────────────────────────┤
 │ Repacked payload (10 words, DIG-compatible):        │
 │  Word 0: 0xAAAAAAAA  (sync word)                    │
-│  Word 1: CH_ID=0xA, board_id=99<<4, len=10<<16      │
-│  Word 2: packed[4]>>16<<16 | packed[3]&0xFFFF       │
-│           = trigType<<16 | ts_high                  │
-│  Word 3: packed[2] | 0xE<<16 | 3<<26               │
+│  Word 1: (CH_ID=0xA) | (99<<4) | (10<<16)           │
+│           board_id=99, len=10 are sentinel values   │
+│  Word 2: header[4]<<0 | header[3]<<16               │
+│           = ts_high | ts_low<<16                    │
+│  Word 3: header[2] | (0xE<<16) | (3<<26)            │
 │           HDR_TYPE=0xE, HDR_LEN=3                   │
-│  Word 4: packed[1]<<16 | packed[5]                  │
-│           = header<<16 | wheel                      │
-│  Word 5: packed[6]<<16 | packed[7]                  │
-│           = multiplicity<<16 | userReg              │
-│           (note: each <<16/&0xFFFF unpacks field)   │
-│  Word 6: packed[8]<<16 | packed[9]                  │
-│           = coarseTime<<16 | trigBitMask            │
-│  Word 7: packed[10]<<16 | packed[11]                │
+│  Word 4: (header[1]<<16) | header[5]                │
+│           = trigType<<16 | wheel                    │
+│  Word 5: (header[6]<<16) | header[7]                │
+│           = multiplicity<<16 | userRegister         │
+│  Word 6: (header[8]<<16) | header[9]                │
+│           = coarseTime<<16 | triggerBitMask         │
+│  Word 7: (header[10]<<16) | header[11]              │
 │           = 4nsCounter[0]<<16 | 4nsCounter[1]       │
-│  Word 8: packed[12]<<16 | packed[13]                │
+│  Word 8: (header[12]<<16) | header[13]              │
 │           = 4nsCounter[2]<<16 | 4nsCounter[3]       │
-│  Word 9: packed[14]<<16 | packed[15]                │
+│  Word 9: (header[14]<<16) | header[15]              │
 │           = vernierAB<<16 | vernierCD               │
 └────────────────────────────────────────────────┘
   Source: `tcpReceiverMT.cpp` / `receiver.h:L447–524`
