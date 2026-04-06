@@ -197,6 +197,39 @@ Note: type 13 is absent (unassigned). DGS uses types 14 (digitizer hits) and 15 
 
 ---
 
+## EventBuilder_PQ Benchmark Results
+_Source: `fastEventContructor/README.md`. Test dataset: TAC2_021, 16 GB, 158 files, ~60M hits. NVMe Kingston SFYRD4000G (~7 GB/s rated). nWriters=4._
+
+**Top-level comparison:**
+
+| Builder | Config | Wall time | Output |
+|---------|--------|-----------|--------|
+| EventBuilder_Q | 4 workers | 58.0s | 734M ROOT |
+| EventBuilder_PQ (no ReadPool) | 12 merge, 4 writers | 37.4s | 734M ROOT |
+| EventBuilder_PQ (with ReadPool) | 12 merge, 4 writers | 19.0s | 734M ROOT |
+
+**EventBuilder_PQ thread scaling (with ReadPool + optimizations, nWriters=4):**
+
+| nMerge | Scan | Merge | Total | Read Rate | Write Rate |
+|--------|------|-------|-------|-----------|------------|
+| 1 | 8.0s | 30.2s | 40.1s | 517 MB/s | 25 MB/s |
+| 2 | 7.8s | 17.0s | 27.0s | 919 MB/s | 44 MB/s |
+| 4 | 7.9s | 10.9s | 21.4s | 1433 MB/s | 69 MB/s |
+| 8 | 7.9s | 8.8s | **19.2s** | 1774 MB/s | 86 MB/s |
+| 12 | 7.9s | 8.5s | **19.0s** | 1837 MB/s | 89 MB/s |
+| 16 | 7.7s | 8.9s | 19.1s | 1754 MB/s | 85 MB/s |
+| 24 | 7.6s | 10.7s | 20.6s | 1460 MB/s | 71 MB/s |
+
+**Sweet spot: 8–12 merge threads** (~1.8 GB/s read, ~89 MB/s write). Beyond 12 threads, NVMe saturates and gains plateau.
+
+Key improvements with ReadPool (vs without):
+- ~3× faster merge phase (26s → 9s at 16 threads)
+- ~3× higher read rate (590 MB/s → 1.8 GB/s)
+- Double-buffered pre-fetch eliminates I/O wait in merge loop
+- Conditional trace arrays reduce per-event memory from ~163 KB to ~11 KB
+
+---
+
 ## Notes
 
 - Save traces (`saveTrace=true`) allocates ~153 KB per event — keep disabled for large runs unless needed
