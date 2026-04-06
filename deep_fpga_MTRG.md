@@ -19,10 +19,10 @@ The hardware contains three programmable devices:
 
 ## Firmware Modules
 
-- [MAIN_FPGA.md](MAIN_FPGA.md) — ISE-based main FPGA (production, Virtex-4)
-- [VIVADO_MAIN_FPGA.md](VIVADO_MAIN_FPGA.md) — Vivado-based main FPGA (Kintex UltraScale)
-- [VME_FPGA.md](VME_FPGA.md) — VME interface and configuration FPGA (Spartan-3)
-- [DGS_CPLD.md](DGS_CPLD.md) — Fast strobe CPLD (XC9500XL)
+- [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — ISE-based main FPGA (production, Virtex-4)
+- [deep_fpga_MTRG_VIVADO.md](deep_fpga_MTRG_VIVADO.md) — Vivado-based main FPGA (Kintex UltraScale)
+- [deep_fpga_MTRG_VME.md](deep_fpga_MTRG_VME.md) — VME interface and configuration FPGA (Spartan-3)
+- [deep_fpga_MTRG_CPLD.md](deep_fpga_MTRG_CPLD.md) — Fast strobe CPLD (XC9500XL)
 
 ## Repository Layout
 

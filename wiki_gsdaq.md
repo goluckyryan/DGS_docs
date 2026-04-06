@@ -171,7 +171,7 @@
 - `/gsdaq/Firmware_documentation` — firmware docs list
 - `/gsdaq/Typical_DGS_run_procedures` — run procedure reference ✅ visited 2026-04-05 → `run_procedures.md`
 - `/gsdaq/Some_problems_and_their_solutions` ✅ visited 2026-04-05 → stub page, one useful entry (IOC troubleshooting) — troubleshooting ✅ visited 2026-04-05 → `troubleshooting.md`
-- `/gsdaq/ANL_Digitizer_Firmware_for_Advanced_Users` — advanced firmware guide
+- `/gsdaq/ANL_Digitizer_Firmware_for_Advanced_Users` — advanced firmware guide ✅ visited 2026-04-06 → ADC linearity specs added to `DIG_firmware_expert.md` (Overview section)
 - `/gsdaq/High_Purity_Germanium_(HPGe)_and_BGO` — HPGe + BGO details
 
 ---
