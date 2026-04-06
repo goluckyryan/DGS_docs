@@ -129,9 +129,9 @@ dgs_pz 350 141 dgs_pz.cal 1.003
 Arguments:
 - `350` — M value (in 10 ns units = 3.50 µs; from `caput GLBL:DIG:m_window`)
 - `141` — K value (in 10 ns units); calculated as sum of all K+D windows:
-  - K = k_window + d_window + k0_window + d3_window + D2_fixed(0.15 µs)
-  - Example: 0.20 + 0.06 + 0.80 + 0.20 + 0.15 = 1.41 µs = **141 in 10 ns units**
-  - Note: D values are included in K per S. Zhu convention (6/25/18); D2=0.15 µs fixed (not user-settable via EPICS, per JTA 6/26/18) ⚠️ unverified — simulation testbench defaults are 22 clocks = 0.22 µs (arb_two_chan_tb.vhd:L92); actual production default unknown; d2_window register exists in firmware (address 0x240–0x264) but not exposed in EPICS IOC templates
+  - K = k_window + d_window + k0_window + d3_window + D2_fixed
+  - Example: 0.20 + 0.06 + 0.80 + 0.20 + 0.15 = 1.41 µs = **141 in 10 ns units** *(note: example uses 0.15 µs for D2 — see note below)*
+  - Note: D values are included in K per S. Zhu convention (6/25/18); D2 is firmware-internal (not user-settable via EPICS, per JTA 6/26/18). Register name is **reg_d3_window** (addr 0x240–0x264, confusingly named 'd3' in firmware but represents algorithm's 'd2'). Production default = **23 clocks = 0.23 µs** (at 100 MHz). Simulation testbenches use 21–22 clocks. The 0.15 µs figure in the original K-value example may be a specific calibration run's value, not the firmware default. ✅ verified 2026-04-06 — `DIG/MAIN_FPGA/BuildBranches/DGS/Source/Registers.vhd:L186` (`to_std_logic_vector(23,32)`) + `jta_channel.vhd:L59` (comment "delay factor 'd2'" on reg_d3_window port)
 - `dgs_pz.cal` — output calibration file
 - `1.003` — PZ fudge factor (FF); determined from energy vs baseline spectra
 
