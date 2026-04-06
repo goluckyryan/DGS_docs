@@ -276,6 +276,30 @@ Digitizer FIFO (VME bus)
 - Per-board error counts + error data (4 error types per board)
 - Per-channel last timestamp tracking for sequence checking
 
+### Queue system (VxWorks pointers, not data copies)
+_Source: [IOC Code Design](https://wiki.anl.gov/gsdaq/IOC_Code_Design) (wiki)_
+
+Three pointer queues — buffers are never copied, only pointers move:
+- **qFree** → inLoop grabs pointer, fills buffer with VME data → moves pointer to **qWritten**
+- **qWritten** → outLoop checks buffer, validates → moves pointer to **qSender**
+- **qSender** → minisender grabs pointer, sends data to gtReceiver → returns pointer to **qFree**
+
+Key flow-control PVs:
+- `Online_CS_StartStop`, `Online_CS_SaveData` — monitored by all three state machines
+- `DAQBx_*_CS_Ena` — per-board enable, monitored by inLoop
+- `VMEx:MDIG1_CV_Running` — inLoop↔outLoop communication PV
+- `DAQCx_CV_InLoop1/2` — inLoop MB/s and type-F header rate
+- `DAQCV_CV_BuffersAvail`, `DAQCx_CV_NumSendBuffers` — qFree and qSender depths
+- `DAQCx_CV_OutLoop1,2,3,4` — lost buffers per digitizer
+- `DAQCx_OL_DataRate0..3` — read rates in kB/s per digitizer
+- `DAQCx_OL_BufLostPercent` — percent of buffers lost
+- `DAQCx_CV_SendRate` — sender data rate in kB/s
+
+### Digitizer FIFO depth: live vs event-bound
+- **Live depth**: exact current count of words in FIFO
+- **Event-bound depth**: updates only when a full event is in the FIFO (lags live by ≤ 1 event)
+- inLoop uses **event-bound depth** → every buffer read is guaranteed to contain only complete events (no need to stitch partial events across reads)
+
 ---
 
 ## Connections to Other Subsystems
