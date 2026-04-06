@@ -8,6 +8,66 @@
 
 ---
 
+## Signal Chain (Small Systems)
+
+> Small systems (DUO, DXA) do **not** use a Collector Box.
+> The SBX Raspberry Pi IOC is an older version — source not in `DGS_tools_pack`.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│           HPGe + BGO DETECTORS (small count)                     │
+│  HPGe crystal (LN2 cooled) + BGO Compton shield segments         │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ preamp signals (single-ended)
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│               SLOPE BOX  (1 per detector)                        │
+│  Generates Ge bias HV + BGO bias HV                              │
+│  Multiplexed ADC: temp, actual HV, PSU monitoring                │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ analog signals + 48VDC
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│         SBX — Slope Box Extension  (1 per detector)              │
+│  Single-ended → differential conversion                          │
+│  BGO sum signal + BGO pattern discrimination                     │
+│  GS_ID dongle; Pickoff Card for channel routing                  │
+│  ⚠️ Controlled by Raspberry Pi IOC (older version, not in repo)  │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ differential signals → directly to VME
+                           │ (NO Collector Box)
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    DIG — Digitizer (fpga/)                       │
+│  Same hardware as full DGS; 10-ch, 14-bit ADC at 100 MHz         │
+│  Buffers accepted events in FIFO                                 │
+└────────────┬───────────────────────────────┬──────────────────┘
+             │ SERDES                      │ VME bus (event data)
+             ▼                             ▼
+┌──────────────────────┐  ┌───────────────────────────────┐
+│  RTRG — Router Trigger  │  │  MVME5500 VME IOC (VxWorks)    │
+│  Virtex-4 XC4VLX80      │  │  DMA readout of DIG FIFOs      │
+│  Aggregates DIGs        │  │  EPICS IOC (ioc/)              │
+└─────────┬─────────────┘  └───────────────┬───────────────┘
+          │ SERDES (Link L)               │ EPICS CA + TCP data
+          ▼                               ▼
+┌──────────────────────┐  ┌───────────────────────────────┐
+│  MTRG — Master Trigger  │  │  ANLDAQ (anldaq/)              │
+│  Virtex-4 / KU060       │  │  commander.py — PyQt6 GUI      │
+│  Trigger algorithms     │  │  Run control + live monitor    │
+│  2 µs cycle             │  │  tcpReceiverMT — binary files  │
+└───────────┬──────────┘  └───────────────┬───────────────┘
+           │ trigger → RTRG → DIG          │ raw binary files
+                                           ▼
+                            ┌───────────────────────────────┐
+                            │  dgs_analysis/                │
+                            │  fastEventConstructor (ROOT)  │
+                            │  parquet_pysort (Parquet)     │
+                            └───────────────────────────────┘
+```
+
+---
+
 ## DuoGe (DUO) — 2-HPGe Detector System
 
 **Purpose:** Small 2-detector germanium DAQ, typically used for standalone experiments or detector testing.
