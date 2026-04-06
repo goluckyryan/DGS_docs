@@ -180,24 +180,19 @@ Raw 16-bit ADC samples packed into 32-bit words (2 samples per word):
 The IOC sends the raw VME trigger packet (16 words). `tcpReceiverMT` **repacks** it into a 10-word DIG-compatible format before saving.
 
 ```
-IOC TCP stream: Raw TAC2 VME packet (16 words, big-endian)
+IOC TCP stream: Raw TAC2 packed packet (10 words, big-endian)
+Each word carries two 16-bit fields packed together.
 ┌────────────────────────────────────────────────┐
-│ Word  0: header[0]                                  │
-│ Word  1: timestamp[31:0]   (header[1])              │
-│ Word  2: [15:0]=timestamp[47:32], [31:16]=other      │
-│ Word  3: timestamp low     (header[3])              │
-│ Word  4: timestamp high    (header[4])              │
-│ Word  5: TAC data[0]                                 │
-│ Word  6: TAC data[1]                                 │
-│ Word  7: TAC data[2]                                 │
-│ Word  8: TAC data[3]                                 │
-│ Word  9: TAC data[4]                                 │
-│ Word 10: TAC data[5]                                 │
-│ Word 11: TAC data[6]                                 │
-│ Word 12: TAC data[7]                                 │
-│ Word 13: TAC data[8]                                 │
-│ Word 14: TAC data[9]                                 │
-│ Word 15: TAC data[10]                                │
+│ Word 0: header / status                             │
+│ Word 1: header                                      │
+│ Word 2: [31:16]=timestamp[47:32]  [15:0]=ts_high    │
+│ Word 3: (other timestamp fields)                    │
+│ Word 4: [31:16]=trigType          [15:0]=wheel       │
+│ Word 5: [31:16]=multiplicity      [15:0]=userReg     │
+│ Word 6: [31:16]=coarseTime        [15:0]=trigBitMask │
+│ Word 7: [31:16]=4nsCounter[0]     [15:0]=4nsCounter[1]│
+│ Word 8: [31:16]=4nsCounter[2]     [15:0]=4nsCounter[3]│
+│ Word 9: [31:16]=vernierAB         [15:0]=vernierCD   │
 └────────────────────────────────────────────────┘
              │ tcpReceiverMT repacks into 10-word format
              ▼
@@ -211,15 +206,23 @@ Saved file: GEBHeader + repacked TAC2 packet (10 words)
 │ Repacked payload (10 words, DIG-compatible):        │
 │  Word 0: 0xAAAAAAAA  (sync word)                    │
 │  Word 1: CH_ID=0xA, board_id=99<<4, len=10<<16      │
-│  Word 2: header[4]<<16 | header[3]  (ts low)        │
-│  Word 3: header[2] | 0xE<<16 | 3<<26               │
+│  Word 2: packed[4]>>16<<16 | packed[3]&0xFFFF       │
+│           = trigType<<16 | ts_high                  │
+│  Word 3: packed[2] | 0xE<<16 | 3<<26               │
 │           HDR_TYPE=0xE, HDR_LEN=3                   │
-│  Word 4: header[1]<<16 | header[5]                  │
-│  Word 5: header[6]<<16  | header[7]                 │
-│  Word 6: header[8]<<16  | header[9]                 │
-│  Word 7: header[10]<<16 | header[11]                │
-│  Word 8: header[12]<<16 | header[13]                │
-│  Word 9: header[14]<<16 | header[15]                │
+│  Word 4: packed[1]<<16 | packed[5]                  │
+│           = header<<16 | wheel                      │
+│  Word 5: packed[6]<<16 | packed[7]                  │
+│           = multiplicity<<16 | userReg              │
+│           (note: each <<16/&0xFFFF unpacks field)   │
+│  Word 6: packed[8]<<16 | packed[9]                  │
+│           = coarseTime<<16 | trigBitMask            │
+│  Word 7: packed[10]<<16 | packed[11]                │
+│           = 4nsCounter[0]<<16 | 4nsCounter[1]       │
+│  Word 8: packed[12]<<16 | packed[13]                │
+│           = 4nsCounter[2]<<16 | 4nsCounter[3]       │
+│  Word 9: packed[14]<<16 | packed[15]                │
+│           = vernierAB<<16 | vernierCD               │
 └────────────────────────────────────────────────┘
   Source: `tcpReceiverMT.cpp` / `receiver.h:L447–524`
   Note: board_id=99, CH_ID=0xA are sentinel values identifying this as trigger data.
