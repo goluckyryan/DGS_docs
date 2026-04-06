@@ -163,7 +163,7 @@ For the detailed word-by-word breakdown of each frame:
 | A–H (RTRG↔DIG) | RTRG ↔ DIG | Bidirectional | Commands downstream, discriminator hits upstream |
 | L, R, U | MTRG ↔ MTRG | Bidirectional | Inter-trigger chaining (multiple Master Triggers) |
 
-All links use 18-bit DC-balanced LVDS SERDES running at 50 MHz.
+All links use 18-bit DC-balanced LVDS SERDES running at 50 MHz. ✅ verified 2026-04-06 — `FPGA/RTRG/Firmware/DGS_Version/MAIN_FPGA/Source/TOP.VHD:L354,L424,L440` (50 MHz logic/SERDES clocks)
 
 ### Data Path vs. Trigger Path
 

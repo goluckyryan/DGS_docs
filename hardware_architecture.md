@@ -88,7 +88,7 @@ Accepted events → VME FIFO → MVME5500 (VME backplane) → tcpReceiver → ho
 
 ## Full System — DGS
 
-Scales up to 1 MTRG × 8 RTRG × 8 DIG × 10 ch = **640 channels**.
+Scales up to 1 MTRG × 8 RTRG × 8 DIG × 10 ch = **640 channels**. ✅ verified 2026-04-06 — `FPGA/MTRG/Firmware/MAIN_FPGA/trunk/.../trigger_top_comp_defs.vhd`: `JTA_8X...` arrays confirm 8 data links (A–H, one per RTRG); 11 total SERDES (8 data + L/R/U)
 Each RTRG manages a "sector" of 8 DIGs = 80 channels = one VME crate.
 
 ### Additional Hardware vs. DuoGe
