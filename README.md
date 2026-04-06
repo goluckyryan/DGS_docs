@@ -13,7 +13,8 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 | File | Description |
 |------|-------------|
-| [overview.md](overview.md) | Full system architecture, hardware inventory, IP map, subsystem map |
+| [overview_DGS.md](overview_DGS.md) | Full DGS (Gammasphere) system architecture, hardware inventory, IP map, subsystem map |
+| [overview_SmallSystem.md](overview_SmallSystem.md) | DuoGe (DUO) and X-Array (DXA) small system overviews |
 | [hardware_architecture.md](hardware_architecture.md) | Hardware breakdown: DuoGe vs DGS, signal chain, collector box architecture |
 | [reference_index.md](reference_index.md) | Index of schematics, datasheets, and PDF documentation |
 | [wiki_gsdaq.md](wiki_gsdaq.md) | Index of the ANL GS DAQ wiki with key facts and known inaccuracies |
@@ -59,8 +60,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [ioc.md](ioc.md) | EPICS IOC config, boot scripts, firmware versions, MVME5500 setup |
 | [EPICS.md](EPICS.md) | EPICS primer: record types, tools, Python integration for DGS |
-| [vxworks.md](vxworks.md) | VxWorks cross-compilation summary |
-| [vxworks_README.md](vxworks_README.md) | Full README: build pipeline, directory structure, munch process, glossary |
+| [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary |
 | [vxworks_migration.md](vxworks_migration.md) | Migration notes from con6 (Solaris) to Ubuntu 24 |
 
 ### Collector Box & Gammasphere
@@ -95,6 +95,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 | File | Description |
 |------|-------------|
+| [nfs_layout.md](nfs_layout.md) | NFS mount layout on DCS2: vol2–vol5, fs1/vol2, piserver; directory inventory, IOC py_scripts, collector box PXE MAC map |
 | [utility_scripts.md](utility_scripts.md) | BGO HV tuning script, PV discovery scripts, data0 space monitor |
 | [snapshot_pv.md](snapshot_pv.md) | snapshot_pv repo: PV snapshot & watchdog utilities (Python/pyepics) |
 | [influxdb_grafana.md](influxdb_grafana.md) | InfluxDB 3 + Grafana monitoring on DCS2 (192.168.203.56) |
