@@ -70,7 +70,7 @@ Recovered notes and config files from old systems. Explored 2026-04-06.
 
 | File | Contents |
 |------|----------|
-| `DGS_systemdef.txt` | VME crate to board assignment map: VME01-12, each with MDIG1/SDIG1/MDIG2/SDIG2 pairs (VME06 and VME10 have only one pair -- fewer detectors) |
+| `DGS_systemdef.txt` | VME crate to board assignment map: VME01-12, each with MDIG1/SDIG1/MDIG2/SDIG2 pairs (VME06 and VME10 have only MDIG1/SDIG1 — 2 digitizers instead of 4). Total: 10 crates × 4 DIGs + 2 crates × 2 DIGs = **44 digitizer boards × 10 ch = 440 channels** (matches ~110 GS holes × 4 signals: 1 Ge + 3 BGO) |
 | `dgs_config.txt` | Python config for DB/screen generation scripts. Defines CSV register map sources (`DGSMasterTriggerRegisterMap.csv`, `DGSRouterTriggerRegisterMap.csv`, `MasterDigitizerRegisterMap.csv`), VME crate/slot assignments (MTRG in crate 32 slot 3; VME01-12 with MDIG/SDIG in slots 3-6), and EPICS runtime path (`/global/devel`). Historical precursor to current IOC config. |
 | `FW_MAINT_README.txt` | Firmware flashing note: refers to old Java-based EPICS client (`flashdgs.js`, `runJEpics`) on con6 -- historical, superseded by current Python/EPICS approach |
 | `NotesOnInloop.txt` | Detailed analysis (JTA) of `inLoop.st` state machine PV hooks and queue usage: `SCAN_FOR_DATA` calls `transferDigFifoData()` and `DigitizerTypeFHeader()` with type codes (0=empty, 1=end-of-run, 2=error). Confirms `TypeOfBoard` (board_type) field is populated but not used by receiver. |
