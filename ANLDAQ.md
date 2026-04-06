@@ -480,6 +480,43 @@ The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet for
 
 ---
 
+## GUI: Master Trigger Window (`gui_MTRG.py`)
+
+`MTRGWindow` — opened by clicking an MTRG board button in DGS Commander. The largest GUI module (1,425 lines). Uses a tab widget with 5 tabs, plus a top-level board info panel.
+
+_Source: `ANLDAQ/gui/gui_MTRG.py` (code-read 2026-04-06)_
+
+### Tab Structure
+
+| Tab | Class | Contents |
+|-----|-------|----------|
+| **Trigger/Veto Control** | `triggerControlTab` | Trigger mode, multiplicity thresholds, veto masks, NIM I/O settings |
+| **Wheel RAM** | `wheelRAMTab` | Lookup table editor for the trigger wheel RAM (determines accept/reject per pattern) |
+| **LINK Control** | `linkControlTab` | Per-link enable/disable, SERDES lock status, SYNC bit controls |
+| **Trigger/CPLD map** | `CPLDControlTab` | CPLD threshold map: maps 40-pin ribbon connections to CPLD fast-strobe channels |
+| **Other Control** | `otherControlTab` | Miscellaneous MTRG register controls |
+
+### Top-Level Board Info Panel
+
+Always visible above the tabs. Shows:
+- **MISC_STAT** register — decoded bit display (`RRegisterDisplay`): NIM IN 1/2 state + misc status
+- **Code Revision** / **Code Date** — hex readback (`reg_CODE_REVISION`, `reg_CODE_DATE`)
+- **Timestamp A/B/C** — hex readback
+- **Clock Source** — toggle button (`ClkSrc`): internal vs external
+- **Imp Sync** — imposing-sync status
+- **Diagnostic counters** — 8 counters: Man/Aux Trigs, Sum X Trigs, Sum Y Trigs, Sum XY Trigs, CPLD Trigs, Link L Locks, NIM 1 Trigs, NIM 2 Trigs
+- **Raw trigger rate counters** — `reg_RAW_TRIG_RATE_COUNTER_N_HIGH/LOW` per algorithm
+- **Accepted trigger rate counters** — `reg_TRIG_RATE_COUNTER_N_HIGH/LOW` per algorithm
+
+### `templateTab` Base Class
+
+All 5 tabs inherit from `templateTab`:
+- Holds a `board` reference + `pvWidgetList`
+- `QTimer` calls `UpdatePVs()` periodically — only updates if the tab is **visible** (skips hidden tabs to reduce CA traffic)
+- `FindPV(name)` — searches `board.Board_PV` by the last `:` segment of the PV name
+
+---
+
 ## GUI: Detector Array Window (`gui_Det.py`)
 
 `DetWindow` — opened via "SBX / CollectorBox" button in DGS Commander. Shows all 110 detectors laid out by collector box group.
