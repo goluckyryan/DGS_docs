@@ -18,7 +18,7 @@ Uses **Git LFS** for large binaries (`.munch`, `.bin`, `vxWorks`).
 
 | Folder | Contents |
 |--------|----------|
-| `bin/` | IOC munch file (`gretDet.munch` — loaded on MVME5500) |
+| `bin/vxWorks-ppc604_long/` | IOC munch file (`gretDet.munch` — loaded on MVME5500) ✅ verified 2026-04-06 — `ioc/bin/vxWorks-ppc604_long/gretDet.munch` |
 | `boot/` | IOC boot scripts (VxWorks `.cmd` files) |
 | `db/` | EPICS database files (PV record definitions) |
 | `dbd/` | EPICS database definition files |
@@ -38,7 +38,7 @@ Uses **Git LFS** for large binaries (`.munch`, `.bin`, `vxWorks`).
 | DUB | 5078 | 5079 |
 | DuoGe | 5080 | 5081 |
 
-NTP server: `192.168.203.56` | Timezone: CDT (UTC-6, `EPICS_TS_MIN_WEST=360`)
+NTP server: `192.168.203.56` ✅ verified 2026-04-06 — `ioc/boot/cdCommands:L23` | Timezone: CDT (UTC-6, `EPICS_TS_MIN_WEST=360`) ✅ verified 2026-04-06 — `ioc/boot/vme99.cmd:L52`
 
 ---
 
@@ -52,6 +52,8 @@ NTP server: `192.168.203.56` | Timezone: CDT (UTC-6, `EPICS_TS_MIN_WEST=360`)
 | `V4747_mod_router_top.bin` | RTRG Main FPGA | Router |
 | `DIG_VME_FPGA_20220729.mcs` | DIG VME FPGA | VME interface (Jul 2022) |
 | `MTRG_VME_FPGA_20250711.mcs` | MTRG VME FPGA | VME interface (Jul 2025) |
+
+_✅ All firmware filenames verified 2026-04-06 — `ls ioc/firmware/`_
 
 **Firmware upload sequence** (`uploadFW.cmd`):
 1. `ProgramFlash(board#, 0, "file.bin")` — writes firmware to flash
