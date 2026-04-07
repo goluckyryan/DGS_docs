@@ -22,7 +22,7 @@ _Reference paper: Begley, Zhu, Carpenter et al., NIM A 1040 (2022) 167113 — "A
 | $V_0$ | `LAST_POST_RISE_M_SUM` | Amplitude of the immediately preceding pulse |
 | $t_0$ | derived from `LAST_DISC_TIMESTAMP` | Time since the immediately preceding pulse |
 | $\text{sb}$ | `SAMPLED_BASELINE` | FPGA-sampled baseline at trigger time (used by SZ\_2) |
-| $dt$ | | Sample period = 10 ns (100 MHz clock) |
+| $dt$ | | Sample period = 10 ns (100 MHz clock) ✅ verified 2026-04-07 — `Digitizer.vhd:L57` ("100 MHz ADC clock, differential pair") + `LEFT_RIGHT.ucf:L114` (ACQ_DCM_2X_BUFG = 100MHz) |
 
 ---
 
