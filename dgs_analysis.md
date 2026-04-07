@@ -116,7 +116,7 @@ make EventBuilder_PQ
 g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
 ```
 
-**In practice:** use `working/RunParquet` — drives all 3 stages from `expInfo.sh` automatically.
+**In practice:** use `working/ProcessRUN` (C++ EventBuilder, primary) or `working/RunParquet` (Python parquet_pysort, legacy) — both driven from `expInfo.sh`.
 
 **Ultimate goal:** Roaring bitmap index — for each energy bin, a roaring bitmap stores the set of `event_id`s containing a hit, enabling rapid energy-gated coincidence queries without scanning the full dataset.
 
@@ -225,14 +225,9 @@ Holds experiment-specific scripts and calibration files. All paths driven by `ex
 
 *Updated 2026-04-07 from git pull (commits up to 0100567)*
 
-### RunParquet
+### RunParquet *(legacy — superseded by ProcessRUN)*
 
-Runs the full parquet_pysort pipeline for a single run:
-```
-make_filemap_dgs.py → decode.py → event_builder.py
-```
-- Stage 1 skipped if filemap exists and is newer than raw files
-- Also called automatically by `stop_run.sh` after each run
+> **As of Apr 2026, `ProcessRUN` (C++ EventBuilder) is the primary pipeline.** `RunParquet` drove the Python `parquet_pysort` pipeline (`make_filemap_dgs.py → decode.py → event_builder.py`). It still exists but `ProcessRUN` is faster and preferred.
 
 ```bash
 ./working/RunParquet [--decode-only] <expInfo.sh> <run_number> [TIMEWIN] [THREADS]
@@ -257,13 +252,121 @@ make_filemap_dgs.py → decode.py → event_builder.py
 
 ### parquetCLI
 
-Interactive REPL for exploring any `_dgs.parquet` or `_events.parquet` file. Columns discovered dynamically at load time. Heavily updated (Apr 2026) to focus on `ProcessRUN` integration.
+Interactive REPL for exploring `_dgs.parquet` (hit-level) or `_events.parquet` (event-level) files. Columns discovered dynamically at load time.
 
 ```bash
 ./working/parquetCLI <file.parquet>
+./working/parquetCLI <file.parquet> --script working/script.py
 ```
 
-**`pq_api.py`** — companion type-stub file (IDE support only, never import directly). Provides typed signatures for all `parquetCLI` REPL functions (`cmd`, `loadParquet`, `plot1D`, `plot2D`, `cal`, `fit`, `save_cal`, `lsID`, etc.).
+**`pq_api.py`** — IDE type-stub only; never import directly. Provides typed signatures for all REPL functions.
+
+#### Commands
+
+| Command | Description |
+|---------|-------------|
+| `ls` | List columns, types, descriptions |
+| `ls hist` | List stored histograms |
+| `ls cal` | List loaded calibration objects |
+| `info` | File metadata (rows, size, schema) |
+| `lsID` | List all crystal IDs with hit counts |
+| `print <col> [N] [S] [G(<gate>)]` | Print N rows starting at row S, optionally gated |
+| `loadParquet <file> [file2 ...]` | Load or chain parquet files |
+| `unloadParquet` | Free loaded file(s) |
+| `loadCal <file.cal>` | Load gain/offset cal → callable `cal<gsid>` objects |
+| `rm <name>` | Delete stored object |
+| `newWindow` | Next plot in a new window |
+
+#### Plotting
+
+| Command | Description |
+|---------|-------------|
+| `plot1D [CS] <col\|expr> [bw [xmin xmax]] [G(<gate>)]` | 1D histogram |
+| `plot2D [col1 col2] [bw]` | 2D histogram (default: sum1 vs sum2) |
+| `plotGG [CS] <col> [bw [xmin xmax]] [G(<gate>)]` | Gamma-gamma coincidence 2D (event-level only) |
+| `plot <name> [name ...]` | Display stored histogram(s) |
+| `overlay <name> [name ...]` | Overlay multiple 1D histograms |
+
+`CS` flag = Compton suppression (drops hits with matching negative-ID veto hit in same event).
+
+Store a histogram with `>`:
+```
+dgs> plot1D e_cal 1 0 4000 > spec
+dgs> plot1D CS e_cal 1 0 4000 G(tid==6) > spec_cs
+```
+
+#### Gate syntax
+
+Gates filter inline via `G(<expr>)` — combine with `&&` / `||`:
+```
+G(tid==6)                  single crystal
+G(tid==6&&CSflag==0)       AND
+G(e_cal>=500&&e_cal<1500)  energy window
+```
+
+#### Formula columns
+
+Any Python expression using column names, numpy functions, and loaded calibrations:
+```
+dgs> plot1D "sum2-sum1" 1 0 5000
+dgs> plot1D "e_cal*1.05" 1 0 4000 G(tid==6)
+dgs> plot1D "cal88(e_raw)" 1 0 4000    # apply loaded calibration
+```
+
+Available: `sqrt`, `abs`, `log`, `log10`, `exp`, `sin`, `cos`, `np.*`
+
+#### Fitting and calibration
+
+```
+dgs> fit spec 5                 # find+fit peaks above 5% of max
+dgs> cal spec eu152             # auto-calibrate against 152Eu source
+dgs> cal spec 10 207Bi Mx      # 10% threshold, anchor on highest-energy peak
+```
+
+Available sources: `am241`, `am243`, `ba133`, `co56`, `eu152`, `na24`, `se75`, `ta182`, `y88`, `207Bi`, etc.
+
+```
+dgs> loadCal working/dgs_gain.cal    # load per-crystal gain/offset
+dgs> cal88 > dgs_gain.cal 88         # write cal to file (new)
+dgs> cal89 >> dgs_gain.cal 89        # append to existing file
+```
+
+#### Histogram arithmetic
+
+```
+dgs> h1 + h2 > h3
+dgs> h1 - h2 > hdiff
+dgs> h1 * h2 > hprod
+dgs> h1 / h2 > hratio
+```
+
+#### Saving / exporting
+
+```
+dgs> spec > spec.png          # save figure (png, pdf, svg, ...)
+dgs> saveParquet out.parquet G(tid==6) CS CAL(e_raw, dgs_gain.cal)
+```
+
+#### Scripting
+
+**Custom syntax** (`.txt`): supports `set`, `for`/`endfor`, `if`/`endif`, `break`, `continue`:
+```
+set TIDS 6 7 8 9
+for TID in {TIDS}
+    plot1D e_cal 1 0 4000 G(tid=={TID}) > spec_{TID}
+endfor
+```
+
+**Python scripts** (`.py`): full Python with access to the CLI session.
+
+**Pipe via stdin:** `./working/parquetCLI data.parquet < commands.txt`
+
+#### Interactive features
+- Tab completion (commands, columns, filenames)
+- Persistent history (`parquetCLI.history`)
+- Rectangle zoom: left-drag to zoom, right-click to reset
+
+_Source: `dgs_analysis/working/README.md` commit b609604 (2026-04-07)_
 
 ### gain_from_parquet.py
 
