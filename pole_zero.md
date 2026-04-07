@@ -1,6 +1,7 @@
 # Pole-Zero Correction — DGS HPGe Detectors
 
 _Source: `dgs_analysis/working/pz_from_parquet.py`, `armory/gray_apps/src/Fitter/grayfit/pole_zero_fitter.py`, `working/README.md`_
+_Reference paper: Begley, Zhu, Carpenter et al., NIM A 1040 (2022) 167113 — "Algorithms of pulse shape analysis for Gammasphere under high count rate conditions"_
 
 ---
 
@@ -37,6 +38,32 @@ At the correct PZ, S1 and S2 become **uncorrelated** — scatter is flat, recove
 | PZ → 0 | Over-correction |
 
 **Bad PZ → energy-dependent bias → degraded resolution and peak broadening.**
+
+### Formal derivation (from NIM A 1040 (2022) 167113)
+
+A valid γ-ray signal `v(t)` = charge collecting function `V(t)` convolved with exponential decay `e^(-λt)`. Pole-zero deconvolution recovers the staircase:
+
+```
+V(t) = v(t) + λ ∫ v(t)dt
+```
+
+The γ-ray energy with trapezoidal shaping time M (recursive algorithm, Eq. 1 in paper):
+```
+E = (1/M) Σ_{j=i}^{i+M} [ v(j+M+K) - v(j) + λ Σ_{l=j}^{j+M+K-1} v(l) ]
+```
+Where `i` = trigger time, `M` = shaping (integration) time, `K` = flat-top time.
+
+The **directive algorithm** (SZ_1/SZ_2 in code) avoids ballistic deficit by using pre-rise region as the baseline prediction:
+```
+E = (1/M) Σ_{j=i}^{i+M} [ v(j+M+K) - v(j)·e^(-λ(M+K)) ] - (1-e^(-λ(M+K)))·v_dc
+```
+In discrete form (code): `PZ = e^(-λ×dt)` per sample, so `λ = -ln(PZ)/dt`.
+
+**Key insight:** `sum1` ≈ pre-rise integral, `sum2` ≈ post-rise integral. The directive algorithm replaces the exponential prediction with:
+```
+E = sum2 - sum1×PZ - base×(1-PZ)
+```
+where `base` estimates `v_dc` (the long-term DC offset = decayed baseline level).
 
 ---
 
