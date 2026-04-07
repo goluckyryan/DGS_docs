@@ -184,4 +184,48 @@ See `gammasphere_geometry.md` for the GS hole geometry.
 
 ---
 
+## Modern Workflow (exp2008_Chiara / ANLDAQ era)
+
+The current experiment uses a Python+Parquet pipeline instead of GEBSort. Key differences:
+
+| Step | Legacy (GEBSort) | Modern (ANLDAQ) |
+|------|-----------------|------------------|
+| Run control | `gcdaq`/`bgscdaq` + `gebsort.sh` | `start_run.sh` / `stop_run.sh` |
+| Data format | GEB binary files | GEB binary → Parquet via `RunParquet` |
+| Event building | GEBSort C++ | `fastEventConstructor` (C++/ROOT) |
+| PZ calibration | `dgs_pz` binary | `pz_from_parquet.py` or `pz_from_evtparquet.py` |
+| Energy calibration | `dgs_ecal` binary | `gain_from_parquet.py` (AutoFitter + GrayCAL) |
+| Output | ROOT TTrees (GEBSort format) | ROOT TTrees (EventBuilder format) |
+
+### Modern Run Flow Summary
+
+```bash
+# 1. Download raw GEB data from NFS
+bash working/DownloadRaw.sh
+
+# 2. Decode GEB → Parquet (hit-level)
+./working/RunParquet --decode-only <run_files> --output expFolder/Parquet/decode/
+
+# 3. PZ calibration from hit-level parquet
+python working/pz_from_parquet.py expFolder/Parquet/decode/exp_003_dgs.parquet \
+    --output working/dgs_pz.cal
+
+# 4. Energy calibration (152Eu source)
+python working/gain_from_parquet.py expFolder/Parquet/decode/exp_003_dgs.parquet \
+    --output working/dgs_gain.cal
+
+# 5. Full decode + event build → Parquet (event-level)
+./working/RunParquet <run_files> --pz-cal dgs_pz.cal --gain-cal dgs_gain.cal \
+    --output expFolder/Parquet/events/
+
+# 6. Build ROOT events (parallel k-way merge)
+./armory/fastEventContructor/EventBuilder_PQ \
+    out.root <timeWindow_ns> 0 0 12 4 <parquet_files...>
+```
+
+See `dgs/dgs_analysis.md` for full details on each step.
+
+---
+
 *Created: 2026-04-05 from [wiki: Typical DGS Run Procedures](https://wiki.anl.gov/gsdaq/Typical_DGS_run_procedures)*
+*Updated: 2026-04-07 — added Modern Workflow section*
