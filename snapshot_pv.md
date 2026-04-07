@@ -107,6 +107,7 @@ python3 putPVs.py 20260405_161500_pv_vme01.txt 20260405_161500_pv_vme10.txt
 ### Implementation details
 - Parses line protocol: `PV_name value=<val>[i] timestamp` (timestamp ignored)
 - `i` suffix = integer; no suffix = float; quoted = string
+- Applies `pv_filter.keep()` to skip filtered PVs before writing ✅ verified 2026-04-07 — `putPVs.py:L42-44` (`from pv_filter import keep` + list comp filter)
 - Parallel writes: `ThreadPoolExecutor` (up to 40 workers)
 - `put(wait=True, timeout=0.5)` — waits for IOC to confirm each write
 - Multiple files run in parallel via `ProcessPoolExecutor`
@@ -136,7 +137,7 @@ Excludes noisy/internal PVs that change constantly:
 - Starts with: `DAQC`
 - Ends with: `RBV`, `LONGIN`, `LONGOUT`, `Lo`, `Hi`, `_counter`, `_TEMP`, `_GeHV`, etc.
 
-> ⚠️ **Filter drift risk:** `watchDog.py` has its **own hardcoded exclusion list** — it does **not** import `pv_filter.py`. As `pv_filter.py` is updated, `watchDog.py`'s filter can silently fall behind. If noisy PVs are added to `pv_filter`, `watchDog.py` must be manually updated too.
+> ⚠️ **Filter drift risk:** `watchDog.py` has its **own hardcoded exclusion list** — it does **not** import `pv_filter.py`. ✅ verified 2026-04-07 — `watchDog.py` imports list confirms no `pv_filter` import. As `pv_filter.py` is updated, `watchDog.py`'s filter can silently fall behind. If noisy PVs are added to `pv_filter`, `watchDog.py` must be manually updated too.
 
 ### Implementation details
 - Creates `epics.PV()` objects, does a `get()` to establish connection, then `add_callback()`
