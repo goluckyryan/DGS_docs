@@ -88,6 +88,12 @@ Boot sequence:
 10. `dbpf` — set user_package_data per board (MDIG1=170, MDIG2=171, MTRG=172)
 11. `seq &inLoop` / `seq &outLoop` / `seq &MiniSender` — start DAQ state machines
 
+**`inLoop` B-parameter syntax:** `seq &inLoop,"CRATE=NN,B0=MDIG1,B1=MDIG2,...,B5=MTRG,B6=X"`
+- B0–B6 map slot numbers to board names (or `X` = empty slot)
+- `inLoop` uses these to form PV names like `MDIG1_CS_Ena` for readout control
+- The slot index in `BN=` must match the physical VME slot (0-indexed from slot 1)
+- Example: `B0=MDIG1,B1=MDIG2,B2=X,B3=X,B4=X,B5=MTRG,B6=X` → MDIG1 in slot 1, MDIG2 in slot 2, MTRG in slot 6
+
 **User package data formula:** `[(crate# - 1) × 4] + 101 + board#`
 - Master trigger always = 150
 - Routers: RTR1=151, RTR2=152, etc.
@@ -101,10 +107,17 @@ Boot sequence:
 ## Boot Scripts
 
 Located in `boot/`:
-- `vme66.cmd` — boot script for VME crate `vme66`
-- `vme99.cmd` — boot script for VME crate `vme99`
-- `cdCommands` — `cd` shortcuts used inside VxWorks
-- `nfsCommands` — NFS mount commands run at boot
+- `vme66.cmd` — DuoGe crate (CRATE=66); uses `cdCommands` (CA port 5080/5081 DuoGe)
+- `vme99.cmd` — GRETINA lab test stand (CRATE=99); uses `cdCommandsLab` (CA port 5074/5075 G-wing)
+- `cdCommands` — paths + EPICS CA env for DuoGe system
+- `nfsCommands` — NFS mount: `nfsAuthUnixSet("fs.gam", 6000, 10, 0, 0)`
+
+**Key differences between vme66 and vme99:**
+- vme66: loads `daqCrate.template` + NFS globals commented out; `cdCommands` (DuoGe port)
+- vme99: loads `daqCrate.template` + `dgsGlobals_DGS_VME99.db`; `cdCommandsLab` (G-wing/test port)
+- vme99: two MDIG boards both use `MDigRegisters/User` (master-type DB); vme66: MDIG1=master, MDIG2=slave (`SDigRegisters/User`)
+- Both: `asynDebug.template` line present but commented out
+- Regular VME01–12 (Gammasphere) boot scripts live on NFS at `/global/ioc/boot/` — not in this git repo
 
 ---
 
