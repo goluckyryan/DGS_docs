@@ -105,13 +105,13 @@ Loaded by `InitializeCoefficients()` at IOC init. Used by `CollectorCalc` PVs.
 | Index | Signal | Conversion |
 |-------|--------|------------|
 | 0 | Sandbox | y = x (passthrough) |
-| 1 | ADC450 voltage | V = (500/4096) × count |
-| 2 | Ge HV | V = (5000/4096) × count |
-| 3 | ADC400 voltage | V = (500/4096) × count |
-| 4 | +24V supply | V = [5/(4096×0.149)] × count |
-| 5 | +12V supply | V = [5/(4096×0.338)] × count |
-| 6 | -12V supply | V = -[5/(4096×0.348)] × count |
-| 7 | +5V supply | V = [5/(4096×0.808)] × count |
+| 1 | ADC450 voltage | V = (500/4096) × count ✅ verified 2026-04-07 — CollectorSupport.c:L680 |
+| 2 | Ge HV | V = (5000/4096) × count ✅ verified 2026-04-07 — CollectorSupport.c:L685 |
+| 3 | ADC400 voltage | V = (500/4096) × count ✅ verified 2026-04-07 — CollectorSupport.c:L690 |
+| 4 | +24V supply | V = [5/(4096×0.149)] × count ✅ verified 2026-04-07 — CollectorSupport.c:L695 (909Ω/6019Ω divider) |
+| 5 | +12V supply | V = [5/(4096×0.338)] × count ✅ verified 2026-04-07 — CollectorSupport.c:L700 (1K/2.96K divider) |
+| 6 | -12V supply | V = -[5/(4096×0.348)] × count ✅ verified 2026-04-07 — CollectorSupport.c:L704 (4.22K/12.1K divider) |
+| 7 | +5V supply | V = [5/(4096×0.808)] × count ✅ verified 2026-04-07 — CollectorSupport.c:L708 (422/522 divider) |
 | 8 | CenterFET bias | V = [11/(125×32768)] × count |
 | 9 | CenterFET current | I = [11/(5×32768)] × count (mA) |
 | 10,11 | FET Vds | V = [1249/(31125×32768)] × count |
@@ -121,7 +121,7 @@ Loaded by `InitializeCoefficients()` at IOC init. Used by `CollectorCalc` PVs.
 | 20 | Enclosure temp | T = (175/65535)×count − 45 (°C) |
 | 21 | Enclosure humidity | H = (100/65535)×count (%) |
 | 22 | PCB temp | T = count/256 (°C) |
-| 23–26 | Fan RPM | RPM = 675000/(count×N), N=1,2,4,8 |
+| 23–26 | Fan RPM | RPM = 675000/(count×N), N=1,2,4,8 ✅ verified 2026-04-07 — CollectorSupport.c:L778-787 (MAX6653 datasheet p.12) |
 | 27 | Slope box DAC | DAC = volts × (4096/5000) |
 | 29 | Power board temp | T = count × 0.125 (°C) |
 | 30 | Collector remote temp | T = count × 0.125 + 17 (°C) |
@@ -133,8 +133,8 @@ Loaded by `InitializeCoefficients()` at IOC init. Used by `CollectorCalc` PVs.
 
 | Sensor | ADC→R slope | ADC→R intercept | a0 | a1 | a2 |
 |--------|------------|-----------------|----|----|-----|
-| PT100 | 0.05427 | 1.0284 | −242.36 | 2.252 | 1.846×10⁻³ |
-| PT500 | 0.04120 | 0.0 | −242.36 | 0.4504 | 7.384×10⁻⁵ |
+| PT100 | 0.054267 | 1.0284 | −242.362 | 2.25179 | 1.84598×10⁻³ | ✅ verified 2026-04-07 — CollectorSupport.c:L843-848 (empirical, slope box #92, 2023-03-09) |
+| PT500 | 0.041199 | 0.0 | −242.362 | 0.45036 | 7.38393×10⁻⁵ | ✅ verified 2026-04-07 — CollectorSupport.c:L872-877 (derived: PT100 coeffs scaled by 1/5, 1/25) |
 
 ---
 
