@@ -33,7 +33,7 @@ The DGS (Digital Gamma-ray Spectrometer) detector system uses a small dedicated 
 
 To write software for the MVME5500, you cannot compile it on the board itself — the board has no development tools and is too slow for that. Instead, you compile on a modern Linux PC and produce a binary that runs on the PowerPC CPU inside the MVME5500. This is called **cross-compilation**: the machine you compile on (Ubuntu x86-64) is different from the machine that runs the result (PowerPC VxWorks).
 
-This repository contains everything needed to reproduce that cross-compilation on Ubuntu 24, starting from source code and ending with `gretDet.munch` — the single binary file that gets loaded onto each MVME5500 crate to bring the detector IOC online.
+This repository contains everything needed to reproduce that cross-compilation on Ubuntu 24, starting from source code and ending with `gretDet.munch` — the single binary file that gets loaded onto each MVME5500 crate to bring the detector IOC online. ✅ verified 2026-04-07 — `dgsDrivers/dgsDriverApp/src/README.md:L744` ("IOC boot: gretDet.munch loaded by VxWorks shell")
 
 ---
 
@@ -51,9 +51,9 @@ VxWorks/
 │   └── target/
 │       ├── h/                      # VxWorks OS headers (vxWorks.h, semLib.h, ...)
 │       └── config/mv5500/          # MVME5500 board-specific headers (universe.h, etc.)
-├── epics/base-3.14.12.1/           # EPICS base framework — provides the build system and core libraries
-├── synApps/asyn4-17/               # asyn — hardware driver abstraction layer
-├── sncseq/sncseq-2.0.12/           # State machine compiler and runtime
+├── epics/base-3.14.12.1/           # EPICS base framework — provides the build system and core libraries  ✅ verified 2026-04-07 — ls vxworks/epics/
+├── synApps/asyn4-17/               # asyn — hardware driver abstraction layer  ✅ verified 2026-04-07 — ls vxworks/synApps/
+├── sncseq/sncseq-2.0.12/           # State machine compiler and runtime  ✅ verified 2026-04-07 — ls vxworks/sncseq/
 ├── dgsDrivers/                     # DGS hardware driver library (built here, linked into dgsIoc)
 │   └── lib/vxWorks-ppc604_long/
 │       └── libdevDGSDriverSupport.a
@@ -75,7 +75,7 @@ Key tools:
 - `ldppc` — linker that combines compiled pieces into a single binary
 - `nmppc` — reads a binary and lists all its exported symbols (function/variable names)
 
-These are pre-built binaries from Jefferson Lab; they are not compiled from source and are excluded from git (too large). Re-download from https://coda.jlab.org/drupal/content/ppc-cross-compilers.
+These are pre-built binaries from Jefferson Lab; they are not compiled from source and are excluded from git (too large). Re-download from https://coda.jlab.org/drupal/content/ppc-cross-compilers. ✅ verified 2026-04-07 — `vxworks/README.md:L78,L194`
 
 ---
 
