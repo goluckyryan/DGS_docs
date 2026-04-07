@@ -157,6 +157,29 @@ The single binary loaded on each MVME5500 — output of the `vxworks/` build pip
 ### EPICS PVs
 Database files in `db/` define all Process Variables exposed by the IOC. These PVs are how the ANLDAQ GUI (and any `caget`/`caput` tool) reads and writes board registers.
 
+### DB Templates (ioc/db/)
+
+All templates use `dbLoadRecords("template", "MACRO=val,...")` in the boot scripts.
+
+| Template | Board | Purpose |
+|----------|-------|---------|
+| `MDigRegisters.template` | Master Digitizer | Low-level register R/W PVs (`asynUInt32Digital`) |
+| `MDigUser.template` | Master Digitizer | User-friendly PVs (mbbo/mbbi, bi/bo, calc) |
+| `SDigRegisters.template` | Slave Digitizer | Same as MDigRegisters for slave boards |
+| `SDigUser.template` | Slave Digitizer | Same as MDigUser for slave boards |
+| `MTrigRegisters.template` | MTRG | Master trigger register PVs |
+| `MTrigUser.template` | MTRG | User-friendly MTRG PVs |
+| `RTrigRegisters.template` | RTRG | Router trigger register PVs |
+| `RTrigUser.template` | RTRG | User-friendly RTRG PVs |
+| `MDigRegistersVME.template` | DIG VME FPGA | VME FPGA status: power OK, voltage rails, temp sensors, clock select, `vme_code_revision_RBV`, `SERIAL_NUMBER_RBV` (used on crates 66 and 99) |
+| `MDigUserVME.template` | DIG VME FPGA | User-facing VME FPGA PVs: power status bits, `serial_num_RBV`, `vme_code_revision_RBV`, `clk_select` |
+| `SDigRegistersVME.template` | Slave DIG VME FPGA | Same as MDigRegistersVME for slave boards |
+| `SDigUserVME.template` | Slave DIG VME FPGA | Same as MDigUserVME for slave boards |
+| `daqCrate.template` | Per-crate | Crate-level status |
+| `daqSegment2.template` | Per-segment | Segment-level DAQ status |
+
+**Note:** The four `*VME.template` files were added after Feb 2024 (not in `DB_backup_20240205`). They expose VME FPGA internals for crates 66 (DuoGe) and 99 (test stand).
+
 ### Boot script flow
 1. VxWorks loads from FTP
 2. NFS mounts set up (`nfsCommands`)
