@@ -102,7 +102,7 @@ RTRG — Aggregates 8 digitizers
     ▼
 MTRG — Runs trigger algorithms
     │  8 algorithms (GITMO, MYRIAD, multiplicity, coincidence, etc.)
-    │  TDC timestamps events with ~30 ps resolution (vernier, 50 ps/tap)
+    │  TDC timestamps events with ~30 ps resolution (vernier, 4-phase 250 MHz, 64-tap chain) ✅ verified 2026-04-07 — tdc_chain_cont.vhd:L28-31 (4 phases assumed 250MHz), L77-80 (64-tap chains); MAIN_FPGA.md:L344
     ▼
   Trigger Decision
 ```
@@ -285,7 +285,7 @@ t ~ 2–4 µs    MTRG algorithm decision ready
                  TS_COMP_LOWER_LIMIT < (TS_event − TS_trigger) < TS_COMP_UPPER_LIMIT
                → PEQ entry marked ACCEPTED
 
-t = ~20 µs    EVENT_EXPIRED fires (discriminator flag delayed by TRIG_DELAY = 2 × 1024 samples at 100 MHz)
+t = ~20 µs    EVENT_EXPIRED fires (discriminator flag delayed by TRIG_DELAY = 2 × 1024 samples at 100 MHz) ✅ verified 2026-04-07 — jta_channel.vhd:L1019,L1026,L1051 (two DP_BRAM_RWA_RB_1Kx18 in series)
                → Any PEQ entry still PENDING (no decision received) is forcibly REJECTED
                → Accepted events: data already packed into channel readout FIFO ✓
                → Waveform data falls off the delay chain after this point
