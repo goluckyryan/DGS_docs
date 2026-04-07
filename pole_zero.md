@@ -34,57 +34,52 @@ HPGe preamplifiers produce an exponential tail after each gamma-ray hit — the 
 - **S2** (`sum2`) — integral over the **post-rise** window (signal trapezoid, after peak)
 
 The simple energy without correction:
-```
-E = sum2 - sum1
-```
 
-But the preamp exponential tail causes `sum2` to pick up a contribution from the slowly decaying baseline — creating a **correlation between S1 and S2** that depends on inter-event time and baseline history. The S1 vs S2 scatter plot shows a **tilted distribution** instead of flat.
+$$E = S_2 - S_1$$
 
-An **ideal detector** has an infinite preamp time constant (no exponential tail). S1 and S2 are then truly independent — the scatter is flat and horizontal, and energy resolution is maximized.
+But the preamp exponential tail causes $S_2$ to pick up a contribution from the slowly decaying baseline — creating a **correlation between $S_1$ and $S_2$** that depends on inter-event time and baseline history. The $S_1$ vs $S_2$ scatter plot shows a **tilted distribution** instead of flat.
 
-**The PZ-corrected energy (SZ_1 algorithm, from `dgs_decode_lib.cpp`):**
-```
-E = sum2 - sum1 × PZ - base × (1 − PZ)
-```
-Where:
-- `base` = running exponential average of `sum1` (long-term baseline level)
-- `PZ ∈ (0,1)` = pole-zero coefficient that cancels the exponential tail contribution
+An **ideal detector** has an infinite preamp time constant (no exponential tail). $S_1$ and $S_2$ are then truly independent — the scatter is flat and horizontal, and energy resolution is maximized.
 
-At the correct PZ, S1 and S2 become **uncorrelated** — scatter is flat, recovering the ideal case.
+**The PZ-corrected energy (SZ_1 algorithm):**
+
+$$E = S_2 - S_1 \cdot \text{PZ} - b\,(1 - \text{PZ})$$
+
+Where $b$ is a running exponential average of $S_1$ (long-term baseline estimate) and $\text{PZ} \in (0,1)$ is the pole-zero coefficient.
+
+At the correct PZ, $S_1$ and $S_2$ become **uncorrelated** — scatter is flat, recovering the ideal case.
 
 | PZ value | Effect |
 |----------|--------|
-| PZ = 1 | No correction → reduces to `E = sum2 - sum1` (algo 0) |
-| PZ = 0.88–0.99 | Typical operating range |
-| PZ → 0 | Over-correction |
+| $\text{PZ} = 1$ | No correction → reduces to $E = S_2 - S_1$ (algo 0) |
+| $\text{PZ} = 0.88$–0.99 | Typical operating range |
+| $\text{PZ} \to 0$ | Over-correction |
 
 **Bad PZ → energy-dependent bias → degraded resolution and peak broadening.**
 
 ### Formal derivation (from NIM A 1040 (2022) 167113)
 
-A valid γ-ray signal `v(t)` = charge collecting function `V(t)` convolved with exponential decay `e^(-λt)`. Pole-zero deconvolution recovers the staircase:
+A valid $\gamma$-ray signal $v(t)$ = charge collecting function $V(t)$ convolved with exponential decay $e^{-\lambda t}$. Pole-zero deconvolution recovers the staircase:
 
-```
-V(t) = v(t) + λ ∫ v(t)dt
-```
+$$V(t) = v(t) + \lambda \int_0^t v(t')\,dt'$$
 
-The γ-ray energy with trapezoidal shaping time M (recursive algorithm, Eq. 1 in paper):
-```
-E = (1/M) Σ_{j=i}^{i+M} [ v(j+M+K) - v(j) + λ Σ_{l=j}^{j+M+K-1} v(l) ]
-```
-Where `i` = trigger time, `M` = shaping (integration) time, `K` = flat-top time.
+The $\gamma$-ray energy with trapezoidal shaping time $M$ (recursive algorithm, Eq. 1 in paper):
 
-The **directive algorithm** (SZ_1/SZ_2 in code) avoids ballistic deficit by using pre-rise region as the baseline prediction:
-```
-E = (1/M) Σ_{j=i}^{i+M} [ v(j+M+K) - v(j)·e^(-λ(M+K)) ] - (1-e^(-λ(M+K)))·v_dc
-```
-In discrete form (code): `PZ = e^(-λ×dt)` per sample, so `λ = -ln(PZ)/dt`.
+$$E = \frac{1}{M} \sum_{j=i}^{i+M} \left[ v(j+M+K) - v(j) + \lambda \sum_{l=j}^{j+M+K-1} v(l) \right]$$
 
-**Key insight:** `sum1` ≈ pre-rise integral, `sum2` ≈ post-rise integral. The directive algorithm replaces the exponential prediction with:
-```
-E = sum2 - sum1×PZ - base×(1-PZ)
-```
-where `base` estimates `v_dc` (the long-term DC offset = decayed baseline level).
+Where $i$ = trigger sample, $M$ = integration time, $K$ = flat-top gap.
+
+The **directive algorithm** (SZ_1/SZ_2) avoids ballistic deficit:
+
+$$E = \frac{1}{M} \sum_{j=i}^{i+M} \left[ v(j+M+K) - v(j)\,e^{-\lambda(M+K)} \right] - \left(1 - e^{-\lambda(M+K)}\right) v_{\text{dc}}$$
+
+In discrete form: $\text{PZ} = e^{-\lambda\,dt}$ per sample, so $\lambda = -\ln(\text{PZ})/dt$.
+
+**Key insight:** $S_1 \approx$ pre-rise integral, $S_2 \approx$ post-rise integral. The directive algorithm becomes:
+
+$$E = S_2 - S_1\cdot\text{PZ} - b\,(1 - \text{PZ})$$
+
+where $b$ estimates $v_{\text{dc}}$ (the long-term DC offset).
 
 ---
 
@@ -92,54 +87,45 @@ where `base` estimates `v_dc` (the long-term DC offset = decayed baseline level)
 
 _Why does `g×(sum1 - base)` correct for the previous pulse tail?_
 
-**Setup:** Let g = 1 - PZ. The energy formula becomes:
-```
-E = sum2 - sum1 + g×(sum1 - base)
-```
+Let $g = 1 - \text{PZ}$. The energy formula becomes:
 
-**Signal model:** Current pulse at t=0, previous pulse at t=-t0, amplitude V0, decay constant k (µs). Signal before trigger:
-```
-v(t) = baseline_DC + V0·exp(-(t+t0)/k)
-```
+$$E = S_2 - S_1 + g\,(S_1 - b)$$
 
-**Computing sum1** (average over pre-rise window width M, from t=-M to t=0):
-```
-sum1 = (1/M) ∫_{-M}^{0} v(t) dt
-     = baseline_DC + (V0/M) ∫_{-M}^{0} exp(-(t+t0)/k) dt
-     = baseline_DC + (V0·k/M)·exp(-t0/k)·[exp(M/k) - 1]
-```
+**Signal model:** Current pulse at $t=0$, previous pulse at $t=-t_0$, amplitude $V_0$, decay constant $k$ (µs):
 
-**Computing base:** Long-run average of sum1 taken between pulses (when V0·exp(-t0/k) ≈ 0):
-```
-base ≈ baseline_DC
-```
+$$v(t) = b_{\text{DC}} + V_0\,e^{-(t+t_0)/k}$$
+
+**Computing $S_1$** (average over pre-rise window $[-M, 0]$):
+
+$$S_1 = \frac{1}{M}\int_{-M}^{0} v(t)\,dt = b_{\text{DC}} + \frac{V_0 k}{M}\,e^{-t_0/k}\left(e^{M/k}-1\right)$$
+
+**Computing $b$:** Long-run average between pulses (when $V_0 e^{-t_0/k} \approx 0$):
+
+$$b \approx b_{\text{DC}}$$
 
 **Therefore:**
-```
-sum1 - base = (V0·k/M)·exp(-t0/k)·[exp(M/k) - 1]
-            = V0·exp(-t0/k)·f(M,k)
-```
-where `f(M,k) = (k/M)·(exp(M/k)-1)` depends only on hardware constants.
 
-**So `sum1 - base` is directly proportional to the previous pulse tail amplitude `V0·exp(-t0/k)`.** This is the physical basis for the correction.
+$$S_1 - b = V_0\,e^{-t_0/k}\cdot f(M,k), \qquad f(M,k) = \frac{k}{M}\left(e^{M/k}-1\right)$$
 
-**Matching Ryan's exact formula:** The correction `g×(sum1-base)` equals Ryan's `V0·exp(-t0/k)·2·sinh(d/k)` when:
-```
-g × (k/M)·(exp(M/k)-1) = 2·sinh(d/k)
-```
-This is satisfied by the empirically fitted PZ value — the fitting implicitly encodes the relationship between the sum1 window (M), sum2 window (d≈K/2), and decay constant k.
+$S_1 - b$ is **directly proportional to the previous pulse tail amplitude** $V_0 e^{-t_0/k}$. This is the physical basis for the correction.
 
-**The baseline drift problem (preamp resets):** If the baseline is not stable (sawtooth: ramps up between resets, jumps down at reset), then `base ≠ baseline_DC` at the current event. The error is:
-```
-error = g × (baseline_DC_now - base)
-```
-The code's exponential moving average of sum1 lags the actual DC level through resets, introducing a systematic bias. Events near resets are most affected. This is a fundamental limitation of the statistical PZ correction vs. an event-by-event correction.
+**Matching Ryan’s exact formula:** The correction $g\,(S_1 - b)$ equals $V_0 e^{-t_0/k}\cdot 2\sinh(d/k)$ when:
 
-**Time constant:** `GS###_GeCenterTimeConstant` PV sets k per detector (selectable: 5.0–52.0 µs in 14 steps). The nominal PZ follows:
-```
-PZ = exp(-dt/k)   where dt = 10 ns (100 MHz clock)
-```
-For k = 10 µs: PZ ≈ 0.999. Empirically fitted PZ should be close to this nominal value; deviations indicate component tolerance or temperature effects.
+$$g \cdot \frac{k}{M}\left(e^{M/k}-1\right) = 2\sinh(d/k)$$
+
+This is satisfied by the empirically fitted PZ value — the fitting implicitly encodes $M$, $K$, and $k$ together.
+
+**Baseline drift problem (preamp resets):** If the baseline is not stable (sawtooth pattern), then $b \neq b_{\text{DC}}$ at the current event. The error is:
+
+$$\epsilon = g\,(b_{\text{DC,now}} - b)$$
+
+The exponential moving average lags through resets, introducing systematic bias. Events near resets are most affected.
+
+**Time constant:** `GS###_GeCenterTimeConstant` PV sets $k$ per detector (selectable: 5.0–52.0 µs in 14 steps). The nominal PZ follows:
+
+$$\text{PZ} = e^{-dt/k}, \qquad dt = 10\,\text{ns (100 MHz clock)}$$
+
+For $k = 10\,\mu\text{s}$: $\text{PZ} \approx 0.999$. Deviations of fitted PZ from nominal indicate component tolerance or temperature effects.
 
 ---
 
