@@ -4,6 +4,8 @@
 
 Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 rings** at fixed polar angles θ from the beam axis. GS numbers are fixed — they identify the physical position in the array, not the crystal installed there.
 
+✅ verified 2026-04-07 — `angtheta.dat`: 110 lines, 17 unique θ values, line N = GS hole N. Ring 1 (17.3°) = GS001–004,006 ✓; Ring 9 (90.0°) = GS049,051,053–058,060,062 ✓; all ring counts and angles match.
+
 ---
 
 ## Ring Structure
