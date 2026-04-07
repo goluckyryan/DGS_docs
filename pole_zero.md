@@ -5,6 +5,27 @@ _Reference paper: Begley, Zhu, Carpenter et al., NIM A 1040 (2022) 167113 — "A
 
 ---
 
+## Symbol Table
+
+| Symbol | Code variable | Meaning |
+|--------|--------------|--------|
+| $S_1$ | `sum1` | Pre-rise trapezoidal sum (baseline window, width $M$, ends at trigger) |
+| $S_2$ | `sum2` | Post-rise trapezoidal sum (signal window, width $M$, starts after gap $K$) |
+| $E$ | `e_raw` | True $\gamma$-ray energy (what we want) |
+| $b$ | `base` | Estimated instantaneous baseline DC level |
+| $k$ | `GeCenterTimeConstant` | Preamp RC decay constant (µs) |
+| $M$ | `dgs-MM` / `m_window` | Trapezoid integration window width (samples) |
+| $K$ | `dgs-KK` / `k_window` | Trapezoid flat-top gap between $S_1$ and $S_2$ windows (samples) |
+| $\text{PZ}$ | `pz1` | Per-sample pole-zero coefficient: $\text{PZ} = e^{-dt/k}$, $dt=10\,$ns |
+| $\text{PZ}_{\text{eff}}$ | `pz4` | Effective PZ over full window gap: $\text{PZ}^{K+M}$ |
+| $g$ | | $g = 1 - \text{PZ}$ |
+| $V_0$ | `LAST_POST_RISE_M_SUM` | Amplitude of the immediately preceding pulse |
+| $t_0$ | derived from `LAST_DISC_TIMESTAMP` | Time since the immediately preceding pulse |
+| $\text{sb}$ | `SAMPLED_BASELINE` | FPGA-sampled baseline at trigger time (used by SZ\_2) |
+| $dt$ | | Sample period = 10 ns (100 MHz clock) |
+
+---
+
 ## What Is Pole-Zero?
 
 HPGe preamplifiers produce an exponential tail after each gamma-ray hit — the output decays as `e^(-t/RC)` where RC is the preamplifier time constant. The digitizer FPGA computes two trapezoidal energy sums:
