@@ -1,11 +1,6 @@
 # DGS Reference Index — Register Maps & Hardware Drawings
 
-_Created: 2026-04-04. Last updated: 2026-04-06._
-
----
-
-
-_Created 2026-04-04. For lookups, use `grep` on the CSV files._
+_Created: 2026-04-04. Last updated: 2026-04-07. For lookups, use `grep` on the CSV files._
 
 ---
 
@@ -126,8 +121,9 @@ grep "0x015C" /home/ryan/DGS_tools_pack/DGS_docs/RegisterMaps/DGSMasterTriggerRe
 
 ---
 
+## Hardware Drawings Index
 
-_Created 2026-04-04. All paths relative to `/home/ryan/DGS_tools_pack/`_
+_All paths relative to `/home/ryan/DGS_tools_pack/`_
 
 ---
 
@@ -198,7 +194,7 @@ _Created 2026-04-04. All paths relative to `/home/ryan/DGS_tools_pack/`_
 |----------|------|----------|
 | Schematic | `myriad.pdf` | `DGS_SVN/dgs/MyRIAD/Schematics/` |
 | Module specification | `MYRIAD_Module_Specification.pdf` | `DGS_SVN/dgs/MyRIAD/Documentation/` |
-| User manual | `MyRIAD User Manaual.pdf` | `DGS_SVN/dgs/MyRIAD/Documentation/` |
+| User manual | `MyRIAD User Manaual.pdf` _(filename typo in original)_ | `DGS_SVN/dgs/MyRIAD/Documentation/` |
 | Abridged user notes | `MyRIAD Abridged User Notes.pdf` | `DGS_SVN/dgs/MyRIAD/Documentation/` |
 | Memory map (XLS) | `MyRIAD_memory_map.xls` | `DGS_SVN/dgs/MyRIAD/` |
 | Register map (CSV) | via `DGS_docs/DGS_System_Documentation/Firmware/MyRIAD/MyRIAD memory map.xls` | `DGS_docs/DGS_System_Documentation/Firmware/MyRIAD/` |
