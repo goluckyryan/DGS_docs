@@ -118,6 +118,19 @@ _Indexed: 2026-04-05_
 
 ---
 
+## Historical Software Documentation (SVN Archive)
+
+_Root: `DGS_tools_pack/DGS_SVN/dgs/Documentation/Formal/Software/`_
+
+| Size | File | Notes |
+|------|------|-------|
+| 847KB | `DigitalGammasphereSW.pdf` | **DGS Software Development overview** (T. Madden, ANL): asyn driver approach, EDM→CSS GUI migration, auto-generation of EPICS DBs + screens + st.cmd from register spreadsheets, Python EPICS PV class. Historical — this is the origin of the current ANLDAQ/IOC approach. |
+| 274KB | `asynDebugDriverDOCS.pdf` | asyn debug driver documentation — likely documents the `asynDebug.template` record type (removed from current `ioc/db/` but present in `DB_backup_20240205`) |
+| 358KB | `DebuggingEPICSChannelAccess.pdf` | Guide to debugging EPICS Channel Access issues |
+| 86KB | `pythonEPICS.pdf` | Python EPICS guide (likely pyepics intro for DGS developers) |
+
+---
+
 ## Priority Queue (Suggested Order)
 
 1. ✅ `ANL Digitizer Firmware for Experts.pdf` — done → `dgs/DIG_firmware_expert.md`
