@@ -131,7 +131,7 @@ g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
 
 **GEBSort reference:** `GEBSort.cxx:GEBGetEv()` — coincidence grouping: `while ((TS - curTS) < dTS)`. Default `dTS=500`. `jta.c:DGSEvDecompose_v3()` parses payloads (big-endian swap, 48-bit timestamp from words 1+2, `trigger_timestamp` only in header types 7/8).
 
-_Source: `dgs_analysis/armory/parquet_pysort/CLAUDE.md` + `README.md` — updated 2026-04-06_
+_Source: `dgs_analysis/armory/parquet_pysort/CLAUDE.md` + `README.md` — updated 2026-04-07_
 
 ### gray_apps
 
@@ -200,7 +200,7 @@ _Source: `dgs_analysis/armory/gray_apps/src/GrayMAN/` — explored 2026-04-06_
 
 Holds experiment-specific scripts and calibration files. All paths driven by `expInfo.sh` from `~/ANLDAQ/tcpReceiver/expInfo.sh`.
 
-*Updated 2026-04-05 from git pull (commits up to 5126a11)*
+*Updated 2026-04-07 from git pull (commits up to 0100567)*
 
 ### RunParquet
 
@@ -234,11 +234,13 @@ make_filemap_dgs.py → decode.py → event_builder.py
 
 ### parquetCLI
 
-Interactive REPL for exploring any `_dgs.parquet` or `_events.parquet` file. Columns discovered dynamically at load time.
+Interactive REPL for exploring any `_dgs.parquet` or `_events.parquet` file. Columns discovered dynamically at load time. Heavily updated (Apr 2026) to focus on `ProcessRUN` integration.
 
 ```bash
 ./working/parquetCLI <file.parquet>
 ```
+
+**`pq_api.py`** — companion type-stub file (IDE support only, never import directly). Provides typed signatures for all `parquetCLI` REPL functions (`cmd`, `loadParquet`, `plot1D`, `plot2D`, `cal`, `fit`, `save_cal`, `lsID`, etc.).
 
 ### gain_from_parquet.py
 
@@ -246,14 +248,47 @@ Extracts gain calibration from decoded parquet data.
 
 ### pz_from_parquet.py
 
-Extracts pole-zero calibration from decoded parquet data. Use with `--decode-only` RunParquet:
+Extracts pole-zero calibration from decoded (hit-level) parquet data. Use with `--decode-only` RunParquet:
 ```bash
 python working/pz_from_parquet.py $expFolder/Parquet/decode/exp2008_003_dgs.parquet --output working/dgs_pz.cal
 ```
 
-### ProcessRUN
+### pz_from_evtparquet.py *(new Apr 2026)*
 
-Higher-level run processing wrapper.
+Extract pole-zero constants from **event-level** `.parquet` files (where `detID`, `sum1`, `sum2` are `list<>` columns rather than flat columns). Flattens lists to rows then runs the same 2D-histogram + PZ fitting pipeline per crystal.
+
+```bash
+python working/pz_from_evtparquet.py <file.parquet> [options]
+  --output FILE      Output cal file (default: dgs_pz.cal)
+  --method METHOD    chi2 | peakmatch | pca | ridge  (default: chi2)
+  --pz-min/max/step  PZ scan bounds (default: 0.88–0.99, step 0.0005)
+  --s1-bins/s2-bins  Histogram bins (default: 512 each)
+  --detID N ...      Process only these crystal IDs (default: all)
+  --quiet            Suppress per-crystal progress
+```
+
+### DownloadRaw.sh *(new Apr 2026)*
+
+Copies raw GEB run data from NFS to local `expFolder/data/` via rsync.
+
+```bash
+./working/DownloadRaw.sh [--dry-run] <expInfo.sh> <run_number> [run_number ...]
+# e.g.: ./working/DownloadRaw.sh expInfo.sh 3 5 7
+```
+
+Requires `nfsFolder` defined in `expInfo.sh` (root of NFS data mount). Supports `--dry-run` to preview without copying.
+
+### ProcessRUN *(updated Apr 2026)*
+
+Higher-level run processing wrapper — event building + pole-zero extraction + analysis for one run.
+
+```bash
+./working/ProcessRUN [expInfo.sh] <run_number> [BUILD] [ANALYSIS]
+  BUILD     : 1=build if stale (default), 0=skip, -1=force rebuild
+  ANALYSIS  : 1=run ROOT analyzer (default), 0=skip
+```
+
+Sources `expInfo.sh` (from arg or script dir) for `expName`, `expFolder`, `dataFolder`.
 
 ### BenchmarkTAC2_021.sh
 
