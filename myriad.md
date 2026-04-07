@@ -16,7 +16,7 @@ The MγRIAD bridges auxiliary detectors (NIM/ECL-based) to the DGS/GRETINA TTCL 
 - Provides local coincidence logic between local detector and auxiliary trigger
 - Interfaces legacy FERA ADC systems via ECL
 
-Connected to **link R or U** of the Master Trigger (see `connectors.md`).
+Connected to **link U** of the Master Trigger. ✅ verified 2026-04-07 — `top.vhd:L3562` (`RECEIVED_MYRIAD_DATA => LAT_LINKU_RX`).
 
 ---
 
@@ -26,6 +26,22 @@ Connected to **link R or U** of the Master Trigger (see `connectors.md`).
 - **Not Ethernet** — Cat5e cable to DGS/GRETINA trigger module only
 - Carries TTCL (Trigger Timing and Control Link) — same protocol as digitizer RJ45
 - LEDs on connector indicate SERDES link lock state
+
+#### MγRIAD → MTRG SERDES Data Frame Format
+_Source: `MYRIAD_RCV_MACH.vhd` header comment ✅ verified 2026-04-07_
+
+MγRIAD sends a **5-word repeating frame** over SERDES (16-bit words):
+
+| Word | Bits 15:13 | Bit 12 | Bit 11 | Bits 10:8 | Bits 7:0 |
+|------|-----------|--------|--------|-----------|----------|
+| All  | bit15=10MHz flag, bits14:13=00 | Raw trigger (NIM or ECL input) | Gated trigger (coincidence logic output) | 3-bit ordinal counter (sync check) | word-specific (below) |
+| 00 | — | — | — | — | `0xAD` (part of reset sync `0x0BAD`) |
+| 01 | — | — | — | — | NIM input states (8 bits) |
+| 02 | — | — | — | — | ECL input states |
+| 03 | — | — | — | — | FERA control states |
+| 04 | — | — | — | — | 8-bit frame counter (sync check) |
+
+MTRG receiver (`MYRIAD_RCV_MACH`) locks onto this stream and extracts NIM/ECL state, raw trigger, gated trigger, and 10 MHz flag. Reset detected by `0x0BAD` signature in word 00.
 
 ### JTAG
 - Direct FPGA access via Xilinx JTAG programmer
@@ -90,7 +106,7 @@ S7  S8  S9
 
 ## DGS Usage
 
-In DGS, MγRIAD is connected to **link R or U** of the MTRG:
+In DGS, MγRIAD is connected to **link U** of the MTRG: ✅ verified 2026-04-07 — `MTRG/top.vhd:L3562`
 - Receives TTCL timestamps → propagates to auxiliary VME DAQs
 - Sends auxiliary detector trigger messages back to MTRG
 - Local NIM input 0 = aux detector trigger (e.g. ancillary detector, tape station)
