@@ -217,15 +217,15 @@ Currently disabled — snapshots go to files only.
 
 ## Known Issues
 
-### putPVs.py — asynUInt32Digital timeout (channel_enable)
+### putPVs.py — asynUInt32Digital timeout (channel_enable) ✅ FIXED 2026-04-06
 
 **Symptom:** `channel_enable` and other bit-field PVs (asynUInt32Digital + asynMask) silently fail to restore from snapshot.
 
-**Root cause:** putPVs.py fires 40 concurrent writes per board. All writes for one board share a single asyn worker thread. With 40 R-M-W operations queued, early writes time out before completing (0.5s default is too short).
+**Root cause:** putPVs.py fired 40 concurrent writes per board. All writes for one board share a single asyn worker thread. With 40 R-M-W operations queued, early writes timed out before completing (0.5s default was too short).
 
-**Recommended fix:** Increase timeout to 3–5s, reduce `max_workers` to 10–20, add retry loop for failed writes.
+**Fix applied (commit `54e3e72`, 2026-04-06):** Timeout increased 0.5s → 5s, `max_workers` reduced 40 → 20, retry loop added (3× with 1s delay between attempts). ✅ verified — `putPVs.py` commit `54e3e72`
 
-**Details:** See `workspace/setPVs_issue.md` + QUEUE.md task "Fix putPVs.py — channel_enable and asynUInt32Digital timeout".
+**Details:** See `workspace/setPVs_issue.md`.
 
 ---
 
