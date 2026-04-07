@@ -51,10 +51,10 @@ Automated control system for filling germanium detector **dewars** with liquid n
 | `DetValve.py` | Valve control |
 | `TankMan.py` | Tank manager |
 | `LNValve.py` | LN valve abstraction |
-| `pvlock.py` | PV locking utility |
-| `pv_cache.py` | PV caching |
-| `LNFill_Stop.py` | Emergency stop — close all valves |
-| `LNFill_closeValves.py` | Close valves utility |
+| `pvlock.py` | Shared `threading.Lock()` (`pv_lock`) for serializing EPICS PV access across modules |
+| `pv_cache.py` | Thread-safe PV object cache (double-checked locking pattern); `get_pv(name)` returns a reused `epics.PV` instance, creating it once per name to avoid redundant CA connections |
+| `LNFill_Stop.py` | Emergency stop: kills running `LNFill_App.py` processes (SIGKILL), then closes all manifold + tank valves via `DetMan.CloseAllValves()` + `TankMan.CloseAllValves()`, writes log + error file |
+| `LNFill_closeValves.py` | Closes all 4 manifold detector valves (manifolds 1–4) without killing `LNFill_App.py` — safer than Stop for mid-run valve reset; runs from `/home/dgs/lnFill/` with aarch64 EPICS libs hard-coded |
 | `LNFill_check.sh` | Fill status check |
 | `WriteDiscordMessage.py` | Sends Discord notifications |
 | `gefilltime2.dat` | Historical fill time data |
