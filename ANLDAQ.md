@@ -159,7 +159,7 @@ Startup sequence:
 - **Board buttons** — one button per DIG/RTR/MTRG board → opens respective window
 - **System tabs** — via `gui_SYS.py`: timestamps, links, TCP, code revision
 - **Settings** — persisted to `settings.json` (exp name, folder, run counter, IOC config, duration index)
-- **CollectorBox PVs** — optionally loaded via `cb_json2pv.py` + `CollectorBox_PV.json` (graceful fallback if absent)
+- **CollectorBox PVs** — optionally loaded via `cb_json2pv.py` + `CollectorBox_PV.json` (graceful fallback if absent) ✅ verified 2026-04-07 — `commander.py:L93-97`: `try: from cb_json2pv import LoadCollectorBoxPVs ... except Exception: CB_PV, CB_DET_LIST = [], []`
 - **Guceiver** — live monitor launched from GUI; path added to `sys.path` at startup
 
 Run control:

@@ -244,7 +244,7 @@ There are **4 collector boxes** total, but **only softIOC 201 (pi0, South-East) 
 | pi2 | 203 | North-East Collector | 1,3,5,...,59 (odd, GS 1–59) | ⚠️ Old piserver (undocumented) |
 | pi3 | 204 | North-West Collector | 61,63,...,109 (odd, GS 61–109) | ⚠️ Old piserver (undocumented) |
 
-No EPICS CA port is explicitly set in `collectorBox.sh` — uses system default (5064/5065).
+EPICS CA port is set via `EPICS_env.sh`: **5064/5065** for array use, **5074/5075** for test stand (G-wing lab). The st_20x.cmd scripts pass `${EPICS_CA_SERVER_PORT}` from the environment. ✅ verified 2026-04-07 — `EPICS_env.sh:L1-2` + `st_201.cmd:L5-8`
 
 ---
 
