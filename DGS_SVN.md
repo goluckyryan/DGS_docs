@@ -67,6 +67,24 @@ The SVN tree contains a broad historical archive of DGS development:
 
 ---
 
+## `Documentation/` — Detector Database & Docs
+
+_Explored: 2026-04-07_
+
+| File | Contents |
+|------|----------|
+| `North_db.csv` | **North hemisphere detector installation database** (54 GS holes, odd numbers 1–109): columns GS#, Hoze# (crystal ID e.g. B15), Det# (physical Ge detector serial), HV (operating voltage in V), SB# (slope box number), SB pos (position on slope box: T/B/L/R/TL/BL/TR/BR), BGO# (BGO module number), BGO Install Date. 38 of 55 positions had Ge installed as of May 2017 installation. |
+| `South_db.csv` | **South hemisphere detector installation database** (55 GS holes, even numbers 2–110): same column format. 43 of 55 positions had Ge installed as of May 2017. Combined: **81 Ge detectors installed** out of 110 possible positions (2017 commissioning). |
+| `grey cable.xls` | Grey cable wiring reference |
+| `Formal/` | System inventory XLS files (2014), software docs, unsorted docs |
+| `Formal/Unsorted Docs/` | Historical PDFs/docs: `1994 bgo timing.pdf`, `1995 overview of daq.pdf`, `CDR.Oct05.doc`, `DCBAL.doc` (DC balance notes), `DG digitizer cable spec.doc`, `dg format.xls`, `DG pickoff cable spec.doc`, `dgsSender.pptx`, `dgs_systemdocs.pdf`, `GRETINA_Fast Strobe Notes.doc`, `howTheSenderWorks.docx`, `pv list digitizer.txt` |
+| `MeetingNotes/` | Historical meeting notes |
+| `presentations/` | Historical presentation slides |
+
+**Note:** HV values in `North_db.csv`/`South_db.csv` are 2017 installation values — actual operating HV may differ; current values are in the EPICS snapshot PVs (`GS${N}_SlopeBoxGe_HV_RBV`). Slope box position codes: T=Top, B=Bottom, L=Left, R=Right, TL/BL/TR/BR=corner variants.
+
+---
+
 ## `salvaged_notes/` — Key Historical Documents
 
 Recovered notes and config files from old systems. Explored 2026-04-06.
