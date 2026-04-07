@@ -122,6 +122,51 @@ For k = 10 µs: PZ ≈ 0.999. Empirically fitted PZ should be close to this nomi
 
 ---
 
+## Summary: Three Levels of PZ Correction
+
+### Level 1 — Approximation (SZ_1, low/medium rate)
+```
+E = sum2 - sum1·PZ_eff - base×(1 - PZ_eff)
+```
+- `base` = slow exponential moving average of sum1
+- Works well when count rate is low enough for base to track DC
+- Fails near preamp resets and at high rates
+
+### Level 2 — Exact (SZ_2, high rate)
+Same formula, but `base` is solved **algebraically per event** using the FPGA sampled baseline (`sb`):
+```
+base = [(sum1 + sb)·(1-pz3) - sb·(1-pz2)] / [(MM+msample)·(1-pz3) - msample·(1-pz2)]
+```
+where `pz2 = PZ^(msample/MM)`, `pz3 = PZ^((MM+msample)/MM)`, `pz4 = PZ^((MM+KK)/MM) = PZ_eff`.
+
+- Event-by-event, rate-independent
+- No assumption about inter-event spacing
+- Recommended at high count rates (>10 kHz per crystal)
+
+### Level 3 — Ryan's exact formula (proposed, tested, not in production)
+
+All quantities available in the DIG event packet:
+- **V0** = `LAST_POST_RISE_M_SUM` (previous pulse amplitude, stored in current packet)
+- **t0** = `EVENT_TIMESTAMP - LAST_DISC_TIMESTAMP` (time since previous pulse)
+- **k** = `GeCenterTimeConstant` PV (hardware RC, per detector)
+- **d, M** = KK, MM window parameters
+
+```
+E = sum2 - sum1 + V0·exp(-t0/k)·2·sinh(d/k)
+```
+
+Analytically exact single-pulse tail correction. No base tracking, no rate limitation, no approximation on the instantaneous DC.
+
+**⚠️ Experimental result:** J.T. Anderson (JTA) told Ryan that this formula was tested but the results were **not better than SZ_2**. Likely reasons:
+- Real preamps have multi-pole responses — single exponential is an approximation
+- `LAST_POST_RISE_M_SUM` carries its own PZ correction error from the previous event
+- Pileup from pulses before the immediately preceding one is not corrected
+- `LAST_DISC_TIMESTAMP` only covers the nearest previous discriminator, not all contributing pulses
+
+SZ_2 with the FPGA sampled baseline remains the production algorithm.
+
+---
+
 ## PZ Coefficient Range and Meaning
 
 - Typical range: **0.88 – 0.99** (scan this range to find optimum)
