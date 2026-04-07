@@ -46,4 +46,113 @@ Three cooperating state machines coordinate data capture:
 2. **TRIG_MON_COLLECT** — watches trigger algorithms; when selected algorithm fires, asserts `WANT_NEXT_TDC` and collects trigger message
 3. **TDC_AUTOSAMPLE** — collects TDC data from all four FIFO READERs after `WANT_NEXT_TDC`
 
-A variable delay elapses between `WANT_NEXT_TDC` and when `TDC_AUTOSAMPLE` finishes collection. The **pipeline delay is 350 ns** — any chain with differential > 350 ns vs TDCtsLo is stale and invalid. ✅ verified 2026-04-07 — TAC.docx (DGS_System_Documentation/Firmware/Master_Trigger/TAC.docx): "The total pipeline delay is 350ns, so any differential greater than that, or a negative number, is an old TDC measurement and should not be used."
+A variable delay elapses between `WANT_NEXT_TDC` and when `TDC_AUTOSAMPLE` finishes collection. The **pipeline delay is 350 ns** — any chain with differential > 350 ns vs TDCtsLo is stale and invalid.
+
+---
+
+## Event Data Format
+
+Each TAC-II event is **15 words of 16-bit values** (sent as lower 16 bits of 32-bit VME transactions):
+
+| Word | Name | Description |
+|------|------|-------------|
+| 1 | Header | Fixed `0xAAAA` (event boundary marker) |
+| 2 | trigtyp | Trigger type: upper 8 bits = trigger ID, lower 8 bits = distribution mask |
+| 3 | TS high | Bits [47:32] of 48-bit trigger timestamp |
+| 4 | TS mid | Bits [31:16] of timestamp |
+| 5 | TS low | Bits [15:0] of timestamp |
+| 6 | Wheel | 10-bit target wheel encoder position at trigger time |
+| 7 | Aux dat | User-defined (reserved, tied to a register) |
+| 8 | TDCtsLo | Lower 16 bits of 100 MHz timestamp when TDC data was collected (for validity checking) |
+| 9 | trigacks | Bitmap: which other trigger algorithms fired between WANT_NEXT_TDC and TDC collection |
+| 10 | Offset0 | 16-bit 250 MHz coarse counter for phase 0° |
+| 11 | Offset1 | 16-bit 250 MHz coarse counter for phase 90° |
+| 12 | Offset2 | 16-bit 250 MHz coarse counter for phase 180° |
+| 13 | Offset3 | 16-bit 250 MHz coarse counter for phase 270° |
+| 14 | Val/P1/P0 | Bits [15:12]=valid flags, [11:6]=vernier P0 (0°), [5:0]=vernier P1 (90°) |
+| 15 | P3/P2 | Bits [11:6]=vernier P3 (270°), [5:0]=vernier P2 (180°) |
+
+**Note:** This is the raw VME packet. The `tcpReceiverMT` repacks it into a 10-word DIG-compatible format before saving — see `data_structures.md` for the repacked format.
+
+---
+
+## Time Calculation
+
+### Per-Phase Formula
+
+For each valid phase:
+
+```
+Time = (Offset × 4 ns) + (per-phase adjustment) - (0.05 ns × vernier_position)
+```
+
+**Per-phase adjustments** (empirically measured):
+
+| Phase | Offset word | Adjustment |
+|-------|-------------|------------|
+| 0° | Offset0 | +3 ns |
+| 90° | Offset1 | +0 ns |
+| 180° | Offset2 | +1 ns |
+| 270° | Offset3 | +2 ns |
+
+**Best time = average of all valid phases.**
+
+### Coarse Counter Rollover
+
+The 16-bit coarse counter rolls over every **262.144 µs** (65536 × 4 ns). The full 48-bit timestamp in words 3–5 allows resolving the integer number of rollovers for event-to-event timing calculations.
+
+### Checking Chain Validity
+
+The valid flags in word 14 bits [15:12] are not 100% reliable. Cross-check method:
+1. Multiply TDCtsLo × 10 ns → collection time
+2. Multiply each Offset × 4 ns → latch time per phase
+3. Differential = collection time - latch time
+4. Valid chain: differential ≤ 350 ns (the pipeline delay) and > 0
+
+### Example Calculation
+
+From `TAC.docx` example event:
+- Offset0 = 0x6262 = 25186 → Time = 25186×4 + 3 - (18×0.05) = **100,746.10 ns**
+- Offset1 = 0x6263 = 25187 → Time = 25187×4 + 0 - (22×0.05) = **100,746.90 ns** 
+- Offset3 = 0x6262 = 25186 → Time = 25186×4 + 2 - (23×0.05) = **100,744.85 ns**
+- Average: **~100,745.9 ns**, std dev ~0.79 ns
+
+---
+
+## Lab Notes & Testing Records
+
+| File | Date | Contents |
+|------|------|----------|
+| `LabNotes/20210314_TDC.ods` | 2021-03-14 | TDC test data with sync |
+| `LabNotes/20210314_TDC_nosync.ods` | 2021-03-14 | TDC test data without sync |
+| `LabNotes/tdc.jpg` | — | Oscilloscope capture |
+| `LabNotes/Jitter Analysis/` | — | 15 oscilloscope TIF captures (D000–D014) + 10 BMP screenshots + `Jitter Analysis.xls` |
+| `LabNotes/DGS/` | — | 5 DGS-specific scope captures (capture0–4) |
+| `LabNotes/20210831_lab_notes.odt` | 2021-08-31 | JTA firmware testing notes: sum validation, SZ algorithm verification with digitizer tester |
+| `LabNotes/System Timing/mt_tac_20150608.xls` | 2015-06-08 | TAC timing measurements |
+| `DGS_docs/DGS_System_Documentation/Firmware/Master_Trigger/TAC.docx` | 2016-02-24 | Full TAC-II spec (JTA) |
+| `DGS_docs/DGS_System_Documentation/System/TAC2.DS4` | — | TAC-II schematic (DesignSpark format) |
+| `DGS_docs/DGS_System_Documentation/Modules/TAC.pdf` | — | TAC module PDF spec |
+
+---
+
+## TAC-II in GEBSort (gebsort workflow)
+
+The TAC-II data is sorted by GEBSort using `bin_tac2` (enabled in `GEBSort.chat`):
+```
+bin_tac2
+```
+This processes GEB type 15 packets (after `tcpReceiverMT` repacking) to produce TAC timing spectra and coincidence matrices alongside the Ge energy data.
+
+---
+
+## Related
+
+- `data_structures.md` — TAC2 packet format (16-word VME → 10-word repacked)
+- `deep_fpga_MTRG_MAIN.md` — MTRG firmware including TDC chain implementation
+- `ANLDAQ.md` — data flow from IOC to tcpReceiver
+- `dgs_analysis.md` — GEBSort and parquet_pysort analysis
+
+---
+
+*Created: 2026-04-07. Source: TAC.docx (J.T. Anderson, 2016-02-24) + FPGA VHDL.* ✅ verified 2026-04-07 — TAC.docx (DGS_System_Documentation/Firmware/Master_Trigger/TAC.docx): "The total pipeline delay is 350ns, so any differential greater than that, or a negative number, is an old TDC measurement and should not be used."
