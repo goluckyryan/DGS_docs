@@ -390,6 +390,7 @@ Fixed-length 20.48 µs delay buffer. Discriminator bit reported to trigger is de
 ## Readout Modes (8 Combinations)
 
 Two controls: **Pileup Extension Enable** (0/1) × **Readout Mode** (4 options) = 8 behaviors.
+_Register: `reg_channel_control[25:24]` = event_extend_mode (2-bit); Pileup Extension Enable = separate bit. ✅ verified 2026-04-07 — `Digitizer.vhd:L1323`, `Channel_Readout_Mach.vhd:L37`_
 
 ### Pileup Extension DISABLED (only Accepted Events read out, Extended Events always discarded)
 

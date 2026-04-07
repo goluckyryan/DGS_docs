@@ -106,7 +106,7 @@ Each RTRG manages a "sector" of 8 DIGs = 80 channels = one VME crate.
 Many slope boxes (1 per Ge detector)
     │
     ▼
-Collector box (1 per sector, ~25–30 detectors)
+Collector box (1 per sector, ~25–30 detectors) ✅ verified 2026-04-07 — collectorBox.sh:L8-49 (pi0/pi3=25 det, pi1/pi2=30 det)
     │  SPI bus (bcm2835, 5-bit DEVSEL, 24-bit transactions)
     ▼
 Raspberry Pi (PXE boot from fs2.onenet)
