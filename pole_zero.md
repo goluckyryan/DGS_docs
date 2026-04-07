@@ -184,6 +184,38 @@ python working/pz_from_parquet.py \
 | `--tid N ...` | all | Process only specific crystals |
 | `--quiet` | off | Suppress per-crystal progress |
 
+### Why the S1 vs S2 Scatter Encodes PZ
+
+**The locus:** For a given gamma-ray energy E and decay constant k, varying the previous pulse tail (different V0, t0) traces a line in the S1 vs S2 scatter plot.
+
+From the derivation above:
+```
+sum1 = base + (sum1 - base)                      ← tail at sum1 window
+sum2 = base + E_true + (sum1 - base)·exp(-dt/k)   ← E + tail decayed by dt samples
+```
+
+This is linear in sum1 with slope:
+```
+slope = exp(-dt/k) = PZ^dt
+```
+where `dt` = number of samples between the center of sum1 and sum2 windows ≈ KK + MM (the digitizer K and M window register values).
+
+**Correct PZ:** corrected energy `E = sum2 - sum1·PZ - base·(1-PZ)` is independent of sum1 → scatter is flat.
+**Wrong PZ:** residual tilt remains → positive or negative correlation with sum1.
+
+**Extraction from slope:**
+```
+slope = PZ^dt
+→ PZ = slope^(1/dt)   where dt ≈ KK + MM samples
+```
+
+**Consistency check:** PZ from the scatter slope should match the nominal value from the hardware setting:
+```
+PZ_nominal = exp(-dt_sample / k)
+           = exp(-10ns / GeCenterTimeConstant)
+```
+Deviations indicate actual RC differs from the nominal slope box setting (component tolerance, temperature).
+
 ### Extraction Methods
 
 | Method | Description | Best for |
