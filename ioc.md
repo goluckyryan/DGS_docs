@@ -88,15 +88,16 @@ Boot sequence:
 10. `dbpf` — set user_package_data per board (MDIG1=170, MDIG2=171, MTRG=172)
 11. `seq &inLoop` / `seq &outLoop` / `seq &MiniSender` — start DAQ state machines
 
-**`inLoop` B-parameter syntax:** `seq &inLoop,"CRATE=NN,B0=MDIG1,B1=MDIG2,...,B5=MTRG,B6=X"`
+**`inLoop` B-parameter syntax:** `seq &inLoop,"CRATE=NN,B0=MDIG1,B1=MDIG2,...,B5=MTRG,B6=X"` ✅ verified 2026-04-07 — `ioc/boot/vme66.cmd:L180-190`
 - B0–B6 map slot numbers to board names (or `X` = empty slot)
-- `inLoop` uses these to form PV names like `MDIG1_CS_Ena` for readout control
+- `inLoop` uses these to form PV names like `MDIG1_CS_Ena` for readout control (e.g. `B3=X` → PV `X_CS_Ena`)
 - The slot index in `BN=` must match the physical VME slot (0-indexed from slot 1)
 - Example: `B0=MDIG1,B1=MDIG2,B2=X,B3=X,B4=X,B5=MTRG,B6=X` → MDIG1 in slot 1, MDIG2 in slot 2, MTRG in slot 6
 
-**User package data formula:** `[(crate# - 1) × 4] + 101 + board#`
-- Master trigger always = 150
-- Routers: RTR1=151, RTR2=152, etc.
+**User package data formula:** `[(crate# - 1) × 4] + 101 + board#` ✅ verified 2026-04-07 — `ioc/boot/vme66.cmd:L162-164`
+- Board# is restricted to {0,1,2,3} for digitizers
+- Master trigger always = 150 ✅ verified 2026-04-07 — `vme66.cmd:L168`
+- Routers: RTR1=151, RTR2=152, etc. — but as of 2023-03-31, Routers have no register to store package data ✅ verified 2026-04-07 — `vme66.cmd:L170`
 
 **DB naming convention:**
 - Register-level: `VME<CRATE>:<BOARD>:<register>` (e.g. `VME66:MDIG1:reg_led_threshold`)
