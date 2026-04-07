@@ -165,16 +165,26 @@
 
 ---
 
-## Pages Not Yet Browsed (worth checking)
-- `/gsdaq/Triggers_and_digitizers` — trigger/digitizer setup guide ✅ visited 2026-04-05
-- `/gsdaq/Data_formats` — data format details ✅ visited 2026-04-05 (thin page — header types 5/6 → 7/8 evolution already in `DIG_firmware_expert.md`)
-- `/gsdaq/Firmware_documentation` — firmware docs list
-- `/gsdaq/Typical_DGS_run_procedures` — run procedure reference ✅ visited 2026-04-05 → `run_procedures.md`
-- `/gsdaq/Some_problems_and_their_solutions` ✅ visited 2026-04-05 → stub page, one useful entry (IOC troubleshooting) — troubleshooting ✅ visited 2026-04-05 → `troubleshooting.md`
-- `/gsdaq/ANL_Digitizer_Firmware_for_Advanced_Users` — advanced firmware guide ✅ visited 2026-04-06 → ADC linearity specs added to `DIG_firmware_expert.md` (Overview section)
-- `/gsdaq/High_Purity_Germanium_(HPGe)_and_BGO` — HPGe + BGO details
-- `/gsdaq/Computers_and_networks` — full IP/hostname table for all onenet systems ✅ visited 2026-04-06 → X-Array + DUB computer IPs added to `overview_SmallSystem.md`
-- `/gsdaq/Firmware_documentation` — firmware docs list
+## Visited Pages Log
+
+All known wiki pages have been visited as of 2026-04-07. Summary:
+
+| Page | Visited | Outcome |
+|------|---------|--------|
+| `/gsdaq/Triggers_and_digitizers` | 2026-04-05 | Setup procedure → `wiki_gsdaq.md` § Trigger Setup |
+| `/gsdaq/Data_formats` | 2026-04-05 | Thin page — header type 5/6→7/8 evolution already in `DIG_firmware_expert.md` |
+| `/gsdaq/Typical_DGS_run_procedures` | 2026-04-05 | → `run_procedures.md` |
+| `/gsdaq/Some_problems_and_their_solutions` | 2026-04-05 | Stub — IOC troubleshooting → `troubleshooting.md` |
+| `/gsdaq/ANL_Digitizer_Firmware_for_Advanced_Users` | 2026-04-06 | ADC linearity specs → `DIG_firmware_expert.md` Overview |
+| `/gsdaq/High_Purity_Germanium_(HPGe)_and_BGO` | 2026-04-06 | HPGe/BGO detector details → `wiki_gsdaq.md` |
+| `/gsdaq/Computers_and_networks` | 2026-04-06 | X-Array + DUB IPs → `overview_SmallSystem.md` |
+| `/gsdaq/Firmware_documentation` | 2026-04-06 | Links to expert PDFs — all already indexed in `PDF_index.md` |
+| `/gsdaq/Preamplifier` | 2026-04-06 | Ge preamp signal chain + I2C → `wiki_gsdaq.md` |
+| `/gsdaq/IOC_Code_Design` | 2026-04-06 | IOC architecture — firing rates >1 MHz supported, VME bandwidth limit |
+| `/gsdaq/The_Slope_Box` | 2026-04-05 | → `sbx.md` |
+| `/gsdaq/The_Slope_Box_Extension` | 2026-04-05 | → `sbx.md` |
+
+**No pending wiki pages.** If new pages appear on the wiki, add them here.
 
 ---
 
