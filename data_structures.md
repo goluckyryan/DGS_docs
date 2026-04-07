@@ -15,15 +15,15 @@ Offset  Size  Field                  Description
 ──────────────────────────────────────────────────────
  0      4     type                   GEB type code (see table below)
  4      4     payload_length_byte    Payload size in bytes
- 8      8     timestamp              64-bit timestamp (10 ns ticks from MTRG)
+ 8      8     timestamp              64-bit timestamp (10 ns ticks from MTRG) ✅ verified 2026-04-07 — BinaryReader.h:L58 ("in 10 ns")
 ```
 
 **GEB Type codes used by DGS:**
 
 | Code | Constant | Description |
 |------|----------|-------------|
-| 14 | `GEB_TYPE_DGS` | DGS digitizer hit data |
-| 15 | `GEB_TYPE_DGSTRIG` | DGS trigger data (TAC-II TDC) |
+| 14 | `GEB_TYPE_DGS` | DGS digitizer hit data | ✅ verified 2026-04-07 — `dgsReceiver_Ryan.cpp:L141` |
+| 15 | `GEB_TYPE_DGSTRIG` | DGS trigger data (TAC-II TDC) | ✅ verified 2026-04-07 — `dgsReceiver_Ryan.cpp:L142` |
 | 99 | *(internal)* | Decoded TAC2 trigger (used internally by fastEventConstructor) |
 
 Other type codes (1–13, 16–23) are GRETINA/NSCL/S800/aux detector formats — present in merged GEB streams but not produced by DGS IOC directly.
@@ -86,7 +86,7 @@ Bytes   Content
 ```
 Word  Bits    Field                Notes
 ────────────────────────────────────────────────────────────────────────
- 0    31:0    0xAAAAAAAA           Fixed sync word (always 0xAAAAAAAA)
+ 0    31:0    0xAAAAAAAA           Fixed sync word (always 0xAAAAAAAA) ✅ verified 2026-04-07 — receiver.h:L359 (`if(data[index] == 0xAAAAAAAA)`)
  1    3:0     CH_ID                Channel index 0–9
  1    15:4    USER_DEF             User-defined field
  1    26:16   PACKET_LENGTH        Total packet length in 32-bit words
