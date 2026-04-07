@@ -102,7 +102,7 @@ RTRG — Aggregates 8 digitizers
     ▼
 MTRG — Runs trigger algorithms
     │  8 algorithms (GITMO, MYRIAD, multiplicity, coincidence, etc.)
-    │  TDC timestamps events with ~1 ns resolution
+    │  TDC timestamps events with ~30 ps resolution (vernier, 50 ps/tap)
     ▼
   Trigger Decision
 ```
@@ -242,7 +242,7 @@ The **MTRG** receives multiplicity streams from up to 8 RTRGs simultaneously. It
 - **Energy sum** — summed energy across channels
 - And others configured via VME registers
 
-The **TDC** (Time-to-Digital Converter) uses a vernier chain to timestamp the trigger with **~1 ns resolution**, much finer than the 20 ns SERDES clock.
+The **TDC** (Time-to-Digital Converter) uses a 4-phase vernier chain (0°/90°/180°/270° at 250 MHz) to timestamp the trigger with **~30 ps resolution** (~50 ps per vernier tap, 4 ns coarse period subdivided by 4 phases × 64-bit vernier chain), much finer than the 20 ns SERDES clock.
 
 At the end of each 2 µs cycle, the **master state machine** (`mstr_mach`) collects available algorithm results and writes them into the outgoing command frames:
 ```
@@ -396,7 +396,7 @@ Note: the TRIG_DELAY alone does **not** limit the rate to 1/20 µs = 50 kHz, bec
 | Words per frame | 5 |
 | SERDES clock | 50 MHz |
 | ADC sampling rate | 100 MHz |
-| Timestamp resolution | ~1 ns (vernier TDC in MTRG) |
+| Timestamp resolution | ~30 ps (vernier TDC in MTRG — 4-phase 250 MHz, ~50 ps/tap) ✅ verified 2026-04-06 — `tdc_chain_cont.vhd` (4 phases × 250 MHz) + `deep_fpga_MTRG_MAIN.md:L315` (TAC.pdf: 50 ps/tap) |
 | Timestamp width | 48 bits |
 | Throttle min pulse width | >2 µs (RTRG stretched) |
 | Fast strobe latency | ~1 µs (CPLD, analog multiplicity) |
