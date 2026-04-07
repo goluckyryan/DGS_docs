@@ -77,4 +77,4 @@ Some users run ISE natively on modern Linux by intercepting conflicting library 
 
 The Kintex UltraScale port of the MTRG Main FPGA uses Vivado 2018.3, which has better long-term Linux support. Vivado 2018.3 runs on Ubuntu 16.04 and 18.04 officially. On Ubuntu 24.04 it may require the same container approach or the `--disable-webtalk` workaround and manual library patches, but the situation is less severe than ISE.
 
-See [MTRG/VIVADO_MAIN_FPGA.md](MTRG/VIVADO_MAIN_FPGA.md) for the Vivado project details.
+See [`deep_fpga_MTRG_VIVADO.md`](deep_fpga_MTRG_VIVADO.md) for the Vivado project details.
