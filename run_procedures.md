@@ -165,9 +165,11 @@ Final sort uses both `dgs_pz.cal` (PZ) and `dgs_ehi.cal` (gain/offset).
 
 ## map.dat — Detector Map
 
-Before sorting, verify `map.dat` is current and matches the array configuration. This file maps DAQ channel IDs to GS holes and detector types.
+Before sorting, verify `map.dat` is current and matches the array configuration. This file maps DAQ channel IDs (`board_id × 10 + chan_id`) to crystal IDs (`tid`) and detector types (GE/BGO/SIDE/AUX).
 
-Location: `DGS_tools_pack/dgs_analysis/armory/parquet_pysort/map.dat`
+**Note:** `map.dat` is a **per-experiment input file** — not a committed file in the repo. It must be provided by the user and passed via `--map-file map.dat` to `make_filemap_dgs.py`. There is no static copy in the repo. ✅ verified 2026-04-07 — `make_filemap_dgs.py`: `default=Path("map.dat")` + CLAUDE.md: "DAQ channel ID → crystal ID mapping (columns: id, type, tid)"
+
+Columns: `id` (DAQ channel), `type` (GE/BGO/SIDE/AUX), `tid` (crystal ID). Loaded by C++ as `tlkup[]`/`tid[]` arrays.
 
 See `gammasphere_geometry.md` for the GS hole geometry.
 
