@@ -194,6 +194,28 @@ A separate PyQt6 GUI application for multi-peak gamma-ray spectrum analysis. Use
 
 _Source: `dgs_analysis/armory/gray_apps/src/GrayMAN/` — explored 2026-04-06_
 
+### grayfit — Shared Fitting Library
+
+**Location:** `src/Fitter/grayfit/`  
+**Purpose:** Shared gamma-ray spectrum fitting library, importable by both GrayCAL and GrayMAN via `from grayfit import ...`. Packaged with `pyproject.toml` and installable via `pip install -e src/Fitter/`.  
+**Author:** M.P. Carpenter (Aug 2025)
+
+| Module | Role |
+|--------|------|
+| `gamma_spectrum_fitter.py` | `GammaSpectrumFitter` — main peak fitting class |
+| `FitResult.py` | `FitResult` dataclass — structured fit output |
+| `fitting_runner.py` | `FittingRunner` — orchestrates batch/auto fitting runs |
+| `ModelEvaluator.py` | `evaluate_model2`, `evaluate_modelN` — evaluate peak models |
+| `peak_finder.py` | `PeakFinder` — automatic peak detection in spectra |
+| `auto_fitter.py` | Automatic fitting without user guidance |
+| `background_fitter.py` | Background estimation / subtraction |
+| `pole_zero_fitter.py` | **PZ coefficient extraction** from 2D S1/S2 histograms (1,303+ lines). Refactored from `pz_from_S1S2_current_v6.py` to work on NumPy arrays (no ROOT I/O). Public API: `estimate_pz_from_histogram(h2, s1_edges, s2_edges, params)` → `DetResult` dataclass; `write_pz_cal(path, pz_map)` / `read_pz_cal(path)` → GEBSort-style "det  pz" calibration files. |
+| `visualization.py` | Plotting helpers for spectra and fit results |
+| `utils.py` | Shared utilities |
+| `debug_utils.py` | Debug/diagnostic helpers |
+
+_Source: `dgs_analysis/armory/gray_apps/src/Fitter/` — explored 2026-04-07_
+
 ---
 
 ## working/ — Experiment-Specific Scripts & Calibration
