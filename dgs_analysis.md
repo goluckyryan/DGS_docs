@@ -28,8 +28,9 @@ git clone --recursive git@gitlab.phy.anl.gov:dgs-tools-pack/dgs_analysis.git
 
 **Important fields per hit:**
 - `UniqueID` — `DigID * 100 + channel` (parsed from filename; `DigID` = last 3-4 digits of filename, `channel` = last component) ✅ verified 2026-04-06 — `BinaryReader.h:L33` (`GetUniqueID() { return DigID * 100 + channel; }`). Note: doc previously said `board_id * 10 + channel_id` — corrected.
-- `pre_rise_energy` — energy before rise
-- `post_rise_energy` — energy after rise
+- `pre_rise_energy` — ADC sum accumulator before discriminator rise; Word 8[23:0] ✅ verified 2026-04-07 — `class_DIG.h:L52,L369`
+- `post_rise_energy` — ADC sum after rise; spans Word 8[31:24] + Word 9[15:0] (32-bit total) ✅ verified 2026-04-07 — `class_DIG.h:L53,L370`
+- `early_pre_rise_energy` — earlier pre-rise window sum; Word 12[23:0] — used for pole-zero correction ✅ verified 2026-04-07 — `class_DIG.h:L65`
 - `timestamp` — timing
 
 **EventBuilder Variants:**
@@ -251,7 +252,7 @@ make_filemap_dgs.py → decode.py → event_builder.py
 
 | File | Key Columns |
 |------|-------------|
-| `_dgs.parquet` | `tid`, `timestamp`, `sum1`, `sum2`, `e_raw`, `e_cal`, `e_dc`, `CSflag` |
+| `_dgs.parquet` | `tid`, `header_ts`, `trigger_ts`, `sum1`, `sum2`, `e_raw`, `e_cal`, `e_dc`, `CSflag`, `pileup_count` |
 | `_events.parquet` | `event_id`, `gs_mult`, `gs_hitid`, `gs_ts`, `gs_cryid`, `gs_eraw`, `gs_ecal`, `gs_edc`, `gs_flag` |
 
 ### parquetCLI
