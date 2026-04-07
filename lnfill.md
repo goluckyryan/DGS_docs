@@ -10,14 +10,14 @@ Automated control system for filling germanium detector **dewars** with liquid n
 
 **4 LN Tanks:**
 - Tank A, B, C, D
-- Tank B pressurizes Tanks A and D
-- Tanks A and D supply LN to the manifolds
+- Tank B pressurizes Tanks A and D ✅ verified 2026-04-07 — `lnfill/README.md:L14`
+- Tanks A and D supply LN to the manifolds ✅ verified 2026-04-07 — `lnfill/README.md:L14`
 
 **4 Manifolds:**
 - 2 per side (upper + lower)
 - Each manifold: **28 solenoid valves** + LED sensors ✅ verified 2026-04-06 — `DetValve.py:L25` (`valve # 1-28`) + `DetMan.py:L134` ("the 28 detector valves")
 - Each valve+LED pair → one detector dewar
-- Fill detection: LN flowing past LED sensor changes LED resistance → system detects "full"
+- Fill detection: LN flowing past LED sensor changes LED resistance → system detects "full" ✅ verified 2026-04-07 — `lnfill/README.md:L19`
 
 **Max 4 dewars filling simultaneously per manifold** (16 total at once across 4 manifolds) ✅ verified 2026-04-06 — `DetMan.py:L253` (`while len(Man)>0 and i<4`)
 
