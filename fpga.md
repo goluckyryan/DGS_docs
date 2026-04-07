@@ -486,4 +486,21 @@ See **[deep_fpga_building.md](deep_fpga_building.md)** for the full build guide,
 - LD_PRELOAD native patch alternative
 
 ---
+
+## Related Documentation
+
+| Doc | Relevance |
+|-----|-----------|
+| [tac2.md](tac2.md) | TAC-II TDC in MTRG: vernier interpolation, 64-tap delay lines, 250 MHz 4-phase clock, state machines |
+| [ttcl.md](ttcl.md) | TTCL spec: all 20 frames, frame/word/cycle format, MTRG command encoding |
+| [connectors.md](connectors.md) | All connector pinouts: DIG (RJ45, 36-pin Aux I/O), MTRG/RTRG (125-pin SERDES, NIM I/O, ECL) |
+| [reference_index.md](reference_index.md) | VME register map index + hardware drawings index |
+| [preamp_reset_readme.md](preamp_reset_readme.md) | PRK holdoff timing, PREAMP_RESET_DELAY register in DIG firmware |
+| [digitizer_tester.md](digitizer_tester.md) | Digitizer Tester: dual 200 MHz DAC, analog switch matrix, TTCL link, waveform generation |
+| [deep_fpga_DIG.md](deep_fpga_DIG.md) | DIG firmware deep dive: Spartan-3, ADC pipeline, event packet format, pole-zero |
+| [DIG_firmware_expert.md](DIG_firmware_expert.md) | All 8 readout modes, discriminator modes, pileup, timing, ADC linearity specs |
+| [ioc.md](ioc.md) | EPICS IOC: boot scripts, DB loading, firmware version PVs, MVME5500 setup |
+| [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, munch process, IOC connections |
+
+---
 *Source: `DGS_tools_pack/fpga/` and `DGS_tools_pack/FPGA/` (gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05.*

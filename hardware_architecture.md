@@ -161,7 +161,12 @@ All systems share the **same physical network (onenet, 192.168.203.x)** but are 
 - `overview_SmallSystem.md` — DuoGe (DUO) and X-Array (DXA) small system details
 - `fpga.md` — FPGA firmware architecture (trigger cycle, signal flow, PEQ details)
 - `collectorboxpi.md` — Collector box Raspberry Pi soft IOC (SPI, PXE boot, HV control)
+- `collector_fpga.md` — Collector box FPGA firmware: CtrlFPGA, StripeFPGA, pickoff card FPGAs
 - `ioc.md` — EPICS IOC configuration (MVME5500 boot, firmware versions, VME setup)
+- `sbx.md` — Slope Box Extension (SBX): signal conversion, BGO pattern/sum, GS_ID dongle, HV map
+- `myriad.md` — MγRIAD auxiliary detector interface: NIM I/O, ECL, TTCL, DGS link U
+- `gammasphere_geometry.md` — 110 GS detector holes, 17 rings, θ/φ angles, collector box assignments
+- `connectors.md` — All hardware connector pinouts (DIG RJ45, MTRG/RTRG 125-pin SERDES, NIM I/O)
 
 ---
 
