@@ -35,7 +35,9 @@ HPGe preamplifiers produce an exponential tail after each gamma-ray hit — the 
 
 The simple energy without correction:
 
-$$E = S_2 - S_1$$
+```math
+E = S_2 - S_1
+```
 
 But the preamp exponential tail causes $S_2$ to pick up a contribution from the slowly decaying baseline — creating a **correlation between $S_1$ and $S_2$** that depends on inter-event time and baseline history. The $S_1$ vs $S_2$ scatter plot shows a **tilted distribution** instead of flat.
 
@@ -43,7 +45,9 @@ An **ideal detector** has an infinite preamp time constant (no exponential tail)
 
 **The PZ-corrected energy (SZ_1 algorithm):**
 
-$$E = S_2 - S_1 \cdot \text{PZ} - b\,(1 - \text{PZ})$$
+```math
+E = S_2 - S_1 \cdot \text{PZ} - b\,(1 - \text{PZ})
+```
 
 Where $b$ is a running exponential average of $S_1$ (long-term baseline estimate) and $\text{PZ} \in (0,1)$ is the pole-zero coefficient.
 
@@ -61,23 +65,31 @@ At the correct PZ, $S_1$ and $S_2$ become **uncorrelated** — scatter is flat, 
 
 A valid $\gamma$-ray signal $v(t)$ = charge collecting function $V(t)$ convolved with exponential decay $e^{-\lambda t}$. Pole-zero deconvolution recovers the staircase:
 
-$$V(t) = v(t) + \lambda \int_0^t v(t')\,dt'$$
+```math
+V(t) = v(t) + \lambda \int_0^t v(t')\,dt'
+```
 
 The $\gamma$-ray energy with trapezoidal shaping time $M$ (recursive algorithm, Eq. 1 in paper):
 
-$$E = \frac{1}{M} \sum_{j=i}^{i+M} \left[ v(j+M+K) - v(j) + \lambda \sum_{l=j}^{j+M+K-1} v(l) \right]$$
+```math
+E = \frac{1}{M} \sum_{j=i}^{i+M} \left[ v(j+M+K) - v(j) + \lambda \sum_{l=j}^{j+M+K-1} v(l) \right]
+```
 
 Where $i$ = trigger sample, $M$ = integration time, $K$ = flat-top gap.
 
 The **directive algorithm** (SZ_1/SZ_2) avoids ballistic deficit:
 
-$$E = \frac{1}{M} \sum_{j=i}^{i+M} \left[ v(j+M+K) - v(j)\,e^{-\lambda(M+K)} \right] - \left(1 - e^{-\lambda(M+K)}\right) v_{\text{dc}}$$
+```math
+E = \frac{1}{M} \sum_{j=i}^{i+M} \left[ v(j+M+K) - v(j)\,e^{-\lambda(M+K)} \right] - \left(1 - e^{-\lambda(M+K)}\right) v_{\text{dc}}
+```
 
 In discrete form: $\text{PZ} = e^{-\lambda\,dt}$ per sample, so $\lambda = -\ln(\text{PZ})/dt$.
 
 **Key insight:** $S_1 \approx$ pre-rise integral, $S_2 \approx$ post-rise integral. The directive algorithm becomes:
 
-$$E = S_2 - S_1\cdot\text{PZ} - b\,(1 - \text{PZ})$$
+```math
+E = S_2 - S_1\cdot\text{PZ} - b\,(1 - \text{PZ})
+```
 
 where $b$ estimates $v_{\text{dc}}$ (the long-term DC offset).
 
@@ -89,41 +101,57 @@ _Why does `g×(sum1 - base)` correct for the previous pulse tail?_
 
 Let $g = 1 - \text{PZ}$. The energy formula becomes:
 
-$$E = S_2 - S_1 + g\,(S_1 - b)$$
+```math
+E = S_2 - S_1 + g\,(S_1 - b)
+```
 
 **Signal model:** Current pulse at $t=0$, previous pulse at $t=-t_0$, amplitude $V_0$, decay constant $k$ (µs):
 
-$$v(t) = b_{\text{DC}} + V_0\,e^{-(t+t_0)/k}$$
+```math
+v(t) = b_{\text{DC}} + V_0\,e^{-(t+t_0)/k}
+```
 
 **Computing $S_1$** (average over pre-rise window $[-M, 0]$):
 
-$$S_1 = \frac{1}{M}\int_{-M}^{0} v(t)\,dt = b_{\text{DC}} + \frac{V_0 k}{M}\,e^{-t_0/k}\left(e^{M/k}-1\right)$$
+```math
+S_1 = \frac{1}{M}\int_{-M}^{0} v(t)\,dt = b_{\text{DC}} + \frac{V_0 k}{M}\,e^{-t_0/k}\left(e^{M/k}-1\right)
+```
 
 **Computing $b$:** Long-run average between pulses (when $V_0 e^{-t_0/k} \approx 0$):
 
-$$b \approx b_{\text{DC}}$$
+```math
+b \approx b_{\text{DC}}
+```
 
 **Therefore:**
 
-$$S_1 - b = V_0\,e^{-t_0/k}\cdot f(M,k), \qquad f(M,k) = \frac{k}{M}\left(e^{M/k}-1\right)$$
+```math
+S_1 - b = V_0\,e^{-t_0/k}\cdot f(M,k), \qquad f(M,k) = \frac{k}{M}\left(e^{M/k}-1\right)
+```
 
 $S_1 - b$ is **directly proportional to the previous pulse tail amplitude** $V_0 e^{-t_0/k}$. This is the physical basis for the correction.
 
 **Matching Ryan’s exact formula:** The correction $g\,(S_1 - b)$ equals $V_0 e^{-t_0/k}\cdot 2\sinh(d/k)$ when:
 
-$$g \cdot \frac{k}{M}\left(e^{M/k}-1\right) = 2\sinh(d/k)$$
+```math
+g \cdot \frac{k}{M}\left(e^{M/k}-1\right) = 2\sinh(d/k)
+```
 
 This is satisfied by the empirically fitted PZ value — the fitting implicitly encodes $M$, $K$, and $k$ together.
 
 **Baseline drift problem (preamp resets):** If the baseline is not stable (sawtooth pattern), then $b \neq b_{\text{DC}}$ at the current event. The error is:
 
-$$\epsilon = g\,(b_{\text{DC,now}} - b)$$
+```math
+\epsilon = g\,(b_{\text{DC,now}} - b)
+```
 
 The exponential moving average lags through resets, introducing systematic bias. Events near resets are most affected.
 
 **Time constant:** `GS###_GeCenterTimeConstant` PV sets $k$ per detector (selectable: 5.0–52.0 µs in 14 steps). The nominal PZ follows:
 
-$$\text{PZ} = e^{-dt/k}, \qquad dt = 10\,\text{ns (100 MHz clock)}$$
+```math
+\text{PZ} = e^{-dt/k}, \qquad dt = 10\,\text{ns (100 MHz clock)}
+```
 
 For $k = 10\,\mu\text{s}$: $\text{PZ} \approx 0.999$. Deviations of fitted PZ from nominal indicate component tolerance or temperature effects.
 
@@ -133,7 +161,9 @@ For $k = 10\,\mu\text{s}$: $\text{PZ} \approx 0.999$. Deviations of fitted PZ fr
 
 ### Level 1 — Approximation (SZ\_1, low/medium rate)
 
-$$E = S_2 - S_1\cdot\text{PZ}_{\text{eff}} - b\,(1 - \text{PZ}_{\text{eff}})$$
+```math
+E = S_2 - S_1\cdot\text{PZ}_{\text{eff}} - b\,(1 - \text{PZ}_{\text{eff}})
+```
 
 - $b$ = slow exponential moving average of $S_1$
 - Works at low rate; fails near preamp resets and at high rates
@@ -142,7 +172,9 @@ $$E = S_2 - S_1\cdot\text{PZ}_{\text{eff}} - b\,(1 - \text{PZ}_{\text{eff}})$$
 
 Same formula, but $b$ is solved **algebraically per event** from the FPGA sampled baseline $\text{sb}$:
 
-$$b = \frac{(S_1 + \text{sb})(1-p_3) - \text{sb}\,(1-p_2)}{(M+m_s)(1-p_3) - m_s(1-p_2)}$$
+```math
+b = \frac{(S_1 + \text{sb})(1-p_3) - \text{sb}\,(1-p_2)}{(M+m_s)(1-p_3) - m_s(1-p_2)}
+```
 
 where $p_2 = \text{PZ}^{m_s/M}$, $p_3 = \text{PZ}^{(M+m_s)/M}$, $\text{PZ}_{\text{eff}} = \text{PZ}^{(M+K)/M}$, and $m_s$ is the peak sample offset.
 
@@ -153,7 +185,9 @@ where $p_2 = \text{PZ}^{m_s/M}$, $p_3 = \text{PZ}^{(M+m_s)/M}$, $\text{PZ}_{\tex
 
 All quantities available in the DIG event packet ($V_0$ = `LAST_POST_RISE_M_SUM`, $t_0$ from `LAST_DISC_TIMESTAMP`):
 
-$$E = S_2 - S_1 + V_0\,e^{-t_0/k}\cdot 2\sinh(d/k)$$
+```math
+E = S_2 - S_1 + V_0\,e^{-t_0/k}\cdot 2\sinh(d/k)
+```
 
 Analytically exact single-pulse tail correction, no base tracking needed.
 
@@ -164,6 +198,16 @@ Analytically exact single-pulse tail correction, no base tracking needed.
 - $\text{LAST\_DISC\_TIMESTAMP}$ covers only the nearest previous discriminator
 
 SZ\_2 with the FPGA sampled baseline remains the production algorithm.
+
+### Level 4 — Waveform-based correction (proposed, not yet implemented)
+
+**Key observations:**
+
+1. $S_1/M$ is the mean of $v(t)$ over the pre-rise window — approximately the signal at the **midpoint** of that window. Similarly $S_2/M$ at the midpoint of the post-rise window. $P_2$ provides a third sample point.
+2. Together, $S_1$, $S_2$, $P_2$ (and $\text{sb}$) give 3–4 effective "trace samples" at known time offsets. Two exponential decay amplitudes can be fitted to these points, recovering $E$ without any assumption about $b$.
+3. **Decimated trace:** The DIG firmware supports downsampling (`downsample_factor` PV). A trace of ~8 points at 50 ns spacing (factor×5 decimation from 100 MHz) gives 400 ns of waveform at low cost. This enables the full recursive trapezoidal filter to be applied offline with tunable $k$ per crystal, handling any number of preceding pulses.
+
+**Trade-off:** Even a decimated 8-point trace adds ~8 words per event. At high rates this may matter. Recommend a calibration run with trace mode on a subset of crystals to validate $k$ values and compare resolution against SZ\_2.
 
 ---
 
@@ -235,27 +279,37 @@ python working/pz_from_parquet.py \
 
 From the derivation above:
 
-$$S_1 = b + (S_1 - b)$$
-$$S_2 = b + E + (S_1 - b)\cdot e^{-\Delta t/k} = b + E + (S_1-b)\cdot\text{PZ}^{\Delta t}$$
+```math
+S_1 = b + (S_1 - b)
+```
+```math
+S_2 = b + E + (S_1 - b)\cdot e^{-\Delta t/k} = b + E + (S_1-b)\cdot\text{PZ}^{\Delta t}
+```
 
 where $\Delta t$ = number of samples from the center of $S_1$ to the center of $S_2$ $\approx K + M$.
 
 This is **linear in $S_1$** with slope:
 
-$$\text{slope} = e^{-\Delta t/k} = \text{PZ}^{\Delta t}$$
+```math
+\text{slope} = e^{-\Delta t/k} = \text{PZ}^{\Delta t}
+```
 
 **Correct PZ:** $E = S_2 - S_1\cdot\text{PZ}^{\Delta t} - b\,(1-\text{PZ}^{\Delta t})$ is independent of $S_1$ → scatter is flat.
 **Wrong PZ:** residual tilt remains.
 
 **Extraction from slope:**
 
-$$\text{PZ} = \text{slope}^{1/\Delta t}, \qquad \Delta t \approx K + M \text{ (samples)}$$
+```math
+\text{PZ} = \text{slope}^{1/\Delta t}, \qquad \Delta t \approx K + M \text{ (samples)}
+```
 
 The `pca` method in `pz_from_parquet.py` measures this slope directly via principal component analysis.
 
 **Consistency check:** the extracted PZ should satisfy:
 
-$$\text{PZ} = e^{-dt/k} = e^{-10\,\text{ns}\,/\,k_{\mu\text{s}}}$$
+```math
+\text{PZ} = e^{-dt/k} = e^{-10\,\text{ns}\,/\,k_{\mu\text{s}}}
+```
 
 Deviations indicate the actual RC differs from the nominal slope box setting.
 
