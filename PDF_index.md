@@ -56,7 +56,7 @@ _Indexed: 2026-04-05_
 | 20 | 168KB | `Links/Trigger Timing and Control Link/20060804 trig command link.pdf` | v3 |
 | 20 | 193KB | `Links/Trigger Timing and Control Link/20080711 trig command link.pdf` | v4 |
 | 39 | 385KB | `Links/Trigger Timing and Control Link/20131203 trig command link.pdf` | v5 |
-| 40 | 860KB | `Links/Trigger Timing and Control Link/20160418 trig command link.pdf` | **v6 (latest)** — 🔄 In progress |
+| 40 | 860KB | `Links/Trigger Timing and Control Link/20160418 trig command link.pdf` | **v6 (latest)** — ✅ **Documented** → `dgs/ttcl.md` |
 
 ---
 
@@ -120,8 +120,8 @@ _Indexed: 2026-04-05_
 
 ## Priority Queue (Suggested Order)
 
-1. ✅ `ANL Digitizer Firmware for Experts.pdf` — done
-2. 🔄 `Links/Trigger Timing and Control Link/20160418 trig command link.pdf` — **in progress**
+1. ✅ `ANL Digitizer Firmware for Experts.pdf` — done → `dgs/DIG_firmware_expert.md`
+2. ✅ `Links/Trigger Timing and Control Link/20160418 trig command link.pdf` — done → `dgs/ttcl.md`
 3. `Firmware/Master_Trigger/DGS Master Trigger/subdoc/mem map.pdf` — DGS MTRG register map
 4. `Modules/DGS trigger system firmware user guide.pdf` — system-level trigger guide
 5. `Firmware/Digitizer/Initial Draft - Digitizer Registers.pdf` — digitizer register map (242 pg, large)
