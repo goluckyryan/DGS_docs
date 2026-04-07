@@ -28,7 +28,7 @@ Automated control system for filling germanium detector **dewars** with liquid n
 | Computer | OS | IP | Role |
 |----------|----|----|------|
 | ln2con | Fedora 12 | 192.168.203.148 | Boot host for IOC; runs logrotate |
-| pi5 | Debian 13 | 192.168.203.58 | Main fill control (runs LNFill_App.py) |
+| pi5 | Debian 13 | 192.168.203.58 | Main fill control (runs LNFill_App.py) | ✅ verified 2026-04-07 — LNFill_ping_cron.sh:L19 + README.md:L25 |
 | lnfill | IOC | 192.168.203.121 | EPICS IOC for valve/sensor hardware |
 | dcs2 | — | DCS2.onenet | Runs ping health checks + pi5 health check crons |
 
@@ -43,7 +43,7 @@ Automated control system for filling germanium detector **dewars** with liquid n
 | `LNFill_App.py` | Main fill control app — manages all 4 manifolds concurrently |
 | `LNFill_cron.sh` | Scheduled full-system fill (7am + 7pm daily) ✅ verified 2026-04-06 — `lnfill/README.md:L105,L110` (`00 07,19 * * *`) |
 | `LNFill_Auto_EFill_cron.sh` | Auto emergency fill — runs every 15 min, fills warm detectors ✅ verified 2026-04-06 — `lnfill/README.md:L106,L111` (`*/15 * * * *`) |
-| `SaveTemp.sh` | Records temperatures every 10 min; pushes to InfluxDB on DCS2 |
+| `SaveTemp.sh` | Records temperatures every 10 min; pushes to InfluxDB on DCS2 | ✅ verified 2026-04-07 — README.md:L107,L112 |
 | `LNFill_ping_cron.sh` | Health check: pings all hosts, reports to InfluxDB + Discord (runs on DCS2, every 12 min) |
 | `LNFill_pi5_check.sh` | Checks LNFill_App.py is running at 7:15 and 19:15 (runs on DCS2) ✅ verified 2026-04-06 — `lnfill/README.md:L131` (`15 7,19 * * *`) |
 | `EPICS_para.sh` | Sets EPICS environment variables |
