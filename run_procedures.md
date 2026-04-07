@@ -227,5 +227,22 @@ See `dgs/dgs_analysis.md` for full details on each step.
 
 ---
 
+---
+
+## Cross-References
+
+| Topic | File |
+|-------|------|
+| Full analysis pipeline (EventBuilder variants, RunParquet, parquetCLI) | `dgs/dgs_analysis.md` |
+| Pole-zero correction theory + `pz_from_parquet.py` | `dgs/pole_zero.md` |
+| Troubleshooting IOC, FIFO, link lock issues | `dgs/troubleshooting.md` |
+| Trigger bring-up (5-stage SERDES link-up scripts) | `dgs/ANLDAQ.md` § Trigger Setup Scripts |
+| DAQ GUI (ANLDAQ commander, data-taking tab) | `dgs/ANLDAQ.md` |
+| DIG firmware — readout modes, data formats | `dgs/DIG_firmware_expert.md` |
+| GEB data format + type codes | `dgs/data_structures.md`, `dgs/dgs_analysis.md` § GEB |
+| Snapshot PV / save+restore settings | `dgs/snapshot_pv.md` |
+
+---
+
 *Created: 2026-04-05 from [wiki: Typical DGS Run Procedures](https://wiki.anl.gov/gsdaq/Typical_DGS_run_procedures)*
-*Updated: 2026-04-07 — added Modern Workflow section*
+*Updated: 2026-04-07 — added Modern Workflow section + Cross-References*
