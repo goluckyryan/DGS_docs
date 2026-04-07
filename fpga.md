@@ -131,7 +131,7 @@ External FIFO → VME readout → Host computer
 
 ### Trigger Cycle
 
-Each **2 µs cycle** consists of 20 frames (100 ns per frame). Each frame carries **5 words × 16 bits = 80 bits (10 bytes)** of command data at 50 MHz, so one frame spans 5 SERDES clock cycles (100 ns). The upstream path (DIG → Router) sends an **18-bit word every 50 MHz clock cycle** (16 data bits + 2 DC-balance bits); there is no frame packetization in the upstream direction.
+Each **2 µs cycle** consists of 20 frames (100 ns per frame). Each frame carries **5 words × 16 bits = 80 bits (10 bytes)** of command data at 50 MHz, so one frame spans 5 SERDES clock cycles (100 ns). The upstream path (DIG → Router) sends an **18-bit word every 50 MHz clock cycle** (16 data bits + 2 DC-balance bits); there is no frame packetization in the upstream direction. ✅ verified 2026-04-07 — `FPGA/MTRG/Firmware/MAIN_FPGA/trunk/ss_variant/remote_sources/_/Source/mstr_mach.vhd:L107-108,L237,L303` (CURRENT_FRAME 1–20, CURRENT_WORD 1–5 → 20×5×20ns=2µs)
 
 | Frame | Content |
 |-------|---------|
@@ -164,6 +164,8 @@ For the detailed word-by-word breakdown of each frame:
 | L, R, U | MTRG ↔ MTRG | Bidirectional | Inter-trigger chaining (multiple Master Triggers) |
 
 All links use 18-bit DC-balanced LVDS SERDES running at 50 MHz. ✅ verified 2026-04-06 — `FPGA/RTRG/Firmware/DGS_Version/MAIN_FPGA/Source/TOP.VHD:L354,L424,L440` (50 MHz logic/SERDES clocks)
+
+DC-balance encoding (upstream, DIG→RTRG): 18-bit word = bit[0] (inversion flag) + bits[17:1] (16-bit payload, sent true if bit[0]=0, inverted if bit[0]=1). Receiver strips bit[0] and optionally inverts bits[17:1] to recover the 16-bit data word. ✅ verified 2026-04-07 — `FPGA/RTRG/Firmware/DGS_Version/MAIN_FPGA/Source/DCBAL_in.vhd:L12-14,L38-39`
 
 ### Data Path vs. Trigger Path
 
