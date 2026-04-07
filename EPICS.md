@@ -437,5 +437,16 @@ In the DGS collector box IOC:
 
 ---
 
+## See Also
+
+- `dgs/EPICS_asyn.md` — asyn driver internals: caput/caget flow, port concept, worker threads, bulk writes
+- `dgs/ioc.md` — DGS EPICS IOC config, boot scripts, firmware versions, MVME5500 setup
+- `dgs/collectorbox_devicesupport.md` — Collector box device support: SPI driver, CAMAC_IO link, conversion coefficients
+- `dgs/collectorboxpi.md` — Raspberry Pi soft IOC, PXE boot, HV control
+- `dgs/vxworks.md` — VxWorks build pipeline (the RTOS running the VME IOCs)
+- `dgs/DGS_PVs.md` / `dgs/collectorbox_PVs.md` — Full PV lists for DGS and collector box
+
+---
+
 _Source: EPICS documentation, DGS source code, operational experience._
-_Created: 2026-04-05. .dbd section added 2026-04-06._
+_Created: 2026-04-05. .dbd section added 2026-04-06. Cross-references added 2026-04-07._

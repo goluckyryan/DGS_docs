@@ -375,6 +375,10 @@ See `migration.md` for a full list of what was copied and what was changed.
 - **ioc/** — `gretDet.munch` ends up in `ioc/bin/`; `dgsDriver.dbd` ends up in `ioc/dbd/`
 - **fpga/** — drivers in `dgsDrivers/` communicate with DIG/RTRG/MTRG firmware via VME registers
 - **ANLDAQ** — EPICS PVs exposed by the IOC are the interface ANLDAQ uses
+- **EPICS.md** — EPICS primer: record types, CA protocol, device support, .dbd/.db/.cmd roles
+- **EPICS_asyn.md** — asyn driver internals used by the VME IOC records
+- **vxworks_migration.md** — Solaris/con6 → Ubuntu 24 migration notes
+- **troubleshooting.md** — IOC connectivity issues, SYNC bit gotcha, FIFO problems
 
 ---
 
