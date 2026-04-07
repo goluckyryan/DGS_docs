@@ -67,6 +67,61 @@ where `base` estimates `v_dc` (the long-term DC offset = decayed baseline level)
 
 ---
 
+## Physical Derivation of the Correction Term
+
+_Why does `g×(sum1 - base)` correct for the previous pulse tail?_
+
+**Setup:** Let g = 1 - PZ. The energy formula becomes:
+```
+E = sum2 - sum1 + g×(sum1 - base)
+```
+
+**Signal model:** Current pulse at t=0, previous pulse at t=-t0, amplitude V0, decay constant k (µs). Signal before trigger:
+```
+v(t) = baseline_DC + V0·exp(-(t+t0)/k)
+```
+
+**Computing sum1** (average over pre-rise window width M, from t=-M to t=0):
+```
+sum1 = (1/M) ∫_{-M}^{0} v(t) dt
+     = baseline_DC + (V0/M) ∫_{-M}^{0} exp(-(t+t0)/k) dt
+     = baseline_DC + (V0·k/M)·exp(-t0/k)·[exp(M/k) - 1]
+```
+
+**Computing base:** Long-run average of sum1 taken between pulses (when V0·exp(-t0/k) ≈ 0):
+```
+base ≈ baseline_DC
+```
+
+**Therefore:**
+```
+sum1 - base = (V0·k/M)·exp(-t0/k)·[exp(M/k) - 1]
+            = V0·exp(-t0/k)·f(M,k)
+```
+where `f(M,k) = (k/M)·(exp(M/k)-1)` depends only on hardware constants.
+
+**So `sum1 - base` is directly proportional to the previous pulse tail amplitude `V0·exp(-t0/k)`.** This is the physical basis for the correction.
+
+**Matching Ryan's exact formula:** The correction `g×(sum1-base)` equals Ryan's `V0·exp(-t0/k)·2·sinh(d/k)` when:
+```
+g × (k/M)·(exp(M/k)-1) = 2·sinh(d/k)
+```
+This is satisfied by the empirically fitted PZ value — the fitting implicitly encodes the relationship between the sum1 window (M), sum2 window (d≈K/2), and decay constant k.
+
+**The baseline drift problem (preamp resets):** If the baseline is not stable (sawtooth: ramps up between resets, jumps down at reset), then `base ≠ baseline_DC` at the current event. The error is:
+```
+error = g × (baseline_DC_now - base)
+```
+The code's exponential moving average of sum1 lags the actual DC level through resets, introducing a systematic bias. Events near resets are most affected. This is a fundamental limitation of the statistical PZ correction vs. an event-by-event correction.
+
+**Time constant:** `GS###_GeCenterTimeConstant` PV sets k per detector (selectable: 5.0–52.0 µs in 14 steps). The nominal PZ follows:
+```
+PZ = exp(-dt/k)   where dt = 10 ns (100 MHz clock)
+```
+For k = 10 µs: PZ ≈ 0.999. Empirically fitted PZ should be close to this nominal value; deviations indicate component tolerance or temperature effects.
+
+---
+
 ## PZ Coefficient Range and Meaning
 
 - Typical range: **0.88 – 0.99** (scan this range to find optimum)
