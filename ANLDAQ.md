@@ -584,6 +584,39 @@ The `scripts/` directory contains 5 staged shell scripts that initialize the ful
 | 4 | `trig_setup_Stage4.sh` | Switch digitizers to send SYNC to their Router; verify Router sees lock on all enabled DIG links |
 | 5 | `trig_setup_Stage5.sh` | Flip DIGs and RTRGs (in order) from SYNC to real data; verify nothing erroneous after each flip |
 
+### `SYSTEM_DEFINES.sh` — Live Gammasphere Trigger Topology
+
+All 5 stage scripts take `SYSTEM_DEFINES.sh` as their first argument. This file defines the **live system topology** for Gammasphere:
+
+| Variable | Value | Meaning |
+|----------|-------|---------|
+| `MT_VME_LEADER` | `VME10` | MTRG crate |
+| `MT_USE_LINK_CLK` | `0` | Local clock (not remote/link clock) |
+| `DIG_CLOCK_SEL` | `1` | Digitizer clock source = SERDES |
+| `PROPAGATE_TRIG_FROM_DUB/DFMA/DXA` | `0` | No remote trigger propagation |
+| `PERFORM_ERROR_CHECKS` | `0` | Error checking disabled |
+
+**Router config** (`LIST_OF_ROUTERS`): 4 RTRGs, each using links A–F (6 Router channels) + Link L back to MTRG:
+```
+VME03:RTR1  A B C D E F X X  L X X
+VME06:RTR2  A B C D E F X X  L X X
+VME09:RTR3  A B C D E F X X  L X X
+VME12:RTR4  A B C D E F X X  L X X
+```
+
+**MTRG link map** (`MT_LINK_MAP`): Links A–D → RTR1–RTR4; E–H and L/R/U masked:
+```
+RTR1 → Link A    RTR2 → Link B    RTR3 → Link C    RTR4 → Link D
+E, F, G, H, L, R, U → MASKED
+```
+
+**Digitizer config** (`LIST_OF_DIGITIZERS`): 12 crates; VME06 and VME10 have only 2 DIGs, rest have 4:
+```
+VME01–05, 07–09, 11–12: MDIG1 MDIG2 MDIG3 MDIG4  (4 boards each)
+VME06, VME10:            MDIG1 MDIG2               (2 boards each)
+```
+Total: 10×4 + 2×2 = **44 digitizer boards × 10 ch = 440 channels** ✅ verified 2026-04-07 — `SYSTEM_DEFINES.sh`
+
 Key details:
 - All stages read a `SYSTEM_DEFINES.sh` file (passed as arg 1) that defines `MT_VME_LEADER`, `LIST_OF_ROUTERS`, etc.
 - Stage 1 sets `ClkSrc` and all `LINK_L_PROPAGATE_Fx` registers on MTRG
