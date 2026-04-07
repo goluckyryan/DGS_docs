@@ -16,17 +16,17 @@
 
 | Field | Value |
 |-------|-------|
-| Family | XC9500XL CPLDs |
-| Part | xc95144xl |
-| Package | TQ100 |
-| Speed Grade | -7 |
+| Family | XC9500XL CPLDs | ✅ verified 2026-04-07 — Work.xise:Device Family |
+| Part | xc95144xl | ✅ verified 2026-04-07 — Work.xise:Device |
+| Package | TQ100 | ✅ verified 2026-04-07 — Work.xise:Package |
+| Speed Grade | -7 | ✅ verified 2026-04-07 — Work.xise:Speed Grade |
 | Tool | Xilinx ISE |
 | Project File | `Firmware/DGS_CPLD/Work/Work.xise` |
 | Top Entity | `fast_strb` |
 
 ## Role
 
-The CPLD implements fast multiplicity threshold logic for auxiliary detectors. It emulates the analog Gammasphere "Fast OR" function: when germanium center contacts detect gamma rays, the CPLD asserts a `FAST_STRB` signal to auxiliary detectors within approximately **1 µs**.
+The CPLD implements fast multiplicity threshold logic for auxiliary detectors. It emulates the analog Gammasphere "Fast OR" function: when germanium center contacts detect gamma rays, the CPLD asserts a `FAST_STRB` signal to auxiliary detectors within approximately **1 µs**. ✅ verified 2026-04-07 — fast_strb.vhd:L37-38,L96
 
 ## Source Files
 
@@ -34,7 +34,7 @@ The CPLD implements fast multiplicity threshold logic for auxiliary detectors. I
 
 | File | Lines | Description |
 |------|-------|-------------|
-| `fast_strb.vhd` | 20,957 | Top-level entity — all logic contained here |
+| `fast_strb.vhd` | 462 | Top-level entity — all logic contained here | ✅ verified 2026-04-07 — FPGA/Firmware_Tags/MasterTrigger/20200702/Firmware/DGS_CPLD/fast_strb.vhd |
 
 ## Architecture
 
