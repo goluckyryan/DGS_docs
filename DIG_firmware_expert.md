@@ -381,9 +381,19 @@ Fixed-length 20.48 µs delay buffer. Discriminator bit reported to trigger is de
 - Full waveform (1024 samples): ~2100 bytes. At 2.5 MB/s → 840 µs/channel/event. Max round-robin cycle = 8.4 ms. With double-buffering (post-May 2014 firmware) → ~2.4 kHz at 10% channel occupancy with full waveform.
 - 100-sample waveform → ~24 kHz practical rate.
 
-**Down-sampling**: Factor 0–7 → 2^N samples averaged per output point. At factor 7: 1024-sample readout spans 1.31 ms. Down-sample factor also applies to waveform offset (offset time covered = full-speed_offset / 2^N).
+**Down-sampling (`downsample_factor` PV):** Factor 0–7 → 1×/2×/4×/8×/16×/32×/64×/128×. At factor 7: 1024-sample readout spans 1.31 ms. Down-sample factor also applies to waveform offset (offset time covered = full-speed_offset / 2^N).
 
-**On-Off down-sampling**: Starts down-sampled, switches to full-speed at coarse discriminator timing mark, stays full-speed for configurable holdoff samples, then returns to down-sampled. Transitions aligned to down-sampled boundaries.
+**Implementation (`decimator.vhd`, M. Oberling):**
+- True **block-averaging decimation** — accumulates N consecutive 14-bit ADC samples and outputs a 16-bit average (wider to preserve precision)
+- **Not a moving average** — non-overlapping, non-sliding blocks
+- Alignment: `dec_enable` driven by `pending_read_event` in `event_packer.vhd` — averaging starts synchronously with the readout window, aligned to trigger via `readout_pretrigger`
+- Block boundaries are fixed relative to window start; choose `readout_pretrigger` so the rising edge falls at a block boundary to avoid blending rise + decay in one block
+
+**`dec_pause` / On-Off down-sampling (added 2016, `enable_dec_pause` PV):** Starts down-sampled, switches to full-rate at the coarse discriminator timing mark, stays full-rate for a configurable holdoff, then returns to down-sampled. Transitions synchronized to down-sampled block boundaries. This enables:
+- Rising edge at full 100 MHz (precise timing + shape)
+- Exponential tail at decimated rate (e.g. 8× = 80 ns/sample, 8 points covers 640 ns) for offline PZ correction
+
+**Use for offline pole-zero calibration:** A decimated trace at 8× provides enough tail samples to fit $k$ per crystal and validate against `GeCenterTimeConstant`. See `pole_zero.md` Level 4 for the proposed algorithm.
 
 ---
 

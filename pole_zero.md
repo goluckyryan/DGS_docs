@@ -205,9 +205,14 @@ SZ\_2 with the FPGA sampled baseline remains the production algorithm.
 
 1. $S_1/M$ is the mean of $v(t)$ over the pre-rise window — approximately the signal at the **midpoint** of that window. Similarly $S_2/M$ at the midpoint of the post-rise window. $P_2$ provides a third sample point.
 2. Together, $S_1$, $S_2$, $P_2$ (and $\text{sb}$) give 3–4 effective "trace samples" at known time offsets. Two exponential decay amplitudes can be fitted to these points, recovering $E$ without any assumption about $b$.
-3. **Decimated trace:** The DIG firmware supports downsampling (`downsample_factor` PV). A trace of ~8 points at 50 ns spacing (factor×5 decimation from 100 MHz) gives 400 ns of waveform at low cost. This enables the full recursive trapezoidal filter to be applied offline with tunable $k$ per crystal, handling any number of preceding pulses.
+3. **Decimated trace:** The DIG firmware implements true **block-averaging decimation** (not subsampling), verified in `decimator.vhd` (M. Oberling):
+   - `downsample_factor` PV selects 1×/2×/4×/8×/16×/32×/64×/128×
+   - Accumulates N consecutive ADC samples, outputs 16-bit average
+   - Block-aligned to the readout window start (`dec_enable` driven by `pending_read_event`); alignment to trigger set by `readout_pretrigger`
+   - **`dec_pause` feature (added 2016):** switches between full-rate and decimated within the same event — read the rising edge at 100 MHz (precise timing), then switch to 8× decimation for the tail (80 ns/sample, low cost)
+   - Example: 8× decimation → 80 ns/point; 8 points covers 640 ns of exponential tail → sufficient for offline $k$ fitting and full trapezoidal filter
 
-**Trade-off:** Even a decimated 8-point trace adds ~8 words per event. At high rates this may matter. Recommend a calibration run with trace mode on a subset of crystals to validate $k$ values and compare resolution against SZ\_2.
+**Trade-off:** Even 8 trace words per event is significant at high rates. Recommend a calibration run with trace mode on a subset of crystals to: (1) validate $k$ vs `GeCenterTimeConstant`, (2) compare resolution vs SZ\_2, (3) test `dec_pause` for rise-time integrity.
 
 ---
 
