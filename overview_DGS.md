@@ -72,7 +72,7 @@ DGS is a full software+firmware+hardware stack:
 │  (fpga/)                  │    │ │  ANLDAQ (anldaq/)             │
 │  Virtex-4 / KU060         │    │ │  commander.py — PyQt6 GUI     │
 │  Runs trigger algorithms  │    │ │  DIG/RTR/MTRG board control   │
-│  TDC ~1 ns resolution     │    │ │  Run control + live monitor   │
+│  TDC ~30 ps resolution    │    │ │  Run control + live monitor   │
 │  2 µs cycle (20 frames)   │    │ │  tcpReceiverMT — binary files │
 └───────────┬───────────────┘    │ └───────────────┬───────────────┘
             │ trigger decision   │                 │
