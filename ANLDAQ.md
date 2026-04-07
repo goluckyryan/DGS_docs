@@ -619,3 +619,5 @@ _Source: `ANLDAQ/gui/scripts/trig_setup_Stage*.sh` + `Serdes_Linkup.sh` (code-ve
 - `dgs/snapshot_pv.md` — PV snapshot utility (`dumpPVs.py` / `putPVs.py`) invoked by `start_run.sh`
 - `dgs/ttcl.md` — TTCL trigger timing (feeds the MTRG TAC-II data decoded in `class_TDC.h`)
 - `dgs/DIG_firmware_expert.md` — DIG firmware details; confirms packet format matched by `class_DIG.h`
+- `dgs/EPICS_asyn.md` — asyn driver internals: caput/caget flow, port concept, asynUInt32Digital
+- `dgs/collectorbox_devicesupport.md` — collector box EPICS device support (SPI driver, CAMAC_IO link)

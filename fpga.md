@@ -373,15 +373,16 @@ Note: the TRIG_DELAY alone does **not** limit the rate to 1/20 µs = 50 kHz, bec
 
 ## Module Documentation
 
-| Module | README | Details |
-|--------|--------|---------|
-| Master Trigger | [MTRG/README.md](MTRG/README.md) | System overview, device table, layout |
-| MTRG Main FPGA (ISE) | [MTRG/MAIN_FPGA.md](MTRG/MAIN_FPGA.md) | Virtex-4, full source listing, register map |
-| MTRG Main FPGA (Vivado) | [MTRG/VIVADO_MAIN_FPGA.md](MTRG/VIVADO_MAIN_FPGA.md) | Kintex UltraScale port, IP core differences |
-| MTRG VME FPGA | [MTRG/VME_FPGA.md](MTRG/VME_FPGA.md) | Spartan-3, VME slave, FPGA config manager |
-| MTRG CPLD | [MTRG/DGS_CPLD.md](MTRG/DGS_CPLD.md) | XC9500XL, fast strobe multiplicity logic |
-| Router | [RTRG/README.md](RTRG/README.md) | Virtex-4, full source listing, register map |
-| Digitizer | [DIG/README.md](DIG/README.md) | Spartan-3, all build branches, ADC interface |
+| Module | Doc | Details |
+|--------|-----|---------|
+| Master Trigger (hub) | [deep_fpga_MTRG.md](deep_fpga_MTRG.md) | Device table, repo layout, links to sub-docs |
+| MTRG Main FPGA (ISE) | [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) | Virtex-4, trigger algorithms, TAC-II TDC, VME register map |
+| MTRG Main FPGA (Vivado) | [deep_fpga_MTRG_VIVADO.md](deep_fpga_MTRG_VIVADO.md) | Kintex UltraScale port, Vivado 2018.3 differences |
+| MTRG VME FPGA | [deep_fpga_MTRG_VME.md](deep_fpga_MTRG_VME.md) | Spartan-3, A32/D32 VME slave, FPGA config manager |
+| MTRG CPLD | [deep_fpga_MTRG_CPLD.md](deep_fpga_MTRG_CPLD.md) | XC9500XL, fast strobe multiplicity logic (~1 µs latency) |
+| Router (RTRG) | [deep_fpga_RTRG.md](deep_fpga_RTRG.md) | Virtex-4, multiplicity aggregation, throttle, VME register map |
+| Digitizer (DIG) | [deep_fpga_DIG.md](deep_fpga_DIG.md) | Spartan-3, ADC pipeline, discriminators, event packet format |
+| DIG Firmware Expert | [DIG_firmware_expert.md](DIG_firmware_expert.md) | All 8 readout modes, timing, pileup, master/slave, ADC linearity |
 
 ---
 

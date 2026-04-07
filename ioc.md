@@ -216,6 +216,8 @@ cd ioc && python3 findAllPV.py
 - **fpga/** — provides the `.bin` firmware files stored in `firmware/`
 - **ANLDAQ** — reads/writes the EPICS PVs defined in `db/` and `dbd/`; uses `findAllPV.py`-generated `All_PV.json` for PV discovery
 - **collectorboxpi/** — parallel IOC for collector box hardware (different platform)
+- **EPICS_asyn.md** — asyn driver internals: caput/caget flow diagrams, port concept, asynUInt32Digital
+- **collectorbox_devicesupport.md** — EPICS device support for collector box (SPI, CAMAC_IO)
 
 ---
 
