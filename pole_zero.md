@@ -8,14 +8,35 @@ _Source: `dgs_analysis/working/pz_from_parquet.py`, `armory/gray_apps/src/Fitter
 
 HPGe preamplifiers produce an exponential tail after each gamma-ray hit — the output decays as `e^(-t/RC)` where RC is the preamplifier time constant. The digitizer FPGA computes two trapezoidal energy sums:
 
-- **S1** (`sum1`) — integral over the **pre-rise** window (baseline region, before signal peak)
-- **S2** (`sum2`) — integral over the **post-rise** window (signal region, after peak)
+- **S1** (`sum1`) — integral over the **pre-rise** window (baseline trapezoid, before signal)
+- **S2** (`sum2`) — integral over the **post-rise** window (signal trapezoid, after peak)
 
-In an **ideal detector** (infinite preamp time constant, no exponential tail): `S2` and `S1` are independent of each other and the S1 vs S2 scatter plot shows a flat horizontal distribution. In practice, the preamp tail couples S1 and S2: `S2 = PZ × S1` where `PZ ∈ (0,1)` is the **pole-zero coefficient** encoding the RC decay. A well-corrected detector has S2 uncorrelated with S1 (no tilt in the scatter plot), recovering the ideal case.
+The simple energy without correction:
+```
+E = sum2 - sum1
+```
 
-When PZ is **wrong**, the S1 vs S2 scatter plot shows a tilted correlation. When PZ is **correct**, the scatter collapses to a horizontal line (energy-independent ratio).
+But the preamp exponential tail causes `sum2` to pick up a contribution from the slowly decaying baseline — creating a **correlation between S1 and S2** that depends on inter-event time and baseline history. The S1 vs S2 scatter plot shows a **tilted distribution** instead of flat.
 
-**Physics:** The trapezoidal filter subtracts a delayed version of the signal. PZ corrects for the exponential preamp tail so the flat-top of the trapezoid is truly flat. Bad PZ → ballistic deficit → degraded energy resolution.
+An **ideal detector** has an infinite preamp time constant (no exponential tail). S1 and S2 are then truly independent — the scatter is flat and horizontal, and energy resolution is maximized.
+
+**The PZ-corrected energy (SZ_1 algorithm, from `dgs_decode_lib.cpp`):**
+```
+E = sum2 - sum1 × PZ - base × (1 − PZ)
+```
+Where:
+- `base` = running exponential average of `sum1` (long-term baseline level)
+- `PZ ∈ (0,1)` = pole-zero coefficient that cancels the exponential tail contribution
+
+At the correct PZ, S1 and S2 become **uncorrelated** — scatter is flat, recovering the ideal case.
+
+| PZ value | Effect |
+|----------|--------|
+| PZ = 1 | No correction → reduces to `E = sum2 - sum1` (algo 0) |
+| PZ = 0.88–0.99 | Typical operating range |
+| PZ → 0 | Over-correction |
+
+**Bad PZ → energy-dependent bias → degraded resolution and peak broadening.**
 
 ---
 
