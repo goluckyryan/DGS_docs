@@ -130,8 +130,8 @@ The **Trigger Timing and Control Link (TTCL)** carries timestamps, trigger messa
 
 ### 5.1 System Cycle Structure
 
-- TTCS sends a command every **100 ns** (5 words × 20 ns/word at 50 MHz)
-- **System cycle:** 20 command frames = 100 words = **2 µs** total
+- TTCS sends a command every **100 ns** (5 words × 20 ns/word at 50 MHz) ✅ verified 2026-04-07 — MTRG top.vhd:L177 (50 MHz logic clock), SERDES_RX_Mach_R2.vhd:L97 ("20 states, 5 words each")
+- **System cycle:** 20 command frames = 100 words = **2 µs** total ✅ verified 2026-04-07 — MYRIAD_RCV_MACH.vhd:L72 + SERDES_RX_Mach_R2.vhd:L97
 - Master triggers endlessly repeat this 2 µs cycle
 - Some frames are mandatory (fixed position, every cycle); others are optional (replaced by null frame if not needed)
 - Front-end devices **must not respond** to null command frames
@@ -540,7 +540,7 @@ Pulse Delay units: 100s of ns (time from end of pulse n to beginning of pulse n+
 - Always null (0xAAAA / 0x0000 pattern)
 - 0xAA command byte preferred for all null commands (DC balance + easily oscilloscope-recognizable)
 
-### Frame 20 — End-of-Cycle
+### Frame 20 — End-of-Cycle ✅ verified 2026-04-07 — SERDES_RX_Mach_R2.vhd:L125,L145 (F20W1..F20W5 states, "Frame 20 is the End-of-cycle frame")
 
 | Word | Bits 16..9 | Bits 8..1 |
 |------|-----------|----------|
