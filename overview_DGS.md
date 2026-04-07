@@ -188,7 +188,7 @@ DGS is a full software+firmware+hardware stack:
 - 20 frames × 100 ns/frame = 2 µs total cycle
 - **Upstream:** DIG discriminates → RTRG aggregates multiplicity → MTRG runs algorithms → decision
 - **Downstream:** MTRG broadcasts 20-frame command → RTRG forwards → DIG accepts/rejects events
-- End-to-end latency: ~1.3–1.5 µs
+- Trigger decision latency (DIG → RTRG → MTRG → decision → RTRG → DIG): **~2–4 µs** (1–2 trigger cycles) ✅ verified 2026-04-07 — `fpga.md` End-to-End Timeline section; must complete within ~20 µs TRIG_DELAY window
 
 ---
 
