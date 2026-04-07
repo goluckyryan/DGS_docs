@@ -71,6 +71,30 @@ Each slot (S1–S6) has a block of registers:
 
 Also monitors `BGO_FPGA_33V`, `BGO_FPGA_25V`, `BGO_FPGA_12V` (BGO board power rails).
 
+### ADC Hardware Calibration Constants
+_Source: `DGS_SVN/dgs/NewBlackBox/RaspberryPi/PreEpicsCode/Scan_DVI_Power.c` (pre-EPICS reference code)_
+
+CtrlFPGA uses a 16-bit ADC with 5V span: **13,107 counts/V**.
+
+| Rail | Expected ADC value |
+|------|-------------------|
+| 3.3V | ≈ 43,353 counts |
+| 2.5V | ≈ 32,767 counts |
+| 1.8V | ≈ 23,593 counts |
+| 1.2V | ≈ 15,728 counts |
+
+**48V current monitor (TMCS1101A4B):** 400 mV/A → **5,243 counts/A**
+- Warning threshold: > 2,700–3,000 counts (~0.5–0.6 A)
+- Shutdown threshold: > 5,000 counts (~0.95 A)
+- Expected: SBX + detector < 0.6 A under any circumstance
+
+**Ground fault monitor (AD8236, 22 Ω shunt, gain=100):** **28,835 counts/mA**
+- Fitted relationship for relay-open with external detector path: `ADCval ≈ 5e6 × Rdet^−0.731`
+
+**ADC scanner update rates (6 ADCs, 1 scanner):**
+- Fast (DRATE=11, 23,739 sps): 3.29–5.31 ms total update cycle
+- Slow (DRATE=00, 1,831 sps): 42.6–69 ms total update cycle
+
 ### EPICS PV Pattern
 
 All CtrlFPGA PVs use pattern `GS${DetNbr}_<register_name>` with `DTYP=CollectorLocalSerial`.
