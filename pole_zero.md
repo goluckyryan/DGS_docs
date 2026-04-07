@@ -131,46 +131,39 @@ For $k = 10\,\mu\text{s}$: $\text{PZ} \approx 0.999$. Deviations of fitted PZ fr
 
 ## Summary: Three Levels of PZ Correction
 
-### Level 1 — Approximation (SZ_1, low/medium rate)
-```
-E = sum2 - sum1·PZ_eff - base×(1 - PZ_eff)
-```
-- `base` = slow exponential moving average of sum1
-- Works well when count rate is low enough for base to track DC
-- Fails near preamp resets and at high rates
+### Level 1 — Approximation (SZ\_1, low/medium rate)
 
-### Level 2 — Exact (SZ_2, high rate)
-Same formula, but `base` is solved **algebraically per event** using the FPGA sampled baseline (`sb`):
-```
-base = [(sum1 + sb)·(1-pz3) - sb·(1-pz2)] / [(MM+msample)·(1-pz3) - msample·(1-pz2)]
-```
-where `pz2 = PZ^(msample/MM)`, `pz3 = PZ^((MM+msample)/MM)`, `pz4 = PZ^((MM+KK)/MM) = PZ_eff`.
+$$E = S_2 - S_1\cdot\text{PZ}_{\text{eff}} - b\,(1 - \text{PZ}_{\text{eff}})$$
+
+- $b$ = slow exponential moving average of $S_1$
+- Works at low rate; fails near preamp resets and at high rates
+
+### Level 2 — Event-by-event (SZ\_2, high rate)
+
+Same formula, but $b$ is solved **algebraically per event** from the FPGA sampled baseline $\text{sb}$:
+
+$$b = \frac{(S_1 + \text{sb})(1-p_3) - \text{sb}\,(1-p_2)}{(M+m_s)(1-p_3) - m_s(1-p_2)}$$
+
+where $p_2 = \text{PZ}^{m_s/M}$, $p_3 = \text{PZ}^{(M+m_s)/M}$, $\text{PZ}_{\text{eff}} = \text{PZ}^{(M+K)/M}$, and $m_s$ is the peak sample offset.
 
 - Event-by-event, rate-independent
-- No assumption about inter-event spacing
 - Recommended at high count rates (>10 kHz per crystal)
 
-### Level 3 — Ryan's exact formula (proposed, tested, not in production)
+### Level 3 — Ryan’s exact formula (proposed, tested, not in production)
 
-All quantities available in the DIG event packet:
-- **V0** = `LAST_POST_RISE_M_SUM` (previous pulse amplitude, stored in current packet)
-- **t0** = `EVENT_TIMESTAMP - LAST_DISC_TIMESTAMP` (time since previous pulse)
-- **k** = `GeCenterTimeConstant` PV (hardware RC, per detector)
-- **d, M** = KK, MM window parameters
+All quantities available in the DIG event packet ($V_0$ = `LAST_POST_RISE_M_SUM`, $t_0$ from `LAST_DISC_TIMESTAMP`):
 
-```
-E = sum2 - sum1 + V0·exp(-t0/k)·2·sinh(d/k)
-```
+$$E = S_2 - S_1 + V_0\,e^{-t_0/k}\cdot 2\sinh(d/k)$$
 
-Analytically exact single-pulse tail correction. No base tracking, no rate limitation, no approximation on the instantaneous DC.
+Analytically exact single-pulse tail correction, no base tracking needed.
 
-**⚠️ Experimental result:** J.T. Anderson (JTA) told Ryan that this formula was tested but the results were **not better than SZ_2**. Likely reasons:
+**⚠️ Experimental result:** J.T. Anderson (JTA) told Ryan that this formula was tested but the results were **not better than SZ\_2**. Likely reasons:
 - Real preamps have multi-pole responses — single exponential is an approximation
-- `LAST_POST_RISE_M_SUM` carries its own PZ correction error from the previous event
-- Pileup from pulses before the immediately preceding one is not corrected
-- `LAST_DISC_TIMESTAMP` only covers the nearest previous discriminator, not all contributing pulses
+- $V_0$ = `LAST_POST_RISE_M_SUM` carries its own PZ error from the previous event
+- Pulses before the immediately preceding one are not corrected
+- $\text{LAST\_DISC\_TIMESTAMP}$ covers only the nearest previous discriminator
 
-SZ_2 with the FPGA sampled baseline remains the production algorithm.
+SZ\_2 with the FPGA sampled baseline remains the production algorithm.
 
 ---
 
@@ -241,32 +234,30 @@ python working/pz_from_parquet.py \
 **The locus:** For a given gamma-ray energy E and decay constant k, varying the previous pulse tail (different V0, t0) traces a line in the S1 vs S2 scatter plot.
 
 From the derivation above:
-```
-sum1 = base + (sum1 - base)                      ← tail at sum1 window
-sum2 = base + E_true + (sum1 - base)·exp(-dt/k)   ← E + tail decayed by dt samples
-```
 
-This is linear in sum1 with slope:
-```
-slope = exp(-dt/k) = PZ^dt
-```
-where `dt` = number of samples between the center of sum1 and sum2 windows ≈ KK + MM (the digitizer K and M window register values).
+$$S_1 = b + (S_1 - b)$$
+$$S_2 = b + E + (S_1 - b)\cdot e^{-\Delta t/k} = b + E + (S_1-b)\cdot\text{PZ}^{\Delta t}$$
 
-**Correct PZ:** corrected energy `E = sum2 - sum1·PZ - base·(1-PZ)` is independent of sum1 → scatter is flat.
-**Wrong PZ:** residual tilt remains → positive or negative correlation with sum1.
+where $\Delta t$ = number of samples from the center of $S_1$ to the center of $S_2$ $\approx K + M$.
+
+This is **linear in $S_1$** with slope:
+
+$$\text{slope} = e^{-\Delta t/k} = \text{PZ}^{\Delta t}$$
+
+**Correct PZ:** $E = S_2 - S_1\cdot\text{PZ}^{\Delta t} - b\,(1-\text{PZ}^{\Delta t})$ is independent of $S_1$ → scatter is flat.
+**Wrong PZ:** residual tilt remains.
 
 **Extraction from slope:**
-```
-slope = PZ^dt
-→ PZ = slope^(1/dt)   where dt ≈ KK + MM samples
-```
 
-**Consistency check:** PZ from the scatter slope should match the nominal value from the hardware setting:
-```
-PZ_nominal = exp(-dt_sample / k)
-           = exp(-10ns / GeCenterTimeConstant)
-```
-Deviations indicate actual RC differs from the nominal slope box setting (component tolerance, temperature).
+$$\text{PZ} = \text{slope}^{1/\Delta t}, \qquad \Delta t \approx K + M \text{ (samples)}$$
+
+The `pca` method in `pz_from_parquet.py` measures this slope directly via principal component analysis.
+
+**Consistency check:** the extracted PZ should satisfy:
+
+$$\text{PZ} = e^{-dt/k} = e^{-10\,\text{ns}\,/\,k_{\mu\text{s}}}$$
+
+Deviations indicate the actual RC differs from the nominal slope box setting.
 
 ### Extraction Methods
 
