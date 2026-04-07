@@ -243,7 +243,7 @@ Three pins on the SERDES connector optionally supply **+3.3V** to power fiber-op
 +------------------+
 ```
 
-> ⚠️ Left/right ordering within each row: inferred from register bit ordering (bits 15:14 = #2, bits 13:12 = #1). **Verify against PCB silkscreen** for ground truth — not explicitly stated in text in the manuals.
+> NIM numbering confirmed via `MTrigUser.template`: `NIMSrc1` uses `asynMask(...,0x00003000,12)` (bits 13:12) and `NIMSrc2` uses `asynMask(...,0x0000C000,14)` (bits 15:14). Similarly `EN_NIM1_DELAY`=bit 9, `EN_NIM2_DELAY`=bit 10 in `reg_MISC_CTL2`. NIM1 is consistently the lower register field → lower-numbered output. Left/right physical ordering (which LEMO jack is #1 vs #2 on the front panel) is not stated in available documentation — verify against PCB silkscreen. ✅ verified 2026-04-07 — MTrigUser.template (bit masks for NIMSrc1/2 and EN_NIM1/2_DELAY)
 
 **Full front panel layout (top to bottom):**
 1. Status LEDs
