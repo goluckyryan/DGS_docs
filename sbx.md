@@ -10,7 +10,7 @@
 
 The **Slope Box** is the interface between the detector and the control/monitoring system:
 - Takes 48VDC power from the SBX power board
-- Generates **Ge bias voltage** (~3500V, programmable via EPICS DAC) ✅ verified 2026-04-06 — [wiki: The Slope Box](https://wiki.anl.gov/gsdaq/The_Slope_Box)
+- Generates **Ge bias voltage** (programmable via EPICS DAC; typical range 3000–4800V, most common 3500V or 4000V per detector) ✅ verified 2026-04-06 — [wiki: The Slope Box](https://wiki.anl.gov/gsdaq/The_Slope_Box); range confirmed 2026-04-07 — `DGS_SVN/dgs/Documentation/North_db.csv` + `South_db.csv` (2017 install records, 82 of 110 holes: min=3000V, max=4800V, mode=4000V)
 - Generates **BGO bias voltage** (~550–800V, programmable) ✅ verified 2026-04-06 — [wiki: The Slope_Box](https://wiki.anl.gov/gsdaq/The_Slope_Box)
 - Has a multiplexed ADC that measures: detector temperature, actual HV, power supply values
 - Connectors: preamp signal output, BGO ring signal, BGO backplug signal, HV output
