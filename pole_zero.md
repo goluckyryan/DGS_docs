@@ -11,7 +11,7 @@ HPGe preamplifiers produce an exponential tail after each gamma-ray hit — the 
 - **S1** (`sum1`) — integral over the **pre-rise** window (baseline region, before signal peak)
 - **S2** (`sum2`) — integral over the **post-rise** window (signal region, after peak)
 
-In an ideal detector: `S2 = PZ × S1` where `PZ ∈ (0,1)` is the **pole-zero coefficient** encoding the RC decay.
+In an **ideal detector** (infinite preamp time constant, no exponential tail): `S2` and `S1` are independent of each other and the S1 vs S2 scatter plot shows a flat horizontal distribution. In practice, the preamp tail couples S1 and S2: `S2 = PZ × S1` where `PZ ∈ (0,1)` is the **pole-zero coefficient** encoding the RC decay. A well-corrected detector has S2 uncorrelated with S1 (no tilt in the scatter plot), recovering the ideal case.
 
 When PZ is **wrong**, the S1 vs S2 scatter plot shows a tilted correlation. When PZ is **correct**, the scatter collapses to a horizontal line (energy-independent ratio).
 
