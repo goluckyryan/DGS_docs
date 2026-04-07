@@ -33,7 +33,7 @@ Phase skew = 156 ps. Temperature-dependent variation expected in the tap delays.
 
 ### Vernier (Delay Line) TDC
 
-Each chain uses FPGA carry-chain elements as a **64-tap delay line**. When the NIM input fires, the 64-bit thermometer code is latched into flip-flops. A **data compression pipeline** converts the 64-bit code into a **6-bit position value** (0–63) indicating how far the edge propagated. Time per tap: nominally **50 ps**.
+Each chain uses FPGA carry-chain elements as a **64-tap delay line**. ✅ verified 2026-04-07 — `tdc_unit_cont.vhd:L50` (`DELAY_CHAIN_ODD, DELAY_CHAIN_EVEN: std_logic_vector(63 downto 0)`). When the NIM input fires, the 64-bit thermometer code is latched into flip-flops. A **data compression pipeline** converts the 64-bit code into a **6-bit position value** (0–63) indicating how far the edge propagated. ✅ verified 2026-04-07 — `vernier_pos_finder.vhd:L40` (`TDC_POS: out std_logic_vector(5 downto 0)`). Per-slice `pos_finder.vhd` outputs 4-bit partial results, combined across 9 pipeline stages. Time per tap: nominally **70–50 ps** (VHDL MAXDELAY attribute targets 100 ps; comment in `tdc_unit_cont.vhd:L160` notes ~70 ps/step expected).
 
 ### Coarse Counter
 
@@ -46,4 +46,4 @@ Three cooperating state machines coordinate data capture:
 2. **TRIG_MON_COLLECT** — watches trigger algorithms; when selected algorithm fires, asserts `WANT_NEXT_TDC` and collects trigger message
 3. **TDC_AUTOSAMPLE** — collects TDC data from all four FIFO READERs after `WANT_NEXT_TDC`
 
-A variable delay elapses between `WANT_NEXT_TDC` and when `TDC_AUTOSAMPLE` finishes collection. The **pipeline delay is 350 ns** — any chain with differential > 350 ns vs TDCtsLo is stale and invalid.
+A variable delay elapses between `WANT_NEXT_TDC` and when `TDC_AUTOSAMPLE` finishes collection. The **pipeline delay is 350 ns** — any chain with differential > 350 ns vs TDCtsLo is stale and invalid. ✅ verified 2026-04-07 — TAC.docx (DGS_System_Documentation/Firmware/Master_Trigger/TAC.docx): "The total pipeline delay is 350ns, so any differential greater than that, or a negative number, is an old TDC measurement and should not be used."
