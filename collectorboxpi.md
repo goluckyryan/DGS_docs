@@ -16,10 +16,16 @@ Compiled against **EPICS 7.0.10** (patch level 1). Self-contained repo: includes
 - **Platform:** Raspberry Pi (aarch64), Debian 13
 - **PXE Boot:** Pi boots over network from `fs2.onenet` (192.168.203.71) via DHCP/tftp on Einstor (192.168.203.1) ✅ verified 2026-04-06 — ping fs2.onenet resolves 192.168.203.71 live
 - **Collector Pi IDs:** pi0, pi1, pi2, pi3 (identified by MAC address)
-- **MAC → hostname mapping:**
-  - `b8:27:eb:39:f2:ce` → pi0
-  - `b8:27:eb:df:8c:d6` → pi1
-  - `b8:27:eb:91:bd:1b` → pi2
+- **MAC → hostname mapping (production — `rc.local` active lines):**
+  - `b8:27:eb:fc:97:08` → pi0 ✅ verified 2026-04-07 — `collectorboxpi/README.md:L256`
+  - `b8:27:eb:57:19:db` → pi1 ✅ verified 2026-04-07 — `collectorboxpi/README.md:L257`
+  - `b8:27:eb:5a:d0:8e` → pi2 ✅ verified 2026-04-07 — `collectorboxpi/README.md:L258`
+  - `b8:27:eb:99:18:3f` → pi3 ✅ verified 2026-04-07 — `collectorboxpi/README.md:L259`
+- **Testing/spare Pi MACs** (also in rc.local, labeled "testing pi"):
+  - `b8:27:eb:39:f2:ce` → pi0 (spare, commented out)
+  - `b8:27:eb:df:8c:d6` → pi1 (testing Pi, active)
+  - `b8:27:eb:91:bd:1b` → pi2 (commented out)
+  - These 3 also have tftpboot symlink dirs on piserver (→ debian13Boot)
 
 ---
 
