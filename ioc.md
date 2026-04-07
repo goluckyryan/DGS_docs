@@ -235,6 +235,53 @@ cd ioc && python3 findAllPV.py
 
 ---
 
+## IOC Connections: Ethernet vs Terminal Server
+
+The VME IOC has **two separate physical connections**:
+
+### 1. Ethernet (Data + EPICS)
+- Used for: EPICS Channel Access (PV read/write), TCP data stream (port 9001 for `tcpReceiverMT`)
+- Address = `IOC_IP` in `EPICS_para.sh`
+- Example: DuoGe vme66 = **192.168.203.81**
+- This is the connection used by ANLDAQ GUI, pyepics scripts, and the data receiver
+
+### 2. Terminal Server (Console/Shell access)
+- Used for: VxWorks shell access via telnet (for IOC config, debugging, `dbl`, etc.)
+- The VME crate's **serial console port** is connected to a **terminal server** (RS-232 → Ethernet converter)
+- Terminal servers come in 4, 6, or 12 port variants on the onenet network
+- Address = `TERMINAL_SERVER` in `EPICS_para.sh`
+
+**Terminal server port formula** (from `ANLDAQ/gui/commander.py`):
+```
+telnet <TERMINAL_SERVER_IP> <2000 + IOC_id>
+```
+Where `IOC_id` = index of the IOC in the DAQ list (1-based).
+
+### Terminal Server Assignments
+
+| System | Terminal Server IP | IOC Ethernet IP | Telnet Port |
+|--------|-------------------|-----------------|-------------|
+| DuoGe (DUO) | 192.168.203.54 | 192.168.203.81 (vme66) | 2000 + id |
+| X-Array (DXA) | 192.168.203.47 | 192.168.203.212, .213 | 2000 + id |
+| SlopeBox (test) | 192.168.203.139 (ts99) | vme99 | 2003 (id=3) |
+| DGS crates 1–6 | 192.168.203.186 (gs-ts-south, even GS IDs) | .141–.145, .177–.183 | 2000 + id |
+| DGS crates 7–12 | 192.168.203.91 (gs-ts-north, odd GS IDs) | (same pool) | 2000 + id |
+
+**Example — connect to DuoGe IOC console:**
+```sh
+telnet 192.168.203.54 2001    # id=1 for vme66
+```
+
+**Example — ANLDAQ GUI opens console:**
+The GUI button "IOC-1" runs:
+```sh
+gnome-terminal -- bash -c "telnet 192.168.203.54 2001; exec bash"
+```
+
+> ⚠️ Note: the port number depends on which physical RS-232 port on the terminal server the VME crate is connected to. Verify with the lab's terminal server cabling documentation or by checking which port the GUI uses.
+
+---
+
 ## Operational Notes
 
 - Git LFS required: `git lfs pull` after clone to get firmware/munch/vxWorks binaries
