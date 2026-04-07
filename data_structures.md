@@ -258,6 +258,28 @@ avgPhaseTime         double   Average phase time (final TDC result, ps)
 
 A `TRASH_DATA` marker (value 666) in the GEB stream is skipped by the binary reader.
 
+**NoTrigger detection:** If `packedData[9] == 0x10021001`, event is flagged `NoTrigger` and discarded.
+
+**TDC offset validity:** `tdcOffset = timestampTDC - timestampTrig`; must satisfy `0 ≤ tdcOffset ≤ 200 ns`, else `TDCoffsetInvalid`.
+
+**Vernier timing formula** (`class_TDC.h:CalTime()`):
+```
+baseTime = timestampTrig - (timestampTrig % 262144)
+         = timestampTrig aligned to 2^18 × 10 ns = 2,621,440 ns period
+
+phaseTime[i] = baseTime + fourNanoSecCounter[i] × 4 ns
+                         + offset[i]            (default: 0,1,2,3 ns)
+                         - vernier[i] × 0.05 ns
+
+avgPhaseTime = mean of valid phaseTime[i] values  (in ns)
+```
+- **Vernier resolution:** 50 ps per count (6-bit, range 0–63 → 0–3.15 ns)
+- **validBit:** `vernierAB[15:12]`; bit `i` set → vernier channel `i` is valid
+- **Final result:** `avgPhaseTime` (ns) → converted to 10 ns timestamp units for `EVENT_TIMESTAMP`
+- **Sub-sample remainder:** stored as `POST_RISE_ENERGY = (avgPhaseTime mod 10 ns) × 1000` (in ps)
+
+_Source: `class_TDC.h:CalTime(),DecodePackedData()` — verified 2026-04-07_
+
 ---
 
 ## 4. UniqueID Convention
