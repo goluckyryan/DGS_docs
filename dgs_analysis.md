@@ -267,14 +267,57 @@ Interactive REPL for exploring any `_dgs.parquet` or `_events.parquet` file. Col
 
 ### gain_from_parquet.py
 
-Extracts gain calibration from decoded parquet data.
+Extracts **energy gain/offset calibration** from a `_dgs.parquet` file. For each crystal (`tid`), builds a 1D `e_raw` spectrum, auto-fits gamma peaks using the GrayCAL `AutoFitter`, matches to a known calibration source, and performs a linear fit: `E_keV = gain * e_raw + offset`. Writes `dgs_gain.cal`.
+
+```bash
+python working/gain_from_parquet.py <dgs.parquet> [options]
+  --output FILE      Output cal file          (default: dgs_gain.cal)
+  --source FILE      JSON isotope source      (default: Euautocal.json = 152Eu)
+  --e-bins N         e_raw histogram bins     (default: 4096)
+  --e-max N          Upper bound for e_raw    (default: 99.5th percentile)
+  --threshold F      Peak sigma threshold     (default: 3.0)
+  --tid N [N ...]    Process only these crystal IDs (default: all)
+  --quiet            Suppress per-crystal output
+```
+
+**Pipeline per crystal:**
+1. Histogram `e_raw` (skips crystals with <500 hits)
+2. `AutoFitter` finds + fits peaks (SNIP background, 20 iterations)
+3. `CalibrationPoints.add_points_from_fit()` extracts peak centroids
+4. `cal_pts.match_w_source()` matches to known isotope gamma lines
+5. `cal_pts.energy_calibration()` → linear fit → `gain`, `offset`
+6. Skips crystals with <2 matched peaks or failed fits
+
+**Output format** (`dgs_gain.cal`):
+```
+# gsid  gain  offset
+  1  0.123456  -12.3456
+  2  0.124001   -9.8765
+...
+```
+
+Uses `gray_apps/data/isotopes/sou-files/Euautocal.json` (152Eu) as default source.
 
 ### pz_from_parquet.py
 
-Extracts pole-zero calibration from decoded (hit-level) parquet data. Use with `--decode-only` RunParquet:
+Extracts **pole-zero calibration** from a decoded hit-level `_dgs.parquet` file. Reads `sum1` (S1 baseline trapezoid integral), `sum2` (S2 signal trapezoid integral), and `tid` (crystal ID). For each crystal, builds a 2D S1/S2 histogram then calls `pole_zero_fitter.estimate_pz_from_histogram()` to find the PZ coefficient. Writes `dgs_pz.cal` in GEBSort format.
+
+Use with `--decode-only` RunParquet output (hit-level, not event-level):
 ```bash
-python working/pz_from_parquet.py $expFolder/Parquet/decode/exp2008_003_dgs.parquet --output working/dgs_pz.cal
+python working/pz_from_parquet.py $expFolder/Parquet/decode/exp2008_003_dgs.parquet \
+    --output working/dgs_pz.cal \
+    --method chi2   # chi2 | peakmatch | pca | ridge
+    --pz-min 0.88 --pz-max 0.99 --pz-step 0.0005
+    --s1-bins 512 --s2-bins 512
 ```
+
+**Pipeline per crystal:**
+1. Read `sum1`, `sum2`, `tid` columns from parquet
+2. Build 2D numpy histogram (S1 × S2, 512×512 default bins)
+3. `estimate_pz_from_histogram()` → `DetResult` dataclass with `.pz` coefficient
+4. `write_pz_cal(path, pz_map)` → `dgs_pz.cal` (format: `det  pz`, one line per crystal)
+
+For event-level parquet (list columns), use `pz_from_evtparquet.py` instead.
 
 ### pz_from_evtparquet.py *(new Apr 2026)*
 
