@@ -240,6 +240,7 @@ See `dgs/dgs_analysis.md` for full details on each step.
 | DAQ GUI (ANLDAQ commander, data-taking tab) | `dgs/ANLDAQ.md` |
 | DIG firmware — readout modes, data formats | `dgs/DIG_firmware_expert.md` |
 | GEB data format + type codes | `dgs/data_structures.md`, `dgs/dgs_analysis.md` § GEB |
+| GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | `dgs/gebsort.md` |
 | Snapshot PV / save+restore settings | `dgs/snapshot_pv.md` |
 
 ---

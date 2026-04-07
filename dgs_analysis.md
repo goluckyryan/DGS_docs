@@ -560,3 +560,20 @@ Key improvements with ReadPool (vs without):
 - Save traces (`saveTrace=true`) allocates ~153 KB per event — keep disabled for large runs unless needed
 - Parquet pipeline is an alternative to ROOT for Python-native workflows
 - `angtheta.dat` and `map.dat` are geometry files mapping detector IDs to physical positions
+
+---
+
+## Cross-References
+
+| Topic | File |
+|-------|------|
+| GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | `dgs/gebsort.md` |
+| Typical DGS run procedures (GEBSort workflow + modern ANLDAQ workflow) | `dgs/run_procedures.md` |
+| Pole-zero correction theory + `pz_from_parquet.py` detail | `dgs/pole_zero.md` |
+| GEB binary data format + GEBHeader struct | `dgs/data_structures.md` |
+| Gammasphere geometry (GS hole → θ/φ, map.dat context) | `dgs/gammasphere_geometry.md` |
+| DIG firmware readout modes (source of raw GEB payloads) | `dgs/DIG_firmware_expert.md` |
+
+---
+
+*Source: `DGS_tools_pack/dgs_analysis/` + `DGS_tools_pack/gebsort/`. Updated: 2026-04-07.*
