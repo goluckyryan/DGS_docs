@@ -68,9 +68,9 @@ The DGS trigger system is organized as a three-tier hierarchy:
 
 | Module | Folder | Chip | Tool | Role |
 |--------|--------|------|------|------|
-| [MTRG](MTRG/README.md) | `MTRG/` | Virtex-4 XC4VLX80 (ISE) / Kintex UltraScale XCK060 (Vivado) | ISE 13.4 / Vivado 2018.3 | Central trigger decision-maker | ✅ verified 2026-04-06 — MTRG/Firmware/MAIN_FPGA/trunk/Work13_4/Work13_4.xise |
-| [RTRG](RTRG/README.md) | `RTRG/` | Virtex-4 XC4VLX80 | ISE 13.4 | Router — aggregates digitizer hits, forwards trigger commands | ✅ verified 2026-04-06 — RTRG/Firmware/DGS_Version/MAIN_FPGA/Work13_4/Work13_4.xise |
-| [DIG](DIG/README.md) | `DIG/` | Spartan-3 XC3S5000 | ISE 14.7 | 10-channel waveform digitizer | ✅ verified 2026-04-06 — DIG/MAIN_FPGA/BuildBranches/DGS/Work/BUS_LEFT.xise |
+| [MTRG](deep_fpga_MTRG.md) | `MTRG/` | Virtex-4 XC4VLX80 (ISE) / Kintex UltraScale XCK060 (Vivado) | ISE 13.4 / Vivado 2018.3 | Central trigger decision-maker | ✅ verified 2026-04-06 — MTRG/Firmware/MAIN_FPGA/trunk/Work13_4/Work13_4.xise |
+| [RTRG](deep_fpga_RTRG.md) | `RTRG/` | Virtex-4 XC4VLX80 | ISE 13.4 | Router — aggregates digitizer hits, forwards trigger commands | ✅ verified 2026-04-06 — RTRG/Firmware/DGS_Version/MAIN_FPGA/Work13_4/Work13_4.xise |
+| [DIG](deep_fpga_DIG.md) | `DIG/` | Spartan-3 XC3S5000 | ISE 14.7 | 10-channel waveform digitizer | ✅ verified 2026-04-06 — DIG/MAIN_FPGA/BuildBranches/DGS/Work/BUS_LEFT.xise |
 
 Each module also has a VME FPGA (Spartan-3 XC3S400) that handles VME bus access and programs the main FPGA from flash memory. ✅ verified 2026-04-06 — DIG/VME_FPGA_ANL/Work11/vme_A32_D32.xise (Device=xc3s400, Spartan3)
 
@@ -148,8 +148,8 @@ Each **2 µs cycle** consists of 20 frames (100 ns per frame). Each frame carrie
 | 18–20 | End-of-cycle / spare |
 
 For the detailed word-by-word breakdown of each frame:
-- **Downstream (MTRG → RTRG → DIG):** [MTRG/MAIN_FPGA.md — Command Frame Timing](MTRG/MAIN_FPGA.md#command-frame-timing) · [DIG/README.md — SERDES RX Frame Types](DIG/README.md#serdes-rx-frame-types-from-router)
-- **Upstream (DIG → RTRG → MTRG):** [DIG/README.md — SERDES TX Format](DIG/README.md#serdes-tx-format-to-router)
+- **Downstream (MTRG → RTRG → DIG):** [deep_fpga_MTRG_MAIN.md — Command Frame Structure](deep_fpga_MTRG_MAIN.md) · [deep_fpga_DIG.md — SERDES RX Frame Types](deep_fpga_DIG.md)
+- **Upstream (DIG → RTRG → MTRG):** [deep_fpga_DIG.md — SERDES TX Format](deep_fpga_DIG.md)
 
 *Source: J. Anderson, FRIB Community Meeting, August 2013*
 
@@ -478,7 +478,7 @@ svn diff -c 7231
 
 ## Building the Firmware
 
-See **[BUILDING.md](BUILDING.md)** for the full build guide, including:
+See **[deep_fpga_building.md](deep_fpga_building.md)** for the full build guide, including:
 
 - Toolchain versions for each module (ISE 14.7 / Vivado 2018.3)
 - ISE 14.7 device support (Virtex-4, Spartan-3 confirmed)
