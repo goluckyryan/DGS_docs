@@ -321,7 +321,7 @@ Each channel has a **16-entry circular buffer** (the "trigger rondel") managed b
    (outside either bound → REJECTED)
   ```
 
-  Both limits are 16-bit **signed** values (units: 100 MHz counts = 10 ns each), so the window can be asymmetric. Typical use: `LOWER_LIMIT` negative (events that fired slightly before the trigger), `UPPER_LIMIT` positive (events that fired slightly after). The useful range is ±1024 counts (±10.24 µs) — beyond that, the event has already expired from the PEQ.
+  Both limits are 16-bit **signed** values (units: 100 MHz counts = 10 ns each), so the window can be asymmetric. ✅ verified 2026-04-08 — `Digitizer.vhd:L356-357` (`reg_win_comp_max/min: std_logic_vector(15 downto 0)`) + `MDigRegisters.template:L52-62` (EPICS PVs). Typical use: `LOWER_LIMIT` negative (events that fired slightly before the trigger), `UPPER_LIMIT` positive (events that fired slightly after). The useful range is ±1024 counts (±10.24 µs) — beyond that, the event has already expired from the PEQ. ✅ verified 2026-04-08 — T1+T2 buffer = 2048 cells × 10 ns = 20.48 µs (`DIG_firmware_expert.md:L141`).
 
   **Important:** `TS_COMP_*_LIMIT` is a **physics coincidence window**, not a trigger latency window. `TS_trigger` is the timestamp of the hit that *caused* the MTRG to fire (recorded at the moment of the original hit, e.g. t = 0), not the time the ACCEPT message arrived at the DIG (~2–4 µs later). The Searcher compares channel hit times against this original physics timestamp, so the ±10.24 µs hardware ceiling has nothing to do with the 20 µs TRIG_DELAY:
 
