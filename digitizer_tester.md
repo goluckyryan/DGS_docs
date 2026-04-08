@@ -2,13 +2,13 @@
 
 **Purpose:** Test module for DGS/GRETINA digitizer boards. Generates arbitrary analog waveforms to exercise digitizers without real detector signals.  
 **Source:** `DGS_SVN/dgs/Digitizer_Tester/`  
-**FPGA:** Xilinx Virtex-4 `XC4VLX40-10FFG1148C` (same family as MTRG/RTRG)
+**FPGA:** Xilinx Virtex-4 `XC4VLX40-10FFG1148C` (same family as MTRG/RTRG) ✅ verified 2026-04-07 — `Dig_Tester.ucf:L1` (`# FPGA = XC4VLX40-10FFG1148C`)
 
 ---
 
 ## Function
 
-- Generates arbitrary test waveforms via dual **200 MHz, 16-bit DACs**
+- Generates arbitrary test waveforms via dual **16-bit DACs** (AD9747, up to 200 MHz) ✅ verified 2026-04-07 — `DAC_SPI.vhd:L1` (AD9747); `Dig_Tester_pkg.vhd` (clock_freq_sel: 00=50MHz, 01=100MHz, 11=200MHz)
 - Drives waveforms to up to 10 output channels via an **analog switch matrix**
 - Connects to TTCL (DGS/GRETINA trigger system) via **RJ45** — can sync to master timestamp or run asynchronously
 - Provides 2 **NIM outputs** for triggering/synchronization
@@ -19,7 +19,11 @@
 ## Hardware
 
 ### DACs
-- **2× 16-bit DAC** running at up to 200 MHz (selectable: 50/100/200 MHz)
+- **2× AD9747 dual 16-bit DAC** ✅ verified 2026-04-07 — `DAC_SPI.vhd` header
+- Clock selectable: 50 / 100 / 200 MHz (register `clock_freq_sel[1:0]`: `00`=50, `01`=100, `10`=50, `11`=200) ✅ verified 2026-04-07 — `Dig_Tester_pkg.vhd`
+- ⚠️ Code note: "previous comments say wavx_cs_trigx outputs don't route at 200 MHz" — 200 MHz may be unreliable in practice
+- Waveform memory is 18-bit wide internally; output truncated to 16-bit for DAC (`Waveform_Reader.vhd: dac_data_out(15:0)`) ✅ verified 2026-04-07 — `Waveform_Reader.vhd:L4-5`
+- SPI clock max 40 MHz per AD9747 datasheet ✅ verified 2026-04-07 — `DAC_SPI.vhd` comment
 - Clock sources selectable: external, 50 MHz local oscillator, or SYS_CLK × 20/7
 - DAC outputs driven via SPI interface from FPGA (`DAC_SPI.vhd`)
 
