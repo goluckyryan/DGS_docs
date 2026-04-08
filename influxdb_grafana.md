@@ -108,16 +108,15 @@ Grafana connects to InfluxDB 3 at `http://localhost:8181`. Expected datasources:
 - `DGS` database → PV history panels (when activated)
 
 ### Provisioning
-Grafana uses file-based provisioning under `/etc/grafana/provisioning/`:
-- `datasources/` — auto-configured data source connections
-- `dashboards/` — auto-loaded dashboard JSON files
-- `alerting/` — alert rules
+Grafana provisioning dirs exist at `/etc/grafana/provisioning/` (access-control, alerting, dashboards, datasources, plugins) but contain **only the default `sample.yaml` placeholders** — no active provisioned datasources or dashboards. ✅ verified 2026-04-08 — SSH to DCS2: `datasources/sample.yaml` only, `dashboards/sample.yaml` only.
 
-### Dashboards (expected)
-Based on what's being written, likely dashboards include:
-- Detector temperature heatmap / trend (110 GS holes over time)
+**Implication:** All datasources and dashboards are configured manually via the Grafana UI and stored in `/var/lib/grafana/grafana.db` (SQLite). No `/var/lib/grafana/dashboards/` directory exists.
+
+### Dashboards
+Dashboards are stored in `grafana.db` (no read access from `dcsu`). Based on what's being written to InfluxDB, expected dashboards include:
+- Detector temperature heatmap / trend (110 GS holes from `HPGeTemp` db)
 - LN2 fill status and tank levels
-- Possibly: PV history browser (when DGS db is activated)
+- Possibly: PV history browser (when `DGS` db is activated)
 
 ---
 
