@@ -188,6 +188,13 @@ startup script (s)   : /global/ioc/boot/vme66.cmd
 
 - FTP server must be enabled on the host (serves VxWorks image and IOC files)
 - Files served from `/global/ioc/` on the host
+- **Ubuntu 24 FTP setup (vsftpd):** ✅ verified 2026-04-08 — `ioc/README.md` (commit 155a3b6)
+  ```sh
+  sudo apt install vsftpd
+  # Edit /etc/vsftpd.conf: set write_enable=YES
+  sudo systemctl restart vsftpd.service
+  sudo systemctl enable vsftpd.service
+  ```
 
 ---
 
