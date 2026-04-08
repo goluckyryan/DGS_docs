@@ -388,6 +388,33 @@ Note: the TRIG_DELAY alone does **not** limit the rate to 1/20 µs = 50 kHz, bec
 
 ---
 
+## Firmware Type Codes (BUILD_TYPE)
+
+All ANL FPGA firmware variants share a common `trigger_top` component parameterized by `BUILD_TYPE`. The `CODE_REVISION` PV encodes this in bits\[11:8\] (e.g. RTRG `0x260E` → `6` = DGS Router). ✅ verified 2026-04-08 — `FPGA/others/Trig_sys_sim/MstrTrig_pkg.vhd` generic declaration comments.
+
+| BUILD_TYPE | Hex | Firmware Variant |
+|------------|-----|------------------|
+| 0 | 0x0 | Prototype |
+| 1 | 0x1 | GRETINA Router |
+| 2 | 0x2 | GRETINA Master Trigger |
+| 3 | 0x3 | GRETINA Data Generator |
+| 4 | 0x4 | **DGS Master Trigger** |
+| 5 | 0x5 | DSSD Master Trigger |
+| 6 | 0x6 | **DGS Router** |
+| 7 | 0x7 | DSSD Router |
+| 8 | 0x8 | **DGS Data Generator** |
+| 9 | 0x9 | DSSD Data Generator |
+| A | 0xA | **Digitizer Tester** |
+| B | 0xB | **MyRIAD Trigger Expansion** |
+| C | 0xC | **DGS Digitizer** |
+| D | 0xD | DSSD Digitizer |
+| E | 0xE | (unused) |
+| F | 0xF | **VME FPGA** |
+
+**DGS-relevant types in bold.** Current production firmware: MTRG=0x4, RTRG=0x6, DIG=0xC. The MTRG revision `0x04A8` → bits\[11:8\]=4 (DGS MTRG); RTRG `0x260E` → bits\[11:8\]=6 (DGS Router); DIG `0x4CD8` → bits\[11:8\]=C (DGS Digitizer).
+
+---
+
 ## Timing
 
 | Parameter | Value |
