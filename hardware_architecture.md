@@ -30,7 +30,7 @@ A single VME crate with one MTRG, one RTRG, and two DIGs (BUS_LEFT + BUS_RIGHT p
 | Sends multiplicity upstream | ✅ Yes | ❌ No (only throttle request bit via master) |
 | IOC talks to it | ✅ Yes | ✅ Yes (VME registers) |
 | SERDES lock checked by link_sys | ✅ Yes | ❌ No (locks passively via MDIG's clock) |
-| External discriminator source | Local ch9 | ch9 of paired MDIG |
+| External discriminator source | Local ch9 (ch0–8 can select `Ch 9` as ext disc src; ch9 itself has `N/A` as option 0) ✅ verified 2026-04-08 — `MDigUser.template:L10038-10055` | ch9 of this SDIG board (same template structure as MDIG — `Ch 9` available for ch0–8) ✅ verified 2026-04-08 — `SDigUser.template:L10038-10055` |
 | Data channels | 10 (ch 0–9) | 10 (ch 0–9) — second set |
 
 **In a crate:** each MDIG+SDIG pair covers up to 20 detector channels. Connected by front-bus ribbon cable — MDIG distributes trigger/clock down to SDIG.
