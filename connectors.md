@@ -36,7 +36,7 @@ Carries: TTCL commands (receive), fast event data (transmit), and the 50 MHz sys
 
 > ⚠️ Some signals have inverted logic (marked in original schematic with \*). Check schematic `31Y334-Schematic-10ChanDigitizer-Rev4.2.pdf` for exact polarity.
 
-**SER/DES IC:** National Semiconductor DS92LV18TVV (LVDS, 1 Gbps)
+**SER/DES IC:** National Semiconductor DS92LV18TVV (LVDS, 1 Gbps) ✅ verified 2026-04-08 — `DGS_SVN/dgs/FromT/l2.txt:L62` (BOM entry: qty=2, mfr=National, DigiKey=DS92LV18TVV-ND)
 
 ---
 
