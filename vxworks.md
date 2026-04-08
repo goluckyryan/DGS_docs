@@ -166,12 +166,12 @@ VxWorks 5.5 does not automatically call C++ static constructors (code that runs 
 
 | Item | Detail |
 |---|---|
-| **Board** | Motorola MVME5500 |
-| **CPU** | PowerPC 604 (`ppc604_long` ABI) |
-| **OS** | Wind River VxWorks 5.5 |
+| **Board** | Motorola MVME5500 ✅ verified 2026-04-07 — `dgsDrivers/src/README.md:L4` |
+| **CPU** | PowerPC 604 (`ppc604_long` ABI) ✅ verified 2026-04-07 — `dgsDrivers/src/README.md:L4` ("PowerPC board") + ABI dir name `vxWorks-ppc604_long` |
+| **OS** | Wind River VxWorks 5.5 ✅ verified 2026-04-07 — `vxworks/migration.md:L26` ("VxWorks 5.5 compatible") |
 | **Crate bus** | VME — boards talk to each other over the VME backplane |
-| **VME bridge** | Universe II chip — connects the PowerPC CPU to the VME bus |
-| **Toolchain** | Tornado 2.2 / GCC 2.96 (`ccppc`, `g++ppc`, `nmppc`, `ldppc`) |
+| **VME bridge** | Universe II chip — connects the PowerPC CPU to the VME bus ✅ verified 2026-04-07 — `dgsDrivers/src/README.md:L229` ("MVME5500's Universe II chip bridges the PowerPC") |
+| **Toolchain** | Tornado 2.2 / GCC 2.96 (`ccppc`, `g++ppc`, `nmppc`, `ldppc`) ✅ verified 2026-04-07 — `vxworks/migration.md:L21,L26` (Tornado2.2 dirs + "GCC 2.96, powerpc-wrs-vxworks") |
 
 ---
 
