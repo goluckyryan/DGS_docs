@@ -60,6 +60,7 @@ These are called automatically by the boot script. Do not re-run on a live IOC w
 |---------|-----------|-------------|--------|
 | `ProgramFlash` | `bdnum, bank, "file.bin"` | Erase + write firmware to flash bank (0=lower, 1=upper) | `devGVME.c` |
 | `EraseFlash` | `bdnum, bank` | Erase one flash bank | `devGVME.c` |
+| `ReadFlash` | `bdnum, bank, "file.bin"` | Read one flash bank and write to file on disk. `bank` 0=lower, 1=upper. Output byte order matches `.bin` format. **Read-only — safe** | `devGVME.c` |
 | `VerifyFlash` | `bdnum, bank, stopOnErr, "file.bin"` | Verify flash content against binary file | `devGVME.c` |
 | `ConfigureFlash` | `bdnum, bank` | Instruct VME FPGA to reconfigure main FPGA from flash | `devGVME.c` |
 
@@ -343,7 +344,7 @@ DGS asyn port names (from boot scripts): `MDIG1`, `MDIG2`, `RTR1`, `MTRG` (DUO/v
 `dbl`, `dbgrep`, `dbla`, `dbpr`, `dbgf`, `dbcar`, `dbap`, `dbstat`, `dbior`, `dblsr`,
 `dbLockShowLocked`, `casr`, `asynReport`, `epicsEnvShow`, `epicsParamShow`,
 `epicsThreadShowAll`, `epicsThreadShow`, `epicsMutexShowAll`, `taskwdShow`,
-`VMERead32`, `registryDump`, `pwd`, `date`, `coreRelease`, `generalTimeReport`,
+`VMERead32`, `ReadFlash`, `registryDump`, `pwd`, `date`, `coreRelease`, `generalTimeReport`,
 `i`, `version`, `checkStack` (VxWorks built-ins)
 
 ### Use with Care (modifies state)
