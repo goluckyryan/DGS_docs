@@ -55,6 +55,28 @@ NTP server: `192.168.203.56` ✅ verified 2026-04-06 — `ioc/boot/cdCommands:L2
 
 _✅ All firmware filenames verified 2026-04-06 — `ls ioc/firmware/`_
 
+### Board Type Encoding — `code_revision[11:8]`
+
+The IOC reads `code_revision` from each FPGA and decodes bits \[11:8\] as the **board type**. Exposed via `DAQC$(CRATE)_BoardType0..N` mbbi PVs in `daqCrate.template`. ✅ verified 2026-04-08 — `ioc/db/daqCrate.template:L14-31`
+
+| Type code | Board identity | Format of full `code_revision` word |
+|-----------|---------------|--------------------------------------|
+| 1 | GRETINA Router Trigger | — |
+| 2 | GRETINA Master Trigger | — |
+| 3 | LBNL Digitizer | arbitrary placeholder (JTA) |
+| 4 | DGS Master Trigger | — |
+| 5 | Unknown | — |
+| 6 | DGS Router Trigger | — |
+| 7 | Unknown | — |
+| 8 | MyRIAD | arbitrary placeholder (JTA) |
+| 9–11 | Unknown | — |
+| 0xC (12) | **ANL Master Digitizer** | low 16 bits = `4XYZ` (4=DIG, X=master/slave, Y=major rev, Z=minor rev) |
+| 0xD (13) | **ANL Slave Digitizer** | low 16 bits = `4XYZ` |
+| 0xE (14) | Majorana Master Digitizer | low 16 bits = `FXYZ` (F=Majorana, X=master/slave, Y=major, Z=minor) |
+| 0xF (15) | Majorana Slave Digitizer | low 16 bits = `FXYZ` |
+
+DGS production boards are type **0xC** (master DIG) and **0xD** (slave DIG). Types 1/2/4/6 are trigger boards (GRETINA/DGS MTRG/RTRG). Types 14–15 are Majorana experiment digitizers — not used in DGS/Gammasphere.
+
 **Firmware upload sequence** (`uploadFW.cmd`):
 1. `ProgramFlash(board#, 0, "file.bin")` — writes firmware to flash
 2. `ConfigureFlash(board#, 0)` — loads flash into FPGA
