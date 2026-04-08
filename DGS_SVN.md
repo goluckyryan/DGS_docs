@@ -19,20 +19,20 @@ The SVN tree contains a broad historical archive of DGS development:
 | `17pc030-GretinaTRGT` | Gretina trigger target hardware |
 | `17pc031-HeliosPreampPower` | Helios preamp power supply |
 | `20180921`, `20230818_edm` | Dated snapshots / EDM displays |
-| `con6_20220728` | con6 (Solaris host) snapshot |
-| `con6_EPICS_base` | EPICS base from con6 era |
-| `con6_work` | con6 working files |
+| `con6_20220728` | con6 (Solaris host) snapshot *(not in local mirror)* |
+| `con6_EPICS_base` | EPICS base from con6 era *(not in local mirror)* |
+| `con6_work` | con6 working files *(not in local mirror)* |
 | `daq_system_tags` | **DAQ system version snapshots** — full-system tagged releases, each containing firmware binaries and/or IOC + EDM config trees. Tags: `DFMA_20220711`, `DFMA_20220712` (July 2022 DFMA experiment: DIG=6194, MTRG=5542, RTRG=5814 or 4747); `DFMA_20220729`, `DFMA_20221021` (fuller tags with `firmware/`, `ioc/`, `edm/`, `softIOC/` dirs: DIG=6194, MTRG=5542, RTRG=4747, Digitizer_VME=3963, Trigger_VME=4485); `DUB_20211101` (DUBALL experiment: DIG=6194, MTRG=5542, RTRG=4747); `DXA_20220720` (X-Array experiment: same firmware); `SL6_DGS_20220923` (SL6 = DFMA+DXA combined? — contains all 5 firmware types with `XXXX` placeholder names, suggesting it was a template snapshot). **IOC template naming evolution:** `DFMA_20221021/ioc/db/` uses `CS_Digitizer.template` + `CS_Digitizer_reg.template` with `$(P)$(R)` macro style and per-crate `VMExx_4mdig.db` files — this is the pre-Git, pre-`MDigRegisters` naming era. By Feb 2024 (`DB_backup_20240205`) templates had been renamed to `MDigRegisters.template`/`MDigUser.template`/etc., matching current `ioc/db/`. The `CS_` prefix and `4mdig` naming were dropped during the Git migration. Useful for: recovering exact firmware sets used in past experiments, cross-referencing with run data, tracing IOC naming evolution. |
 | `Data_Generator` | **Trigger-chain test injector** — FPGA board that injects programmable discriminator bit patterns into the trigger chain (simulating digitizer hits) via SERDES links. Two firmware variants: `DSSD_MAIN_FPGA/` and `GRETINA_MAIN_FPGA/` (same VHDL, different target system). Contains a CPLD and main FPGA. Key features: 8 SERDES output channels, each with up to 1K discriminator bit patterns loaded via VME RAM tables (16-bit: bits[15:6]=pattern, bits[5:0]=assertion time in clocks); 9th table drives 2 NIM outputs synchronously. Patterns triggered by NIM pulse or Frame12 command (bit15=start now, bit14=start at timestamp rollover). Throttle output can be time-controlled via `MISC_CTL2_REG[0]` (always on) or timed to timestamp match via `THROTTLE_TIME_ON`/`THROTTLE_TIME_OFF` registers. CPLD drives throttle request lines (via connector A/B/C/D outputs at VME addrs E000/E004/E008/E00C; SUM output at E010; throttle bit pattern at E014); main FPGA drives discriminator bits — reversed relative to normal Router pinout because the cable swaps SERDES_IN↔OUT and discriminator↔throttle pins. `MISC_CTL` bit controls one-shot vs wrap-around of read pointer. See `DataGenOperationNotes.txt`. |
 | `DB_backup_20240205` | **EPICS DB snapshot (Feb 5, 2024)** — templates and per-crate `.db` files as they existed before the Git migration. Templates: `asynDebug.template`, `daqCrate.template`, `daqSegment2.template`, `MDigRegisters.template`, `MDigUser.template`, `MTrigRegisters.template`, `MTrigUser.template` (+ `.TMP` draft), `RTrigRegisters.template`, `RTrigUser.template`, `SDigRegisters.template`, `SDigUser.template`, `RunProtect.asf`. Per-crate `.db` files: `dgsGlobals_DGS_VME01.db` through `VME12.db` + `VME99.db`. **Notable difference vs current `ioc/db/`:** VME-variant templates (`MDigRegistersVME`, `MDigUserVME`, `SDigRegistersVME`, `SDigUserVME`) did NOT exist in Feb 2024 — added later for crates 66 and 99 to expose VME FPGA status PVs (power/voltage/temp sensors, clock select, `vme_code_revision_RBV`, `SERIAL_NUMBER_RBV`). `asynDebug.template` removed from ioc/db/ in Git version. |
-| `Detector_Repair` | Detector repair records/tools |
-| `devel8`, `dgs_devel8` | Development branch 8 |
-| `devel_tracker` | Development tracking |
-| `DGS1_clean_folders` | DGS1 (old system) clean directory tree |
-| `DGS1_total_backup` | Full DGS1 backup |
-| `dgsext` | DGS extensions |
+| `Detector_Repair` | **HPGe detector repair documentation**: `DetectorRepairProcedure.docx` (procedure guide), `Gammasphere Basics.docx` (GS detector basics), `AOEffectofannealingJINST.pdf` (anneal effect on detector performance, JINST paper), `document.pdf` (unknown), `Photos/` (tutorial + follow-up session photos), `Data Sample/` (MCA spectrum data files in legacy format, e.g. `data_sample.txt` with MCA channel/energy calibration header). Historical reference for crystal repair and annealing procedures. |
+| `devel8`, `dgs_devel8` | Development branch 8 *(not in local mirror)* |
+| `devel_tracker` | Development tracking *(not in local mirror)* |
+| `DGS1_clean_folders` | DGS1 (old system) clean directory tree *(not in local mirror)* |
+| `DGS1_total_backup` | Full DGS1 backup *(not in local mirror)* |
+| `dgsext` | DGS extensions *(not in local mirror)* |
 | `DGSFiberExpander` | **VME Fiber Adapter / Fiber Expander** — PCB #3174 (ANL part `21pc032`, Rev A, Sept 2021). Adapts VME backplane fiber connections to front-panel SFP/fiber connectors. Contains OrCAD schematics, Allegro layout, Gerber fab package, BOM, DRC, and front panel drawings. Vendor quote from Q74173A1 / QT-2873. Likely used to extend SERDES fiber links between crates or VME chassis. |
-| `dgsSoftIOC` | Soft IOC (pre-Git version) |
+| `dgsSoftIOC` | Soft IOC (pre-Git version) *(not in local mirror)* |
 | `ArdisiaDocuments.zip` | Ardisia documentation |
 | `DigitizerFanout` | **Digitizer Fanout PCB** (Aug 2022): RJ45-based LVDS signal fanout board. BOM includes dual LVDS receivers (SN65LVDT9637B ×3), LVDS drivers (FIN1001M5X ×2), clock buffers (NB6N11SMNG ×2), OR/NOR logic gates, RJ45 jacks (Amphenol RJHSE5387 ×2 + vertical male plugs ×4), RJ11 connector ×1. Purpose: fan out SERDES/LVDS differential signals across RJ45 links — likely used to split digitizer trigger/data links to multiple destinations. OrCAD schematic + Allegro layout + BOM + DRC included. |
 | `Digitizer_Tester` | Digitizer Tester module (generates test waveforms) |
@@ -130,6 +130,6 @@ Useful for:
 
 - **vxworks/** — `migration.md` references the con6/Solaris-to-Ubuntu migration this SVN contains
 - **fpga/** — FPGA firmware may have early versions in the SVN tree
-- **ioc/** — pre-Git IOC files are in `dgsSoftIOC/`
+- **ioc/** — pre-Git IOC files are in `dgsSoftIOC/` *(not in local mirror; full IOC history in Git)*
 - **sbx.md** — `SlopeBoxExtension/` explored: GS_ID dongle, BGO HV map, pickoff card notes
 - **ANLDAQ.md** — `gtReceiver/` is the legacy receiver; current receiver is in ANLDAQ git repo
