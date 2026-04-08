@@ -224,7 +224,7 @@ Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[dev
 | 3 | Single read. Mailbox[Bidx][Cidx] provides the address (indirect). PV gets data. No mailbox copy. |
 | 4 | Loop read, fixed address. N = address (constant). Mailbox = loop count. Results stored sequentially in DataArray from current buffer pointer. PV gets last read value. |
 | 5 | Loop read, incrementing address. N = start address, increments each iteration. Mailbox = loop count. Results stored in DataArray. PV gets last read value. |
-| 6-7 | AndMask limited to 8 bits (A & 0x00FF). Other behavior TBD. |
+| 6-7 | AndMask limited to 8 bits (`A & 0x00FF`). **No SPI read executed** — no `case 6:` or `case 7:` exists in the main read switch; these modes appear **unimplemented**. ✅ verified 2026-04-08 — `CollectorDPRSupport_AI.c:L179-184` (AndMask set) + switch body (no case 6/7 handlers). |
 
 **Bank select:** If `Bank != 0`, a write to addr 127 with the bank number is performed before the data read. Used to access CtrlFPGA DPRAM bank 1 (ADC scan results, addrs 128-255). Verified: CollectorDPRSupport_AI.c:L145
 

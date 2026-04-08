@@ -21,7 +21,7 @@
 ### DACs
 - **2× AD9747 dual 16-bit DAC** ✅ verified 2026-04-07 — `DAC_SPI.vhd` header
 - Clock selectable: 50 / 100 / 200 MHz (register `clock_freq_sel[1:0]`: `00`=50, `01`=100, `10`=50, `11`=200) ✅ verified 2026-04-07 — `Dig_Tester_pkg.vhd`
-- ⚠️ Code note: "previous comments say wavx_cs_trigx outputs don't route at 200 MHz" — 200 MHz may be unreliable in practice
+- ⚠️ Code note: "previous comments say wavx_cs_trigx outputs don't route at 200 MHz" — re-enabled 2019-08-14 for noise logic checking. ✅ verified 2026-04-08 — `Dig_Tester.vhd:L450-451` (comment + re-enable note)
 - Waveform memory is 18-bit wide internally; output truncated to 16-bit for DAC (`Waveform_Reader.vhd: dac_data_out(15:0)`) ✅ verified 2026-04-07 — `Waveform_Reader.vhd:L4-5`
 - SPI clock max 40 MHz per AD9747 datasheet ✅ verified 2026-04-07 — `DAC_SPI.vhd` comment
 - Clock sources selectable: external, 50 MHz local oscillator, or SYS_CLK × 20/7
