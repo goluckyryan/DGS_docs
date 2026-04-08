@@ -100,22 +100,22 @@ sequenceDiagram
 A **port** is a named logical connection to one piece of hardware — registered by the driver at IOC startup:
 
 ```c
-// In st.cmd or driver init:
-dgsDigitizerConfig("VME01_MDIG1",   // port name (arbitrary string)
-                    0xC0000000,      // VME base address of this board
-                    ...)
+// In ioc/boot/vme66.cmd (actual DGS syntax):
+asynDigitizerConfig("MDIG1",   // port name (arbitrary string, local to this IOC)
+                    0,          // asyn address index
+                    3)          // VME slot number
 ```
 
-**Port ≈ one addressable hardware unit.** In DGS, one port = one board:
+**Port ≈ one addressable hardware unit.** In DGS, one port = one board. Actual port names from `ioc/boot/vme66.cmd` ✅ verified 2026-04-08 — `ioc/boot/vme66.cmd:L133-140`:
 
 | Port name | Maps to |
 |-----------|---------|
-| `"VME01_MDIG1"` | Master DIG board, slot X, crate 01 |
-| `"VME01_MDIG2"` | Slave DIG board, slot Y, crate 01 |
-| `"VME01_RTRG1"` | RTRG board, crate 01 |
-| `"VME10_MTRG"`  | MTRG board, crate 10 |
+| `"MDIG1"` | Master DIG board (asyn addr 0, VME slot 3), crate 66 |
+| `"MDIG2"` | Slave DIG board (asyn addr 1, VME slot 4), crate 66 |
+| `"RTR1"` | RTRG board (asyn addr 4, VME slot 6), crate 66 |
+| `"MTRG"` | MTRG board (asyn addr 5, VME slot 7), crate 66 |
 
-Port names are abstract strings — asyn works the same way for VME, serial, USB, SPI, Ethernet. The driver knows internally what hardware the name maps to.
+Port names are short, board-local strings — not prefixed with crate number. Each IOC cmd file registers its own ports independently. Port names are abstract strings; asyn works the same way for VME, serial, USB, SPI, Ethernet.
 
 ---
 
@@ -183,7 +183,7 @@ For interrupt-driven hardware, the interrupt handler calls `setIntegerParam()` +
 
 - Used in the VxWorks VME IOC (`gretDet.munch`) — asyn R4-37 cross-compiled for MVME5500
 - Each DIG, RTRG, MTRG board = one asyn port
-- Port name format: `VME<crate>_<board>` (e.g., `VME01_MDIG1`)
+- Port name format: short board-local strings (e.g., `"MDIG1"`, `"MDIG2"`, `"RTR1"`, `"MTRG"`) ✅ verified 2026-04-08 — `ioc/boot/vme66.cmd:L133-140`
 - The collector box Pi IOC uses an older `CAMAC_IO` device support style (pre-asyn) — direct device support, no asyn layer
 
 ---
