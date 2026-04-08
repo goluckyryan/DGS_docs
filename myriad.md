@@ -184,6 +184,51 @@ State machine: fires when "starting trigger" occurs (NIM In 0 if `GATING_REG[0]`
 
 ---
 
+---
+
+## FPGA Firmware Architecture
+_Source: `DGS_tools_pack/FPGA/others/MyRIAD/MAIN_FPGA/Source/MyRIAD.vhd` (explored 2026-04-08)_
+
+**Main FPGA chip:** Xilinx Spartan-3 **XC3S1000-FG456**
+
+### Generic Parameter
+```vhdl
+COMMAND_LINE_COMMAND_FORMAT : integer
+  -- 0 = DGS Master format
+  -- 1 = DGS Router format  
+  -- 2 = GRETINA Master format
+```
+Controls how the SERDES RX machine interprets incoming commands — same hardware supports all three modes via a compile-time generic.
+
+### Key Internal Modules
+
+| Module/Instance | File | Function |
+|----------------|------|----------|
+| `MAIN_DCM_CTRL` | `DCM_CONTROLLER.vhd` | Manages Xilinx DCM — generates 50/100/250 MHz clocks from oscillator or SERDES recovered clock; clock source selectable via `CLOCK_SEL_pin` |
+| `INST_SERDES_RX_Mach` | `SERDES_RX_Mach_R2.vhd` | Receives 18-bit SERDES data; DC-balance decoding; command frame parsing per `COMMAND_FORMAT` |
+| `TX_INST` | `SERDES_TX_MACH.vhd` | Transmits 18-bit SERDES words at 100 MHz; DC-balanced via disparity lookup |
+| `U20` | `registers.vhd` | VME-accessible register file (16-bit, A16/D16); all registers in MYRIAD's VME map above |
+| `NIM_PIPES_BLK` | `NIM_Delay.vhd` (generate loop × 8) | Programmable delay pipelines for each NIM input; allows fine-tuning of input timing |
+| `FIFO_TIMESTAMP_MACH` | inline process | Writes trigger timestamps + NIM/ECL states into dual external FIFOs (A and B, 18-bit wide each = 16-bit data + 2 flag bits) |
+| `mstr_mach` | `mstr_mach.vhd` | Coincidence logic: counts `MSTR_TRIG_OVERLAP_TIME` clocks after starting trigger; NIM Out 3 fires if NIM In 1 arrives within window |
+| `Phase_Hunter_SerDes` | `Phase_Hunter_SerDes.vhd` | Aligns SERDES receive clock phase for proper data sampling |
+
+### TDC
+A TDC block (`tdc_unit2`) exists in `Source/` but is **commented out** in `MyRIAD.vhd` — it was tested but not integrated into the production firmware. The `TDC_LOOPBACK_OUT_pin` is hard-wired to `'0'`. Only `TDC_VERNIER_OUT` signal is declared; actual TDC is in MTRG Main FPGA, not here.
+
+### FIFO Architecture
+Dual external FIFOs (A and B) hold trigger records for VME readout:
+- **FIFO A** → VME data bits [15:0] (lower word)
+- **FIFO B** → VME data bits [31:16] (upper word)
+- 18-bit write port: bits[15:0] = data, bit16 = FIFOFLAG0/2 (control), bit17 = FIFOFLAG1/3 (control)
+- Clock: 100 MHz write; VME-synchronous read
+- Reset via `PULSED_CTRL[5]` (self-clearing pulsed control register bit)
+
+### Git Location
+`DGS_tools_pack/FPGA/others/MyRIAD/MAIN_FPGA/Source/` (ISE project, Spartan-3)
+
+---
+
 ## Related Files
 - `connectors.md` — links R and U on MTRG where MγRIAD connects
 - `ttcl.md` — TTCL protocol MγRIAD uses for trigger communication
@@ -194,4 +239,4 @@ State machine: fires when "starting trigger" occurs (NIM In 0 if `GATING_REG[0]`
 
 ---
 
-*Created: 2026-04-05 (from SVN MyRIAD Abridged User Notes PDF)*
+*Created: 2026-04-05 (from SVN MyRIAD Abridged User Notes PDF). FPGA firmware section added 2026-04-08.*
