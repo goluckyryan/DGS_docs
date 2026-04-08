@@ -28,6 +28,7 @@ ADC value < 2047    → LO   (too low)       → ADC_VAL_WARN(2)
 ADC value > 14336   → HI   (too high)      → ADC_VAL_WARN(1)
 ADC value > 16128   → HIHI (way too high)  → ADC_VAL_WARN(0)
 ```
+✅ verified 2026-04-08 — `thresh_disc.vhd:L323-326` (MAIN_FPGA_TAGS/20230809, comments confirm all four threshold values)
 
 A normal gamma-ray pulse never swings that far. A preamp reset does.
 
@@ -38,7 +39,7 @@ A normal gamma-ray pulse never swings that far. A preamp reset does.
 
 When the edge is detected → `RESET_FLAG` pulses high for one clock cycle.
 
-> This block is only compiled in when the generic `ENABLE_HILO_DET = TRUE`. The coarse BGO channels (channels 0–4, instantiated without that generic) skip it entirely — they don't need it.
+> This block is only compiled in when the generic `ENABLE_HILO_DET = TRUE`. The coarse BGO channels (channels 0–4, instantiated without that generic) skip it entirely — they don't need it. ✅ verified 2026-04-08 — `thresh_disc.vhd:L328` (`PA_RST_DET_BLK: if (ENABLE_HILO_DET = TRUE) generate`)
 
 ---
 
@@ -83,6 +84,7 @@ In `Digitizer.vhd` (Front Bus Left configuration):
 ```vhdl
 external_disc_flag(i) <= not(CHANNEL_KILLED(i+5));
 ```
+✅ verified 2026-04-08 — `Digitizer.vhd:L1117` (20230809 tag; comment: "use CHANNEL_KILLED of Ge channel (5:9) as gate for BGO channel (0:4)")
 
 Channels 0–4 are BGO scintillators. Channels 5–9 are the paired Ge detectors. When Ge channel `i+5` is in reset-kill mode, BGO channel `i` is also suppressed. This prevents the BGO from triggering on the electromagnetic noise that often accompanies a preamp reset.
 
@@ -125,6 +127,7 @@ In `Digitizer.vhd`:
 ```vhdl
 LOAD_DELAYS_COMBO <= front_end_reset_flag OR reg_channel_pulsed_control(0);
 ```
+✅ verified 2026-04-08 — `Digitizer.vhd:L1158,L1189` (DIG/MAIN_FPGA/BuildBranches/DGS/Source)
 
 `LOAD_DELAYS_COMBO` is passed to each channel as `LOAD_vals` — it reloads all programmable delay values from registers. Think of it as a soft reset that re-arms the delay chain without touching the ADC or the SERDES link.
 
@@ -157,9 +160,9 @@ WAIT_EDGE (normal operation resumes)
 
 | Register | Bit(s) | Function |
 |----------|--------|----------|
-| `reg_led_threshold[ch](23:16)` | 8 bits | Blanking duration after reset (× 512 cycles at 100 MHz) |
-| `reg_channel_control[ch](3)` | 1 bit | Enable/disable blanking (`PREAMP_RESET_DELAY_EN`) |
-| `reg_d3_window[ch](7)` | 1 bit | `CAPTURE_PARST_TS`: 1 = store reset timestamp in MPX_FIELD; 0 = store early pre-rise sum |
+| `reg_led_threshold[ch](23:16)` | 8 bits | Blanking duration after reset (× 512 cycles at 100 MHz) | ✅ verified 2026-04-08 — `Digitizer.vhd:L1193`
+| `reg_channel_control[ch](3)` | 1 bit | Enable/disable blanking (`PREAMP_RESET_DELAY_EN`) | ✅ verified 2026-04-08 — `Digitizer.vhd:L1194`
+| `reg_d3_window[ch](7)` | 1 bit | `CAPTURE_PARST_TS`: 1 = store reset timestamp in MPX_FIELD; 0 = store early pre-rise sum | ✅ verified 2026-04-08 — `Digitizer.vhd:L1168` (20230809 tag)
 
 ---
 
