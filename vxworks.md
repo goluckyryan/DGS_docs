@@ -370,6 +370,34 @@ See `migration.md` for a full list of what was copied and what was changed.
 
 ---
 
+## DMA Buffer Architecture — VME Readout Internals
+_Source: `DGS_SVN/dgs/Documentation/Formal/Software/howTheSenderWorks.docx` (T. Madden, APS-XSD Detector Group)_
+
+### FIFO Poll → DMA → Buffer Queue pipeline
+
+1. **`inLoop.st`** (per digitizer board, runs in VxWorks EPICS state machine): polls the digitizer FIFO status register at `*(board_base + 1)`. Returns one of: `Empty`, `HalfFull`, `Some`, `Wait`, `AlmostEmpty`.
+2. On data available: calls `serviceOneBuffer()` in `readFIFO.c`, which:
+   - Acquires **`DMASem`** (epicsEventFull semaphore) — DMA library in VxWorks 5.x is **not thread-safe**, so all 4 digitizers per crate share a single mutex.
+   - Takes a free buffer from the **Return Queue** (`gDigRawRetQ`).
+   - Initiates **DMA transfer** from digitizer VME FIFO directly into IOC memory (no CPU copy).
+   - Posts the filled buffer onto the **Data Queue** (`gDigRawQ`).
+3. A separate sender process drains `gDigRawQ`, sends data to Linux cluster over TCP, and returns buffers to `gDigRawRetQ`.
+
+### Buffer Pool
+- **400 buffers** total, shared across all 4 digitizers in a crate (not 400 per board)
+- Each buffer: **512 KB** (`RAW_BUF_SIZE`)
+- Queue size: **`RAW_Q_SIZE = 400`** (defined in `readFIFO.h` for `MV5500`)
+- Each buffer has a **reference counter** — zero = free, non-zero = in use
+
+### Trigger Throttle (software fallback)
+- If buffers in Return Queue fall below **1/3** of `RAW_Q_SIZE` (i.e., <133 free), `TrigCon.st` asserts `TrigInhL` and `TrigInhD` via EPICS CA.
+- This is a **software path** — latency can be 10+ ms at high rates. Hardware FIFO throttle (half-full flag → RTRG throttle line) is the primary fast mechanism.
+
+### Garbage Collection (optional, compile-time)
+- If enabled: when Return Queue falls below **200 buffers** (50%) or **50 buffers**, a background process scans all 400 buffers, checks reference counters, and returns free ones to `gDigRawRetQ`.
+
+---
+
 ## Connections to Other Subsystems
 
 - **ioc/** — `gretDet.munch` ends up in `ioc/bin/`; `dgsDriver.dbd` ends up in `ioc/dbd/`
