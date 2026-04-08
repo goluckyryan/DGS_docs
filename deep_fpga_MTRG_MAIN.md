@@ -408,7 +408,7 @@ Source: `trig_mon_collect.vhd` (verified 2026-04-04)
 #### MON7B Packet Format (16-bit words, IOC reads these over VME → TCP)
 
 ```
-Word  0:        0xAAAA                     ← packet header delimiter (written in IDLE state)
+Word  0:        0xAAAA                     ← packet header delimiter (written in IDLE state) ✅ verified 2026-04-08 — trig_mon_collect.vhd:L227 (`TRIG_MON_COLLECT_FIFO_OUT <= X"AAAA"` in IDLE)
 
 Words 1..N:     TRIG_MON_FIFO words        ← N = NUM_TRIG_WORDS (nominally constant)
                 (trigger monitor data from selected algorithm's shadow FIFO)
@@ -422,11 +422,11 @@ Words N+2..end: TDC vernier words          ← NUM_TDC_WORDS words from TDC_DATA
                 (four-phase counters + vernier AB/CD)
 ```
 
-**If TDC data times out** (`ALLOWED_TDC_LATENCY` countdown reaches 0, ~960 ns @ 100 MHz):
-The `TDC_IGNORED` state fills TDC word slots with fake data:
+**If TDC data is skipped** (`SKIP_TDC_DATA = MON7_FILL_CTL_REG(15)` VME register bit set): ⚠️ Note: there is no countdown timeout — `CHECK_TDC` state polls `LATCHED_TDC_READY` indefinitely until ready or `SKIP_TDC_DATA` is set. The `TDC_IGNORED` state fills TDC word slots with fake data:
 ```
-[0 | 0 | SKIP_TDC_DATA | LATCHED_TRIG_MON_EVENT_AVAILABLE] & "000000" & PULL_COUNT
+X"000" & PULL_COUNT
 ```
+⚠️ verified 2026-04-08 — `trig_mon_collect.vhd:L281-295` (20220705 tag): no ALLOWED_TDC_LATENCY countdown; SKIP_TDC_DATA sourced from `MON7_FILL_CTL_REG(15)` per `top.vhd:L4698`. Original ~960 ns estimate was incorrect.
 This is detectable in software — `class_TDC.h` checks for the `0x1006/1005/1004/1003` counter pattern as one specific trash-data sentinel.
 
 **Timeout window:** 0x60 = 96 clock cycles @ 100 MHz = **960 ns** (updated 2025-07-22 from 0x40 = 640 ns).
