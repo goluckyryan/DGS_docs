@@ -66,7 +66,7 @@ _✅ All firmware filenames verified 2026-04-06 — `ls ioc/firmware/`_
 
 ### vme66.cmd (DuoGe — CRATE=66)
 
-Crate layout:
+Crate layout (vme66 = the crate with MTRG, used as reference):
 ```
 Slot 1: IOC (MVME5500)
 Slot 3: MDIG1 (Board #0)
@@ -74,6 +74,9 @@ Slot 4: MDIG2 (Board #1)
 Slot 6: RTR1  (Board #4)
 Slot 7: MTRG  (Board #5)
 ```
+✅ verified 2026-04-07 — `ioc/boot/vme66.cmd:L133-140`: `asynDigitizerConfig("MDIG1",0,3)`, `asynDigitizerConfig("MDIG2",1,4)`, `asynTrigRouterConfig1("RTR1",4,6)`, `asynTrigMasterConfig1("MTRG",5,7)`.
+
+Note: `vme66.cmd:L132` has a stale comment saying "Slot #2" but the actual config call correctly uses slot 3 — comment error in source, not a firmware issue.
 
 Boot sequence:
 1. Load `cdCommands` + `nfsCommands` (paths + NFS auth)
