@@ -303,6 +303,8 @@ The DIG sends one 16-bit word per 50 MHz clock continuously — there is no fram
 
 Note: COARSE_DISC[4:0] (channels 0–4) are **not** transmitted upstream; the Router counts multiplicity from ACCEPTED_HITS.
 
+✅ verified 2026-04-08 — `SERDES_TX_Mach_DGS.vhd:L137-139` (20230809 tag): `TX_DATA_OUT(15)<=SERDES_SYNC_FLAG`, `TX_DATA_OUT(14:10)<=COARSE_DISC_FLAGS(9:5)`, `TX_DATA_OUT(9:0)<=DISC_TO_TRIG_ONE_SHOT`
+
 ---
 
 ### SERDES RX Frame Handling (Router → DIG)
