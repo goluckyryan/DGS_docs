@@ -65,6 +65,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [ioc.md](ioc.md) | EPICS IOC config, boot scripts, firmware versions, MVME5500 setup |
 | [IOC_cmd.md](IOC_cmd.md) | Full IOC shell command reference: DGS custom (ProgramFlash, VMERead32, asynDigitizerConfig…), EPICS 3.14 (dbl, dbpr, casr…), asyn 4.17; safety classification; terminal server map |
+| [VME_registers.md](VME_registers.md) | Complete VME register address map for DIG, MTRG, and RTRG main FPGAs + VME FPGA + flash; address patterns, bit-field notes, IOC shell usage examples |
 | [EPICS.md](EPICS.md) | EPICS primer: record types, tools, Python integration for DGS |
 | [EPICS_asyn.md](EPICS_asyn.md) | asyn driver support: caput flow diagram, port concept, worker threads, bulk writes, passive hardware callbacks |
 | [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary |
