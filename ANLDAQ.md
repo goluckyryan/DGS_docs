@@ -638,6 +638,48 @@ _Source: `ANLDAQ/gui/scripts/trig_setup_Stage*.sh` + `Serdes_Linkup.sh` (code-ve
 
 ---
 
+## softIOC — Global Broadcast PV System (`JustGlobals.db`)
+
+_Source: `ANLDAQ/EPICS/softIOC/db/JustGlobals.db` (14,248 lines, auto-generated)_
+
+The `ANLDAQ/EPICS/softIOC` is a lightweight EPICS soft IOC that runs alongside the GUI. Its primary purpose is hosting `JustGlobals.db` — a **broadcast PV layer** that lets operators set any DIG parameter across all 12 VME crates simultaneously with a single caput.
+
+### How It Works
+
+Each top-level `GLBL:DIG:<preset>_<param>` PV fans out through a chain of `dfanout` records (`GLBL:DIG:F00:`, `F01:`, ...) until reaching `VMExx:GLBL:<param>` on every crate. Writing one PV → all 12 crates updated. The DB contains ~690 `dfanout` records and 69+ top-level broadcast PVs.
+
+### Preset Profiles
+
+The current DB has **per-detector-type presets** in addition to the flat `GLBL:DIG:` namespace:
+
+| Preset prefix | Detector type |
+|--------------|---------------|
+| `BGOp` | BGO **primary** channel |
+| `BGOs` | BGO **secondary** channel |
+| `GeS` | Ge crystal (standard) |
+| `GeC` | Ge crystal (CFD mode) |
+
+Full PV name pattern: `GLBL:DIG:<NN>:<preset>_<param>` where `<NN>` is a fanout stage index.
+
+### Broadcast PV Categories
+
+| Category prefix | Examples |
+|----------------|----------|
+| `master_*` | `master_fifo_reset`, `master_counter_reset`, `master_logic_enable` |
+| `sd_*` | SERDES control: `sd_sync`, `sd_tx_pwr`, `sd_rx_pwr`, `sd_line_loopback_en` |
+| `trigger_*` | `trigger_mux_select`, `trigger_polarity` |
+| `disc_*` | Discriminator: `disc_width`, `disc_count_mode`, `coarse_threshold` |
+| `pileup_*` | `pileup_mode`, `pileup_extension_mode`, `pileup_waveform_only_mode` |
+| `preamp_reset_*` | `preamp_reset_delay`, `preamp_reset_delay_en` |
+| `event_*` | `event_extension_mode`, `event_count_mode` |
+| `win_*` | Window params: `d_window`, `k_window`, `m_window`, `p1_window`, `p2_window` |
+| `channel_enable` | Enable/disable all channels at once |
+| `counter_reset` | Reset all counters |
+
+> **Note:** The SVN archive (2022) had 5,195-line version with simpler flat namespace. Current version (14,248 lines) adds per-preset profiles for BGO/Ge channel types.
+
+---
+
 ## Notes
 
 
