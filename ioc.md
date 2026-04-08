@@ -97,10 +97,13 @@ Boot sequence:
 - The slot index in `BN=` must match the physical VME slot (0-indexed from slot 1)
 - Example: `B0=MDIG1,B1=MDIG2,B2=X,B3=X,B4=X,B5=MTRG,B6=X` → MDIG1 in slot 1, MDIG2 in slot 2, MTRG in slot 6
 
-**User package data formula:** `[(crate# - 1) × 4] + 101 + board#` ✅ verified 2026-04-07 — `ioc/boot/vme66.cmd:L162-164`
-- Board# is restricted to {0,1,2,3} for digitizers
-- Master trigger always = 150 ✅ verified 2026-04-07 — `vme66.cmd:L168`
+**User package data formula (VME01–12 production crates):** `[(crate# - 1) × 4] + 101 + board#` ✅ verified 2026-04-07 — `ioc/boot/vme66.cmd:L162-164` (comment)
+- Board# restricted to {0,1,2,3} for digitizers → VME01: 101–104, VME02: 105–108, … VME12: 145–148
+- Master trigger always = 150 ✅ verified 2026-04-07 — `vme66.cmd:L168` (comment)
 - Routers: RTR1=151, RTR2=152, etc. — but as of 2023-03-31, Routers have no register to store package data ✅ verified 2026-04-07 — `vme66.cmd:L170`
+- **Exception — VME66 (DuoGe):** uses manually assigned values: MDIG1=170, MDIG2=171, MTRG=172 ✅ verified 2026-04-08 — `vme66.cmd:L173-175`
+- **Exception — VME99 (test stand):** uses manually assigned values: MDIG1=160, MDIG2=161, MTRG=162 ✅ verified 2026-04-08 — `vme99.cmd:L184-186`
+- The formula only applies to the 12 production DGS VME crates; special crates use fixed assigned values outside the 101–148 range
 
 **DB naming convention:**
 - Register-level: `VME<CRATE>:<BOARD>:<register>` (e.g. `VME66:MDIG1:reg_led_threshold`)
