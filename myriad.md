@@ -66,7 +66,7 @@ Layout: two groups of 4 inputs (I), two groups of 2 outputs (O). ✅ verified 20
 #### NIM Input Functions
 | Input | Function |
 |-------|---------|
-| **NIM In 0** (upper left) | **Local system trigger input** — latches timestamp on each edge |
+| **NIM In 0** (upper left) | **Local system trigger input** — latches timestamp on each edge; minimum pulse width **100 ns** (per Module Spec v1.0) |
 | **NIM In 1** | Local coincidence input — starts coincidence timer after NIM In 0 edge; asserts coincidence if NIM In 1 fires before timeout |
 | NIM In 2–7 | General purpose — counted only (no trigger function as of 2018-04-27) |
 
@@ -160,6 +160,20 @@ All registers are 16-bit, A16/D16. Addresses in hex.
 | 0x0860–0x0866 | R | RESERVED | Reserved for future use |
 | 0x0900 | RW | `fpga_ctrl_reg` | Main FPGA configuration control |
 | 0x0902 | R | `vme_status` | VME FPGA status |
+| 0x0904 | R | `vme_aux_status` | VME FPGA auxiliary status |
+| 0x0906 | R | `spare_registers` | Spare/reserved |
+| 0x0908 | RW | `flash_vpen` | Flash write-protect enable |
+| 0x090A | RW | `config_start_low` | FPGA config start address (low) |
+| 0x090C | RW | `config_stop_high` | FPGA config stop address (high) |
+| 0x090E | RW | `config_stop_low` | FPGA config stop address (low) |
+| 0x0910 | RW | `config_start_high` | FPGA config start address (high) |
+| 0x0918 | RW | `vme_sandbox1` | VME sandbox register 1 (debug) |
+| 0x091A | RW | `vme_sandbox2` | VME sandbox register 2 (debug) |
+| 0x091C | RW | `vme_sandbox3` | VME sandbox register 3 (debug) |
+| 0x091E | R | `vme_sandbox4` | VME sandbox register 4 (debug) |
+| 0x1000 | R | `fifo` | FIFO read port — each read returns one 16-bit word from the trigger FIFO |
+
+_Note: Above 0x0902 entries sourced from `MYRIAD_Module_Specification.pdf` (v1.0, 2014). Some may differ from User Manual v1.2 (2015)._
 
 ### Coincidence Logic
 State machine: fires when "starting trigger" occurs (NIM In 0 if `GATING_REG[0]`=1, or SERDES trigger if `GATING_REG[1]`=1). After `Coincidence_window_delay` × 20 ns, opens a window of width `coincidence_window_width`. If NIM In 1 fires during window → NIM Out 3 asserts. Timeout without match → return to idle.
