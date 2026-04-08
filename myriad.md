@@ -74,11 +74,15 @@ Layout: two groups of 4 inputs (I), two groups of 2 outputs (O). ✅ verified 20
 - All NIM input states regularly sent to Master Trigger over SERDES ✅ verified 2026-04-06 — MyRIAD Abridged User Notes.pdf p.5
 
 #### NIM Output Functions
-| Output | Selection | Signal Options |
-|--------|-----------|---------------|
-| **NIM Out 0** | Gating reg bits 3:2 | `SYNC_ERROR_FLAG` / `AUX_DETECTOR_TRIG` / `SYNC_CAPTURE_FLAG` / `TS_LATCH_BUSY` ⚠️ unverified — source needed (MyRIAD FPGA VHDL) |
-| **NIM Out 1** | Gating reg bits 6:4 | `TTCL_TRIG_FLAG` + others ⚠️ unverified — source needed |
-| NIM Out 2–3 | Firmware-defined | — |
+
+| Output | Function |
+|--------|----------|
+| **NIM Out 0** | Echoed copy of NIM In 0 (fixed, not configurable) ✅ verified 2026-04-08 — MYRIAD_Module_Specification.pdf §3.5 |
+| **NIM Out 1** | Buffered copy of NIM In 1 (fixed, not configurable) ✅ verified 2026-04-08 — MYRIAD_Module_Specification.pdf §3.5 |
+| **NIM Out 2** | Copy of 'sync flag' from DGS/Gretina master trigger over SERDES; pulses every 2 µs — useful for timing verification ✅ verified 2026-04-08 — MYRIAD_Module_Specification.pdf §3.5 |
+| **NIM Out 3** | Coincidence logic output (fires when NIM In 1 occurs within coincidence window after starting trigger) ✅ verified 2026-04-08 — MYRIAD_Module_Specification.pdf §3.4 |
+
+> Note: GATING_REG (0x0702) bits 0–1 select the coincidence *starting trigger* source (bit 0 = NIM In 0, bit 1 = SERDES trigger from master). The NIM Out 0/1 outputs are hardwired echoes — they are not muxed by GATING_REG. Prior doc claiming bits 3:2 and 6:4 controlled NIM Out 0/1 selection was incorrect.
 
 ---
 
@@ -133,7 +137,7 @@ All registers are 16-bit, A16/D16. Addresses in hex.
 | 0x0604 | R | `code_date` | Compilation date (MMDD) |
 | 0x0606 | R | `code_year` | Compilation year (YYYY) |
 | 0x0700 | R | `NIM_input_status` | Current state of all NIM inputs |
-| 0x0702 | RW | `GATING_REG` | NIM signal gating control (bit 0 = NIM In 0 as start; bit 1 = SERDES trigger as start; bits 3:2 = NIM Out 0 select; bits 6:4 = NIM Out 1 select) |
+| 0x0702 | RW | `GATING_REG` | Coincidence starting trigger select: bit 0 = use NIM In 0 as starting trigger; bit 1 = use SERDES trigger from master as starting trigger. (NIM Out 0/1 are hardwired echoes, not controlled by this register.) ✅ verified 2026-04-08 — MYRIAD_Module_Specification.pdf §3.4 |
 | 0x0704 | R | `ECL_input_status_A` | Current state of ECL data inputs |
 | 0x0706 | R | `ECL_input_status_B` | Current state of ECL control inputs |
 | 0x0708 | R | `LATCHED_TIMESTAMP_A` | Timestamp bits 47:32 (latched on NIM In 0) |
