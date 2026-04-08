@@ -468,11 +468,15 @@ Decodes the MTRG TDC/TAC-II packet (10 words after repacking):
 - Uses `--append` during active run (binary files are append-only)
 - Final sync on Ctrl+C
 
-**`run_control_gui.py`** (new in latest pull):
-- Tkinter GUI running on `dgs4`, SSHes to `dcsu@dcs2.onenet`
-- Start/Stop buttons, live output, run timer, data size display, recent run log
-- SSH streams `start_run.sh` / `stop_run.sh` output in real time
-- Auto-refreshes every 15 s during a run
+**`run_control_gui.py`** — Standalone Tkinter run control GUI for `dgs4`:
+- Runs on `dgs4` (shebang: `/home/dgs/.conda/envs/py3tk/bin/python3`); SSHes to `dcsu@dcs2.onenet` using `~/.ssh/id_rsa`
+- Reads experiment info (name, next run number, folder) via `expInfo.sh` on dcs2 at startup + on demand
+- **Start Run**: streams `start_run.sh` output line-by-line via SSH Popen; maps output substrings to friendly status messages (e.g. "Taking PV Snapshot" → "Taking PV snapshot...", "is running" → "DAQ started!")
+- **Stop Run**: similarly streams `stop_run.sh`; includes Parquet sort + elog post status messages
+- Live displays: wall clock, elapsed run timer, data folder size (polled every 10 s via `du -sh` on dcs2), recent run log (tails `RunTimestamp.txt`)
+- State machine: `idle → starting → running → stopping → idle`; buttons enable/disable accordingly
+- ANSI escape codes stripped from SSH output before display
+- Script dir on dcs2: `/home/phy/dcsu/ANLDAQ/tcpReceiver/`
 
 ### Packet Consistency: Receiver vs FPGA Firmware
 
