@@ -46,8 +46,8 @@ NTP server: `192.168.203.56` ✅ verified 2026-04-06 — `ioc/boot/cdCommands:L2
 
 | File | Board | Description |
 |------|-------|-------------|
-| `BUS_LEFT.bin` | DIG Main FPGA | Front bus sender role |
-| `BUS_RIGHT.bin` | DIG Main FPGA | Front bus receiver role |
+| `BUS_LEFT.bin` | DIG Main FPGA | **Master digitizer** firmware (MDIG1, slot 3, board 0) — clock sourced from SERDES link; drives the inter-DIG front bus clock to slave ✅ verified 2026-04-08 — `uploadFW.cmd:L17` (board 0=MDIG1) + `Digitizer.vhd:L354-355` ("SERDES is external clock source in master digitizer") |
+| `BUS_RIGHT.bin` | DIG Main FPGA | **Slave digitizer** firmware (MDIG2, slot 4, board 1) — clock sourced from front bus (driven by master DIG); sends throttle/lock status back to master via SDATA ✅ verified 2026-04-08 — `uploadFW.cmd:L22` (board 1=MDIG2) + `Digitizer.vhd:L968-970` (slave SDATA signals) |
 | `trigger_top.bin` | MTRG Main FPGA | Master trigger |
 | `V4747_mod_router_top.bin` | RTRG Main FPGA | Router |
 | `DIG_VME_FPGA_20220729.mcs` | DIG VME FPGA | VME interface (Jul 2022) |
