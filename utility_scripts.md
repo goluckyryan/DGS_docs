@@ -27,6 +27,17 @@ Scans BGO bias voltage from 0–250V in steps and measures BGO counter rates to 
 
 **Dependencies:** Python, `matplotlib` (GTKAgg backend), `numpy`, EPICS `caput`/`caget` in PATH.
 
+**Tuning algorithm (detailed):**
+1. Set BGO comparator threshold to 15 (noise rejection)
+2. Verify preconditions: `GS000_Slopebox_Scan_control` == `read/write`, `GS000_SlopeBoxBGOInterlock` == `Closed`, `GS000_Conv_BGO400` ≥ 400 V, `GS000_Conv_BGO450` ≥ 450 V
+3. Sweep odd HV tubes (BGO_HV1,3,5,7,9,11,13) while even are 0 — log average count rate per step
+4. Sweep even HV tubes (BGO_HV0,2,4,6,8,10,12) while odd are 0 — log average count rate
+5. Find lowest-gain tube (peak count rate across sweep) — excludes any BGO with <50% of max peak rate
+6. Use `numpy.interp` to find HV → target count rate matching lowest-gain tube
+7. Iterative readjustment: if residual (normalized deviation from target) >3%, proportionally adjust HV until converged
+8. BGO backplug (BGO7/HV12,13): set separately to 10% of average of other 6 BGO tubes
+9. Save target HVs to `Target_HV_GS000.txt` and plot final count rates + residuals
+
 ---
 
 ### `extract_PV.py` — Discover Active Ge Detectors + Generate camonitor Script
