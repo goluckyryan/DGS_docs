@@ -201,6 +201,37 @@ Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[dev
 
 ---
 
+## CollectorDPRSupport_AI — DPRAM Read Flow
+
+`DTYP = "CollectorDPRAM"` ai PVs — reads from the CtrlFPGA dual-port RAM (bank 1, addrs 128-255) via SPI.
+
+**CAMAC_IO field mapping:**
+- `B` bits[4:0] -> `Bidx` (DEVSEL, 0-31)
+- `N` bits[6:0] -> `RegisterAddr` (register within bank)
+- `N` bits[9:7] -> `Bank` (bank select; 0 = default, else write bank# to addr 127 first)
+- `C` bits[14:12] -> `MailboxMode` (0-7, see table)
+- `C` bits[7:0] -> `Cidx` (mailbox index for modes 1-5)
+- `A` -> `AndMask` (applied after read; 0 treated as 0xFFFF)
+- `F` bits[3:0] -> `ShiftFactor`; bit[15]=1 -> shift left, bit[15]=0 -> shift right
+
+**Mailbox modes** (C bits 14:12): verified 2026-04-08 against CollectorDPRSupport_AI.c:L221-231
+
+| Mode | Description |
+|------|-------------|
+| 0 | Single read. N = address. PV gets masked+shifted data. No mailbox copy. |
+| 1 | Single read. N = address. PV gets data AND data copied to mailbox[Bidx][Cidx]. |
+| 2 | Single read. N = address. Data goes to mailbox only. PV gets FPGA status byte (bits[23:16] of SPI transaction). |
+| 3 | Single read. Mailbox[Bidx][Cidx] provides the address (indirect). PV gets data. No mailbox copy. |
+| 4 | Loop read, fixed address. N = address (constant). Mailbox = loop count. Results stored sequentially in DataArray from current buffer pointer. PV gets last read value. |
+| 5 | Loop read, incrementing address. N = start address, increments each iteration. Mailbox = loop count. Results stored in DataArray. PV gets last read value. |
+| 6-7 | AndMask limited to 8 bits (A & 0x00FF). Other behavior TBD. |
+
+**Bank select:** If `Bank != 0`, a write to addr 127 with the bank number is performed before the data read. Used to access CtrlFPGA DPRAM bank 1 (ADC scan results, addrs 128-255). Verified: CollectorDPRSupport_AI.c:L145
+
+**SPI transaction:** `Do_SPI1_transaction(RWflag, Bidx, addr, data)` returns 32 bits: bits[23:16] = FPGA status byte, bits[15:0] = 16-bit read data.
+
+---
+
 ## What Pi Source Can vs Cannot Answer
 
 **Fully answered by Pi source code:**
