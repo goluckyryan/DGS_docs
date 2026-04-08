@@ -30,6 +30,14 @@ Access via terminal server: `telnet <ts-ip> <port>` — see `ANLDAQ/EPICS_para.s
   - [Environment & System](#environment--system)
   - [Threads & Concurrency](#threads--concurrency)
 - [Asyn 4.17 Commands](#asyn-417-commands)
+- [VxWorks Boot ROM Shell](#vxworks-boot-rom-shell-vxworks-prompt)
+- [VxWorks Built-in Commands](#vxworks-built-in-commands)
+  - [System & Tasks](#system--tasks)
+  - [Boot Parameters](#boot-parameters)
+  - [Symbol Table & Memory](#symbol-table--memory)
+  - [Network](#network)
+  - [File System](#file-system)
+  - [Dangerous VxWorks Built-ins](#dangerous-vxworks-built-ins)
 - [Safety Classification](#safety-classification)
 - [Terminal Server Map](#terminal-server-map)
 
@@ -338,6 +346,162 @@ DGS asyn port names (from boot scripts): `MDIG1`, `MDIG2`, `RTR1`, `MTRG` (DUO/v
 
 ---
 
+## VxWorks Boot ROM Shell (`[VxWorks]:` prompt)
+
+This is the **boot loader** phase — runs before the VxWorks kernel image is loaded. Accessible only via the physical serial console (or terminal server at 9600 baud). The IOC crate shows this prompt at power-on or after a reboot, and auto-boots after a timeout unless a key is pressed to interrupt.
+
+> This is the most dangerous shell — **`c` writes directly to NVRAM** and wrong parameters can prevent the IOC from ever booting without physical intervention.
+
+### Boot ROM Commands
+
+| Command | Description | Safe? |
+|---------|-------------|-------|
+| `?` | Print command list (help) | Yes |
+| `p` | **Print current boot parameters** — host, file name, IP, startup script, etc. | Yes |
+| `v` | Print boot ROM version | Yes |
+| `e` | Print fatal exception info from last crash | Yes |
+| `d addr[,n]` | Display memory (`n` = number of words) | Yes |
+| `@` | **Boot** — load kernel image via FTP/TFTP and start it | Care |
+| `c` | **Change boot parameters** — interactive editor, **writes to NVRAM** | **No** |
+| `m addr` | Modify memory interactively | **No** |
+| `f addr, nbytes, val` | Fill memory region with value | **No** |
+| `g addr` | Go to (execute code at) address | **No** |
+| **Ctrl-X** | Reboot the board from boot ROM | **No** |
+
+### Typical Session
+
+Auto-boot is interrupted by pressing any key within the timeout window:
+```
+Press any key to stop auto-boot...
+[VxWorks]: p
+```
+`p` output example (matches the parameters stored in NVRAM):
+```
+boot device          : gei
+unit number          : 0
+processor number     : 0
+host name            : tangerine
+file name            : /global/ioc/mvme5500/vxWorks
+inet on ethernet (e) : 192.168.203.81:ffffff00
+host inet (h)        : 192.168.203.78
+user (u)             : dgs
+flags (f)            : 0x0
+target name (tn)     : vme66
+startup script (s)   : /global/ioc/boot/vme66.cmd
+```
+
+To resume normal boot after inspecting:
+```
+[VxWorks]: @
+```
+
+### `c` — Change Boot Parameters (DANGEROUS)
+
+Interactive line editor. Each field is shown; press Enter to keep, type new value to change, `-` to clear. Exits by cycling through all fields. **Any change is immediately written to NVRAM** — a mistake here requires console access to fix.
+
+Never run `c` without explicit authorization and a written record of the current `p` output.
+
+---
+
+## VxWorks Built-in Commands
+
+These are native VxWorks shell commands available on any MVME5500 IOC, independent of EPICS or DGS drivers. The shell prompt is `-> ` (not `epics>`). All global C symbols are also callable directly (see [FIFO Debug Readout](#fifo-debug-readout-vxworks-shell--global-c-symbols-not-iocsh-registered) for an example).
+
+### System & Tasks
+
+| Command | Parameters | Description | Safe? |
+|---------|-----------|-------------|-------|
+| `i` | *none* | List all tasks: name, priority, state, stack usage, PC | Yes |
+| `ti` | `taskId` | Detailed info for one task (by ID or name) | Yes |
+| `checkStack` | *none* | Show stack "headroom" for all tasks | Yes |
+| `version` | *none* | Print VxWorks kernel version string | Yes |
+| `devReport` | *none* | List all installed device drivers | Yes |
+| `taskDelay` | `ticks` | Sleep current task for N clock ticks (60 ticks/s on MVME5500). Blocks the shell — use sparingly | Care |
+| `sp` | `func, arg1, ...` | Spawn a new task — **use with caution** | No |
+| `taskDelete` | `taskId` | Kill a task immediately | No |
+
+### Boot Parameters
+
+Boot parameters are stored in NVRAM and also available as a global string after boot.
+
+**Print current boot parameters (safe, read-only):**
+```
+-> printf "%s\n",sysBootLine
+```
+`sysBootLine` is a `char*` global set at kernel startup. Output matches what you'd see at the VxWorks boot prompt (host name, file name, IP, startup script, etc.).
+
+**Read raw NVRAM (safe, but needs a buffer):**
+```
+-> sysNvRamGet buf, 256, 0
+```
+Reads 256 bytes from NVRAM offset 0 into `buf`. Requires a pre-allocated character buffer.
+
+> **Never use `sysNvRamSet`** without authorization — it overwrites the NVRAM boot settings directly and may require physical console access to recover.
+
+### Symbol Table & Memory
+
+| Command | Parameters | Description | Safe? |
+|---------|-----------|-------------|-------|
+| `lkup` | `"name"` | Search symbol table by substring — returns address and type | Yes |
+| `d` | `addr, nwords, width` | Dump memory: `addr` = address or symbol name, `nwords` = number of units, `width` = 1/2/4 bytes | Yes |
+| `printf` | `"fmt", args...` | Print formatted string — useful for reading global variables, e.g. `printf "%s\n",sysBootLine` | Yes |
+| `m` | `addr, width` | Interactive memory modify starting at `addr` — **writes to memory** | **No** |
+
+`lkup` example — find the flash address register symbol:
+```
+-> lkup "sysBootLine"
+sysBootLine                0x00a1b234 text
+```
+
+`d` example — dump 8 words (32-bit) at address `0x00a1b234`:
+```
+-> d 0x00a1b234, 8, 4
+```
+
+### Network
+
+| Command | Parameters | Description | Safe? |
+|---------|-----------|-------------|-------|
+| `ifShow` | `["ifname"]` | Show network interface config (IP, MAC, flags) | Yes |
+| `routeShow` | *none* | Print IP routing table | Yes |
+| `hostShow` | *none* | Print `/etc/hosts`-equivalent table | Yes |
+| `netstat` | `["-r"/"-i"/"-s"]` | Network statistics (`-r` routes, `-i` interfaces, `-s` per-protocol stats) | Yes |
+| `ping` | `"host", npackets, opts` | Ping a host | Yes |
+
+### File System
+
+VxWorks NFS paths are typical on DGS IOCs (e.g. `/global/ioc/boot/`).
+
+| Command | Parameters | Description | Safe? |
+|---------|-----------|-------------|-------|
+| `ls` | `["dir"]` | List directory (short: names only) | Yes |
+| `ll` | `["dir"]` | List directory (long: name, size, date, attrs) | Yes |
+| `lsr` | `["dir"]` | List directory recursively (short) | Yes |
+| `llr` | `["dir"]` | List directory recursively (long) | Yes |
+| `pwd` | *none* | Print current working directory | Yes |
+| `cd` | `"dir"` | Change working directory | Yes |
+| `cat` | `"file"` | Print file contents to console | Yes |
+| `copy` | `"src", "dst"` | Copy a file | Care |
+| `rename` | `"src", "dst"` | Rename or move a file | Care |
+| `mkdir` | `"dir"` | Create a directory | Care |
+| `delete` | `"file"` | Delete a file — **irreversible** | **No** |
+| `rmdir` | `"dir"` | Remove a directory | **No** |
+
+### Dangerous VxWorks Built-ins
+
+These are built-in but must **never** be run without authorization:
+
+| Command | Risk |
+|---------|------|
+| **Ctrl-X** | Keyboard shortcut — **immediate reboot**, same effect as `reboot`. Easy to trigger accidentally. |
+| `reboot` | Hard reboot — any unsaved NVRAM state may be lost |
+| `rebootLine "params"` | Reboot with new boot line — **overwrites NVRAM** |
+| `sysNvRamSet buf, len, offset` | Write to NVRAM — overwrites boot parameters |
+| `m addr, width` | Direct memory write — can corrupt firmware or kernel state |
+| `sp func, args` | Spawn arbitrary task — can interfere with DAQ state machines |
+
+---
+
 ## Safety Classification
 
 ### Always Safe (read-only, no side effects)
@@ -345,7 +509,8 @@ DGS asyn port names (from boot scripts): `MDIG1`, `MDIG2`, `RTR1`, `MTRG` (DUO/v
 `dbLockShowLocked`, `casr`, `asynReport`, `epicsEnvShow`, `epicsParamShow`,
 `epicsThreadShowAll`, `epicsThreadShow`, `epicsMutexShowAll`, `taskwdShow`,
 `VMERead32`, `ReadFlash`, `registryDump`, `pwd`, `date`, `coreRelease`, `generalTimeReport`,
-`i`, `version`, `checkStack` (VxWorks built-ins)
+`i`, `ti`, `checkStack`, `version`, `devReport`, `lkup`, `d`, `printf`, `cd`, `pwd`, `ls`, `ll`, `lsr`, `llr`, `cat`, `ifShow`, `routeShow`, `hostShow`, `netstat`, `ping` (VxWorks built-ins)
+`p`, `v`, `e`, `?` (boot ROM shell — read-only)
 
 ### Use with Care (modifies state)
 `dbpf` — writes to a live PV (triggers record processing)
@@ -353,12 +518,21 @@ DGS asyn port names (from boot scripts): `MDIG1`, `MDIG2`, `RTR1`, `MTRG` (DUO/v
 `asynSetTraceMask` — changes logging verbosity
 `epicsEnvSet` — modifies runtime environment
 `epicsThreadSleep` — blocks the shell task
+`taskDelay` — blocks the VxWorks shell task for N ticks (60 ticks/s); holds the shell until done
+`copy`, `rename`, `mkdir` — file system writes on NFS; check path before running
 
 ### Never Without Authorization (destructive / irreversible)
 `ProgramFlash`, `EraseFlash`, `ConfigureFlash` — modifies FPGA firmware in flash
 `VMEWrite32` — direct hardware register write
 `iocInit` — re-initializes IOC (only valid once at boot)
-`reboot`, `rebootLine` (VxWorks built-ins) — **erases boot settings if NVRAM is modified first**
+`reboot`, `rebootLine` — hard reboot; `rebootLine` **overwrites NVRAM boot parameters**
+**Ctrl-X** — keyboard shortcut that triggers immediate reboot; same as `reboot`
+`sysNvRamSet` — direct NVRAM write; corrupts boot settings
+`m` — direct memory modify; can corrupt kernel or firmware state
+`sp`, `taskDelete` — task spawn/kill; can interfere with DAQ state machines
+`delete`, `rmdir` — permanently removes files/directories on NFS; no recycle bin
+`c` (boot ROM) — writes new boot parameters to NVRAM; wrong values prevent IOC from booting
+`m`, `f`, `g` (boot ROM) — raw memory write/fill/execute in boot ROM context
 
 ---
 
