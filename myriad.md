@@ -66,7 +66,7 @@ Layout: two groups of 4 inputs (I), two groups of 2 outputs (O). ✅ verified 20
 #### NIM Input Functions
 | Input | Function |
 |-------|---------|
-| **NIM In 0** (upper left) | **Local system trigger input** — latches timestamp on each edge; minimum pulse width **100 ns** (per Module Spec v1.0) |
+| **NIM In 0** (upper left) | **Local system trigger input** — latches timestamp on each edge; minimum pulse width **100 ns** ✅ verified 2026-04-08 — MYRIAD_Module_Specification.pdf ("100ns wide should be used") |
 | **NIM In 1** | Local coincidence input — starts coincidence timer after NIM In 0 edge; asserts coincidence if NIM In 1 fires before timeout |
 | NIM In 2–7 | General purpose — counted only (no trigger function as of 2018-04-27) |
 
@@ -76,8 +76,8 @@ Layout: two groups of 4 inputs (I), two groups of 2 outputs (O). ✅ verified 20
 #### NIM Output Functions
 | Output | Selection | Signal Options |
 |--------|-----------|---------------|
-| **NIM Out 0** | Gating reg bits 3:2 | `SYNC_ERROR_FLAG` / `AUX_DETECTOR_TRIG` / `SYNC_CAPTURE_FLAG` / `TS_LATCH_BUSY` |
-| **NIM Out 1** | Gating reg bits 6:4 | `TTCL_TRIG_FLAG` + others |
+| **NIM Out 0** | Gating reg bits 3:2 | `SYNC_ERROR_FLAG` / `AUX_DETECTOR_TRIG` / `SYNC_CAPTURE_FLAG` / `TS_LATCH_BUSY` ⚠️ unverified — source needed (MyRIAD FPGA VHDL) |
+| **NIM Out 1** | Gating reg bits 6:4 | `TTCL_TRIG_FLAG` + others ⚠️ unverified — source needed |
 | NIM Out 2–3 | Firmware-defined | — |
 
 ---
