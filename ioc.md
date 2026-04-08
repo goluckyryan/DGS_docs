@@ -217,8 +217,26 @@ All templates use `dbLoadRecords("template", "MACRO=val,...")` in the boot scrip
 | `MDigUserVME.template` | DIG VME FPGA | User-facing VME FPGA PVs: power status bits, `serial_num_RBV`, `vme_code_revision_RBV`, `clk_select` |
 | `SDigRegistersVME.template` | Slave DIG VME FPGA | Same as MDigRegistersVME for slave boards |
 | `SDigUserVME.template` | Slave DIG VME FPGA | Same as MDigUserVME for slave boards |
-| `daqCrate.template` | Per-crate | Crate-level status |
-| `daqSegment2.template` | Per-segment | Segment-level DAQ status |
+| `daqCrate.template` | Per-crate | Crate-level: InLoop counters, BoardType0–N mbbi (per slot), inLoop_Running bi, dummy X slot PVs |
+| `daqSegment2.template` | Per-board | Per-board: `CS_Ena` bo (readout enable) + `FifoNum` mbbo (FIFO select) |
+
+**`daqSegment2.template` — FifoNum encoding** (used by `inLoop` to select which FIFO to drain per board):
+
+| Value | FIFO name | Notes |
+|-------|-----------|-------|
+| 0–5 | MONFIFO 1–6 | Monitor FIFOs (diagnostic data) |
+| 6 | MAIN DATA FIFO | **Default** — primary data FIFO |
+| 7 | MONFIFO 8 | Monitor FIFO 8 |
+| 8–15 | CHAN A–H FIFO | Per-channel FIFOs |
+
+Default `FifoNum=6` (MAIN DATA FIFO) is set via `DOL=6`/`PINI=YES` at IOC boot. `CS_Ena` defaults to `Disable` (0); must be explicitly enabled per board. ✅ verified 2026-04-08 — `ioc/db/daqSegment2.template` + `ioc/db/daqCrate.template`
+
+**`daqCrate.template` — InLoop PVs:**
+- `DAQC$(CRATE)_CV_InLoop1` — MB/s read rate
+- `DAQC$(CRATE)_CV_InLoop2` — Type F buffer raw count
+- `DAQC$(CRATE)_CV_InLoop3` — Number of VME transfers
+- `DAQC$(CRATE)_CV_InLoop4` — Result of last transfer
+- `DAQC$(CRATE):inLoop_Running` — bi (inter-process signal: inLoop→outLoop)
 
 **Note:** The four `*VME.template` files were added after Feb 2024 (not in `DB_backup_20240205`). They expose VME FPGA internals for crates 66 (DuoGe) and 99 (test stand).
 
