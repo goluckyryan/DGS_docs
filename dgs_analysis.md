@@ -169,7 +169,36 @@ conda env create -f environment.yml && conda activate grayapps
 
 **Planned:** Isotopic source identification, efficiency calibration, Doppler-broadened peak fitting.
 
-_Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06_
+#### `radware_eff.py` — Detector Efficiency Curve
+
+Implements the RadWare detector efficiency function. Two-piece log-linear model covering low- and high-energy regions with a smooth turnover.
+
+- **`eff_function(x, *par)`**: Evaluates log-efficiency at energies `x` (keV). Fixed pivot points: p7=100 keV, p8=1000 keV. Two linear regions (`f1 = p0 + p1*ln(E/100)`, `f2 = p3 + p4*ln(E/1000)`) joined by `turnover_function()`. Free parameters: `par[0..4]` (slopes/intercepts) + `par[6]` (turnover sharpness). Returns efficiency (not log).
+- **`turnover_function(f, r, g)`**: Smooth interpolation between the two linear regions: `logy = f / (r^g + 1)^(1/g)`.
+- Fit via `scipy.optimize.curve_fit`; author: S. Carmichael (2025-11-08).
+
+#### `IsotopeGammaData` — Source Line Data
+
+Loads JSON calibration source files from `data/isotopes/sou-files/`. JSON format: `{"isotope": "...", "lines": [{"E_gamma": ..., "dE": ..., "RI": ..., "dRI": ...}, ...]}`.
+
+Available sources and key lines:
+
+| File | Isotope | Lines | E range (keV) |
+|------|---------|-------|---------------|
+| `Euautocal.json` | 152Eu (auto-cal) | 16 | 121.8 – 1408.0 |
+| `eu152.sou` / `Calib.json` | 152Eu (full) | — | — |
+| `co56.sou` | 56Co | — | — |
+| `ba133.sou` | 133Ba | — | — |
+| `am241.sou` | 241Am | — | — |
+| `na24.sou` | 24Na | — | — |
+| `y88.sou` | 88Y | — | — |
+| `ta182.sou` | 182Ta | — | — |
+| `se75.sou` | 75Se | — | — |
+| `am243.sou` | 243Am | — | — |
+
+`Euautocal.json` is the default for `gain_from_parquet.py` — 16 strong 152Eu lines from 121.8 to 1408.0 keV covering the full Ge dynamic range.
+
+_Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06; radware_eff + isotope data explored 2026-04-08_
 
 ### GrayMAN — Gamma-Ray MultiPeak Analyzer Network
 
