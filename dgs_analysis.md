@@ -237,7 +237,7 @@ _Source: `dgs_analysis/armory/gray_apps/src/GrayMAN/` — explored 2026-04-06_
 | `fitting_runner.py` | `FittingRunner` — orchestrates batch/auto fitting runs |
 | `ModelEvaluator.py` | `evaluate_model2`, `evaluate_modelN` — evaluate peak models |
 | `peak_finder.py` | `PeakFinder` — automatic peak detection in spectra |
-| `auto_fitter.py` | Automatic fitting without user guidance |
+| `auto_fitter.py` | **`AutoFitter`** — automatic peak finding + fitting without user guidance. Supports 1D and 2D spectra. Pipeline: (1) SNIP background estimation (`BackgroundFitter`, `snip_1d_mod` or `snip_2d_mod`); (2) threshold-based peak detection (`PeakFinder`) with residual = (data−bg)/√bg; (3) local FWHM estimation per region; (4) region expansion by `fwhm_multiplier`×FWHM on both sides; (5) N-D region merging. Key params: `threshold` (σ above bg, default 1), `snip_iterations` (default 20), `min_fwhm_channels` (default 3), `fwhm_multiplier` (default 2). Returns `(regions, background, residual)` from `identify_regions()`; then `fit_all_regions()` returns `FitSessionCollection`. |
 | `background_fitter.py` | Background estimation / subtraction |
 | `pole_zero_fitter.py` | **PZ coefficient extraction** from 2D S1/S2 histograms (1,303+ lines). Refactored from `pz_from_S1S2_current_v6.py` to work on NumPy arrays (no ROOT I/O). Public API: `estimate_pz_from_histogram(h2, s1_edges, s2_edges, params)` → `DetResult` dataclass; `write_pz_cal(path, pz_map)` / `read_pz_cal(path)` → GEBSort-style "det  pz" calibration files. |
 | `visualization.py` | Plotting helpers for spectra and fit results |
