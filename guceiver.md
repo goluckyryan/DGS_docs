@@ -42,7 +42,7 @@ Guceiver.py (QMainWindow)
 
 ## Connection
 
-- Connects to IOC TCP port **9001** (same port as tcpReceiver)
+- Connects to IOC TCP port **9001** (same port as tcpReceiver) ✅ verified 2026-04-08 — `Guceiver.py:L63` (`{ip}:9001`)
 - IOC IP list loaded from `$IOC_IP` environment variable (space-separated list)
 - User selects which IOC from a dropdown; connection established on "Start Receiver"
 
@@ -60,8 +60,8 @@ The receiver identifies packet type by the first word (magic):
 
 | Magic word | Type |
 |---|---|
-| `0xAAAAAAAA` | Digitizer (DIG) event |
-| `0x0000AAAA` | TAC-II event |
+| `0xAAAAAAAA` | Digitizer (DIG) event | ✅ verified 2026-04-08 — `class_Receiver.py:L145` |
+| `0x0000AAAA` | TAC-II event | ✅ verified 2026-04-08 — `class_Receiver.py:L147` |
 
 Packets that don't match header types 7 or 8 are discarded (except `channel_id == 0xD` = "Type D" end-of-run sentinel → stops acquisition).
 
