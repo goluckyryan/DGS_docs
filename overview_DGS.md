@@ -159,9 +159,9 @@ DGS is a full software+firmware+hardware stack:
 
 | System | CA Server | CA Repeater |
 |--------|-----------|-------------|
-| DGS (Gammasphere) | 5064 | 5065 |
-| DFMA | 5068 | 5069 |
-| SlopeBox | 5074 | 5075 ✅ verified 2026-04-06 — ioc/boot/vme99.cmd:L21-22 |
+| DGS (Gammasphere) | 5064 | 5065 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L45-46` |
+| DFMA | 5068 | 5069 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L5` (comment) |
+| SlopeBox | 5074 | 5075 | ✅ verified 2026-04-06 — `ioc/boot/vme99.cmd:L21-22` + `EPICS_para.sh:L36-37` |
 
 > DUO and DXA ports are in `overview_SmallSystem.md`.
 
@@ -196,10 +196,10 @@ DGS is a full software+firmware+hardware stack:
 
 | Board | Date | Revision | Config |
 |-------|------|----------|--------|
-| MTRG | 0x1022 | 0x04A8 | TAC2 + Trigger Hold-Off |
-| RTRG | 0x0414 | 0x260E | Old but working |
-| MDIG | 20250704 | 0x4CD8 | — |
-| SDIG | 20250704 | 0x4CD8 | — |
+| MTRG | 0x1022 | 0x04A8 | TAC2 + Trigger Hold-Off | ✅ verified 2026-04-08 — `ioc/README.md:L26` |
+| RTRG | 0x0414 | 0x260E | Old but working | ✅ verified 2026-04-08 — `ioc/README.md:L27` |
+| MDIG | 20250704 | 0x4CD8 | — | ✅ verified 2026-04-08 — `ioc/README.md:L28` |
+| SDIG | 20250704 | 0x4CD8 | — | ✅ verified 2026-04-08 — `ioc/README.md:L29` |
 
 ---
 
