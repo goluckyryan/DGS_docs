@@ -22,7 +22,7 @@ Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS
 | `EPICS/base-7.0` | EPICS base submodule |
 | `EPICS/softIOC` | Soft IOC submodule (for GUI-side PV serving) |
 | `ioc/` | IOC submodule (boot scripts, DB files, `findAllPV.py`) |
-| `tcpReceiver/` | C++ multi-threaded TCP data receiver submodule (port 9001, `SOCK_STREAM`) |
+| `tcpReceiver/` | C++ multi-threaded TCP data receiver submodule (port 9001 ✅ verified 2026-04-08 — `SendReceiveSupport.c:L120` + `tcpReceiverMT.cpp:L55`, `SOCK_STREAM` ✅ verified 2026-04-08 — `SendReceiveSupport.c:L134`) |
 
 ### GUI Modules
 
@@ -163,8 +163,8 @@ Startup sequence:
 - **Guceiver** — live monitor launched from GUI; path added to `sys.path` at startup
 
 Run control:
-- Start: `caput Online_CS_StartStop Start` + `caput Online_CS_SaveData Save` → spawns `tcpReceiverMT`
-- Stop: `caput Online_CS_StartStop Stop` → wait → `kill_IOC.sh`
+- Start: `caput Online_CS_StartStop Start` + `caput Online_CS_SaveData Save` → spawns `tcpReceiverMT` ✅ verified 2026-04-08 — `start_run.sh:L212-213,L163-164`
+- Stop: `caput Online_CS_StartStop Stop` → wait → `kill_IOC.sh` ✅ verified 2026-04-08 — `start_run.sh:L220`
 - Run ID auto-increments; saved to `settings.json`
 
 ---
