@@ -35,6 +35,7 @@ Complete VME register addresses for all DGS FPGA boards, extracted from asyn dri
   - [0x0700–0x07E4: Per-Channel Event Counters](#0x0700-0x07e4-per-channel-event-counters)
   - [0x07E8–0x0834: ADC Saturation Counters](#0x07e8-0x0834-adc-saturation-counters)
   - [0x0848: Misc / SD Config](#0x0848-misc--sd-config)
+  - [0x1000: Data FIFO Port](#0x1000-data-fifo-port)
   - [DIG VME FPGA](#dig-vme-fpga-dig-board-only)
 - [MTRG — Master Trigger Main FPGA](#mtrg--master-trigger-main-fpga-virtex-4)
   - [0x0100–0x011C: Bus Control / Timestamp](#0x0100-0x011c-bus-control--timestamp)
@@ -273,6 +274,35 @@ Each group: ch0–ch9, stride 4 bytes per channel. Range per group: 0x28 bytes (
 | Offset | Register | Description |
 |--------|----------|-------------|
 | `0x0848` | `reg_sd_config` | SD (signal detection) configuration |
+
+### 0x1000: Data FIFO Port
+
+The DIG data FIFO is **not a memory range** — it is a single read port. Every read to `0x1000` pops the next 32-bit word off the FIFO and advances its internal read pointer (like reading from a pipe).
+
+| Property | Value | Source |
+|----------|-------|--------|
+| **Port address** | `0x1000` (byte offset) | `DIG_FIFO = 0x1000/4` in `inLoopSupport.c` |
+| **Physical depth** | 262,144 × 32-bit words (256 K longwords = 1 MB) | `DGS_DEFS.h` |
+| **Max DMA transfer** | 512 KB (`MAX_DIG_RAW_XFER_SIZE`) | `DGS_DEFS.h` |
+| **Live depth / status** | `VMERead32(bdnum, 0x0004)` bits[18:0] | `reg_programming_done` |
+
+**Board detection:** Reading from `0x1000` without a bus error confirms the board is an ANL digitizer (used in `devAsynDigCardInit`).
+
+**FIFO depth from `reg_programming_done` (0x0004):**
+
+| Bits | Field | Meaning |
+|------|-------|---------|
+| `[18:0]` | depth | Words currently in FIFO |
+| `[19]` | PROG_FULL | Programmable full threshold crossed |
+| `[21:20]` | EMPTY | FIFO empty flags (both bits set = empty) |
+| `[22]` | ALMOST_EMPTY | Below almost-empty threshold |
+| `[23]` | HALF_FULL | FIFO half full |
+| `[24]` | ALMOST_FULL | Above almost-full threshold |
+| `[25:26]` | ALL_FULL | FIFO completely full |
+
+**Normal readout path:** The `inLoop` task continuously polls `reg_programming_done` for depth, then bulk-reads the FIFO via VME DMA (`sysVmeDmaV2LCopy`) into a 1 MB IOC buffer, then forwards the data to the TCP sender (port 9001) for the data host.
+
+> **Warning:** Each read to `0x1000` destructively removes a word. Reading via `VMERead32` while `inLoop` is running steals words from the normal data stream and will corrupt packet boundaries seen by the collector. Only do this during idle (no beam, no triggers) or after stopping the DAQ.
 
 ---
 
