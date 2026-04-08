@@ -122,7 +122,7 @@ $$\epsilon = g\,(b_{\text{DC,now}} - b)$$
 
 The exponential moving average lags through resets, introducing systematic bias. Events near resets are most affected.
 
-**Time constant:** `GS###_GeCenterTimeConstant` PV sets $k$ per detector (selectable: 5.0–52.0 µs in 14 steps). The nominal PZ follows:
+**Time constant:** `GS###_GeCenterTimeConstant` PV sets $k$ per detector (16 steps, mbbo record, values 0–15: 52.0, 33.6, 20.6, 16.7, 12.8, 11.2, 9.2, 8.3, 7.7, 7.2, 6.2, 5.9, 5.3, 5.0, 4.6, 4.4 µs). ✅ verified 2026-04-08 — `collectorboxpi/CollectorBox_RevA/db/Pickoff.db:L517-555` (ZRST=52.0us→FFST=4.4us, 16 enum values). The nominal PZ follows:
 
 $$P_z = e^{-dt/k}, \qquad dt = 10\,\text{ns (100 MHz clock)}$$
 
