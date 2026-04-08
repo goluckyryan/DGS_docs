@@ -83,9 +83,26 @@ Chip select 6 (binary 110):
 
 ---
 
+## Historical Lineage
+
+The DGS CPLD is a direct descendant of the original **GRETINA/GRETNA fast-strobe CPLD** (2007–2008, J.T. Anderson). The SVN archive preserves snapshots in `DGS_SVN/dgs/GRETNA_CPLD_CHECK/` (Master and Router CPLD variants). Key differences between the GRETINA original and the production DGS CPLD:
+
+| Feature | GRETINA original (2008) | DGS production |
+|---------|------------------------|----------------|
+| Purpose | GRETINA master trigger | DGS MTRG fast strobe |
+| Register map | 0xA000 (mask/counts), 0xE000 (threshold) via 3-bit chip select | Simplified VME A/D decode |
+| `LOC_MULT_COUNT_A/B/C/D` | Present (per-connector hit counters) | Not present |
+| `SUM_CONN_CTRL` | Present | Not present |
+| Source | `GRETNA_CPLD_CHECK/Master_CPLD/fast_strb.vhd` | `FPGA/MTRG/Firmware/DGS_CPLD/fast_strb.vhd` |
+
+The Router CPLD variant (`GRETNA_CPLD_CHECK/Router_CPLD/`) uses `lookup_comp.vhd` (a lookup table compression component) not present in the Master CPLD — it condenses 4-bit discriminator multiplicity values from connected digitizers before forwarding to the master.
+
+Multiple GRETINA CPLD snapshots exist in `FPGA/Firmware_Tags/MasterTrigger/20200702/Gretina Trigger/VHDL/` (2007–2011 vintage), providing a full lineage history.
+
 ## See Also
 
 - `dgs/deep_fpga_MTRG.md` — MTRG overview: all three devices (Main FPGA + VME FPGA + CPLD)
 - `dgs/deep_fpga_MTRG_MAIN.md` — Main FPGA: receives the fast strobe analog multiplicity sum from this CPLD
 - `dgs/fpga.md` — System overview: fast strobe latency (~1 µs) vs full SERDES trigger cycle (2 µs)
 - `dgs/sbx.md` — Slope Box Extension: sources of the BGO sum signals this CPLD aggregates
+- `dgs/DGS_SVN.md` — `GRETNA_CPLD_CHECK/` entry for SVN archive context
