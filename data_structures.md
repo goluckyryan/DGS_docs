@@ -87,10 +87,10 @@ Bytes   Content
 Word  Bits    Field                Notes
 ────────────────────────────────────────────────────────────────────────
  0    31:0    0xAAAAAAAA           Fixed sync word (always 0xAAAAAAAA) ✅ verified 2026-04-07 — receiver.h:L359 (`if(data[index] == 0xAAAAAAAA)`)
- 1    3:0     CH_ID                Channel index 0–9
- 1    15:4    USER_DEF             User-defined field
- 1    26:16   PACKET_LENGTH        Total packet length in 32-bit words
- 1    31:27   GEO_ADDR             VME geographic address (slot number)
+ 1    3:0     CH_ID                Channel index 0–9 ✅ verified 2026-04-07 — class_DIG.h:L24
+ 1    15:4    USER_DEF             User-defined field ✅ verified 2026-04-07 — class_DIG.h:L25
+ 1    26:16   PACKET_LENGTH        Total packet length in 32-bit words ✅ verified 2026-04-07 — class_DIG.h:L26
+ 1    31:27   GEO_ADDR             VME geographic address (slot number) ✅ verified 2026-04-07 — class_DIG.h:L27
  2    31:0    EVENT_TIMESTAMP[31:0] Lower 32 bits of 48-bit event timestamp
  3    15:0    EVENT_TIMESTAMP[47:32] Upper 16 bits of 48-bit event timestamp
  3    19:16   HEADER_TYPE          Data format type (see below)
@@ -288,7 +288,7 @@ The binary reader assigns a `UniqueID` to each hit:
 ```
 UniqueID = DigID * 100 + channel
 ```
-Where `DigID` is a sequential index per digitizer board in the system (0-based), and `channel` = 0–9.
+Where `DigID` is parsed from the **filename** (4-digit field), and `channel` = 0–9. File naming convention: `dgs_runXXX.gtd01_<fileIndex>_<DigID>_<Channel>`. `DigID` is NOT a 0-based sequential index — it comes directly from the filename. ✅ verified 2026-04-07 — `BinaryReader.h:L33` (`GetUniqueID()`), `L105` (DigID = last digits of filename), `L372` (filename format comment)
 
 ---
 
