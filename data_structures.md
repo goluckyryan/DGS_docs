@@ -8,7 +8,7 @@ The IOC sender (`tcpReceiverMT`) writes raw binary files in **GEB (GRETINA Event
 
 ## 1. GEBHeader (16 bytes)
 
-Every event starts with a fixed 16-byte header:
+Every event starts with a fixed 16-byte header: ✅ verified 2026-04-07 — `receiver.h:L51-55` (`struct gebData`: int32_t type + int32_t length + uint64_t timestamp = 4+4+8 = 16 bytes)
 
 ```
 Offset  Size  Field                  Description

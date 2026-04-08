@@ -190,6 +190,7 @@ Collector boxes use their own CA port — check `collectorBox.sh` for the active
 - **24-bit transactions**: `[R/W(1) | Addr(7)] [DataHi(8)] [DataLo(8)]`
 - Data clocked out MSB first; FPGA clocks in on rising edge, Pi captures on rising
 - EPICS mutex (`spi_driver_mutex`) protects all SPI transactions — non-reentrant
+- **SPI clock speed**: `SPI_DEFAULT_SPEED = 50` → `250 MHz / (2×(50+1)) ≈ 2.45 MHz` ✅ verified 2026-04-07 — `initTrace.c:L44` (changed from 48 on 2024-01-03). Formula: `f = 250MHz / (2×(speed+1))`.
 
 ### DEVSEL Bus (Device Selection)
 - 5-bit GPIO bus selects up to 32 devices (DEVSEL 0–31)
