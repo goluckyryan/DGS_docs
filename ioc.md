@@ -222,6 +222,53 @@ All templates use `dbLoadRecords("template", "MACRO=val,...")` in the boot scrip
 
 **Note:** The four `*VME.template` files were added after Feb 2024 (not in `DB_backup_20240205`). They expose VME FPGA internals for crates 66 (DuoGe) and 99 (test stand).
 
+### MTrigUser.template — Key PV Groups
+
+`MTrigUser.template` is 70,386 lines — the largest template by far. The bulk is repetitive `COINC_TRIG_MASK_*` and per-bit RAM records. Key functional PV groups:
+
+| PV Group | Records | Purpose |
+|----------|---------|--------|
+| `ClkSrc` | mbbo/mbbi | Clock source select (local / link L / link R / link U) |
+| `SLOW_CLOCK_SEL` | mbbo/mbbi | Slow clock rate: 10MHz down to 1Hz (7 choices) |
+| `EN_SUM_X/Y/XY`, `EN_MAN_AUX`, `EN_ALGO5`, `EN_LINK_L/R/U`, `EN_MYRIAD_LINK_U` | bo/bi | Per-algorithm trigger enables |
+| `ALGO_5_SELECT` | bo/bi | Algo 5 mode: coincidence trigger (1) vs fast-strobe CPLD (0) |
+| `LINK_L/R/U_IS_TRIGGER_TYPE` | bo/bi | Link mode select: 0=MyRIAD/normal, 1=remote timestamp |
+| `LINK_L_CMD_FORMAT` | mbbo/mbbi | Link L command format: DGS / GRETINA / RTR |
+| `ILM_A..H/L/R/U` | bo/bi | Input link mask (1=masked, excluded from trigger sums) |
+| `XLM_A..H`, `YLM_A..H` | bo/bi | X/Y sum link mask (1=excluded from X/Y multiplicity sum) |
+| `LINK_L/R/U_PROPAGATE_F3..F7` | bo/bi | Propagate trigger frames F3–F7 out link L/R/U |
+| `EN_NIM_VETO_A..H`, `EN_RAM_VETO_A..H`, `EN_THROTTLE_VETO_A..H` | bo/bi | Per-algorithm veto enables |
+| `ENBL_NIM_VETO`, `ENBL_MON7_VETO`, `ENBL_THROTTLE_VETO`, `EN_RAM_VETO` | bo/bi | Global veto enables |
+| `SOFTWARE_VETO` | bo/bi | Software-controlled veto |
+| `TRIG_MON_SEL` | mbbo/mbbi | TDC trigger monitor source: AUX/NIM, SumX, SumY, SumXY, CPLD, RemMstr(L/R), MyRIAD(U) |
+| `AuxTrig_Width` | longout/longin | AUX/NIM trigger width in clocks |
+| `AUXPolaritySelect` | bo/bi | AUX input polarity |
+| `EN_NIM1_DELAY`, `EN_NIM2_DELAY` | bo/bi | Enable programmable delay on NIM inputs 1/2 |
+| `VETO_RAM_ADDR_SRC` | mbbo/mbbi | Veto RAM address source: AUX I/O / 1024µs / DecadeRate / Manual / LinkL-U Det |
+| `TRIG_RAM_ADDR_SRC`, `SWEEP_RAM_ADDR_SRC` | mbbo/mbbi | Trigger/sweep RAM address sources |
+| `VETO_RAM_PA/PB/PC/PD_B0..B15` | bo/bi | Veto RAM port A-D bit-wise pattern (64 PVs) |
+| `TRIG_RAM_*`, `SWEEP_RAM_*` | bo/bi | Trigger/sweep RAM bit patterns |
+| `COINC_TRIG_MASK_A1..A7/B1..B7` (×110 detectors) | bo/bi | Coincidence trigger mask: which detectors participate in each of the 14 coincidence groups. **This is the bulk of the template — ~7,000 unique PVs (14 groups × ~110 det × 2 for RBV).** |
+| `SSI_InputSelect` | mbbo/mbbi | SSI clock input pin pair (16 options across J34–J37/P101/ECL) |
+| `SSI_BIT_RANGE` | mbbo/mbbi | SSI bit range (9..0 through 15..6) |
+| `LEDControl` | mbbo/mbbi | Front panel LED source: Link Status / Trig Status / Manual |
+| `CLEAR_RATE_COUNTERS`, `CLEAR_DIAG_COUNTERS`, `CLEAR_ENCODER_CNTR` | bo/bi | Counter clears |
+| `ALL_CHANNEL_RESET` | bo/bi | Reset all channels |
+| `LRUCtl00..10` | bo/bi | Link L/R/U control bits: DEN (data enable), REN (receive enable), Sync |
+| `TPwr_*/RPwr_*`, `SLoL_*`, `SLiL_*` | bo/bi | Per-link transmit/receive power, line/local loopback |
+| `EN_RTR_DCBAL`, `EN_LINKL/R/U_TX_DCBAL` | bo/bi | DC balance enable for router/link outputs |
+| `A_3_0_DIR`, `A_7_4_DIR`, `B_3_0_DIR`, `B_7_4_DIR` | bo/bi | Aux I/O port A/B direction bits |
+| `CFC1..7` | mbbo/mbbi | Command FIFO channel selects |
+| `CFIFO1..8_FORCE` | bo/bi | Force FIFO entries |
+| `CF0..7_F12RESET` | bo/bi | Frame 12 reset per command FIFO channel |
+
+**Size breakdown** (approximate):
+- `COINC_TRIG_MASK_*` records: ~7,000 PVs (dominates file size)
+- Per-bit RAM records (`VETO_RAM_*`, `TRIG_RAM_*`, `SWEEP_RAM_*`): ~200 PVs
+- Other functional PVs: ~350 unique names
+
+_Source: `ioc/db/MTrigUser.template` (70,386 lines) — explored 2026-04-08_
+
 ### Boot script flow
 1. VxWorks loads from FTP
 2. NFS mounts set up (`nfsCommands`)
