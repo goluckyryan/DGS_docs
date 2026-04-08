@@ -8,6 +8,33 @@ Access via terminal server: `telnet <ts-ip> <port>` — see `ANLDAQ/EPICS_para.s
 
 ---
 
+## Table of Contents
+
+- [DGS Custom Commands](#dgs-custom-commands)
+  - [Driver Initialization](#driver-initialization-boot-time-only)
+  - [Flash Firmware — DANGEROUS](#flash-firmware--dangerous)
+  - [VME Register I/O](#vme-register-io)
+  - [Diagnostics](#diagnostics)
+  - [FIFO Debug Readout](#fifo-debug-readout-vxworks-shell--global-c-symbols-not-iocsh-registered)
+  - [VME Peek/Poke via asynDebugDriver](#vme-peekpoke-via-asyndebugdriver-pv-based)
+  - [State Machines](#state-machines-daq-control)
+- [EPICS Base 3.14.12.1 Commands](#epics-base-314121-commands)
+  - [Database — Most Useful](#database--most-useful)
+  - [Database Schema / Static](#database-schema--static)
+  - [Breakpoints / Test](#breakpoints--test)
+  - [Scan](#scan)
+  - [IOC Control](#ioc-control)
+  - [CA Server](#ca-server)
+  - [Access Security](#access-security)
+  - [Registry](#registry)
+  - [Environment & System](#environment--system)
+  - [Threads & Concurrency](#threads--concurrency)
+- [Asyn 4.17 Commands](#asyn-417-commands)
+- [Safety Classification](#safety-classification)
+- [Terminal Server Map](#terminal-server-map)
+
+---
+
 ## DGS Custom Commands
 
 Registered via `iocshRegister` in `VxWorks/dgsDrivers/dgsDriverApp/src/`.
@@ -56,8 +83,76 @@ ConfigureFlash(0, 0)
 
 | Command | Parameters | Description | Source |
 |---------|-----------|-------------|--------|
-| `debugGenReport` | `"cmd"` | Asyn diagnostic report for a board | `drvAsynDebug.c` |
+| `debugGenReport` | `"cmd"` | Dump asynDebugDriver status. `cmd` tokens: `cards` (print `daqBoards[]` — base addresses, FIFO ptrs, mainOK, board type), `regs` (dump device PV list), `dbg0`/`dbg1`/`dbg2` (set verbose level) | `drvAsynDebug.c` |
 | `devGDigSetRestFile` | `"path"` | Set register restore file path | `restoreSub.c` |
+
+### FIFO Debug Readout (VxWorks shell — global C symbols, not iocsh-registered)
+
+These functions are **not** iocsh-registered. On VxWorks, any global C symbol is callable directly from the shell.
+
+#### `dbgReadDigFifo(board, numwords, mode)` — `readDigFIFO.c`
+
+Read and dump the DIG data FIFO to console. **Destructive** (pops data off FIFO).
+
+| Arg | Value | Meaning |
+|-----|-------|---------|
+| `board` | cardno | Board index (`asynDigitizerConfig` 2nd arg) |
+| `numwords` | N | Number of 32-bit words to pop and print |
+| | `-1` | Auto-read: reads current FIFO depth from `reg_programming_done[18:0]` (reg 0x0004), then reads that many words |
+| `mode` | `1` | Use VME DMA (`sysVmeDmaV2LCopy`) — faster |
+| | `0` | Word-by-word PIO loop |
+
+Output format: `index:NNNN    data:XXXXXXXX` (one line per 32-bit word)
+
+Example — dump whatever is currently in MDIG1's FIFO using DMA:
+```
+dbgReadDigFifo(0, -1, 1)
+```
+
+#### `dbgReadTrigFifo(board, numlongwords, mode, FIFO_IDX)` — `readTrigFIFO.c`
+
+Read and dump a trigger module FIFO to console. **Destructive**.
+
+| Arg | Value | Meaning |
+|-----|-------|---------|
+| `board` | cardno | Board index |
+| `numlongwords` | N>0 | Read exactly N words |
+| | `0` | Auto: MON FIFO 7 → use latched depth (reg 0x01AC); others → 256 words |
+| | negative | Use MAX (`MAX_TRIG_RAW_XFER_SIZE`) |
+| `mode` | `1` / `0` | DMA / word-by-word (same as dbgReadDigFifo) |
+| `FIFO_IDX` | 0–7 | MON FIFOs 1–8 at byte offsets 0x0160–0x017C |
+| | 8–15 | CHAN FIFOs 1–8 at byte offsets 0x0180–0x019C |
+
+MON FIFO 7 (`FIFO_IDX=6`, byte offset `0x0178`) is the primary trigger timestamp/TDC FIFO used by DAQ.
+
+Example — dump MON FIFO 7 of MTRG (cardno 0), auto-length, word-by-word:
+```
+dbgReadTrigFifo(0, 0, 0, 6)
+```
+
+### VME Peek/Poke via asynDebugDriver (PV-based)
+
+The `asynDebugDriver` provides a safer, mutex-protected alternative to `VMERead32`/`VMEWrite32` via EPICS PVs. Configured at boot with `asynDebugConfig("DBG", card_number)` and `dbLoadRecords("db/asynDebug.template","P=VMExx:,R=DBG:,PORT=DBG,ADDR=0,TIMEOUT=1")`.
+
+PV prefix is `{P}DBG:` (e.g. `VME04:DBG:`). All offsets are byte offsets, card numbers are cardno (same as `VMERead32`).
+
+**Read a register:**
+```
+caput VME04:DBG:dbg_card_number 0      # cardno (from asynDigitizerConfig 2nd arg)
+caput VME04:DBG:dbg_address 0x0600    # byte offset
+caput VME04:DBG:dbg_read_addr 1        # triggers viIn32() read
+caget VME04:DBG:dbg_value_read         # result
+```
+
+**Write a register** (dangerous — direct hardware write):
+```
+caput VME04:DBG:dbg_card_number 0
+caput VME04:DBG:dbg_address 0x0204
+caput VME04:DBG:dbg_value 0x00000001  # data to write
+caput VME04:DBG:dbg_write_addr 1       # triggers viOut32() write
+```
+
+There is **no** `debugRead()` IOC shell command — PV access is the only interface provided by this driver.
 
 ### State Machines (DAQ control)
 
