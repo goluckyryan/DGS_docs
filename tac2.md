@@ -3,13 +3,17 @@
 _Source: `DGS_docs/DGS_System_Documentation/Firmware/Master_Trigger/TAC.docx` — J.T. Anderson, 2016-02-24_
 _Supporting: `LabNotes/20210314_TDC.ods`, `LabNotes/Jitter Analysis/`, `LabNotes/20210831_lab_notes.odt`_
 
-> ⚠️ **WARNING:** The FPGA firmware has been significantly modified since the 2016 TAC.docx was written. **The VHDL source code is the ground truth.** Key areas where the doc may be outdated:
-> - Packet word count: `NUM_TDC_WORDS` and `NUM_TRIG_WORDS` are **configurable** in the FPGA (not fixed at 15 words)
-> - Internal TDC FIFO stores a **5-word format** (timestamp, coarse count, valid+offsets A/B/C/D, positions A/B, positions C/D) which is assembled into the output packet by `trig_mon_collect.vhd`
-> - Per-phase timing adjustments (+3/0/+1/+2 ns) may have changed with the Vivado port and re-placed delay chains
-> - Cross-check any timing calculations against `tdc_chain_cont.vhd`, `trig_mon_collect.vhd`, and `mstr_mach.vhd`
+> ⚠️ **WARNING:** The FPGA firmware has been significantly modified since the 2016 TAC.docx was written. **The VHDL source code is the ground truth.**
 >
-> The `tcpReceiverMT` repacking logic in `receiver.h` is a more reliable reference for the actual packet format as received by software.
+> **For the authoritative FPGA-verified packet format and timing details, see:**
+> **`deep_fpga_MTRG_MAIN.md` — § "TAC-II / TDC" — verified against VHDL 2026-04-04**
+>
+> Key differences from this doc:
+> - Packet word count: `NUM_TDC_WORDS` and `NUM_TRIG_WORDS` are **configurable** (not fixed at 15 words)
+> - MON7B packet format: Word 0 = `0xAAAA`, Words 1..N = TRIG_MON data, Word N+1 = length+user data, Words N+2..end = TDC vernier words
+> - Timeout window: **960 ns** (updated 2025-07-22 from 640 ns)
+> - Per-phase timing adjustments (+3/0/+1/+2 ns) may have changed with Vivado port
+> - `receiver.h` is the most reliable reference for what software actually receives (repacked 10-word format)
 
 ---
 
