@@ -280,12 +280,17 @@ Digitizer FIFO (VME bus)
 ```
 
 ### Key data structures
+
+**inLoopSupport.c:** ✅ verified 2026-04-08 — `inLoopSupport.c:L31-49`
 - `MstrLogicReg[10]` — VME addresses of master logic status registers (one per board)
 - `FIFOStatusReg[10]` — VME addresses of FIFO status registers (one per board)
 - `RawDataLengthReg[10][10]` — configurable raw data length per channel per board (added 2023-04-10)
-- `DigitizerCalcEventSize[10][10]` — computed event size per channel per board
+- `DigitizerCalcEventSize[10][10]` — computed event size (in 32-bit words) per channel per board; derived from `RawDataLengthReg` ÷ 2 + 1 (for the `0xAAAAAAAA` sync word)
+- `MinimumCalcEventSize[10]`, `MaximumCalcEventSize[10]` — smallest/largest event size per board (added 2023-04-10)
+
+**outLoopSupport.c:** ✅ verified 2026-04-08 — `outLoopSupport.c:L61-62`
+- `TotalBuffers_Written`, `TotalBuffers_Lost` — global buffer statistics (exposed via `GetTotalBuffers_Written()` / `GetTotalBuffers_Lost()`)
 - `DataRate[board]`, `DataTotal[board]`, `DataLost[board]` — per-board statistics
-- `TotalBuffers_Written`, `TotalBuffers_Lost` — global buffer statistics
 
 ### Functions (inLoop)
 - `SetupBoardAddresses()` — maps VME addresses for all boards in a crate
