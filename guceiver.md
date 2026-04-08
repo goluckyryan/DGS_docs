@@ -60,8 +60,8 @@ The receiver identifies packet type by the first word (magic):
 
 | Magic word | Type |
 |---|---|
-| `0xAAAAAAAA` | Digitizer (DIG) event | ✅ verified 2026-04-08 — `class_Receiver.py:L145` |
-| `0x0000AAAA` | TAC-II event | ✅ verified 2026-04-08 — `class_Receiver.py:L147` |
+| `0xAAAAAAAA` | Digitizer (DIG) event ✅ verified 2026-04-08 — `class_Receiver.py:L145` |
+| `0x0000AAAA` | TAC-II event ✅ verified 2026-04-08 — `class_Receiver.py:L147` |
 
 Packets that don't match header types 7 or 8 are discarded (except `channel_id == 0xD` = "Type D" end-of-run sentinel → stops acquisition).
 

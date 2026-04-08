@@ -161,7 +161,7 @@ DGS is a full software+firmware+hardware stack:
 |--------|-----------|-------------|
 | DGS (Gammasphere) | 5064 | 5065 |
 | DFMA | 5068 | 5069 |
-| SlopeBox | 5074 | 5075 | ✅ verified 2026-04-06 — ioc/boot/vme99.cmd:L21-22 |
+| SlopeBox | 5074 | 5075 ✅ verified 2026-04-06 — ioc/boot/vme99.cmd:L21-22 |
 
 > DUO and DXA ports are in `overview_SmallSystem.md`.
 

@@ -16,10 +16,12 @@
 
 | Field | Value |
 |-------|-------|
-| Family | XC9500XL CPLDs | ✅ verified 2026-04-07 — Work.xise:Device Family |
-| Part | xc95144xl | ✅ verified 2026-04-07 — Work.xise:Device |
-| Package | TQ100 | ✅ verified 2026-04-07 — Work.xise:Package |
-| Speed Grade | -7 | ✅ verified 2026-04-07 — Work.xise:Speed Grade |
+| Family | XC9500XL CPLDs |
+| Part | xc95144xl |
+| Package | TQ100 |
+| Speed Grade | -7 |
+
+✅ All device fields verified 2026-04-07 — `Firmware/DGS_CPLD/Work/Work.xise` (Device Family, Device, Package, Speed Grade fields)
 | Tool | Xilinx ISE |
 | Project File | `Firmware/DGS_CPLD/Work/Work.xise` |
 | Top Entity | `fast_strb` |
@@ -34,7 +36,7 @@ The CPLD implements fast multiplicity threshold logic for auxiliary detectors. I
 
 | File | Lines | Description |
 |------|-------|-------------|
-| `fast_strb.vhd` | 462 | Top-level entity — all logic contained here | ✅ verified 2026-04-07 — FPGA/Firmware_Tags/MasterTrigger/20200702/Firmware/DGS_CPLD/fast_strb.vhd |
+| `fast_strb.vhd` | 462 | Top-level entity — all logic contained here ✅ verified 2026-04-07 — `DGS_CPLD/fast_strb.vhd` |
 
 ## Architecture
 

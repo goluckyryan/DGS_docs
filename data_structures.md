@@ -22,8 +22,8 @@ Offset  Size  Field                  Description
 
 | Code | Constant | Description |
 |------|----------|-------------|
-| 14 | `GEB_TYPE_DGS` | DGS digitizer hit data | ✅ verified 2026-04-07 — `dgsReceiver_Ryan.cpp:L141` |
-| 15 | `GEB_TYPE_DGSTRIG` | DGS trigger data (TAC-II TDC) | ✅ verified 2026-04-07 — `dgsReceiver_Ryan.cpp:L142` |
+| 14 | `GEB_TYPE_DGS` | DGS digitizer hit data ✅ verified 2026-04-07 — `dgsReceiver_Ryan.cpp:L141` |
+| 15 | `GEB_TYPE_DGSTRIG` | DGS trigger data (TAC-II TDC) ✅ verified 2026-04-07 — `dgsReceiver_Ryan.cpp:L142` |
 | 99 | *(internal)* | Decoded TAC2 trigger (used internally by fastEventConstructor) |
 
 Other type codes (1–13, 16–23) are GRETINA/NSCL/S800/aux detector formats — present in merged GEB streams but not produced by DGS IOC directly.

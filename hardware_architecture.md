@@ -130,12 +130,14 @@ All systems share the **same physical network (onenet, 192.168.203.x)** but are 
 
 | System | Alias | CA Server Port | CA Repeater Port |
 |--------|-------|---------------|------------------|
-| DGS | — | 5064 | 5065 | ✅ verified 2026-04-06 — `EPICS_para.sh:L45-46` |
-| DFMA | — | 5068 | 5069 | ✅ verified 2026-04-07 — `EPICS_para.sh:L5` (header comment) |
-| X-Array | DXA | 5072 | 5073 | ✅ verified 2026-04-05 — `EPICS_para.sh:L23-24` |
-| SlopeBox teststand | — | 5074 | 5075 | ✅ verified 2026-04-07 — `EPICS_para.sh:L7,L36-37` |
-| DUB | — | 5078 | 5079 | ✅ verified 2026-04-07 — `EPICS_para.sh:L8` (header comment) |
-| DuoGe | DUO | 5080 | 5081 | ✅ verified 2026-04-05 — `EPICS_para.sh:L16-17` |
+| DGS | — | 5064 ✅ | 5065 |
+| DFMA | — | 5068 | 5069 |
+| X-Array | DXA | 5072 ✅ | 5073 |
+| SlopeBox teststand | — | 5074 | 5075 |
+| DUB | — | 5078 | 5079 |
+| DuoGe | DUO | 5080 ✅ | 5081 |
+
+✅ All CA ports verified 2026-04-05/07 — `ANLDAQ/EPICS_para.sh` (DGS:L45-46, DXA:L23-24, DUO:L16-17, DFMA:L5, SlopeBox:L36-37, DUB:L8)
 
 ---
 
