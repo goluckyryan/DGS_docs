@@ -626,7 +626,7 @@ Key details:
 - Stage 1 sets `ClkSrc` and all `LINK_L_PROPAGATE_Fx` registers on MTRG
 - Stage 2 loops over `LIST_OF_ROUTERS` with bash substring extraction (`${RTR:6:3}`) to parse VME address
 - Stage 5 clears SYNC bits (the gotcha described in `troubleshooting.md`) — this is the final step that lets real data flow
-- `basic_settings_LED.py` — sets LED thresholds across all channels from a defaults file
+- `basic_settings_LED.py` — sets all DIG channels to **LED mode** with hardcoded defaults: threshold=300, `IntAcptAll` trigger, `p1=0.07µs, p2=0.05µs, m=2.5µs, k0=0.5µs, k=0.5µs, d=0.16µs`, RiseEdge polarity, raw_data_delay=0.5µs, raw_data_length=0.32µs. Targets CH 5–9 on VME66 MDIG1/MDIG2 (test stand config). Uses `epics.caput` with wait=True. Ends with `Online_CS_StartStop=Stop`, `Online_CS_SaveData=No Save`.
 - `enableScriptList.txt` — lists which scripts are enabled in the GUI
 
 **Important EPICS write caveat** (from `Serdes_Linkup.sh` comments):
