@@ -8,7 +8,7 @@ _Indexed: 2026-04-05_
 
 | Pages | Size | File | Notes |
 |-------|------|------|-------|
-| 72 | 2.4MB | `Firmware/Digitizer/ANL Digitizer Firmware for Experts.pdf` | ✅ **Documented** → `memory/dgs/DIG_firmware_expert.md` |
+| 72 | 2.4MB | `Firmware/Digitizer/ANL Digitizer Firmware for Experts.pdf` | ✅ **Documented** → `dgs/DIG_firmware_expert.md` |
 | — | — | `Non-Expert ANL Firmware - ANL version.pdf` | **Not in local docs** (wiki only). Shorter intro for scientists — recommended first read before Experts doc. |
 | 58 | 1.6MB | `Firmware/Digitizer/ANL Firmware for LBL Digitizer.pdf` | ANL firmware on LBL hardware variant — **superseded** by Non-Expert + Experts docs |
 | 242 | 1.5MB | `Firmware/Digitizer/Initial Draft - Digitizer Registers.pdf` | Full register map for the digitizer |
