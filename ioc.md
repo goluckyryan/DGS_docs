@@ -333,7 +333,7 @@ cd ioc && python3 findAllPV.py
 The VME IOC has **two separate physical connections**:
 
 ### 1. Ethernet (Data + EPICS)
-- Used for: EPICS Channel Access (PV read/write), TCP data stream (port 9001 for `tcpReceiverMT`)
+- Used for: EPICS Channel Access (PV read/write), TCP data stream (port 9001 for `tcpReceiverMT`) ✅ verified 2026-04-08 — `SendReceiveSupport.c:L120` (`#define SERVER_PORT 9001`) + `tcpReceiverMT.cpp:L55` (`cfg.port = 9001`)
 - Address = `IOC_IP` in `EPICS_para.sh`
 - Example: DuoGe vme66 = **192.168.203.81**
 - This is the connection used by ANLDAQ GUI, pyepics scripts, and the data receiver

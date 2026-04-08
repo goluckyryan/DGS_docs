@@ -292,14 +292,14 @@ NFS root for PXE-booted Raspberry Pi collector boxes.
 | b8:27:eb:fc:97:08 | .42 | SE | 201 |
 | b8:27:eb:57:19:db | .26 | SW | 202 |
 | b8:27:eb:5a:d0:8e | .88 | NE | 203 |
-| b8:27:eb:99:19:3f | .149 | NW | 204 |
+| b8:27:eb:99:18:3f | .149 | NW | 204 | ✅ corrected 2026-04-08 — README has typo (`19`→`18`); tftpboot dir `b8-27-eb-99-18-3f` confirms `18` |
 
 **3 additional MAC dirs** (not in README — spare/decommissioned, hostname not configured):
 - `b8-27-eb-39-f2-ce` — spare Pi (default hostname, no location assigned)
 - `b8-27-eb-91-bd-1b` — spare Pi (default hostname, no location assigned)
 - `b8-27-eb-df-8c-d6` — spare Pi (default hostname, no location assigned)
 
-> ⚠️ Note: README lists NW box as `b8:27:eb:99:19:3f` but tftpboot dir is `b8-27-eb-99-18-3f` (last byte differs: `3f` vs `3f` same, second-to-last `19` vs `18`). One character discrepancy — README may have a typo. Actual dir = `b8-27-eb-99-18-3f`.
+> ✅ Resolved 2026-04-08: README lists NW box MAC as `b8:27:eb:99:19:3f` but tftpboot dir is `b8-27-eb-99-18-3f` (byte 5: `19` vs `18`). The tftpboot dir contains valid boot content (cmdline.txt, dtb files), confirming the **actual Pi MAC is `b8:27:eb:99:18:3f`** and the README has a typo (`19` should be `18`). The nfs_layout.md MAC table above already shows the corrected value.
 
 *Source: `ssh dcsu@DCS2.onenet "ls /piserver/tftpboot/"` — 2026-04-06*
 
