@@ -97,15 +97,17 @@ Carries: TTCL commands (receive), fast event data (transmit), and the 50 MHz sys
 | 31 | GND | 32 | **Aux10 I/O +** | 33 | **Aux10 I/O −** |
 | 34 | GND | 35 | Ext Clock In + | 36 | Ext Clock In − |
 
-### Key Signal: AUX_DIN[10] — External Discriminator Input
+### Key Signal: AUX_DIN[10] — External Discriminator Input (Deprecated in Production)
 
-`AUX_DIN[10]` is the **MSbit** of the 11-bit Auxiliary I/O bus (`AUX_DIN[10:0]`), located on **pins 32/33**.
+`AUX_DIN[10]` is the **MSbit** of the 11-bit Auxiliary I/O bus (`AUX_DIN[10:0]`), located on **pins 32/33**. ✅ verified 2026-04-08 — `Digitizer.vhd:L63` (`AUX_DIN : in std_logic_vector(10 downto 0)`)
 
-This is the designated **front-panel external discriminator input** used by the ANL digitizer firmware:
+**Historical use:** Originally designated as the front-panel external discriminator input — `reg_bit_slices = "010"` would slave a channel to `AUX_DIN(10)`, allowing an external RS485 pulse on pins 32/33 to trigger all channels simultaneously.
 
-- When a channel's external discriminator source is set to "front panel" (option 3 in the external discriminator source matrix), it reads `AUX_DIN[10]`
-- Used in `ExtTTL` trigger mode (`trigger_mux_select = ExtTTL`) — a TTL/RS485 pulse here triggers all channels simultaneously, latching DSP results (energy, CFD timestamps) into header memory
-- ⚠️ If Aux I/O is configured with bit 10 as an **output**, it cannot be used as an external discriminator input
+**⚠️ Disabled as of 2022-09-30:** The AUX_DIN(10) path was commented out in `Digitizer.vhd` (src mode `"010"`) because the **digitizer fanout board** (added July 2022) physically covers the Aux I/O pins, making front-panel access impossible. ✅ verified 2026-04-08 — `Digitizer.vhd:L994` (comment: "The digitizer fanout board covers the AUX I/O pins so use of the AUX I/O as an external discriminator is now valueless.")
+
+Current `"010"` mode instead routes **BGO pattern/sum discriminator bits** from the front bus (not the Aux I/O pin).
+
+- ⚠️ If Aux I/O is configured with bit 10 as an **output**, it cannot be used as an external discriminator input (moot in current hardware config)
 
 ### Dedicated External Clock Input (pins 35/36)
 
