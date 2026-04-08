@@ -199,9 +199,9 @@ Collector boxes use their own CA port — check `collectorBox.sh` for the active
 - DEVSEL=0 = no device selected (bus idle)
 
 ### ADC Scanner
-- GPIO12 = `SCANNER_CONTROL_PIN` — held HIGH to block ADC scanner during SPI comms
+- GPIO12 = `SCANNER_CONTROL_PIN` (`RPI_BPLUS_GPIO_J8_32`) — HIGH=block scanner, LOW=enable scanner ✅ verified 2026-04-08 — `spi.h:L7-9`, `spi.c:L195-206`
 - `RESET_ADC_SCANNER()` = HIGH (blocks), `ENABLE_ADC_SCANNER()` = LOW (allows)
-- During EPICS runtime: PV fires every 10s, grabs mutex, runs one ADC scan
+- During EPICS runtime: PV fires every 10s, grabs mutex, runs one ADC scan ✅ verified 2026-04-08 — `Pickoff_reg.db:L990` (SCAN="10 second")
 
 ### Key Functions (`spi.c`)
 | Function | Purpose |

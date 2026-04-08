@@ -84,7 +84,7 @@ Initialized once at IOC start via `GetDataArrayPtr(1)`:
 
 ```c
 typedef struct {
-    unsigned short GLBL_CollectorDataArray[32][1024];   // raw scan data per device
+    unsigned short GLBL_CollectorDataArray[32][1024];   // raw scan data per device ✅ verified 2026-04-08 — CollectorSupport.h:L30
     unsigned short GLBL_CollectorControlVals[32][256];  // integer mailboxes per device
     epicsFloat64   GLBL_CollectorFloatVals[32][256];    // float mailboxes per device
     unsigned short *GLBL_CollectorArrayPtr[32];         // walking pointers into DataArray
