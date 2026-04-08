@@ -503,6 +503,19 @@ svn diff -c 7231
 
 ---
 
+## FPGA/others/ — Auxiliary Firmware
+
+The `DGS_tools_pack/FPGA/others/` directory contains related but non-production firmware:
+
+| Directory | Contents |
+|-----------|----------|
+| `Trig_sys_sim/` | **Full trigger system simulation testbench** — ISE VHDL testbench (`top_tb1.VHD`) for the complete MTRG `trigger_top` entity. Includes: `MstrTrig_pkg.vhd` (BUILD_TYPE generics and type definitions), `MyRIAD_pkg.vhd` (MγRIAD interface types), `bus_pkg.vhd` / `bus_trans.vhd` / `bus_io.vhd` (VME bus simulation models), `crate_def_tb.vhd` (crate instantiation), `regio_tb.vhd` (register I/O testbench). Used for verifying trigger logic in simulation without hardware. Author: J. Anderson (ANL). |
+| `MyRIAD/` | **MγRIAD FPGA firmware** — ISE project (Spartan-3) for the MγRIAD auxiliary detector interface module. Source: `MAIN_FPGA/Source/MyRIAD.vhd` (2,027 lines). See `myriad.md` for full documentation. |
+| `Majorana_Digitizer/` | **Majorana Demonstrator digitizer firmware** — ISE project for the Majorana experiment (not DGS-specific). Shares many VHDL modules with ANL DIG firmware: `Channel_Readout_Mach.vhd`, `Channel_FIFO_Readout_Mach.vhd`, `cfd_disc.vhd`, `baseline_tracker.vhd`, `chan_trigger_control.vhd`, `CLOCK_MANAGER.vhd`. Useful for cross-referencing shared module implementations. Includes ChipScope debugging configs and `dg_pulse_estimator.xls` (pulse parameter spreadsheet). |
+| `LBL_Digitizer/` | Lawrence Berkeley Lab digitizer firmware (historical reference, not ANL-developed). |
+
+---
+
 ## Building the Firmware
 
 See **[deep_fpga_building.md](deep_fpga_building.md)** for the full build guide, including:
