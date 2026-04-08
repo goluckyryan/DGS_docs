@@ -59,7 +59,7 @@ Automated control system for filling germanium detector **dewars** with liquid n
 | `WriteDiscordMessage.py` | Sends Discord notifications |
 | `gefilltime2.dat` | Historical fill time data |
 | `templog/` | Temperature log directory |
-| `AddPress.sh` | Add pressure script |
+| `AddPress.sh` | **Spare tank pressure management** — monitors tank pressures during a fill; opens/closes spare tank fill valves (LNT3, LNT6) to keep both tank stations pressurized. Runs for up to 2,200s; exits when fill completes or timeout. See details below. |
 | `setTNF.sh` | Set tank fill script |
 
 ---
@@ -116,8 +116,37 @@ Automated control system for filling germanium detector **dewars** with liquid n
 
 ### Pi5 Health Check (`LNFill_pi5_check.sh`, on DCS2)
 - Runs at 7:15 and 19:15 (15 min after scheduled fill starts)
-- SSHes into pi5, checks if `LNFill_App.py` is running
-- On failure: Discord alert to anomaly channel
+- SSHes into `pi5-lnFill`, checks if `LNFill_App.py` is running via `pgrep`
+- On failure: Discord alert to anomaly channel (`discord_anomaly.WebHook`)
+
+---
+
+## AddPress.sh — Spare Tank Pressure Manager
+
+_Source: `lnfill/AddPress.sh` v2.3 (M. Oberling, 2024-06-28)_
+
+Runs alongside a fill to keep tank station pressures high by opening spare (T3) tank fill valves when advantageous. Monitors **TS1** (manifolds A+B) and **TS2** (manifolds C+D) independently.
+
+**PVs monitored:**
+- `LNP1-01_PR:AP` / `LNP2-01_PR:AP` — external supply pressure (TS1/TS2)
+- `LNP1-02..04_PR:AP` / `LNP2-02..04_PR:AP` — tank 1–3 pressures per station
+- `LNM1_FV:EN` – `LNM4_FV:EN` — manifold fill valve state (Open/Auto)
+- `LNT3_FV:EN` / `LNT6_FV:EN` — spare tank fill valves (controlled by this script)
+
+**Logic (per tank station):**
+1. Only active if at least one manifold valve is Open (i.e., fill is in progress)
+2. Opens spare fill valve if: ext pressure − tank pressure ≥ 3 PSI AND tank pressure < 32 PSI
+3. Closes spare fill valve if: differential ≤ −1 PSI OR tank pressure ≥ 32 PSI
+4. Cross-station coordination: if both spare valves are open, closes one if that station is already ahead by ≥2–3 PSI
+5. Valve holdoff timers prevent rapid cycling: 120s after max-pressure close, 60s after differential close
+6. Adaptive sleep: starts at 1s, grows to 30s max; resets to 0s when a valve opens
+7. Exits when all manifold valves close or `MAX_RUN_TIME` (2,200s) reached; leaves spare valves in Auto
+
+**Known failed sensors (hardcoded v2.3):** `PRESS_EXT2_FAIL=1`, `PRESS_TS2_T2_FAIL=1`, `PRESS_TS2_T3_FAIL=1`
+
+**Gauge calibration (v2.3):** `PRESS_TS1_T3_CAL=+2` (reads 2 PSI low); all others = 0
+
+Fallback: if all pressure gauges for a station fail, assumes 28 PSI (early in run) or 20 PSI (after 400s).
 
 ---
 
