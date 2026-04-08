@@ -478,6 +478,25 @@ Decodes the MTRG TDC/TAC-II packet (10 words after repacking):
 - ANSI escape codes stripped from SSH output before display
 - Script dir on dcs2: `/home/phy/dcsu/ANLDAQ/tcpReceiver/`
 
+**`basic_settings_DGS.sh`** — Sets all DIG channels (CH 5–9) on VME01–VME12 to a known-good starting configuration. Default mode: **CFD** ("Mike CFD values" by M. Carpenter). Key parameters:
+- CFD: p1=0.07µs, p2=0.05µs, m=3.5µs, k0=0.56µs, k=0.2µs, d=0.06µs, d3=0.2µs, CFD_fraction=25
+- LED: p1=0.07µs, p2=0.05µs, m=2.5µs, k0=0.5µs, k=0.5µs, d=0.16µs
+- Both modes: threshold=30, RiseEdge polarity, raw_data_delay=0.5µs, raw_data_length=0.32µs
+- Respects VME06/VME10 exception (MDIG1 only; 2 DIGs instead of 4)
+- Ends with `Online_CS_StartStop=Stop`, `Online_CS_SaveData=No Save`
+- **Note:** `trigger_mux_select` is commented out — trigger mode must be set separately
+
+**`basic_settings_TACII.sh`** — Quick setup script for TAC-II teststand (VME10 only): enables MTRG + MDIG1, clears all vetoes, selects `SumY` trigger monitor, enables `EN_MAN_AUX` trigger (manual/auxiliary). Momentarily pulses `SOFTWARE_VETO` on then off. Used for TAC-II commissioning/testing on the single-crate teststand.
+
+**`simpleStartStop.sh`** — Minimal start/stop wrapper:
+```bash
+./simpleStartStop.sh 1   # Start: caput SaveData Save; caput StartStop Start
+./simpleStartStop.sh 0   # Stop:  caput StartStop Stop; sleep 5; caput SaveData No Save
+```
+Lightweight alternative to `start_run.sh` / `stop_run.sh` for quick tests without ELOG or parquet sort.
+
+**`copy2Slopebox.sh`** — Single-line placeholder (empty/stub). Not currently implemented.
+
 ### Packet Consistency: Receiver vs FPGA Firmware
 
 The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet format (`Event_Header_FIFO.vhd`, `event_packer.vhd`):
