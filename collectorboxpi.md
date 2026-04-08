@@ -17,14 +17,15 @@ Compiled against **EPICS 7.0.10** (patch level 1). Self-contained repo: includes
 - **PXE Boot:** Pi boots over network from `fs2.onenet` (192.168.203.71) via DHCP/tftp on Einstor (192.168.203.1) ✅ verified 2026-04-06 — ping fs2.onenet resolves 192.168.203.71 live
 - **Collector Pi IDs:** pi0, pi1, pi2, pi3 (identified by MAC address)
 - **MAC → hostname mapping (production — `rc.local` active lines):**
-  - `b8:27:eb:fc:97:08` → pi0 ✅ verified 2026-04-07 — `collectorboxpi/README.md:L256`
-  - `b8:27:eb:57:19:db` → pi1 ✅ verified 2026-04-07 — `collectorboxpi/README.md:L257`
-  - `b8:27:eb:5a:d0:8e` → pi2 ✅ verified 2026-04-07 — `collectorboxpi/README.md:L258`
-  - `b8:27:eb:99:18:3f` → pi3 ✅ verified 2026-04-07 — `collectorboxpi/README.md:L259`
-- **Testing/spare Pi MACs** (also in rc.local, labeled "testing pi"):
+  - `b8:27:eb:fc:97:08` → pi0 ✅ verified 2026-04-08 — `piserver/os/Debian13/etc/rc.local:L5` (NFS)
+  - `b8:27:eb:57:19:db` → pi1 ✅ verified 2026-04-08 — `piserver/os/Debian13/etc/rc.local:L6` (NFS)
+  - `b8:27:eb:5a:d0:8e` → pi2 ✅ verified 2026-04-08 — `piserver/os/Debian13/etc/rc.local:L7` (NFS)
+  - `b8:27:eb:99:18:3f` → pi3 ✅ verified 2026-04-08 — `piserver/os/Debian13/etc/rc.local:L8` (NFS)
+- **Testing/spare Pi MACs** (also in rc.local):
   - `b8:27:eb:39:f2:ce` → pi0 (spare, commented out)
-  - `b8:27:eb:df:8c:d6` → pi1 (testing Pi, active)
+  - `b8:27:eb:df:8c:d6` → pi1 (testing Pi — **active, not commented out**) ✅ verified 2026-04-08 — `rc.local:L11`
   - `b8:27:eb:91:bd:1b` → pi2 (commented out)
+  - **Note:** If the testing pi1 (MAC `df:8c:d6`) is plugged in, it claims hostname `pi1` and mounts `/home/dgs/pi1`, potentially shadowing the production pi1.
   - These 3 also have tftpboot symlink dirs on piserver (→ debian13Boot)
 
 ---
@@ -149,7 +150,7 @@ Autosave saves listed PVs every 30 seconds to `/home/dgs/autosave/softIOC_<N>_se
 - **DHCP server:** Einstor (192.168.203.1) — ANL-managed, no DGS control
 - **tftp/file server:** fs2.onenet (192.168.203.71)
 - **NFS mount:** `fs2:/mnt/vol1/fs2/nfs/piserver/shared` → `/shared` on each Pi
-- **Per-Pi home:** `fs2:/mnt/vol1/fs2/nfs/piserver/home/<hostname>` → `/home/dgs`
+- **Per-Pi home:** `fs2:/mnt/vol1/fs2/nfs/piserver/home/<hostname>` → `/home/dgs` ✅ verified 2026-04-08 — `piserver/os/Debian13/etc/rc.local:L24-26` (NFS)
 - `/var` is mounted in RAM (tmpfs) — OS is effectively read-only
 
 **Pi identity** is determined at boot by MAC address via `rc.local`:
