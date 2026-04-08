@@ -242,14 +242,16 @@ First index (32) = DEVSEL device number. Second index = register/data slot.
 
 ## Collector Box → GS Hole Assignments
 
-There are **4 collector boxes** total, but **only softIOC 201 (pi0, South-East) uses this repo**. The other 3 (202, 203, 204) run on an **old piserver** with no documentation in `DGS_tools_pack`.
+There are **4 collector boxes** total. This repo contains `st_201.cmd` through `st_204.cmd`, but **only 201 and 202 have per-detector records**; 203 and 204 have no detector entries in the current repo (odd-numbered GS holes use an older piserver).
 
-| Pi | IOC # | Name | GS Holes | Status |
-|----|-------|------|-----------|--------|
-| pi0 | 201 | South-East Collector | 2,4,6,...,60 (even, GS 2–60) | ✅ This repo |
-| pi1 | 202 | South-West Collector | 62,64,...,110 (even, GS 62–110) | ⚠️ Old piserver (undocumented) |
-| pi2 | 203 | North-East Collector | 1,3,5,...,59 (odd, GS 1–59) | ⚠️ Old piserver (undocumented) |
-| pi3 | 204 | North-West Collector | 61,63,...,109 (odd, GS 61–109) | ⚠️ Old piserver (undocumented) |
+| Pi | IOC # | Location | GS Holes | Status |
+|----|-------|----------|-----------|--------|
+| pi0 | 201 | South-East | 2,4,6,...,60,70 (even GS 2–60 + GS 70) — 31 detectors | ✅ This repo — `st_201.cmd` |
+| pi1 | 202 | South-West | 62,64,66,...,110 (even GS 62–110) — 25 detectors | ✅ This repo — `st_202.cmd` |
+| pi2 | 203 | North-East | 1,3,5,...,59 (odd GS 1–59) | ⚠️ Old piserver — `st_203.cmd` has no detector records |
+| pi3 | 204 | North-West | 61,63,...,109 (odd GS 61–109) | ⚠️ Old piserver — `st_204.cmd` has no detector records |
+
+✅ verified 2026-04-08 — `CollectorBox_RevA/iocBoot/iocCollectorApp/st_20{1,2,3,4}.cmd` (grep DetNbr). Location labels verified against `collectorboxpi/README.md:L257-259` + `nfs_layout.md` piserver README table.
 
 EPICS CA port is set via `EPICS_env.sh`: **5064/5065** for array use, **5074/5075** for test stand (G-wing lab). The st_20x.cmd scripts pass `${EPICS_CA_SERVER_PORT}` from the environment. ✅ verified 2026-04-07 — `EPICS_env.sh:L1-2` + `st_201.cmd:L5-8`
 

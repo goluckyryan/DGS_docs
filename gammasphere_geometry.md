@@ -80,12 +80,12 @@ Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 
 
 | Collector Box | Pi | GS Holes Owned |
 |---------------|----|----------------|
-| 201 | pi0 (South-East) | GS 2, 4, 6, ..., 60 (even, 30 holes) |
-| 202 | pi1 | GS 61, 63, ..., 110 (odd, up to 25) + some remapped |
-| 203 | pi2 | GS 1, 3, 5, ..., 59 (odd) |
-| 204 | pi3 | GS 61+, even, some remapped |
+| 201 | pi0 (South-East) | GS 2,4,6,...,60,70 (even GS 2–60 + GS 70 — 31 detectors) |
+| 202 | pi1 (South-West) | GS 62,64,66,...,110 (even GS 62–110 — 25 detectors) |
+| 203 | pi2 (North-East) | GS 1,3,5,...,59 (odd) — old piserver, not in repo |
+| 204 | pi3 (North-West) | GS 61,63,...,109 (odd) — old piserver, not in repo |
 
-> ⚠️ Only collector box 201 (pi0) is documented in `DGS_tools_pack/collectorboxpi/`. Boxes 202–204 run on old piserver.
+✅ verified 2026-04-08 — `collectorboxpi/CollectorBox_RevA/iocBoot/iocCollectorApp/st_20{1,2,3,4}.cmd` (grep DetNbr). Location from `collectorboxpi/README.md:L257-259` + NFS piserver README.
 
 ---
 
