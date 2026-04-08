@@ -8,9 +8,50 @@ Complete VME register addresses for all DGS FPGA boards, extracted from asyn dri
 - `VxWorks/dgsDrivers/dgsDriverApp/src/asynRTrigParams.c` — RTRG main FPGA
 - `VxWorks/dgsDrivers/dgsDriverApp/src/devGVME.c` — VME FPGA (all boards), flash
 
-> All registers are **32-bit** (A32/D32). Addresses are **byte offsets** from the board's VME base address.
+> All registers are **32-bit** (A32/D32 = Address 32-bit. Data 32-bit). Addresses are **byte offsets** from the board's VME base address.
 > Base address formula: `base = slot << 20` (from `devGVME.c`).
 > `VMERead32(bdnum, regaddr)` — `regaddr` is a **byte offset**; `bdnum` is the **cardno** (2nd argument of `asynDigitizerConfig`/`asynTrigMasterConfig1`/`asynTrigRouterConfig1`), not the slot number.
+
+---
+
+## Table of Contents
+
+- [Address Space Overview](#address-space-overview)
+- [DIG — Digitizer Main FPGA](#dig--digitizer-main-fpga-spartan-3)
+  - [0x0000–0x002C: Global Registers](#0x0000-0x002c-global-registers)
+  - [0x0040–0x0064: Per-Channel Control](#0x0040-0x0064-per-channel-control)
+  - [0x0080–0x00A4: LED Thresholds](#0x0080-0x00a4-led-thresholds)
+  - [0x00C0–0x00E4: CFD Fraction](#0x00c0-0x00e4-cfd-fraction)
+  - [0x0100–0x0124: Raw Data Delay](#0x0100-0x0124-raw-data-delay)
+  - [0x0140–0x0164: Raw Data Length](#0x0140-0x0164-raw-data-length)
+  - [0x0180–0x01A4: D Window](#0x0180-0x01a4-d-window-pulse-filter)
+  - [0x01C0–0x01E4: K Window](#0x01c0-0x01e4-k-window)
+  - [0x0200–0x0224: M Window](#0x0200-0x0224-m-window)
+  - [0x0240–0x0264: D3 Window](#0x0240-0x0264-d3-window)
+  - [0x0280–0x02A4: Discriminator Width](#0x0280-0x02a4-discriminator-width)
+  - [0x0300–0x0324: P1 Window](#0x0300-0x0324-p1-window)
+  - [0x0400–0x0540: Miscellaneous Control](#0x0400-0x0540-miscellaneous-control)
+  - [0x0600–0x060C: Code Revision / Timestamp Error](#0x0600-0x060c-code-revision--timestamp-error)
+  - [0x0700–0x07E4: Per-Channel Event Counters](#0x0700-0x07e4-per-channel-event-counters)
+  - [0x07E8–0x0834: ADC Saturation Counters](#0x07e8-0x0834-adc-saturation-counters)
+  - [0x0848: Misc / SD Config](#0x0848-misc--sd-config)
+  - [DIG VME FPGA](#dig-vme-fpga-dig-board-only)
+- [MTRG — Master Trigger Main FPGA](#mtrg--master-trigger-main-fpga-virtex-4)
+  - [0x0100–0x011C: Bus Control / Timestamp](#0x0100-0x011c-bus-control--timestamp)
+  - [0x0120–0x01FC: Status and Monitoring](#0x0120-0x01fc-status-and-monitoring)
+  - [0x0200–0x02CC: Control / Configuration](#0x0200-0x02cc-control--configuration)
+  - [0x0300–0x05FC: RAM Blocks](#0x0300-0x05fc-ram-blocks)
+  - [0x0600–0x067C: Rate Counters](#0x0600-0x067c-rate-counters)
+  - [0x0800–0x08F0: I/O and Control](#0x0800-0x08f0-io-and-control)
+  - [MTRG VME FPGA](#mtrg-vme-fpga)
+- [RTRG — Router Trigger Main FPGA](#rtrg--router-trigger-main-fpga-virtex-4)
+  - [0x0100–0x01CC: Status / Control / Counters](#0x0100-0x01cc-status--control--counters)
+  - [0x0600–0x073C: Discriminator Delay](#0x0600-0x073c-discriminator-delay-disc_delay)
+  - [0x0800–0x08F0: I/O and Control](#0x0800-0x08f0-io-and-control-1)
+- [VME FPGA — Common Registers](#vme-fpga--common-registers-dig-and-mtrg)
+- [Flash Access Registers](#flash-access-registers-dig-and-mtrg-vme-fpga)
+- [CONN / CPLD Registers](#conn--cpld-registers-mtrg-and-rtrg)
+- [IOC Shell Usage Examples](#ioc-shell-usage-examples)
 
 ---
 
