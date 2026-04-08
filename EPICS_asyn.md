@@ -141,7 +141,7 @@ flowchart TD
 - No 100 threads needed — the queue absorbs the burst
 - VME bus arbiter handles physical contention
 
-- **1 worker thread per port** — writes to one board are always serialized (hardware can only handle one VME access at a time)
+- **1 worker thread per port** — writes to one board are always serialized (hardware can only handle one VME access at a time) ✅ verified 2026-04-08 — `asynDigitizerDriver.cpp:L346-351` (`epicsThreadCreate("asynDigitizerDriver_Task", ...)` once per constructor call)
 - **Multiple ports run in parallel** — MDIG1 and MDIG2 writes happen truly concurrently
 - **No 100 threads needed** — the queue absorbs the burst
 - **VME bus arbiter** handles contention at the hardware level when multiple boards are accessed simultaneously
