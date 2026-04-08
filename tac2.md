@@ -3,6 +3,14 @@
 _Source: `DGS_docs/DGS_System_Documentation/Firmware/Master_Trigger/TAC.docx` — J.T. Anderson, 2016-02-24_
 _Supporting: `LabNotes/20210314_TDC.ods`, `LabNotes/Jitter Analysis/`, `LabNotes/20210831_lab_notes.odt`_
 
+> ⚠️ **WARNING:** The FPGA firmware has been significantly modified since the 2016 TAC.docx was written. **The VHDL source code is the ground truth.** Key areas where the doc may be outdated:
+> - Packet word count: `NUM_TDC_WORDS` and `NUM_TRIG_WORDS` are **configurable** in the FPGA (not fixed at 15 words)
+> - Internal TDC FIFO stores a **5-word format** (timestamp, coarse count, valid+offsets A/B/C/D, positions A/B, positions C/D) which is assembled into the output packet by `trig_mon_collect.vhd`
+> - Per-phase timing adjustments (+3/0/+1/+2 ns) may have changed with the Vivado port and re-placed delay chains
+> - Cross-check any timing calculations against `tdc_chain_cont.vhd`, `trig_mon_collect.vhd`, and `mstr_mach.vhd`
+>
+> The `tcpReceiverMT` repacking logic in `receiver.h` is a more reliable reference for the actual packet format as received by software.
+
 ---
 
 ## Overview
