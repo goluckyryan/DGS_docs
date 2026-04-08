@@ -186,6 +186,33 @@ For interrupt-driven hardware, the interrupt handler calls `setIntegerParam()` +
 - Port name format: short board-local strings (e.g., `"MDIG1"`, `"MDIG2"`, `"RTR1"`, `"MTRG"`) ✅ verified 2026-04-08 — `ioc/boot/vme66.cmd:L133-140`
 - The collector box Pi IOC uses an older `CAMAC_IO` device support style (pre-asyn) — direct device support, no asyn layer
 
+### DGS-Specific `asynUInt32Digital` Mask Encoding
+
+_Source: `vxworks/dgsDrivers/dgsDriverApp/src/asynDigitizerDriver.cpp:L379-404` ✅ verified 2026-04-08_
+
+The DGS asyn digitizer driver extends the standard `asynUInt32Digital` mask with a **custom sub-field encoding** for bit-field registers. When the PSG spreadsheet generates DB records for a multi-bit sub-field (e.g., a 5-bit field starting at bit 3), the mask is encoded as:
+
+```
+mask = 0xaaaa_NNSS
+  where:
+    0xaaaa0000  = sentinel (top 16 bits) indicating sub-field mode
+    NN (bits 15:8 of lower word) = number of bits in the sub-field
+    SS (bits 7:0  of lower word) = shift (bit position where field starts)
+```
+
+**Example:** A 5-bit field starting at bit 3 → `mask = 0xaaaa0503`
+
+The driver decodes this as:
+1. Detects `0xaaaa` sentinel in high 16 bits
+2. Extracts `numbits = 5`, `shift = 3`
+3. Builds real mask: `(2^5 - 1) << 3 = 0b11111000 = 0xF8`
+4. Calls base `asynPortDriver::readUInt32Digital()` with real mask
+5. Right-shifts result by `shift` to return the sub-field value directly
+
+For raw whole-register reads (no sub-field), the mask is a standard bitmask with no `0xaaaa` sentinel.
+
+> Note: The comment in the source acknowledges this is somewhat awkward — `mask` is reused as a local variable and the code notes it "probably should just pass cmask" — but it works correctly in practice.
+
 ---
 
 *Created: 2026-04-06 from conversation with Ryan Tang.*
