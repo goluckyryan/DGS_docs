@@ -384,8 +384,8 @@ python working/gain_from_parquet.py <dgs.parquet> [options]
 ```
 
 **Pipeline per crystal:**
-1. Histogram `e_raw` (skips crystals with <500 hits)
-2. `AutoFitter` finds + fits peaks (SNIP background, 20 iterations)
+1. Histogram `e_raw` (skips crystals with <500 hits) ✅ verified 2026-04-08 — `gain_from_parquet.py:L182`
+2. `AutoFitter` finds + fits peaks (SNIP background, 20 iterations, min_fwhm=3 channels) ✅ verified 2026-04-08 — `gain_from_parquet.py:L91-94`
 3. `CalibrationPoints.add_points_from_fit()` extracts peak centroids
 4. `cal_pts.match_w_source()` matches to known isotope gamma lines
 5. `cal_pts.energy_calibration()` → linear fit → `gain`, `offset`
