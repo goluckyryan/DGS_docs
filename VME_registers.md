@@ -10,7 +10,7 @@ Complete VME register addresses for all DGS FPGA boards, extracted from asyn dri
 
 > All registers are **32-bit** (A32/D32). Addresses are **byte offsets** from the board's VME base address.
 > Base address formula: `base = slot << 20` (from `devGVME.c`).
-> Use `VMERead32(bdnum, regaddr>>2)` — the IOC shell command takes a **32-bit word offset** (`regaddr / 4`).
+> `VMERead32(bdnum, regaddr)` — `regaddr` is a **byte offset**; `bdnum` is the **cardno** (2nd argument of `asynDigitizerConfig`/`asynTrigMasterConfig1`/`asynTrigRouterConfig1`), not the slot number.
 
 ---
 
@@ -561,24 +561,26 @@ These access sub-modules via separate VME address pages (4 KB each), reaching SE
 ## IOC Shell Usage Examples
 
 ```
-# Read DIG board ID (word offset 0x0000/4 = 0)
-VMERead32(0, 0)
+# Read DIG board ID (byte offset 0x0000, bdnum=cardno)
+VMERead32(0, 0x0000)
 
-# Read MTRG code revision (word offset 0x015C/4 = 0x57)
-VMERead32(5, 0x57)
+# Read DIG firmware code revision and date (MDIG1 = cardno 0 on vme99/tangerine)
+VMERead32(0, 0x0600)   # regin_code_revision  → e.g. 0x4CD8 (bits[11:8]=0xC = ANL MDIG)
+VMERead32(0, 0x0604)   # regin_code_date
 
-# Read DIG firmware code revision and date (for board 0 = MDIG1)
-VMERead32(0, 0x180)   # regin_code_revision = 0x0600/4
-VMERead32(0, 0x181)   # regin_code_date     = 0x0604/4
+# Read DIG accepted event count ch0
+VMERead32(0, 0x0740)
 
-# Read MTRG rate counter 1 (word offset 0x0600/4 = 0x180)
-VMERead32(5, 0x180)
+# Read MTRG code revision (cardno as configured in startup .cmd)
+VMERead32(0, 0x015C)
 
-# Read DIG accepted event count ch0 (word offset 0x0740/4 = 0x1D0)
-VMERead32(0, 0x1D0)
+# Read MTRG rate counter 1
+VMERead32(0, 0x0600)
 ```
 
-> `VMERead32(bdnum, word_offset)` — `bdnum` = board number (0-indexed as configured in `asynXxxConfig`), `word_offset` = byte_address / 4.
+> `VMERead32(bdnum, regaddr)` — `bdnum` = cardno (2nd arg of `asynDigitizerConfig`/`asynTrigMasterConfig1`/`asynTrigRouterConfig1` in the startup `.cmd` file), `regaddr` = byte offset from the board's VME base.
+
+> **cardno ≠ slot**: on `vme99.cmd` (tangerine), MDIG1 is `asynDigitizerConfig("MDIG1", 0, 2)` → `VMERead32(0, ...)` not `VMERead32(2, ...)`.
 
 ---
 

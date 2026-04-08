@@ -46,8 +46,8 @@ ConfigureFlash(0, 0)
 
 | Command | Parameters | Description | Safe? | Source |
 |---------|-----------|-------------|-------|--------|
-| `VMERead32` | `bdnum, regaddr` | Read 32-bit VME register; prints value | Yes | `devGVME.c` |
-| `VMEWrite32` | `bdnum, regaddr, data` | Write 32-bit VME register directly | **No** | `devGVME.c` |
+| `VMERead32` | `bdnum, regaddr` | Read 32-bit VME register (byte offset); prints value. `bdnum` = cardno (2nd arg of `asynDigitizerConfig`) | Yes | `devGVME.c` |
+| `VMEWrite32` | `bdnum, regaddr, data` | Write 32-bit VME register (byte offset) directly. `bdnum` = cardno | **No** | `devGVME.c` |
 | `devGVMECardInit` | `cardno, slot` | Map VME address space for a card | Boot-only | `devGVME.c` |
 
 `regaddr` is a 32-bit word offset into the board's VME address space.
