@@ -69,7 +69,7 @@ Skipping or reordering steps leaves boards on mixed clocks, making synchronizati
 
 Even after all boards share the same clock source, their timestamp counters started at different moments — they are still offset from each other. A common clock gives the same tick rate, but not the same time zero.
 
-**Solution:** `IMP_SYNC` (Imperative Sync) — a special command in MTRG Frame 1 that propagates down to every RTRG and DIG in the same trigger cycle, forcing all timestamp counters to reset to zero simultaneously. It is issued **twice**: once after RTRGs switch to MTRG clock, and again after DIGs switch to link clock.
+**Solution:** `IMP_SYNC` (Imperative Sync) — a special command in MTRG Frame 1 that propagates down to every RTRG and DIG in the same trigger cycle, forcing all timestamp counters to reset to zero simultaneously. It is issued **twice**: once after RTRGs switch to MTRG clock, and again after DIGs switch to link clock. ✅ verified 2026-04-08 — `link_sys.py:L459` (Stage 3F, no immediate clear) + `link_sys.py:L606-607` (Stage 4G, set then clear)
 
 ---
 
@@ -142,7 +142,7 @@ For each RTRG (Router):
 **3F:**
 - Pulse `LOCK_RETRY` — tells the MTRG link-init state machine to re-attempt lock acquisition after the clock switch glitch
 - Pulse `LOCK_ACK` — tells the MTRG that lock is confirmed stable; advances the state machine to the ACKED state
-- Set `IMP_SYNC = 1` — **Imperative Sync**: the MTRG fires the ISYNC bit in Frame 1 of its 20-frame broadcast. This propagates to all connected RTRGs in the same trigger cycle (~2 µs), forcing every timestamp counter to reset to 0 at the same instant
+- Set `IMP_SYNC = 1` — **Imperative Sync**: the MTRG fires the ISYNC bit in Frame 1 of its 20-frame broadcast. This propagates to all connected RTRGs in the same trigger cycle (~2 µs), forcing every timestamp counter to reset to 0 at the same instant ✅ verified 2026-04-08 — `link_sys.py:L459` (no `IMP_SYNC=0` follows — stays asserted through the diagnostic counter clearing below)
 - Clear Router diagnostic counters (resets the lock-event counters used in 3G)
 
 **3G:** 15-second stability check:
@@ -185,7 +185,7 @@ For each RTRG (Router):
 **4F:** Verify RTRG link-init reports `ALL_LOCKED_RBV == 1` — all active DIG–RTRG SERDES links are locked after the clock switch.
 
 **4G:**
-- Issue `IMP_SYNC` again — **this is the second and final timestamp reset, now including all DIGs**
+- Issue `IMP_SYNC = 1` then `IMP_SYNC = 0` — **this is the second and final timestamp reset, now including all DIGs** ✅ verified 2026-04-08 — `link_sys.py:L606-607` (set then immediately cleared, unlike Stage 3F which left it asserted)
 - *Why a second IMP_SYNC is required:* during Stage 3's IMP_SYNC, the DIGs were still on their own independent oscillators. That IMP_SYNC reset the MTRG and RTRG counters to zero, but the DIG counters were not on the same clock and could not be meaningfully aligned at that moment. Now that all DIGs share the MTRG-derived clock, a second IMP_SYNC resets every counter in the system simultaneously — completing the full three-tier timestamp alignment.
 - Enable stringent lock mode on all DIGs (`sd_sm_stringent_lock=1`) — tightens the SERDES lock criteria for production data-taking; more sensitive to marginal links
 - Reset DIG lost-lock flags — clears any transient events from the clock switch
