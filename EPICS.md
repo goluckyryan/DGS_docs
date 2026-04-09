@@ -75,7 +75,7 @@ Every PV has a **record type** that determines what it stores and how it behaves
 The IOC is the heart of EPICS. It:
 1. **Loads record definitions** from `.db` files (the database)
 2. **Initializes device support** — links records to hardware drivers
-3. **Starts the CA server** — listens on port 5064 (UDP) and 5065 (TCP) by default
+3. **Starts the CA server** — listens on port 5064 (UDP) and 5065 (TCP) by default ✅ verified 2026-04-09 — `ANLDAQ/EPICS_para.sh:L45-46` (DGS system CA ports)
 4. **Scans records** periodically or on events — updates PV values from hardware
 
 ### Types of IOC
@@ -118,7 +118,7 @@ CA is a client-server protocol. Clients (caget, caput, PyEPICS, CSS) talk to IOC
 export EPICS_CA_ADDR_LIST="192.168.203.141 192.168.203.142"
 export EPICS_CA_AUTO_ADDR_LIST=NO
 ```
-DGS uses this — all 12 VME IOCs are on `192.168.203.141-145, 177-183`.
+DGS uses this — all 12 VME IOCs are on `192.168.203.141-145, 177-183`. ✅ verified 2026-04-09 — `ANLDAQ/tcpReceiver/start_run.sh:L12`
 
 ### caget — read a PV
 ```bash
@@ -255,7 +255,7 @@ Layer 3 — FPGA Hardware Register
 ### reg_* PVs
 
 - **What:** Raw FPGA register records — one per hardware register, 32-bit
-- **How:** `DTYP=asynUInt32Digital` with a bit mask (`asynMask`) for bit-field access
+- **How:** `DTYP=asynUInt32Digital` with a bit mask (`asynMask`) for bit-field access ✅ verified 2026-04-09 — `ioc/db/MDigUser.template:L462` (`reg_CFD_fraction0` uses `asynMask` with mask `0xaaaa0D00`; 1053 asynUInt32Digital records in MDigUser.template alone)
 - **Why they exist:** User PVs write individual bit fields within a shared register; the `reg_*` PV represents the full register. The asyn driver does read-modify-write using the mask.
 - **Rule:** Never set `reg_*` PVs directly — set the user-facing PVs instead. The `reg_*` records update automatically.
 - **In snapshots:** Always excluded from `dumpPVs.py` and `putPVs.py` via `pv_filter.py` (`EXCLUDE_CONTAINS: 'reg_'`)
