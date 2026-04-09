@@ -304,7 +304,7 @@ Holds experiment-specific scripts and calibration files. All paths driven by `ex
 | Arg | Default | Description |
 |-----|---------|-------------|
 | `--decode-only` | off | Stages 1+2 only, skip event builder (for pole-zero prep) |
-| `TIMEWIN` | 1000 | Coincidence window in ticks |
+| `TIMEWIN` | 1000 | Coincidence window in ticks ✅ verified 2026-04-09 — `RunParquet:L67` (`TIMEWIN="${2:-1000}"`) — note: script header comment still says 800 (stale) |
 | `THREADS` | 78 | Threads for decode + event builder |
 
 **Output:**
