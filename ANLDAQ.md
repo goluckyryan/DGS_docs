@@ -700,11 +700,14 @@ Total: 10×4 + 2×2 = **44 digitizer boards × 10 ch = 440 channels** ✅ verifi
 
 Key details:
 - All stages read a `SYSTEM_DEFINES.sh` file (passed as arg 1) that defines `MT_VME_LEADER`, `LIST_OF_ROUTERS`, etc.
-- Stage 1 sets `ClkSrc` and all `LINK_L_PROPAGATE_Fx` registers on MTRG
+- Stage 1 sets `ClkSrc` and all `LINK_L_PROPAGATE_Fx` registers on MTRG; also sets `EN_RTR_DCBAL 1` (DC balance on MTRG→Router links — required since July 2022 fiber expander installation; see below)
 - Stage 2 loops over `LIST_OF_ROUTERS` with bash substring extraction (`${RTR:6:3}`) to parse VME address
 - Stage 5 clears SYNC bits (the gotcha described in `troubleshooting.md`) — this is the final step that lets real data flow
 - `basic_settings_LED.py` — sets all DIG channels to **LED mode** with hardcoded defaults: threshold=300, `IntAcptAll` trigger, `p1=0.07µs, p2=0.05µs, m=2.5µs, k0=0.5µs, k=0.5µs, d=0.16µs`, RiseEdge polarity, raw_data_delay=0.5µs, raw_data_length=0.32µs. Targets CH 5–9 on VME66 MDIG1/MDIG2 (test stand config). Uses `epics.caput` with wait=True. Ends with `Online_CS_StartStop=Stop`, `Online_CS_SaveData=No Save`.
 - `enableScriptList.txt` — lists which scripts are enabled in the GUI
+
+**DC Balance (`EN_RTR_DCBAL`):**
+The MTRG SERDES links to Routers use a DC-balance encoding scheme (18-bit physical link = 16-bit data + CG/POL bits). Stage 1 enables this with `caput ${MT_VME_LEADER}:MTRG:EN_RTR_DCBAL 1`. Required since July 2022 when the VME Fiber Expander replaced direct copper SERDES cables — fiber links are more sensitive to DC imbalance. The algorithm (origin: GRETINA/LBNL, `DCBAL.doc`) inverts the 16-bit word when doing so improves DC balance; decision = XNOR of MSB(data disparity) and MSB(channel running disparity); latency = 1 clock cycle.
 
 **Important EPICS write caveat** (from `Serdes_Linkup.sh` comments):
 - Writing to a **whole-register PV** (e.g. `VME10:MTRG:reg_INPUT_LINK_MASK`) updates that PV and its `_RBV`, but does **NOT** update the "breakout" bit PVs (e.g. `ILM_A` through `ILM_H`)
