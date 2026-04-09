@@ -403,7 +403,26 @@ for TID in {TIDS}
 endfor
 ```
 
-**Python scripts** (`.py`): full Python with access to the CLI session.
+**Python scripts** (`.py`): full Python with access to the CLI session. Example `working/script.py` demonstrates a calibration-then-sort workflow:
+
+```python
+# Pass 1 (isCal=True): load run 001, fit 207Bi peaks per crystal, write dgs.cal
+cmd("loadParquet Parquet/exp2008_001_0.parquet")
+tids = lsID()
+for tid in tids:
+    cmd(f"plot1D e_raw/350 1 1000 6000 G(detID=={tid}) > h{tid}")
+    cmd(f"cal h{tid} 207Bi > cal{tid}")
+    cmd(f"cal{tid} > dgs.cal {tid}")   # first write; >> for subsequent
+
+# Pass 2 (isCal=False): load run 005, apply cal, plot crystal 13
+cmd("loadParquet Parquet/exp2008_005_0.parquet")
+cmd("loadCal dgs.cal")
+for tid in tids:
+    cmd(f"plot1D cal{tid}(e_raw/350) 0.1 100 1000 G(detID=={tid}) > h{tid}")
+cmd("plot h13")
+```
+
+Note `e_raw/350` — divides raw sum by trapezoid gap (350 samples) to get per-sample energy before applying the gain cal function.
 
 **Pipe via stdin:** `./working/parquetCLI data.parquet < commands.txt`
 
