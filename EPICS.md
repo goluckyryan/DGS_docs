@@ -52,7 +52,7 @@ Every PV has a **record type** that determines what it stores and how it behaves
 ### String / waveform
 | Type | Direction | Use |
 |------|-----------|-----|
-| `stringin` / `stringout` | In/Out | 40-char string — e.g., firmware date |
+| `stringin` / `stringout` | In/Out | 40-char string — e.g., firmware date ✅ verified 2026-04-09 — `ANLDAQ/EPICS/base-7.0/include/epicsTypes.h:L59` (`#define MAX_STRING_SIZE 40`) |
 | `waveform` | In/Out | Array — e.g., ADC trace, lookup table |
 
 ### Calculated
@@ -259,7 +259,7 @@ Layer 3 — FPGA Hardware Register
 - **Why they exist:** User PVs write individual bit fields within a shared register; the `reg_*` PV represents the full register. The asyn driver does read-modify-write using the mask.
 - **Rule:** Never set `reg_*` PVs directly — set the user-facing PVs instead. The `reg_*` records update automatically.
 - **In snapshots:** Always excluded from `dumpPVs.py` and `putPVs.py` via `pv_filter.py` (`EXCLUDE_CONTAINS: 'reg_'`)
-- **RBV variants:** `reg_*_RBV` are `bi` records scanning at 1 second — read the hardware register back for monitoring
+- **RBV variants:** `reg_*_RBV` are `bi` records scanning at 1 second — read the hardware register back for monitoring ✅ verified 2026-04-09 — `ioc/db/MDigUser.template` (all `_RBV` ai/longin records use `SCAN="1 second"`)
 
 ### DAQC PVs (DAQ Crate monitoring)
 
