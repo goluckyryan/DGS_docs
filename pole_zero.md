@@ -196,22 +196,21 @@ SZ\_2 with the FPGA sampled baseline remains the production algorithm.
 
 ### dgs_pz.cal format
 ```
-# gsid  pz_value
-7    0.9190
-8    0.9107
-42   0.9453
+  7  0.919000
+  8  0.910700
+ 42  0.945300
 ...
 ```
-One line per crystal. Used by `decode.py` via `PQDecode.chat: dgs-pz-cal`.
+Format: `det_id  pz_value` (6 decimal places, right-aligned 3-char det_id, no header). ✅ verified 2026-04-09 — `pole_zero_fitter.py:L793` (`f"{d:3d}  {pz_map[d]:.6f}\n"`). No comment header is written. One line per crystal. Used by `decode.py` via `PQDecode.chat: dgs-pz-cal`.
 
 ### dgs_gain.cal format
 ```
 # gsid  gain  offset
-7    0.123  -1.45
-8    0.124  -1.50
+  7  0.123000  -1.4500
+  8  0.124000  -1.5000
 ...
 ```
-Energy calibration: `E_keV = gain × e_raw + offset`.
+Energy calibration: `E_keV = gain × e_raw + offset`. ✅ verified 2026-04-09 — `gain_from_parquet.py:L66-71` (header comment `# gsid  gain  offset` is written; format: `{gsid:3d}  {gain:.6f}  {offset:.4f}`).
 
 ---
 
