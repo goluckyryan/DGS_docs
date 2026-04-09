@@ -200,6 +200,27 @@ Available sources and key lines:
 
 `Euautocal.json` is the default for `gain_from_parquet.py` — 16 strong 152Eu lines from 121.8 to 1408.0 keV covering the full Ge dynamic range.
 
+#### `SpectrumData.py` — Unified Spectrum Container
+
+Central data object for GrayCAL (author: M.P. Carpenter, 2025-09-04). Stores a raw spectrum plus derived results; used by GUI tabs, fitters, and serialization.
+
+**Supports:** 1D spectra (energies + counts arrays) and N-D spectra (counts ndarray + tuple of energy arrays per axis).
+
+**Key attributes:**
+- `energies`, `counts` — core data (numpy arrays)
+- `background_counts`, `residual_counts` — SNIP background + (counts − background)
+- `model_counts` — full model overlay (background + fitted peaks)
+- `peakfind_centroids` — peak-finder output centroids
+- `fit_limits` — fit window bounds
+- `fit_results` — list of `FitResult` objects
+- `fit_session_collection` — full `AutoFitter` session output
+
+**I/O:** `to_json()` / `from_json()` and HDF5 (`h5py`) export/import for session persistence.
+
+**Plotting:** Plotly-based `plot()` method returns `go.Figure`; used by GUI `SpectrumViewer`.
+
+_Source: `gray_apps/src/GrayCAL/core/SpectrumData.py` (720 lines) — explored 2026-04-09_
+
 #### `CalibrationPoints.py` — Peak-to-Source Matching & Energy Calibration
 
 The key workhorse for `gain_from_parquet.py`. Holds fitted peaks and performs the full calibration pipeline. Author: S. Carmichael (2025-11-04).
