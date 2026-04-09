@@ -56,14 +56,16 @@ The CPLD implements fast multiplicity threshold logic for auxiliary detectors. I
 
 ### VME Register Interface
 
-Chip select 6 (binary 110):
+Chip select 6 (binary 110): ✅ verified 2026-04-09 — `fast_strb.vhd:L51` ("use chip select 6 (110) to gain access to the Mask register")
 
 | Address | Access | Description |
 |---------|--------|-------------|
-| 0xA004 (read) | R | Masked discriminator bits from RJ45 connector |
-| 0xA004 (write) | W | Mux selects: `sum_conn_ctrl` [1:0], `FS_sel` |
-| THRESH_REG | R/W | Multiplicity threshold value |
-| MASK_REG | R/W | Discriminator bit mask |
+| 0xA004 (read) | R | Masked discriminator bits from RJ45 connector | ✅ `fast_strb.vhd:L61` ("register at address A004 has different functionality on read vs. write") |
+| 0xA004 (write) | W | Mux selects: `sum_conn_ctrl` [1:0], `FS_sel` | ✅ `fast_strb.vhd:L64-65` |
+| THRESH_REG | R/W | Multiplicity threshold value | ✅ `fast_strb.vhd:L117` |
+| MASK_REG | R/W | Discriminator bit mask | ✅ `fast_strb.vhd:L118` |
+
+Note: `sum_conn_ctrl[1:0]` mux options: `00`=sum data, `01`=raw disc bits, `10`=masked disc bits, `11`=free-running 8-bit counter. ✅ verified 2026-04-09 — `fast_strb.vhd:L142` (comment on signal declaration, added JTA 2015-02-19)
 
 ### Key Signals
 
