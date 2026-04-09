@@ -22,7 +22,7 @@ _Supporting: `LabNotes/20210314_TDC.ods`, `LabNotes/Jitter Analysis/`, `LabNotes
 The TAC-II is a **Time-to-Digital Converter (TDC)** implemented in FPGA firmware within the DGS Master Trigger (MTRG). It measures the arrival time of a NIM input signal (e.g. beam RF, external pulser) relative to the trigger timestamp, providing sub-nanosecond timing resolution for TAC-based coincidence measurements.
 
 - **Resolution:** ~30–50 ps (vernier interpolation)
-- **Coarse clock:** 250 MHz (4 ns per count), derived from 4-phase multiplication of the 50 MHz main trigger clock
+- **Coarse clock:** 250 MHz (4 ns per count), derived from the 50 MHz main trigger clock via DCM CLKFX (×5 multiply: `CLKFX_MULTIPLY=5, CLKIN_PERIOD=20ns`), then distributed in 4 phases (0°/90°/180°/270°) via a second DCM ✅ verified 2026-04-08 — `top.vhd:L1620-1659` (Vivado trunk: `CLOCK_250MHz` from `CLKFX`, `TDC_CLOCK_PH0/90/180/270` from DCM2)
 - **Fine interpolation:** 4 vernier chains (0°, 90°, 180°, 270° phases), each 64 taps × ~50 ps/tap
 - **Output:** 15-word event packet, sent alongside trigger data
 
@@ -32,7 +32,7 @@ The TAC-II is a **Time-to-Digital Converter (TDC)** implemented in FPGA firmware
 
 ### Clock Generation
 
-The main 50 MHz trigger clock is multiplied to **250 MHz** inside the FPGA and distributed in **four phases**, each 90° apart (nominally 1 ns apart). Measured chain delays in the Feb 2016 firmware:
+The main 50 MHz trigger clock is multiplied to **250 MHz** inside the FPGA (DCM CLKFX, ×5) ✅ verified 2026-04-08 — `top.vhd:L1620` (`CLKFX_MULTIPLY=>5, CLKIN_PERIOD=>20.0`) and distributed in **four phases** (PH0/PH90/PH180/PH270), each 90° apart (nominally 1 ns apart) ✅ verified 2026-04-08 — `top.vhd:L829-832, L1543-1585` (`TDC_CLOCK_PH0/90/180/270` BUFGs). Measured chain delays in the Feb 2016 firmware:
 
 | Chain | Phase | Delay to vernier[0] |
 |-------|-------|---------------------|
