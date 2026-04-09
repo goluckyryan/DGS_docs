@@ -131,7 +131,7 @@ g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
 - Algo 2 (SZ_2, high-rate): Two regimes based on `dtev` vs `dgs_SZ_t1`/`dgs_SZ_t2`; extrapolates baseline from pre-learned factor when `dtev < dgs_SZ_t2`. Both require `base > 10.0` for nonzero energy.
 - `pileup_count` extraction in `jta.c` has a known bit-shift bug that always produces 0; replicated as-is for compatibility.
 
-**GEBSort reference:** `GEBSort.cxx:GEBGetEv()` — coincidence grouping: `while ((TS - curTS) < dTS)`. Default `dTS=500`. `jta.c:DGSEvDecompose_v3()` parses payloads (big-endian swap, 48-bit timestamp from words 1+2, `trigger_timestamp` only in header types 7/8).
+**GEBSort reference:** `GEBSort.cxx:GEBGetEv()` — coincidence grouping: `while ((TS - curTS) < dTS)`. Default `dTS=500` (= 5 µs at 10 ns/tick). ✅ verified 2026-04-09 — `GEBSort.cxx:L2502` (`Pars.dTS = 500`). `jta.c:DGSEvDecompose_v3()` parses payloads (big-endian swap, 48-bit timestamp from words 1+2, `trigger_timestamp` only in header types 7/8).
 
 _Source: `dgs_analysis/armory/parquet_pysort/CLAUDE.md` + `README.md` — updated 2026-04-07_
 
@@ -569,7 +569,7 @@ Raw DGS binary files use the GEB format:
 - **GEBHeader** — contains type, length, timestamp
 - **Payload** — digitizer data (DIG struct): board_id, channel_id, energies, timestamp, waveform trace (optional)
 
-`TRASH_DATA` markers in files are skipped via `skipTrash()` cursor logic.
+`TRASH_DATA` markers in files are skipped via inline `if (HEADER_TYPE == TRASH_DATA) continue` logic. `TRASH_DATA = 666` is a sentinel value set when `DecodeData()` fails to parse a valid header. ✅ verified 2026-04-09 — `class_Hit.h:L28` (`#define TRASH_DATA 666`), `class_Hit.h:L79` (set on decode failure), `EventBuilder_Q.cpp:L163` (skip check)
 
 ### GEB Type Codes
 _Source: `DGS_SVN/dgs/gtReceiver/dgsReceiver/dgsReceiver.cpp` — list from Torben (GRETINA), as of 2021-12-07_
