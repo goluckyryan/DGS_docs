@@ -54,10 +54,10 @@ These are called automatically by the boot script. Do not re-run on a live IOC w
 | Command | Parameters | Description | Source |
 |---------|-----------|-------------|--------|
 | `InitializeDaqBoardStructure()` | none | Init all VME board data structures | `devGVME.c` |
-| `asynDigitizerConfig` | `portName, card#, slot` | Init DIG board asyn driver | `drvAsynDigitizer.c` |
-| `asynTrigRouterConfig1` | `portName, card#, slot` | Init RTRG asyn driver | `drvAsynTrigRouter.c` |
-| `asynTrigMasterConfig1` | `portName, card#, slot` | Init MTRG asyn driver | `drvAsynTrigMaster.c` |
-| `asynDebugConfig` | `portName, card#` | Init debug asyn driver | `drvAsynDebug.c` |
+| `asynDigitizerConfig` | `portName, card#, slot` | Init DIG board asyn driver (3 args; formerly 4 before 2025-04-21 JTA removed `clock_source`) ✅ verified 2026-04-09 — `drvAsynDigitizer.c:L49-60` | `drvAsynDigitizer.c` |
+| `asynTrigRouterConfig1` | `portName, card#, slot` | Init RTRG asyn driver (C function name; registered in iocsh as `asynTrigRouterConfig`) ✅ verified 2026-04-09 — `drvAsynTrigRouter.c:L52,L69,L75` + `vme66.cmd:L137` | `drvAsynTrigRouter.c` |
+| `asynTrigMasterConfig1` | `portName, card#, slot` | Init MTRG asyn driver (C function name) ✅ verified 2026-04-09 — `asynTrigMasterDriver.cpp:L236` + `vme66.cmd:L140` | `asynTrigMasterDriver.cpp` |
+| `asynDebugConfig` | `portName, card#` | Init debug asyn driver ✅ verified 2026-04-09 — `vme66.cmd:L145` | `drvAsynDebug.c` |
 | `setupFIFOReader()` | none | Start FIFO reader thread for DMA readout | `QueueManagement.c` |
 
 ### Flash Firmware — DANGEROUS
