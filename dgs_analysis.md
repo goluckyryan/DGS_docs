@@ -104,12 +104,13 @@ make EventBuilder_PQ
 | `geb_format.py` | GEB header/payload format definitions |
 | `event_builder.py` | Stage 3 coincidence event builder |
 | `make_filemap_dgs.py` | Stage 1 filemap builder |
-| `read_parquet.py` | Inspect output (`--info`, `--head`, `--where`, `--to-csv`) |
+| `read_parquet.py` | **PyArrow parquet inspector** (450 lines, by Youngju Cho). CLI: `--info` (metadata only, instant), `--columns col1 col2`, `--where "geb_type==8" "timestamp>8e11"`, `--head N`, `--tail N`, `--rows M N` (row slice), `--hex N` (print N words as hex), `--to-csv out.csv`. No pandas dependency — pure PyArrow. |
 | `PQDecode.chat` | Decode config: algo, MM, KK, threads, etc. |
 | `PQMerge.chat` | Merge config |
-| `dgs_gain.cal` | Gain calibration |
-| `dgs_pz.cal` | Pole-zero calibration |
-| `angtheta.dat` | Angle/theta lookup (for Doppler correction) |
+| `dgs_gain.cal` | Gain calibration (format: `# gsid  gain  offset` header + one line per crystal) |
+| `dgs_pz.cal` | Pole-zero calibration (format: no header, `{det:3d}  {pz:.6f}` per line) |
+| `angtheta.dat` | **Theta angles per GS hole** — 110 lines, one angle per line (degrees). Matches Gammasphere geometry order. Used for Doppler correction. Sample: hole 1–4 = 17.3°, hole 5 = 31.7°, etc. |
+| `filemap_dgs.dat` | **DAQ-id → GS-hole + channel-type mapping**. Format: `{GS_hole} {type} {DAQ_id}_{ch}`. Types: GE, BGO, SIDE, AUX. Example: `7 GE 0133_8` = GS hole 7, Ge channel, DAQ board 0133 ch 8. Used by `make_filemap_dgs.py` to build per-run filemaps. |
 | `map.dat` | DAQ id → tid/tpe mapping |
 
 **Build C++ lib:**
