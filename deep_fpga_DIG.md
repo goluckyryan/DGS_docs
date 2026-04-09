@@ -74,11 +74,11 @@ this single chip.
 | Property | Value |
 |----------|-------|
 | Part | IDT 7007 |
-| Data width | 36-bit |
-| Clocking | Asynchronous dual-port: WCLK = CLK100, RCLK = CLK50 |
-| Control | `WEN_N`, `REN_N`, `OE_N`, `MRS_N` (master reset), `PRS_N` (partial reset) |
-| Status flags | Empty × 2, Full × 2, Half-Full, Prog. Almost-Empty, Prog. Almost-Full |
-| VHDL interface | `Fifo.vhd` (`COMP_FIFO` entity) |
+| Data width | 36-bit ✅ verified 2026-04-08 — `Fifo.vhd:L51` (`ext_fifo_data: out std_logic_vector(35 downto 0)`) |
+| Clocking | Asynchronous dual-port: WCLK = CLK100, RCLK = CLK50 ✅ verified 2026-04-08 — `Fifo.vhd:L29-30` (`clk200`, `clk100`, `fifo_read_clk`) |
+| Control | `WEN_N`, `REN_N`, `OE_N`, `MRS_N` (master reset), `PRS_N` (partial reset) ✅ verified 2026-04-08 — `Fifo.vhd:L40-45` (`ext_fifo_master_reset`, `ext_fifo_partial_reset`, `ext_fifo_noe`, `ext_fifo_nread`, `ext_fifo_write`) |
+| Status flags | Empty × 2, Full × 2, Half-Full, Prog. Almost-Empty, Prog. Almost-Full ✅ verified 2026-04-08 — `Fifo.vhd:L34-37` |
+| VHDL interface | `Fifo.vhd` (`COMP_FIFO` entity) ✅ verified 2026-04-08 — `Fifo.vhd:L27` |
 
 **Flash Memory** (VME FPGA)
 
