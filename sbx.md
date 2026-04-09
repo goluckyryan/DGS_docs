@@ -96,10 +96,10 @@ The routing is **fixed at fabrication** (hardwired traces), not dynamic. The cor
 | 44/45 | Likely back plug (unconfirmed) |
 
 ### BGO threshold calibration notes
-- Address 19 = BGO differential offset; address 18 = BGOp threshold (documentation was backwards, fixed)
+- Address 19 = BGO differential offset; address 18 = BGOp threshold (documentation was backwards, fixed) ⚠️ unverified — source not found in available code; likely from JTA lab notes during SBX commissioning
 - BGOp threshold noise window: ~4 DAC counts
-- DAC step size: 5V/1024 = 4.88 mV → through 4.7k/6.9k divider (68.1%) → **3.32 mV per step**
-- Noise window: ~13 mV
+- DAC step size: 5V/1024 = 4.88 mV → through 4.7k/6.9k divider (68.1%) → **3.32 mV per step** ⚠️ unverified — resistor values not confirmed from available schematics
+- Noise window: ~13 mV ⚠️ unverified — source not found
 
 ### Nominal BGO HV operating point
 - **180 DAC units per tube** — established from `SVN/dgs/sbxscreens/Std_Test.sh` (JTA, 2021-04-02), the cross-test commissioning script
