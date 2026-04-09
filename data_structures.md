@@ -137,7 +137,7 @@ Bit   Field                    Notes
 Word  Bits    Field                       Notes
 ────────────────────────────────────────────────────────────────────────────
   5   29:16   CFD_SAMPLE_0                CFD only: interpolation sample 0
-  6   23:0    SAMPLED_BASELINE            Baseline at trigger time
+  6   23:0    SAMPLED_BASELINE            Baseline at trigger time ✅ verified 2026-04-09 — `jta_channel.vhd:L1796` (PEHQ bits 347:324 = SAMPLED_BASELINE = RUNNING_T1_SUM latched at trigger)
   6   27:24   PILEUP_COUNT                Pileup count (LED) or bits[1:0] (CFD)
   7   15:0    TRIG_MON_XTRA_DATA          LED only: trigger monitor extra
   7   13:0    CFD_SAMPLE_1                CFD only: interpolation sample 1
