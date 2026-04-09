@@ -355,10 +355,10 @@ For the full word-by-word bit layout of all 20 frames, see [MTRG/MAIN_FPGA.md �
 
 | Clock | Frequency | Source | Used For |
 |-------|-----------|--------|----------|
-| CLK100 | 100 MHz | DCM ×2 from CLK50 | All channel pipelines, event packing, ADC/DAC output |
-| CLK50 | 50 MHz | Oscillator or FBUS_CLK via DCM | SERDES TX/RX, VME readout, timestamp |
-| CLK200 | 200 MHz | DCM ×4 | Optional high-speed logic |
-| ADC_CLK_P/N | 100 MHz | CLK100 (differential) | ADC chip clock |
+| CLK100 | 100 MHz | DCM ×2 from CLK50 | All channel pipelines, event packing, ADC/DAC output | ✅ verified 2026-04-09 — `LEFT_RIGHT.ucf:L47,L114` (ACQ_DCM_2X_BUFG = "100MHz main digitizer logic clock")
+| CLK50 | 50 MHz | Oscillator or FBUS_CLK via DCM | SERDES TX/RX, VME readout, timestamp | ✅ verified 2026-04-09 — `LEFT_RIGHT.ucf:L21-22` (CLK50_OSC PERIOD=20ns)
+| CLK200 | 200 MHz | DCM ×4 from CLK50 | Optional high-speed logic | ✅ verified 2026-04-09 — `LEFT_RIGHT.ucf:L121` (ADC_DCM uses ACQ_DCM_2X_BUFG=100MHz as input → generates 200MHz)
+| ADC_CLK_P/N | 100 MHz | CLK100 (differential) | ADC chip clock | ✅ verified 2026-04-09 — `LEFT_RIGHT.ucf:L49` (ADC_DCM_CLOCK_2X_BUFG = "200MHz source of 100MHz to external FADCs")
 | SERDES_TX_CLK50 | 50 MHz | CLK50 | SERDES transmit clock to Router |
 
 ### ADC Interface
