@@ -571,7 +571,7 @@ for i in $(seq 0 13); do caget GS1_BGO_HV${i}; done
 | SDIG | 1,141 | 22 | ~25,100 |
 | RTRG | 613 | 4 | ~2,450 |
 | MTRG | 3,942 | 1 | ~3,942 |
-| Collector Box | 1,437 | 110 | ~158,070 |
+| Collector Box | 1,431 | 110 | ~158,070 |
 | Global/OTHER | ~700 | 1 | ~700 |
 
 > **Note:** The 57,000-PV figure from the old raw dump only covers the VME IOC (DIG+RTR+MTRG).

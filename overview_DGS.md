@@ -44,7 +44,7 @@ DGS is a full software+firmware+hardware stack:
 │  COLLECTOR BOX — CollectorBox_RevA  (4 boxes × 28 detectors)     │
 │  Aggregates SBX signals; routes to VME crate digitizers          │
 │  Controlled by Raspberry Pi soft IOC (collectorboxpi/)           │
-│  EPICS PVs: HV, temp, BGO, FET bias, fan speed (1437 PVs/det)   │
+│  EPICS PVs: HV, temp, BGO, FET bias, fan speed (1431 PVs/det)   │
 └──────────────────────────┬───────────────────────────────────────┘
                            │ differential analog → VME
                            ▼

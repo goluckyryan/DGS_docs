@@ -346,7 +346,7 @@ export EPICS_CA_AUTO_ADDR_LIST=NO
 Each Raspberry Pi runs a softIOC for one detector. The IOC:
 1. Loads DB templates from `CollectorBox_RevA/db/`
 2. Uses custom device support (`CollectorApp`) to talk to the pickoff FPGA via SPI
-3. Exposes ~1,437 PVs per detector (GS hole numbering)
+3. Exposes ~~1,431 PVs per detector (GS hole numbering)
 4. Runs `caput`/`caget` against the VME IOCs to coordinate HV with the digitizer
 
 ### Useful one-liners for DGS

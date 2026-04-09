@@ -1567,7 +1567,7 @@ See `snapshot_pv/pv_filter.py` for the implementation.
 
 ---
 
-_Total: 1437 records_
+_Total: 1,431 records_ ✅ verified 2026-04-09 — `grep -c "^record(" CollectorBox_RevA/db/*.db | awk sum = 1,431` (887 per-detector + 544 global/collector records; prior count of 1,437 was off by 6)
 
 ---
 *Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/db/` — EPICS database templates. Created: 2026-04-05.*
