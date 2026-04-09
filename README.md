@@ -28,7 +28,6 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [dgs_analysis.md](dgs_analysis.md) | Post-experiment analysis: fastEventConstructor (ROOT), parquet_pysort |
 | [gebsort.md](gebsort.md) | GEBSort: event builder/sorter, GEBMerge, DGS calibration workflow (find_MK, fwhm_onepeak, dgs_ecal), GEBSort.chat config |
 | [data_structures.md](data_structures.md) | Binary data structures: GEBHeader, DIG event payload (all 13 words, all HEADER_TYPE modes), TAC-II TDC, UniqueID convention, full event flow |
-| [tac2.md](tac2.md) | TAC-II TDC: architecture, vernier chains, 15-word packet format, time calculation, lab notes index, GEBSort usage |
 | [run_procedures.md](run_procedures.md) | Typical DGS run procedures: directory setup, GEBSort, PZ/energy calibration workflow |
 | [pole_zero.md](pole_zero.md) | Pole-zero correction: physics, PZ coefficient, pz_from_parquet.py workflow, GrayCAL method, PQDecode.chat config |
 | [troubleshooting.md](troubleshooting.md) | DGS troubleshooting: IOC connectivity, SYNC bit gotcha, FIFO issues, timestamp sync errors |
