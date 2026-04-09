@@ -216,8 +216,8 @@ The Router also inserts the per-channel veto mask (`VETO[9:0]`) into bits [9:0] 
 | 0x040 | MISC_CTL1 | Global control (reset, veto enable, etc.) |
 | 0x044 | MISC_CTL2 | Secondary control |
 | 0x058–0x094 | X/Y_PLANE_MAP[1–8] | Discriminator type mapping per channel |
-| 0x098 | ANY_THROTTLE_WIDTH | Throttle pulse width |
-| 0x09C | THROTTLE_LIMIT_TIME | Min assertion time for throttle |
+| 0x098 | ANY_THROTTLE_WIDTH | Throttle pulse width | ✅ verified 2026-04-09 — `TOP.VHD:L2270` (`REG_098 => ANY_THROTTLE_WIDTH_REG`) |
+| 0x09C | THROTTLE_LIMIT_TIME | Min assertion time for throttle | ✅ verified 2026-04-09 — `TOP.VHD:L2271` (`REG_09C => THROTTLE_LIMIT_TIME_REG`; added 2016-03-02 for `throttle_limiters`) |
 | 0x0C8 | TSCATTER_DELAY | Ge/BGO timing for dirty hits |
 | 0x0CC | CLEAN_DIRTY | Clean/dirty/module detection mode |
 
@@ -230,7 +230,7 @@ The Router also inserts the per-channel veto mask (`VETO[9:0]`) into bits [9:0] 
 | 0x114–0x11C | TIMESTAMP[47:0] | Current 48-bit timestamp (3 words) |
 | 0x128 | MISC_STAT | Lost lock flags, all-locked status |
 | 0x12C–0x148 | DIAG_COUNTER[1–8] | Diagnostic counters per channel |
-| 0x150 | THROTTLE_STATUS | Per-channel throttle status |
+| 0x150 | THROTTLE_STATUS | Per-channel throttle status | ✅ verified 2026-04-09 — `TOP.VHD:L2315` (`REG_150_IN => THROTTLE_STATUS`) — both in `Rtr4704_mod_for_reset` (0x260E) and `20220705` tag |
 | 0x158 | CODE_DATE | Firmware build date — `0x0414` (April 14) ✅ verified 2026-04-06 — TOP.VHD:L392 |
 | 0x15C | CODE_REVISION | Code revision — `0x260E`: bits[15:12]=2 (PCB rev B), bits[11:8]=6 (DGS Router), bits[7:4]=0 (major), bits[3:0]=E (minor) ✅ verified 2026-04-06 — TOP.VHD:L369,L371–390 |
 | 0x1B0–0x1CC | LOCK_COUNTER[1–8] | Lock event counters per link |
