@@ -8,7 +8,7 @@ _DCS2 (192.168.203.56) runs InfluxDB 3 and Grafana for DGS monitoring._
 
 | Component | Version | Port | Process owner |
 |-----------|---------|------|--------------|
-| InfluxDB 3 (influxdb3) | latest (as of 2026-04) | 8181 (HTTP) | `adminrt` |
+| InfluxDB 3 (influxdb3) | latest (as of 2026-04) | 8181 (HTTP) | `adminrt` | ✅ verified 2026-04-09 — `curl http://192.168.203.56:8181/health` returns `{"error":"the request was not authenticated"}` (port live, auth required)
 | Grafana | 12.3.1 | 3000 (HTTP) | `grafana` |
 
 Both run as persistent systemd services on DCS2 (Rocky Linux 8).
@@ -30,7 +30,7 @@ All requests require a Bearer token in the `Authorization` header.
 
 | Database | What's in it | Who writes |
 |----------|-------------|-----------|
-| `HPGeTemp` | Detector temperatures (all 110 GS holes), Pi board temp | lnFill `SaveTemp.sh` → `StoreDetTemps.py` |
+| `HPGeTemp` | Detector temperatures (all 110 GS holes), Pi board temp | lnFill `SaveTemp.sh` → `StoreDetTemps.py` | ✅ verified 2026-04-09 — `StoreDetTemps.py:L57` (curl write to 192.168.203.56:8181/api/v3/write_lp?db=HPGeTemp)
 | `DGS` | DGS PV snapshots (line protocol from `dumpPVs.py`) | `snapshot_pv/dumpPVs.py` (commented-out code, not yet active) |
 
 ### Write API (InfluxDB line protocol)
@@ -81,8 +81,8 @@ GS5_GE_HV_DEMAND_VOLTS value=3000.0 1743890400000000000
 **Script:** `/home/phy/dcsu/lnFill/SaveTemp.sh` → `templog/StoreDetTemps.py`
 **Triggered by:** cron job on DCS2 (runs periodically)
 **Data written:**
-- `Temperature,gsid=NNN,en=0/1 value=<temp_C>` for each of 110 GS holes
-- `pi_Temp value=<temp_C>` — Raspberry Pi board temperature
+- `Temperature,gsid=NNN,en=0/1 value=<temp_C>` for each of 110 GS holes ✅ verified 2026-04-09 — `StoreDetTemps.py:L51` (`influx_entry = "Temperature,gsid="+str(i).zfill(3)+",en="...`)
+- `pi_Temp value=<temp_C>` — Raspberry Pi board temperature ✅ verified 2026-04-09 — `StoreDetTemps.py:L41`
 
 **PVs read:** `MOD001_DV_TEMP` … `MOD110_DV_TEMP` (from collector box softIOC)
 **Also logs to:** `templog/templog_YYYYMMDD.csv` (CSV backup on DCS2)
