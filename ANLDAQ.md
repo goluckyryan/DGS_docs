@@ -134,6 +134,44 @@ All lists sorted by PV name. Called once at startup in `commander.py`. ✅ verif
 
 ---
 
+### `gui_DataTaking.py` — Run Control & Data Taking
+
+_Source: `ANLDAQ/gui/gui_DataTaking.py` (227 lines). Code-verified 2026-04-09._
+
+Two classes:
+
+**`IOCConfigDialog`** — Modal dialog for editing the IOC connection list before starting a run.
+- Text format: one IOC per line: `IP  Port  DataType` (port defaults to 9001, DataType defaults to 8 if omitted; `#` = comment)
+- User edits inline; result passed to `RunStatusWindow` as `configText` string
+
+**`RunStatusWindow`** — QMainWindow that manages a live run from start to stop.
+
+Run folder structure:
+```
+{expFolder}/{expName}_{runNum:03d}/
+    ioc_config.txt          ← IOC config written here at run start
+    {runName}_NNN_BBBB_C    ← per-channel binary data files from tcpReceiverMT
+```
+
+Start sequence:
+1. Creates `runFolder = expFolder/expName_RRR/` via `os.makedirs(..., exist_ok=True)`
+2. Writes `ioc_config.txt` from the dialog's `configText`
+3. Auto-compiles `tcpReceiverMT` via `make tcpReceiverMT` in `tcpReceiver/` — skips if already up to date
+4. Spawns `tcpReceiverMT configFile filePrefix` as a subprocess (`subprocess.Popen`, line-buffered stdout)
+5. `QTimer` fires every 200 ms to read stdout via `select.select` (non-blocking)
+6. ANSI color codes stripped (`re.sub(r'\033\[[0-9;]*m', '', line)`) before display
+7. Parses `====== X.XXX Mbytes | ...` lines to update live total-size label
+
+Stop sequence:
+1. User clicks **Stop Run** → prompts for a stop comment (`QInputDialog.getText`)
+2. Calls `parent.StopAcquisition(comment)` (stops EPICS acquisition, lets IOC flush data)
+3. Waits **5 seconds** (`QTimer.singleShot(5000, ...)`) then sends **SIGTERM** to `tcpReceiverMT`
+4. Process exit codes: 0 = finished cleanly, `-SIGTERM` = stopped by user, other = error
+
+Button color scheme: running=green, stopped=orange, finished=blue, error=red.
+
+---
+
 ### `custom_QClasses.py` — Custom Qt Base Widgets
 
 | Class | Inherits | Purpose |
