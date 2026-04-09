@@ -20,7 +20,7 @@ Scans BGO bias voltage from 0–250V in steps and measures BGO counter rates to 
 **HV scan range:** `[0, 25, 50, 75, 90, 100, 110, ..., 250]` V
 
 **Key PVs used:**
-- `GS{N}_BGO_HV0` through `GS{N}_BGO_HV12` — 7 BGO HV channels (even/odd split)
+- `GS{N}_BGO_HV0` through `GS{N}_BGO_HV13` — **14 BGO HV channels** total (HV0,2,4,6,8,10,12 = even; HV1,3,5,7,9,11,13 = odd) ✅ verified 2026-04-09 — `slopebox_scripts/BGO_Sweep_test` (caput GS000_BGO_HV0..HV13)
 - `GS{N}_BGO1_counter` through `GS{N}_BGO7_counter` — BGO rate counters
 
 **Operation:** For each HV step, sets HV via `caput`, waits 1 s, reads counter rates via `caget` (10 samples averaged), plots adjusted count rate vs HV.
