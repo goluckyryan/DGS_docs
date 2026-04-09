@@ -165,9 +165,9 @@ Link L TX ◄──────────────────────�
 
 | Clock | Frequency | Source | Used For |
 |-------|-----------|--------|----------|
-| switched_master_clock | 50 MHz | ICS mux (oscillator or Link L RX clock) | Main logic, data path, state machines |
-| switched_master_clock_2x | 100 MHz | DCM from master clock | DC balance, high-speed logic |
-| oscillator_clock | 50 MHz | Dedicated oscillator (always-on) | VME registers, link initialization |
+| switched_master_clock | 50 MHz | ICS mux (oscillator or Link L RX clock) | Main logic, data path, state machines | ✅ verified 2026-04-09 — `TOP.VHD:L420` ("actual, buffered, logic master 50MHz clock throughout the device")
+| switched_master_clock_2x | 100 MHz | DCM from master clock | DC balance, high-speed logic | ✅ verified 2026-04-09 — `TOP.VHD:L421` ("actual, buffered, master 100MHz clock throughout the device")
+| oscillator_clock | 50 MHz | Dedicated oscillator (always-on) | VME registers, link initialization | ✅ verified 2026-04-09 — `DCM_CONTROLLER.vhd:L24` (port comment: "50 Mhz Oscillator") + `L52` (lockup timeout: "1 second @ 50 Mhz")
 
 ### SERDES Links
 
