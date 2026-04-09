@@ -53,7 +53,7 @@ At the correct PZ, $S_1$ and $S_2$ become **uncorrelated** — scatter is flat, 
 | PZ value | Effect |
 |----------|--------|
 | $P_z = 1$ | No correction → reduces to $E = S_2 - S_1$ (algo 0) |
-| $P_z = 0.88$–0.99 | Typical operating range |
+| $P_z = 0.88$–0.99 | Typical operating range ✅ verified 2026-04-08 — `pz_from_parquet.py:L54-55` (CLI defaults: `--pz-min 0.88 --pz-max 0.99`); `PZParams` internal default is 0.930–0.990 (`pole_zero_fitter.py:L168-169`) |
 | $P_z \to 0$ | Over-correction |
 
 **Bad PZ → energy-dependent bias → degraded resolution and peak broadening.**
@@ -185,7 +185,7 @@ SZ\_2 with the FPGA sampled baseline remains the production algorithm.
 
 ## PZ Coefficient Range and Meaning
 
-- Typical range: **0.88 – 0.99** (scan this range to find optimum)
+- Typical range: **0.88 – 0.99** (CLI scan range) ✅ verified 2026-04-08 — `pz_from_parquet.py:L54-55`; `PZParams` internal defaults are 0.930–0.990 (`pole_zero_fitter.py:L168-169`)
 - PZ = 1.0 → no correction (infinite RC time constant)
 - PZ = 0.0 → over-correction
 - Each crystal has its own PZ value (stored per `gsid` in `dgs_pz.cal`)
