@@ -313,7 +313,7 @@ Note: COARSE_DISC[4:0] (channels 0–4) are **not** transmitted upstream; the Ro
 
 ### SERDES RX Frame Handling (Router → DIG)
 
-The full 20-frame command protocol is defined in [MTRG/MAIN_FPGA.md — Command Frame Timing](../MTRG/MAIN_FPGA.md#command-frame-timing). Below is a DIG-centric summary of how `SERDES_RX_Mach.vhd` responds to each frame in real time.
+The full 20-frame command protocol is defined in [deep_fpga_MTRG_MAIN.md — Command Frame Timing](deep_fpga_MTRG_MAIN.md#command-frame-timing). Below is a DIG-centric summary of how `SERDES_RX_Mach.vhd` responds to each frame in real time.
 
 #### Timing of DIG responses
 
@@ -346,7 +346,7 @@ The table below reads as a timeline: Frame 1 arrives at t = 0, Frame 2 at t = 10
 | 18–19 | 1700–1800 | Spare | No action; lock check |
 | 20 | 1900 | End-of-Cycle | Check fixed pattern; relock if mismatch |
 
-For the full word-by-word bit layout of all 20 frames, see [MTRG/MAIN_FPGA.md — Command Frame Timing](../MTRG/MAIN_FPGA.md#command-frame-timing).
+For the full word-by-word bit layout of all 20 frames, see [deep_fpga_MTRG_MAIN.md — Command Frame Timing](deep_fpga_MTRG_MAIN.md#command-frame-timing).
 
 #### DIG-specific decoding notes
 

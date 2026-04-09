@@ -28,7 +28,7 @@ _Source: `DGS_tools_pack/raw_FPGA/MTRG/Firmware/VIVADO_MAIN_FPGA/`. Created: 202
 
 This is the Vivado-based port of the Master Trigger main FPGA, targeting the Kintex UltraScale device. It implements the same trigger logic as the ISE version (`MAIN_FPGA`) but uses updated Xilinx IP cores and the Vivado toolchain. This version is intended for newer hardware revisions.
 
-For full functional description see [MAIN_FPGA.md](MAIN_FPGA.md) — the VHDL source files are shared between both versions.
+For full functional description see [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — the VHDL source files are shared between both versions.
 
 ## Differences from ISE Version (MAIN_FPGA)
 
@@ -47,7 +47,7 @@ For full functional description see [MAIN_FPGA.md](MAIN_FPGA.md) — the VHDL so
 
 **Location:** `Firmware/VIVADO_MAIN_FPGA/trunk/Source/`
 
-The VHDL source files are the same as in `MAIN_FPGA/trunk/Source/`. Refer to [MAIN_FPGA.md](MAIN_FPGA.md) for the full source file listing.
+The VHDL source files are the same as in `MAIN_FPGA/trunk/Source/`. Refer to [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) for the full source file listing.
 
 ## IP Cores
 

@@ -180,7 +180,7 @@ Link L TX ◄──────────────────────�
 
 ### Command Frame Handling
 
-The Router receives the 20-frame command stream from the MTRG on Link L and forwards it to all 8 Digitizers on Links A–H. The full frame protocol is defined in [MTRG/MAIN_FPGA.md — Command Frame Timing](../MTRG/MAIN_FPGA.md#command-frame-timing).
+The Router receives the 20-frame command stream from the MTRG on Link L and forwards it to all 8 Digitizers on Links A–H. The full frame protocol is defined in [deep_fpga_MTRG_MAIN.md — Command Frame Timing](deep_fpga_MTRG_MAIN.md#command-frame-timing).
 
 | Frame | MTRG → Router | Router → Digitizers |
 |-------|--------------|---------------------|
