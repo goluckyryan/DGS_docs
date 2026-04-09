@@ -95,7 +95,7 @@ The DGS CPLD is a direct descendant of the original **GRETINA/GRETNA fast-strobe
 | `SUM_CONN_CTRL` | Present | Not present |
 | Source | `GRETNA_CPLD_CHECK/Master_CPLD/fast_strb.vhd` | `FPGA/MTRG/Firmware/DGS_CPLD/fast_strb.vhd` |
 
-The Router CPLD variant (`GRETNA_CPLD_CHECK/Router_CPLD/`) uses `lookup_comp.vhd` (a lookup table compression component) not present in the Master CPLD — it condenses 4-bit discriminator multiplicity values from connected digitizers before forwarding to the master.
+The Router CPLD variant (`GRETNA_CPLD_CHECK/Router_CPLD/`) uses `lookup_comp.vhd` (a lookup table adder) not present in the Master CPLD — it **adds two 4-bit multiplicity values** (A_IN + B_IN, each with an enable) using a lookup table rather than an arithmetic adder, producing a 5-bit sum. This pre-sums multiplicities from groups of connected digitizers before forwarding to the master. ✅ verified 2026-04-09 — `Router_CPLD/lookup_comp.vhd:L1` ("implementation of 4 bit + 4 bit adder plus enables done as a lookup") + entity port list (A_IN[3:0], B_IN[3:0], A_ENBL, B_ENBL → Sum_out[4:0])
 
 Multiple GRETINA CPLD snapshots exist in `FPGA/Firmware_Tags/MasterTrigger/20200702/Gretina Trigger/VHDL/` (2007–2011 vintage), providing a full lineage history.
 
