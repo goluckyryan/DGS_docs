@@ -9,8 +9,8 @@ Complete VME register addresses for all DGS FPGA boards, extracted from asyn dri
 - `VxWorks/dgsDrivers/dgsDriverApp/src/devGVME.c` — VME FPGA (all boards), flash
 
 > All registers are **32-bit** (A32/D32 = Address 32-bit. Data 32-bit). Addresses are **byte offsets** from the board's VME base address.
-> Base address formula: `base = slot << 20` (from `devGVME.c`).
-> `VMERead32(bdnum, regaddr)` — `regaddr` is a **byte offset**; `bdnum` is the **cardno** (2nd argument of `asynDigitizerConfig`/`asynTrigMasterConfig1`/`asynTrigRouterConfig1`), not the slot number.
+> Base address formula: `base = slot << 20` (from `devGVME.c`). ✅ verified 2026-04-09 — `devGVME.c:L127` (`base = slot << 20; //In VME64x bits 20 and higher are used to form the base VME address of the card`)
+> `VMERead32(bdnum, regaddr)` — `regaddr` is a **byte offset** (divided by 4 internally to get longword address); `bdnum` is the **cardno** (2nd argument of `asynDigitizerConfig`/`asynTrigMasterConfig1`/`asynTrigRouterConfig1`), not the slot number. ✅ verified 2026-04-09 — `devGVME.c:L245` (`ptr = (int *)(daqBoards[bdnum].base32 + (regaddr)/4)`)
 
 ---
 
@@ -234,6 +234,7 @@ Range: `0x0300` … `0x0324`
 | `0x0520–0x0540` | `reg_p2_window1–9` | R/W | P2 window ch1–9 (ch1 at 0x0520) |
 
 ### 0x0600–0x060C: Code Revision / Timestamp Error
+✅ verified 2026-04-09 — `asynDigParams.c:L604-605` (`setAddress(regin_code_revision,0x0600)`, `setAddress(regin_code_date,0x0604)`)
 
 | Offset | Register | R/W | Description |
 |--------|----------|-----|-------------|
