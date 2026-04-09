@@ -37,7 +37,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 | File | Description |
 |------|-------------|
-| [fpga.md](fpga.md) | FPGA firmware overview: DIG, RTRG, MTRG hierarchy |
+| [fpga.md](fpga.md) | FPGA firmware overview: DIG/RTRG/MTRG hierarchy, signal flow, end-to-end timing, build types, auxiliary firmware (FPGA/others/) |
 | [deep_fpga_DIG.md](deep_fpga_DIG.md) | DIG firmware: Spartan-3, ADC pipeline, discriminators, event packet format, pole-zero correction |
 | [DIG_firmware_expert.md](DIG_firmware_expert.md) | DIG firmware expert guide: all modes, trigger_mux_select (IntAcptAll/ExtTTL/ExtTTCL/Diag), aux I/O |
 | [deep_fpga_RTRG.md](deep_fpga_RTRG.md) | RTRG firmware: Virtex-4, multiplicity aggregation, throttle, VME register map |
@@ -96,7 +96,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [sbx.md](sbx.md) | Slope Box + SBX: HV generation, signal conditioning, BGO pattern/sum, pickoff card (hardwired routing), GS_ID dongle, Pi IOC (SPI/GPIO); no FPGA |
 | [myriad.md](myriad.md) | MγRIAD module: aux detector interface, NIM I/O pinout, ECL connectors, TTCL link, DGS usage |
 | [digitizer_tester.md](digitizer_tester.md) | Digitizer Tester: dual 200 MHz 16-bit DAC, analog switch matrix (10ch), TTCL link, waveform generation |
-| [preamp_reset_readme.md](preamp_reset_readme.md) | Preamplifier reset handling: PRK holdoff timing, PREAMP_RESET_DELAY register |
+| [preamp_reset_readme.md](preamp_reset_readme.md) | Preamplifier reset handling: ADC threshold detection (LOLO/HIHI), PREAMP_DELAY kill state, BGO veto gate, PARST timestamp, Frame 15 remote reset |
 
 ### Liquid Nitrogen
 
@@ -118,7 +118,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 | File | Description |
 |------|-------------|
-| [DGS_SVN.md](DGS_SVN.md) | Legacy SVN archive; historical reference |
+| [DGS_SVN.md](DGS_SVN.md) | Legacy SVN archive: per-directory inventory (daq_system_tags, Data_Generator, salvaged_notes, psg, SlopeBoxExtension, VXI_database, etc.); historical reference |
 | [PDF_index.md](PDF_index.md) | Index of all PDF documentation in DGS_tools_pack |
 
 ---
@@ -129,7 +129,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 - **Detectors:** 110 HPGe (Gammasphere) + BGO Compton shields
 - **Channels:** Up to 640 (1 MTRG × 8 RTRG × 8 DIG × 10 ch)
 - **Trigger cycle:** 2 µs (20 frames × 5 words at 50 MHz)
-- **End-to-end latency:** ~1.3–1.5 µs
+- **End-to-end latency:** ~2–4 µs (1–2 trigger cycles; DIG→RTRG→MTRG→decision→RTRG→DIG)
 - **Data transport:** TCP, port 9001 per IOC (`SOCK_STREAM`)
 - **EPICS CA ports:** DGS 5064/5065 · DXA 5072/5073 · DUO 5080/5081
 - **IOC crates:** 12 VME (192.168.203.141–145, 177–183)
@@ -153,6 +153,6 @@ Where the wiki (`wiki.anl.gov/gsdaq`) contradicts the source code, the source co
 
 ---
 
-*Maintained by General DGS (AI assistant). Last updated: 2026-04-06.*
+*Maintained by General DGS (AI assistant). Last updated: 2026-04-09.*
 
 
