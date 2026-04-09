@@ -19,11 +19,11 @@
   - [VME Register Interface](#vme-register-interface)
 - [Architecture](#architecture)
   - [Signal Flow](#signal-flow)
-  - [SERDES TX Format (to Router)](#serdes-tx-format-to-router)
-  - [SERDES RX Frame Types (from Router)](#serdes-rx-frame-types-from-router)
+  - [SERDES TX Format (DIG → Router)](#serdes-tx-format-dig--router)
+  - [SERDES RX Frame Handling (Router → DIG)](#serdes-rx-frame-handling-router--dig)
   - [Clock Domains](#clock-domains)
   - [ADC Interface](#adc-interface)
-  - [External Discriminator Modes](#external-discriminator-modes-per-channel)
+  - [External Discriminator Modes (per channel)](#external-discriminator-modes-per-channel)
   - [Event Packet Format](#event-packet-format)
 - [Per-Channel Signal Processing: LED and CFD Modes](#per-channel-signal-processing-led-and-cfd-modes)
   - [Common Signal Path — Delay Chain and Filtering](#common-signal-path--delay-chain-and-filtering)
@@ -34,8 +34,12 @@
   - [Pileup Detection](#pileup-detection)
   - [VME Registers for Discriminator Configuration](#vme-registers-for-discriminator-configuration)
 - [VME FPGA](#vme-fpga)
+  - [Source Files](#source-files)
+  - [Bitfiles](#bitfiles)
+  - [Clock Select Register](#clock-select-register-clk_select)
 - [Main FPGA Bitfiles](#main-fpga-bitfiles)
 - [IP Cores](#ip-cores)
+- [See Also](#see-also)
 
 ## Target Devices
 
