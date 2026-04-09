@@ -25,7 +25,7 @@ Scans BGO bias voltage from 0–250V in steps and measures BGO counter rates to 
 
 **Operation:** For each HV step, sets HV via `caput`, waits 1 s, reads counter rates via `caget` (10 samples averaged), plots adjusted count rate vs HV.
 
-**Dependencies:** Python, `matplotlib` (GTKAgg backend), `numpy`, EPICS `caput`/`caget` in PATH.
+**Dependencies:** Python, `matplotlib` (GTKAgg backend), `numpy`, EPICS `caput`/`caget` in PATH. ✅ verified 2026-04-09 — `NS_scripts/BGO_tune_v2.py:L5-7` (`matplotlib.use('GTKAgg')`, numpy import); HV sweep values: `[0,25,50,...,250]` (21 steps) ✅ verified 2026-04-09 — `BGO_tune_v2.py:L11`; HV PVs: `GS000_BGO_HV0`–`GS000_BGO_HV13` (7 even + 7 odd) ✅ verified 2026-04-09 — `BGO_tune_v2.py:L12-13`
 
 **Tuning algorithm (detailed):**
 1. Set BGO comparator threshold to 15 (noise rejection)
@@ -46,7 +46,7 @@ Scans BGO bias voltage from 0–250V in steps and measures BGO counter rates to 
 2. Builds a list of all digitizer channel PVs for active detectors
 3. Generates a shell script to run `camonitor` on all relevant PVs
 
-**PV format used:** `GS001_SBX_Present`, `GS010_SBX_Present`, `GS100_SBX_Present` (zero-padded to 3 digits)
+**PV format used:** `GS001_SBX_Present`, `GS010_SBX_Present`, `GS100_SBX_Present` (zero-padded to 3 digits) ✅ verified 2026-04-09 — `NS_scripts/extract_PV.py:L8-22` (loops GS_numbers 1–110, formats with `GS00{k}`, `GS0{k}`, `GS{k}`); generates `PV_list.sh` with `camonitor` of `VMExx:MDIGy:disc_count{ch}_RBV` for ch 5–9 ✅ verified 2026-04-09 — `extract_PV.py:L28-50`
 
 ---
 
