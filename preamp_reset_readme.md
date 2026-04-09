@@ -176,4 +176,16 @@ WAIT_EDGE (normal operation resumes)
 | `SERDES_RX_Mach.vhd` | Decodes Frame 15 FRONT_END_RESET command from MTRG |
 
 ---
-*Source: `DGS_tools_pack/FPGA/` preamp reset documentation + `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05.*
+
+## 10. Cross-References
+
+- `dgs/DIG_firmware_expert.md` — Full DIG firmware reference; covers all modes, discriminator config, pileup, readout
+- `dgs/deep_fpga_DIG.md` — Lower-level FPGA architecture: ADC pipeline, FIFO, SERDES, pole-zero
+- `dgs/data_structures.md` — DIG event packet format: `PARST_TSM` bit (Word 13, bit 12), `MPX_FIELD` (Word 11)
+- `dgs/ttcl.md` — Frame 15 (Async Command frame) definition — source of `FRONT_END_RESET` command
+- `dgs/VME_registers.md` — VME register addresses: `reg_led_threshold` (0x0080+ch×4), `reg_channel_control` (0x0040+ch×4), `reg_d3_window` (0x0240+ch×4)
+- `dgs/pole_zero.md` — Pole-zero correction context: why baseline stability after a reset matters
+- `dgs/QUEUE.md` (workspace) — `Python script to set preamp reset PVs` task (pending)
+
+---
+*Source: `DGS_tools_pack/FPGA/` preamp reset documentation + `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05. Cross-refs added: 2026-04-09.*
