@@ -23,7 +23,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 | File | Description |
 |------|-------------|
-| [ANLDAQ.md](ANLDAQ.md) | DAQ GUI (PyQt6) + TCP data receiver; EPICS CA config per system; data flow; TCP protocol proof |
+| [ANLDAQ.md](ANLDAQ.md) | DAQ GUI (PyQt6) + TCP data receiver; EPICS CA config per system; data flow; TCP protocol proof; trigger setup scripts (5-stage); softIOC (JustGlobals.db, dgsSupport.db); GUI windows (MTRG, Det, scalar, SYS) |
 | [guceiver.md](guceiver.md) | Guceiver: live diagnostic GUI (waveform, spectrum, TAC-II, raw data) — connects to IOC TCP:9001 |
 | [dgs_analysis.md](dgs_analysis.md) | Post-experiment analysis: fastEventConstructor (ROOT), parquet_pysort |
 | [gebsort.md](gebsort.md) | GEBSort: event builder/sorter, GEBMerge, DGS calibration workflow (find_MK, fwhm_onepeak, dgs_ecal), GEBSort.chat config |
@@ -76,7 +76,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [collector_fpga.md](collector_fpga.md) | Collector box FPGA firmware: CtrlFPGA (housekeeping/monitoring), StripeFPGA (relay/stripe/LED), pickoff card FPGAs (SBX Interface + Extension) |
 | [collectorboxpi.md](collectorboxpi.md) | Collector box soft IOC on Raspberry Pi; HV control; PXE boot setup |
-| [collectorbox_PVs.md](collectorbox_PVs.md) | CollectorBox PV list: 1,437 records/detector; GS/MOD/VME_GS/Ge_ID numbering explained |
+| [collectorbox_PVs.md](collectorbox_PVs.md) | CollectorBox PV list: 1,431 records/detector (887 per-detector + 544 global); GS/MOD/VME_GS/Ge_ID numbering explained |
 | [collectorbox_devicesupport.md](collectorbox_devicesupport.md) | EPICS device support internals: SPI driver, CAMAC_IO link, conversion coefficients |
 | [gammasphere_geometry.md](gammasphere_geometry.md) | Gammasphere array geometry: 110 GS holes, 17 rings, θ angles per hole, full hole→angle map |
 
@@ -153,6 +153,6 @@ Where the wiki (`wiki.anl.gov/gsdaq`) contradicts the source code, the source co
 
 ---
 
-*Maintained by General DGS (AI assistant). Last updated: 2026-04-09.*
+*Maintained by General DGS (AI assistant). Last updated: 2026-04-09. ANLDAQ.md updated to reflect full scope (trigger scripts, softIOC, GUI windows). collectorbox_PVs count corrected to 1,431.*
 
 
