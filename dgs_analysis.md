@@ -41,6 +41,7 @@ git clone --recursive git@gitlab.phy.anl.gov:dgs-tools-pack/dgs_analysis.git
 | `EventBuilder_S` | Pre-scan pass for timestamp ranges; single-threaded k-way merge | When timestamp bounds needed |
 | `EventBuilder_Q` | Async double-buffered k-way merge; batch pre-decoding; pipelined ROOT writers | Fast I/O, large datasets |
 | `EventBuilder_PQ` | Parallel k-way merge with sector partitioning; N parallel threads | Maximum throughput, multi-core |
+| `EventBuilder_X` | Same engine as PQ, **Parquet output** (no ROOT dependency) | **Primary pipeline** — used by `ProcessRUN` |
 
 **EventBuilder_Q optimizations:**
 - Batch pre-decoding (not per-hit)
@@ -476,17 +477,42 @@ Copies raw GEB run data from NFS to local `expFolder/data/` via rsync.
 
 Requires `nfsFolder` defined in `expInfo.sh` (root of NFS data mount). Supports `--dry-run` to preview without copying.
 
-### ProcessRUN *(updated Apr 2026)*
+### ProcessRUN *(primary pipeline — Apr 2026)*
 
-Higher-level run processing wrapper — event building + pole-zero extraction + analysis for one run.
+Higher-level run processing wrapper. Drives **EventBuilder_X** (Parquet output, no ROOT dependency). Pole-zero and ROOT analysis steps are currently commented out in the script.
 
 ```bash
 ./working/ProcessRUN [expInfo.sh] <run_number> [BUILD] [ANALYSIS]
-  BUILD     : 1=build if stale (default), 0=skip, -1=force rebuild
-  ANALYSIS  : 1=run ROOT analyzer (default), 0=skip
+  expInfo.sh : experiment config (default: expInfo.sh in script dir)
+  run_number : integer run number (e.g. 3 → 003)
+  BUILD      : 1=build if stale (default), 0=skip, -1=force rebuild
+  ANALYSIS   : 1=run ROOT analyzer (default), 0=skip
 ```
 
 Sources `expInfo.sh` (from arg or script dir) for `expName`, `expFolder`, `dataFolder`.
+
+**Key settings (hardcoded in script):**
+- `timeWin=1000` ticks coincidence window
+- `useTrigTS=0`, `saveTrace=0`, `nMerge=40` threads
+- Output: `${expFolder}/Parquet/${expName}_${RUN}_0.parquet` (event-level Parquet)
+- Input: `${expFolder}/data/${expName}_${RUN}/${expName}_${RUN}*` (excludes `.geb` and `.txt`)
+
+**EventBuilder_X** — the builder used by ProcessRUN. Identical parallel k-way merge engine as EventBuilder_PQ, but writes **Apache Parquet** output instead of ROOT (no ROOT dependency required). Output schema (nested, one row = one coincidence event):
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `evID` | uint32 | Event index |
+| `NumHits` | uint16 | Hits in this event |
+| `id` | list\<uint16\> | Raw digitizer id (boardID×100 + channel) |
+| `detID` | list\<int16\> | Mapped detector id (999=trigger, negative=BGO) |
+| `sum1` | list\<uint32\> | Pre-rise trapezoidal sum S1 (24-bit) |
+| `sum2` | list\<uint32\> | Post-rise trapezoidal sum S2 (24-bit) |
+| `e_raw` | list\<float32\> | PZ-corrected energy: S2 − pz×S1 |
+| `eventTS` | list\<uint64\> | EVENT_TIMESTAMP in ticks |
+| `trigTS` | list\<uint64\> | TS_OF_TRIGGER_FULL in ticks |
+| `trace*` | list (optional) | Waveform + GSL fit when saveTrace=1 |
+
+_Source: `fastEventContructor/EventBuilder_X.cpp` header comment. Verified 2026-04-08._
 
 ### BenchmarkTAC2_021.sh
 
