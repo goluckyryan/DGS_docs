@@ -12,6 +12,28 @@ Uses **Git LFS** for large binaries (`.munch`, `.bin`, `vxWorks`).
 
 > **Current commit target:** TAC2 + Trigger Hold-Off configuration
 
+### Historical Origin (Carlware)
+
+The DGS IOC software originated from **Carlware** — the LBL software written for the GRETINA detector system. Tim Madden (APS-XSD) adapted it for DGS VME crates. All crates run the same VxWorks image; only the per-crate `st.cmd` files differ.
+
+Old template names (historical, pre-Git migration, from `DGS_SVN/dgs/Documentation/Formal/Software/HowCarlware-TimwareWorks.docx`):
+
+| Old Name | Current Equivalent | Notes |
+|---|---|---|
+| `dgsDigRegisters.template` | `MDigRegisters.template` / `SDigRegisters.template` | Engineering VME registers per dig board |
+| `dgsDigUser.template` | `MDigUser.template` / `SDigUser.template` | User PVs per dig board |
+| `daqSegment.template` | `daqSegment2.template` | Per-channel user PVs (10 per board) |
+| `dgsMTrigRegisters.template` | `MTrigRegisters.template` | MTRG engineering VME registers |
+| `dgsRTrigRegisters.template` | `RTrigRegisters.template` | RTRG engineering VME registers |
+| `dgsMTrigUser.template` | `MTrigUser.template` | MTRG user controls |
+| `dgsRTrigUser.template` | `RTrigUser.template` | RTRG user controls per router |
+| `gretVME.template` | — | Per-card VME board PVs (merged into board templates) |
+| `link.template` | _(in trigger templates)_ | SERDES link PVs for routers/triggers |
+| `asynDebug.template` | removed in Git version | Backdoor VME access via PVs (FPGA flash, register R/W) |
+| `dgsGlobals_DGS_GLBL.db` | `dgsGlobals_DGS_VMExx.db` | Global PV fanout DB (per crate in current version) |
+
+> Note: Global PV fanout — a single global DB on the trigger crate fans settings to all digitizer crates + channels via channel fanout records. Each `dgsGlobals_DGS_VMExx.db` instantiates per-board and per-channel records for that crate.
+
 ---
 
 ## Folder Layout
