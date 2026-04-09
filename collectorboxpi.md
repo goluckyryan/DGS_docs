@@ -25,7 +25,7 @@ Compiled against **EPICS 7.0.10** (patch level 1). Self-contained repo: includes
   - `b8:27:eb:39:f2:ce` → pi0 (spare, commented out)
   - `b8:27:eb:df:8c:d6` → pi1 (testing Pi — **active, not commented out**) ✅ verified 2026-04-08 — `rc.local:L11`
   - `b8:27:eb:91:bd:1b` → pi2 (commented out)
-  - **Note:** If the testing pi1 (MAC `df:8c:d6`) is plugged in, it claims hostname `pi1` and mounts `/home/dgs/pi1`, potentially shadowing the production pi1.
+  - **Note:** pi1/pi2/pi3 collector boxes are **not yet implemented** (hardware not deployed). The testing pi1 MAC (`df:8c:d6`) is active in rc.local — if plugged in it claims hostname `pi1`, but this is harmless since there is no production pi1 yet.
   - These 3 also have tftpboot symlink dirs on piserver (→ debian13Boot)
 
 ---
@@ -248,9 +248,9 @@ There are **4 collector boxes** total. This repo contains `st_201.cmd` through `
 | Pi | IOC # | Location | GS Holes | Status |
 |----|-------|----------|-----------|--------|
 | pi0 | 201 | South-East | 2,4,6,...,60,70 (even GS 2–60 + GS 70) — 31 detectors | ✅ verified 2026-04-08 — `st_201.cmd`: 31 unique DetNbr values (GS 002–060 even + GS 070) |
-| pi1 | 202 | South-West | 62,64,66,...,110 (even GS 62–110) — 25 detectors | ✅ verified 2026-04-08 — `collectorBox.sh:L22` ("south-west collector") |
-| pi2 | 203 | North-East | 1,3,5,...,59 (odd GS 1–59) | ⚠️ Old piserver — `st_203.cmd` has no detector records |
-| pi3 | 204 | North-West | 61,63,...,109 (odd GS 61–109) | ⚠️ Old piserver — `st_204.cmd` has no detector records |
+| pi1 | 202 | South-West | 62,64,66,...,110 (even GS 62–110) — 25 detectors | **Not yet implemented** — hardware/IOC not deployed |
+| pi2 | 203 | North-East | 1,3,5,...,59 (odd GS 1–59) | **Not yet implemented** — hardware/IOC not deployed |
+| pi3 | 204 | North-West | 61,63,...,109 (odd GS 61–109) | **Not yet implemented** — hardware/IOC not deployed |
 
 ✅ verified 2026-04-08 — `CollectorBox_RevA/iocBoot/iocCollectorApp/st_20{1,2,3,4}.cmd` (grep DetNbr). Location labels verified against `collectorboxpi/README.md:L257-259` + `nfs_layout.md` piserver README table.
 
