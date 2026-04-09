@@ -487,6 +487,21 @@ Decodes the MTRG TDC/TAC-II packet (10 words after repacking):
 
 ### Run Control Scripts
 
+**`expInfo.sh` — Experiment Configuration File** *(gitignored, created per experiment)*
+
+All run control scripts source this file. Template (from `start_run.sh` defaults ✅ verified 2026-04-09):
+```bash
+expName="myExp"                          # Short experiment name (used in filenames)
+expFolder="/mnt/data0/exp000000"         # Root folder for this experiment
+dataFolder="${expFolder}/data"           # Where run subfolders are created
+GEB_ID=14                               # GEB data type (14=DGS, 15=DGSTRIG)
+NEXT_RUN=1                              # Auto-incremented by start_run.sh
+```
+Create a symlink in `dgs_analysis/working/` for use with `ProcessRUN`:
+```bash
+ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
+```
+
 **`start_run.sh`:**
 1. Sources `expInfo.sh` (experiment name, folder, GEB_ID, run number)
 2. Increments `NEXT_RUN` in expInfo.sh
