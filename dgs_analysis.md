@@ -492,10 +492,10 @@ Higher-level run processing wrapper. Drives **EventBuilder_X** (Parquet output, 
 Sources `expInfo.sh` (from arg or script dir) for `expName`, `expFolder`, `dataFolder`.
 
 **Key settings (hardcoded in script):**
-- `timeWin=1000` ticks coincidence window
-- `useTrigTS=0`, `saveTrace=0`, `nMerge=40` threads
-- Output: `${expFolder}/Parquet/${expName}_${RUN}_0.parquet` (event-level Parquet)
-- Input: `${expFolder}/data/${expName}_${RUN}/${expName}_${RUN}*` (excludes `.geb` and `.txt`)
+- `timeWin=1000` ticks coincidence window ✅ verified 2026-04-09 — `ProcessRUN:L39`
+- `useTrigTS=0`, `saveTrace=0`, `nMerge=40` threads ✅ verified 2026-04-09 — `ProcessRUN:L40-42`
+- Output: `${expFolder}/Parquet/${expName}_${RUN}_0.parquet` (filename = `_${useTrigTS}.parquet`; `0` because useTrigTS=0) ✅ verified 2026-04-09 — `ProcessRUN:L66`
+- Input: `${expFolder}/data/${expName}_${RUN}/${expName}_${RUN}*` (excludes `.geb` and `.txt`) ✅ verified 2026-04-09 — `ProcessRUN:L65`
 
 **EventBuilder_X** — the builder used by ProcessRUN. Identical parallel k-way merge engine as EventBuilder_PQ, but writes **Apache Parquet** output instead of ROOT (no ROOT dependency required). Output schema (nested, one row = one coincidence event):
 
