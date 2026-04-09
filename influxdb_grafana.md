@@ -51,7 +51,7 @@ curl "http://192.168.203.56:8181/api/v3/query_sql" \
 ```
 
 ### Authentication
-- Token file: `/home/phy/dcsu/lnFill/influx.token`
+- Token file: `/home/phy/dcsu/lnFill/influx.token` ✅ verified 2026-04-09 — SSH DCS2: file exists, 123 bytes, `export INFLUXDB_WRITE_TOKEN=...`
 - Format: `export INFLUXDB_WRITE_TOKEN="apiv3_..."`
 - The `dcsu` write token is scoped to **write-only** — cannot list databases or run queries
 - A separate read/admin token is needed for queries (held by `adminrt`)
