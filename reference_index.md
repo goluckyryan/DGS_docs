@@ -119,6 +119,8 @@ grep -i "CODE_REVISION" /home/ryan/DGS_tools_pack/DGS_docs/RegisterMaps/DGSMaste
 grep "0x015C" /home/ryan/DGS_tools_pack/DGS_docs/RegisterMaps/DGSMasterTriggerRegisterMap.csv
 ```
 
+> **Also see:** `dgs/VME_registers.md` — byte-offset addresses extracted from asyn driver source code (`asynDigParams.c`, `asynMTrigParams.c`, `asynRTrigParams.c`). More precise for direct `VMERead32`/`VMEWrite32` shell access. Complements the CSV register maps above.
+
 ---
 
 ## Hardware Drawings Index

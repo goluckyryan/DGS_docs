@@ -656,3 +656,13 @@ VMERead32(0, 0x0600)
 ---
 
 *Verified against source: `VxWorks/dgsDrivers/dgsDriverApp/src/{asynDigParams.c,asynMTrigParams.c,asynRTrigParams.c,devGVME.c}`. Last updated: 2026-04-08.*
+
+---
+
+## See Also
+
+- `dgs/reference_index.md` — CSV-based register maps (from Excel spreadsheets with VBA); higher-level register groups and field descriptions. Use for register names → field meanings.
+- `dgs/EPICS_asyn.md` — How asyn driver translates EPICS caput/caget into VME reads/writes
+- `dgs/ioc.md` — IOC startup configuration; board cardno assignments (which cardno maps to which physical slot)
+- `dgs/deep_fpga_DIG.md`, `dgs/deep_fpga_MTRG_MAIN.md`, `dgs/deep_fpga_RTRG.md` — FPGA firmware context for what each register does
+- `dgs/IOC_cmd.md` — `VMERead32`/`VMEWrite32` VxWorks shell commands for direct register access
