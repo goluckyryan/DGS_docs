@@ -704,6 +704,36 @@ Full PV name pattern: `GLBL:DIG:<NN>:<preset>_<param>` where `<NN>` is a fanout 
 
 ---
 
+## softIOC — Support PVs (`dgsSupport.db`)
+
+_Source: `ANLDAQ/EPICS/softIOC/db/dgsSupport.db` (235 lines, hand-crafted — last edit 2025-03-23 JTA/Ryan)_
+
+Companion to `JustGlobals.db`. Contains **hand-crafted PVs** that are not auto-generated from the register map — glue records for run control, setup state, and computed readbacks.
+
+### Run Control PVs
+
+| PV | Type | Function |
+|----|------|----------|
+| `RunNum` | `longout` | Current run ID number. Added by Ryan 2025-03-23. Default=0, PINI=YES. |
+| `Online_CS_StartStop` | `bo` | Main Run/Stop button (`Stop`=0, `Start`=1). Monitored by all three IOC state machines. |
+| `Online_CS_SaveData` | `bo` | Data save toggle (`No Save`=0, `Save`=1). The green button below Run/Stop. |
+| `Setup_Script_State` | `mbbo` | Setup script status indicator (0=UNKNOWN, 1=TRIG OK, 2=DIG OK, 3=OTHER, 4=TRIG ERROR, 5=DIG ERROR, 6=OTHER ERROR, 7=SCRIPT RUNNING). |
+| `ScriptStage` | `ao` | Stage counter displayed during long scripts (written by the script to show progress). |
+
+### MTRG Computed Readbacks (VME10)
+
+The MTRG firmware exposes trigger rate counters and the 48-bit timestamp as **split 16-bit registers** (HIGH + LOW). `dgsSupport.db` reassembles them using `calcout` records with `CALC="(B<<16)+A"` at 1-second scan:
+
+- `VME10:MTRG:TIMESTAMP_RBV` — 32-bit assembled timestamp from `TIMESTAMP_A/B/C_RBV` (0.1 second scan; uses only B and C: `(B<<16)+C`)
+- `VME10:MTRG:TRIG_RATE_COUNTER_1–8_RBV` — accepted trigger rate counters 1–8
+- `VME10:MTRG:RAW_TRIG_RATE_COUNTER_1–8_RBV` — raw (pre-prescale) trigger rate counters 1–8
+
+All 17 `calcout` records are hardcoded to `VME10` (the MTRG crate in the standard DGS configuration).
+
+> **Note:** `dgsSupport.db` and `JustGlobals.db` are both loaded by the softIOC at boot. Together they provide the full soft-IOC PV surface that the ANLDAQ GUI and IOC state machines depend on.
+
+---
+
 ## Notes
 
 
