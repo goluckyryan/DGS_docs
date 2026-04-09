@@ -277,8 +277,10 @@ Layer 3 — FPGA Hardware Register
 | `DAQC{NN}_CV_InLoop4` | Result of last transfer |
 | `DAQC{NN}_CV_BuffersAvail` | Available DMA buffers |
 | `DAQC{NN}_CV_SendRate` | TCP send rate |
-| `DAQC{NN}_OL_BufLostPercent` | Buffer loss percentage |
+| `DAQC{NN}_OL_BufLostPerecnt` | Buffer loss percentage (**note:** typo in template — "Perecnt" not "Percent") |
 | `DAQC{NN}_BoardType{N}` | Board type in VME slot N |
+
+✅ verified 2026-04-09 — `ioc/db/daqCrate.template:L2,L9-12,L284,L323,L325` (all PV names confirmed; typo `OL_BufLostPerecnt` is in the template itself)
 
 - **In snapshots:** Always excluded (`EXCLUDE_STARTSWITH: 'DAQC'`) — runtime stats, not config
 
@@ -289,17 +291,19 @@ Layer 3 — FPGA Hardware Register
 A `.db` file defines records:
 
 ```
+# Actual DGS example (from MDigUser.template):
 record(ao, "VME$(CRATE):$(BOARD):coarse_threshold0") {
-    field(DESC, "Coarse disc threshold ch0")
-    field(DTYP, "asynFloat64")
-    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))FLOAT64_VALUE")
-    field(EGU,  "ADC counts")
-    field(PREC, "0")
-    field(DRVL, "0")
-    field(DRVH, "65535")
-    field(SCAN, "Passive")
+    field(DTYP, "Raw Soft Channel")
+    field(EGU,  "adu")
+    field(DESC, "coarse discriminator thr")
+    field(OUT,  "VME$(CRATE):$(BOARD):coarse_threshold0LONGOUT PP NMS")
+}
+record(longout, "VME$(CRATE):$(BOARD):coarse_threshold0LONGOUT") {
+    field(OUT,  "@asynMask($(BOARD),0,0x00003fff,1)reg_coarse_threshold0")
+    field(DTYP, "asynUInt32Digital")
 }
 ```
+✅ verified 2026-04-09 — `ioc/db/MDigUser.template:L33-50` (ao front-end with Raw Soft Channel → longout intermediary with asynUInt32Digital; EGU=adu)
 
 Key fields:
 | Field | Meaning |
