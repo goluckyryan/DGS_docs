@@ -118,6 +118,8 @@ Dashboards are stored in `grafana.db` (no read access from `dcsu`). Based on wha
 - LN2 fill status and tank levels
 - Possibly: PV history browser (when `DGS` db is activated)
 
+> 💡 **Planned:** Custom Gammasphere detector map panel — all 110 GS holes as two polar projections (N+S hemisphere), colored by temperature from `HPGeTemp`. Design notes: `workspace/grafana_gammasphere_panel.md`. Geometry data: `dgs/gammasphere_geometry.md`.
+
 ---
 
 ## WriteDiscordMessage.py

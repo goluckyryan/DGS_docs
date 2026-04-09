@@ -107,6 +107,8 @@ Run once (manually or at build time) to regenerate `All_PV.json` after any IOC b
 ```
 `All_PV.json` is ~113k lines for a full Gammasphere config (all VME crates × all boards × all channels). ✅ verified 2026-04-08 — `ioc/All_PV.json`: 113,059 lines
 
+> 🔧 **Planned simplification:** Replace template-parsing approach with a static per-firmware suffix list + active board config. Design doc: `workspace/GUI_simplify.md`. See QUEUE.md: "ANLDAQ GUI — simplify PV generation".
+
 ---
 
 ### `json2pv.py` — PV List Parser
