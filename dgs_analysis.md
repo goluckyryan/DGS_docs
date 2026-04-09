@@ -361,8 +361,10 @@ Interactive REPL for exploring `_dgs.parquet` (hit-level) or `_events.parquet` (
 | `loadParquet <file> [file2 ...]` | Load or chain parquet files |
 | `unloadParquet` | Free loaded file(s) |
 | `loadCal <file.cal>` | Load gain/offset cal → callable `cal<gsid>` objects |
+| `loadScript <script>` | Run a script: `.py` = full Python; otherwise custom CLI syntax (see Scripting below) |
 | `rm <name>` | Delete stored object |
 | `newWindow` | Next plot in a new window |
+| `set <VAR> <value>` | Set a script variable; use `{VAR}` in subsequent commands (scripting) |
 
 #### Plotting
 
