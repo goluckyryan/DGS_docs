@@ -250,7 +250,7 @@ _Source: `dgs_analysis/armory/gray_apps/src/GrayMAN/` — explored 2026-04-06_
 | Module | Role |
 |--------|------|
 | `gamma_spectrum_fitter.py` | `GammaSpectrumFitter` — main peak fitting class |
-| `FitResult.py` | `FitResult` dataclass — structured fit output |
+| `FitResult.py` | **Three-level fit result hierarchy:** `FitResult` → `FitSession` → `FitSessionCollection`. `FitResult`: one fit iteration — holds `params` (list of dicts with name/value/fixed/shared_id), `cov`, `chi2`, `chi2_r`, `aic`, `bic`, `residual_rms`, `fit_region`, `model_type`, `sigma_mode`. `FitSession`: one fit region (e.g. one peak cluster), stores multiple `FitResult` iterations; `get_best_fit()` picks by `best_result_iteration` if set, else lowest AIC → chi2\_r → chi2 → residual\_rms. `FitSessionCollection`: container for all sessions from one spectrum; iterates over sessions. Round-trip JSON-serializable (numpy scalars/arrays auto-converted). |
 | `fitting_runner.py` | `FittingRunner` — orchestrates batch/auto fitting runs |
 | `ModelEvaluator.py` | `evaluate_model2`, `evaluate_modelN` — evaluate peak models |
 | `peak_finder.py` | `PeakFinder` — automatic peak detection in spectra |
