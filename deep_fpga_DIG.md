@@ -3,6 +3,9 @@
 ## Table of Contents
 
 - [Target Devices](#target-devices)
+- [Memory Resources](#memory-resources)
+  - [Internal BRAM](#internal-bram)
+  - [External Memory](#external-memory)
 - [Role](#role)
 - [Repository Layout](#repository-layout)
 - [Build Branches](#build-branches)
@@ -14,9 +17,6 @@
   - [Front Bus (Partner Digitizer Interface)](#front-bus-partner-digitizer-interface)
   - [Event Data Aggregation & Readout](#event-data-aggregation--readout)
   - [VME Register Interface](#vme-register-interface)
-- [Memory Resources](#memory-resources)
-  - [Internal BRAM](#internal-bram)
-  - [External Memory](#external-memory)
 - [Architecture](#architecture)
   - [Signal Flow](#signal-flow)
   - [SERDES TX Format (to Router)](#serdes-tx-format-to-router)
