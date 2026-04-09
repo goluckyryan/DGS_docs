@@ -33,7 +33,7 @@ Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS
 | `gui_MTRG.py` | 1425 | Master trigger board window (largest GUI module) |
 | `gui_RTR.py` | — | Router trigger board window |
 | `gui_DataTaking.py` | 227 | IOC config dialog + live run status window |
-| `gui_SYS.py` | — | System tabs: timestamps, link status, TCP rates, code revision |
+| `gui_SYS.py` | 427 | System tabs: timestamps, link status, TCP rates, code revision (see GUI section below) |
 | `gui_Board.py` | — | Generic board PV window (table of all PVs for a board) |
 | `gui_LinkSys.py` | — | Link system window (`link_sys.py` launcher) |
 | `gui_scalar.py` | — | Scalar/rate monitor window |
@@ -650,6 +650,29 @@ The window has two tabs:
 - `ahit_count` — accepted hit count
 
 _Source: `gui_scalar.py` commit `0f3f2df` 2026-04-06 (code-verified)_
+
+---
+
+## GUI: System Window (`gui_SYS.py`)
+
+`gui_SYS.py` (427 lines) — provides the system-level tabs embedded in the main `DGS Commander` window. All tab classes inherit from `sysTemplateTab` (same visible-only update pattern as other GUI modules: `QTimer` → `UpdatePVs()` skips hidden tabs). Update interval: **500 ms** for all system tabs.
+
+_Source: `ANLDAQ/gui/gui_SYS.py` (code-read 2026-04-09)_
+
+### Tab Classes
+
+| Class | Tab Name | Contents |
+|-------|----------|----------|
+| `sysTimestampReadOutTab` | **Timestamps** | MTRG + per-RTR + per-DIG timestamp readbacks (hex); Imp Sync toggle; STARTING_TIMESTAMP HI/MID/LOW writeable fields; scrollable |
+| `sysLinktab` | **Link Status** | Per-link lock status for all MTRG A–H/L/R/U links and per-RTR channel links; SERDES lock indicator grid |
+| `sysTCPTab` | **TCP Transfer** | Per-IOC DAQ stats: `CV_BuffersAvail`, `CV_NumSendBuffers`, `CV_SendRate` (live readback from EPICS DAQ PVs) |
+| `sysCodeRevisionTab` | **Code Revision** | All boards in one scrollable table: MTRG (`reg_CODE_REVISION`/`reg_CODE_DATE`), each RTR (`Code_Revision`/`CODE_DATE`), each DIG (`regin_code_revision`/`code_date`) — all displayed in hex |
+| `globalSettingTab` | **Global Settings** | System-wide register controls (threshold multipliers, global enables, etc.) |
+
+### Key Notes
+- PV naming differs by board type for code revision: MTRG uses `reg_CODE_REVISION`, RTR uses `Code_Revision`, DIG uses `regin_code_revision` (note prefix `regin_` vs `reg_`)
+- TCP tab takes only `DAQ_list` (not MTRG/RTR/DIG); other tabs take all board lists
+- Timestamp tab shows MTRG + all RTRs + all DIGs in one scrollable panel — useful for verifying timestamp sync across the full chain
 
 ---
 
