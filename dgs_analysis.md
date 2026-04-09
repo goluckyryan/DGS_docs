@@ -199,6 +199,22 @@ Available sources and key lines:
 
 `Euautocal.json` is the default for `gain_from_parquet.py` — 16 strong 152Eu lines from 121.8 to 1408.0 keV covering the full Ge dynamic range.
 
+#### `CalibrationPoints.py` — Peak-to-Source Matching & Energy Calibration
+
+The key workhorse for `gain_from_parquet.py`. Holds fitted peaks and performs the full calibration pipeline. Author: S. Carmichael (2025-11-04).
+
+**Key methods:**
+- `add_points_from_fit(fit_res, isotope_name, binwidth)` — extracts peak centroids (µ, µ_err), counts, widths from `AutoFitter` results into internal lists
+- `match_w_source(isotope, source_data, active_en)` — matches fitted centroids to known gamma lines using `select_match_lines()` (selects most-intense lines spanning ≥50% of energy range, then scales to match fit count)
+- `energy_calibration()` — linear fit `E_keV = gain × channel + offset` via `scipy.optimize.curve_fit`; stores in `self.en_par = [gain, offset]` + `self.en_red_chi2`
+- `efficiency_calibration()` — optional RadWare efficiency fit per detector; stores in `self.eff_par`
+
+**Helper: `select_match_lines(active_en, active_ri)`** — selects strongest source lines that span ≥50% of total energy range (starts at RI > 90% of max, walks down to 10% until ≥3 lines span enough range). Used to choose which literature lines to attempt matching against.
+
+**Key attributes:** `num_pts`, `centers[]`, `centers_unc[]`, `gamma_en[]` (literature values), `matched[]` (bool per peak), `en_par` ([gain, offset] after calibration), `en_red_chi2`, `eff_par`.
+
+_Source: `gray_apps/src/GrayCAL/core/CalibrationPoints.py` (756 lines) — explored 2026-04-09_
+
 _Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06; radware_eff + isotope data explored 2026-04-08_
 
 ### GrayMAN — Gamma-Ray MultiPeak Analyzer Network
