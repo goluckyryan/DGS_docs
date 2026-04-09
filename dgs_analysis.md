@@ -291,10 +291,29 @@ Holds experiment-specific scripts and calibration files. All paths driven by `ex
 
 **Parquet schema:**
 
-| File | Key Columns |
-|------|-------------|
-| `_dgs.parquet` | `tid`, `header_ts`, `trigger_ts`, `sum1`, `sum2`, `e_raw`, `e_cal`, `e_dc`, `CSflag`, `pileup_count` |
-| `_events.parquet` | `event_id`, `gs_mult`, `gs_hitid`, `gs_ts`, `gs_cryid`, `gs_eraw`, `gs_ecal`, `gs_edc`, `gs_flag` |
+| File | Column | Type | Description |
+|------|--------|------|-------------|
+| `_dgs.parquet` | `tid` | int64 | Crystal ID |
+| | `header_ts` | int64 | GEB header timestamp (10 ns/tick) |
+| | `trigger_ts` | int64 | DGS payload trigger timestamp (0 if unavailable) |
+| | `sum1` | int64 | Trapezoid baseline sum (ADC counts) |
+| | `sum2` | int64 | Trapezoid peak sum (ADC counts) |
+| | `e_raw` | float64 | Raw energy before gain/offset cal (ADC channels) |
+| | `e_cal` | float64 | Calibrated energy: `e_raw × gain + offset` (keV) |
+| | `e_dc` | float64 | Doppler-corrected energy (keV) |
+| | `CSflag` | int8 | Compton suppression: 1=BGO-vetoed, 0=clean |
+| | `pileup_count` | int32 | Pileup count from firmware (typically 0 due to known bit-shift bug) |
+| `_events.parquet` | `event_id` | int64 | Global event index (0-based) |
+| | `gs_mult` | int64 | Gamma-ray multiplicity (hits per event) |
+| | `gs_hitid` | int64 | Hit index within event (0-based) |
+| | `gs_ts` | int64 | Hit timestamp (DAQ ticks) |
+| | `gs_cryid` | int64 | Crystal ID |
+| | `gs_eraw` | float64 | Raw energy (ADC channels) |
+| | `gs_ecal` | float64 | Calibrated energy (keV) |
+| | `gs_edc` | float64 | Doppler-corrected energy (keV) |
+| | `gs_flag` | int8 | Compton suppression flag |
+
+_Source: `parquet_pysort/README.md` ✅ verified 2026-04-09_
 
 ### parquetCLI
 
