@@ -267,6 +267,14 @@ Default `FifoNum=6` (MAIN DATA FIFO) is set via `DOL=6`/`PINI=YES` at IOC boot. 
 - `DAQC$(CRATE)_CV_InLoop4` — Result of last transfer
 - `DAQC$(CRATE):inLoop_Running` — bi (inter-process signal: inLoop→outLoop)
 
+**Also in `daqCrate.template`** (less-documented PVs):
+- `DAQC$(CRATE)_CV_SenderRunning` — bi (MiniSender running status: Stopped/Running)
+- `DAQC$(CRATE)_OL_HeaderSummaryEnable` — ao (outLoop header summary enable, default 0)
+- `DAQC$(CRATE)_OL_HeaderSummaryPrescale` — ao (outLoop header summary prescale, default 4096)
+- `DAQC$(CRATE)_OL_HeaderSummaryEventPrescale` — ao (outLoop per-event prescale, default 256)
+- `VME$(CRATE):X:CS_Ena` — dummy bo for unoccupied VME slots (always Disable=0); `inLoop` references this for all missing boards so it doesn't need special-case logic for empty slots
+✅ verified 2026-04-09 — `ioc/db/daqCrate.template:L380-430`
+
 **Note:** The four `*VME.template` files were added after Feb 2024 (not in `DB_backup_20240205`). They expose VME FPGA internals for crates 66 (DuoGe) and 99 (test stand).
 
 ### MTrigUser.template — Key PV Groups
