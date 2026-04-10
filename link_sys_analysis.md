@@ -288,6 +288,16 @@ NET "sysclk_sel1_out" LOC = "B10";
 
 ---
 
+## Utility Methods
+
+### `ResetRouterLostLock(rtr_name)`
+Pulses `SM_LOST_LOCK_RESET` (0→1→0) on the given Router. Used to clear a "lost lock" error in the Router's SERDES state machine — typically needed after a transient link glitch or power cycle. Call once per affected Router before retrying Stage 3 or Stage 5 error checks.
+
+### `perform_error_checks` flag
+Passed at construction (`LinkSys(..., perform_error_checks=True)`). When `False`, all lock-status verification steps (Stage 3, 4C, 4F, 5B, 5D) are skipped — useful for dry-run testing or scripted setups where the FPGA hardware isn't live.
+
+---
+
 ## Link Map Format Reference
 
 ```python
