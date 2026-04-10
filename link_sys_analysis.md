@@ -329,6 +329,33 @@ Stage 5 is the critical final step that transitions from SYNC patterns to real p
 
 The SYNC clear order matters: DIGs first, then RTRGs, then MTRG LRU SYNCs.
 
+## Link Map Data Structures
+
+### MTRG Link Map
+```python
+linkSys.Set_MTRG_LINK_MAP([
+    ["A", "RTR1", propagate_flag],   # link A → RTR1, propagate trigger?
+    ["B", "RTR2", propagate_flag],
+    ...
+    ["L", "DFMA", 1],               # link L → DFMA system, propagate=1
+    ["U", "MyRIAD", 0],             # link U → MyRIAD, no propagation
+])
+```
+Each entry: `[link_letter, board_type_string, propagate_flag]`. Board type strings: `"RTR1"–"RTR8"` (regular routers), `"DFMA"`, `"DUB"`, `"DXA"`, `"PIXIE"`, `"MASKED"`. Links L/R/U use special propagation flags (`LINK_x_PROPAGATE_F3–F7`).
+
+### RTR Link Map
+```python
+linkSys.Set_RTR_LINK_MAP([
+    [1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],  # RTR1: links A-H,L,R,U states
+    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # RTR2
+    ...
+])
+```
+One row per router, 11 values for links A–H, L, R, U in that order. State values:
+- `0` = X (disabled: ILM=1, TPwr=0, RPwr=0, loopbacks off)
+- `1` = Active (ILM=0, TPwr=1, RPwr=1, loopbacks off)
+- `2` = M (masked but powered: ILM=1, TPwr=1, RPwr=1, loopbacks off — link powered but doesn't contribute to trigger)
+
 ## ResetRouterLostLock Helper
 
 ```python
