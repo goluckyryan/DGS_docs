@@ -86,10 +86,10 @@ A cron job runs hourly on pi5-dgs checking `/mnt/data0` free space on DCS2.
 
 Legacy bash scripts for BGO counter averaging and sweeping:
 
-- **`caget_avg`** — reads a PV N times (1 s apart), returns average. Usage: `./caget_avg <PV> <N_samples>`
+- **`caget_avg`** — reads a PV N times (1 s apart), returns average. Usage: `./caget_avg <PV> <N_samples>` ✅ verified 2026-04-10 — `slopebox_scripts/caget_avg:L9-15` (loops N times, strips PV name at char 25, strips non-digits, accumulates)
 - **`Avg_all_BGO_count`** — runs `caget_avg` on all 7 BGO counters + BGO sum for one detector
   - PVs: `GS000_BGO1_counter` … `GS000_BGO7_counter`, `GS000_BGOSum_counter`
-- **`BGO_Sweep_test`** — BGO HV sweep: iterates DAC values 0–250 (in steps: 0,25,50,...250) across 14 HV channels (`GS000_BGO_HV0`–`GS000_BGO_HV13`), calls `Avg_all_BGO_count` at each step to log BGO counter rates. Sweeps odd tubes first, then even. PV pattern: `GS000_BGO_HV{0..13}`, `GS000_BGO{1..7}_counter`, `GS000_BGOSum_counter`.
+- **`BGO_Sweep_test`** — BGO HV sweep: iterates DAC values 0–250 (in steps: 0,25,50,...250) across 14 HV channels (`GS000_BGO_HV0`–`GS000_BGO_HV13`), calls `Avg_all_BGO_count` at each step to log BGO counter rates. Sweeps odd tubes first, then even. PV pattern: `GS000_BGO_HV{0..13}`, `GS000_BGO{1..7}_counter`, `GS000_BGOSum_counter`. ✅ verified 2026-04-10 — `slopebox_scripts/BGO_Sweep_test:L28` (`for HVSET in 0 25 50 75 90 100 110 120 130 140 150 160 170 180 190 200 210 220 230 240 250`); odd tubes swept first (L30-37), then even (L50-57)
 - **`BGO_counter_sweep.ods`** — spreadsheet for sweep analysis
 
 ---
