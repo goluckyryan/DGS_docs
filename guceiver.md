@@ -7,7 +7,7 @@ _Explored: 2026-04-07_
 
 ## Overview
 
-**Guceiver** is a PyQt6 application that connects directly to an IOC's TCP data stream (port 9001) to provide live monitoring of digitizer and TAC-II data. It is distinct from the main ANLDAQ commander GUI — it's a lightweight standalone viewer for online diagnostics.
+**Guceiver** is a PyQt6 application that connects directly to an IOC's TCP data stream (port 9001) to provide live monitoring of digitizer and TAC-II data. It is distinct from the main ANLDAQ commander GUI — it's a lightweight standalone viewer for online diagnostics. ✅ verified 2026-04-10 — `Guceiver.py:L1` (`from PyQt6...`); confirmed standalone (not part of commander) by absence of commander imports
 
 Key capabilities:
 - Live waveform display (oscilloscope-style, per channel/board)
@@ -30,6 +30,7 @@ Guceiver.py (QMainWindow)
 ├── class_spectrumTab.py — Energy spectrum tab (matplotlib histogram)
 ├── class_dataTab.py   — Raw data/header display tab
 └── class_tacTab.py    — TAC-II data display tab
+✅ verified 2026-04-10 — `Guceiver.py:L115-127` (4 `addTab` calls: "Waveform", "Spectrum", "Data", "TAC-II")
 ```
 
 ### Threading model
