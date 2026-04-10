@@ -215,4 +215,14 @@ For raw whole-register reads (no sub-field), the mask is a standard bitmask with
 
 ---
 
+---
+
+## Cross-References
+
+- `dgs/EPICS.md` — EPICS primer: record types, CA tools, Python integration
+- `dgs/ioc.md` — IOC boot scripts, startup sequence, DB loading
+- `dgs/vxworks.md` — VxWorks cross-compilation; where `asynDigitizerDriver.cpp` lives
+- `dgs/VME_registers.md` — VME byte-offset addresses used in driver `ReadReg`/`WriteReg` calls
+- `dgs/snapshot_pv.md` — uses `epics.caput`/`caget` (Python-side of the same asyn chain)
+
 *Created: 2026-04-06 from conversation with Ryan Tang.*
