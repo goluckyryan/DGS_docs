@@ -18,7 +18,8 @@ The SVN tree contains a broad historical archive of DGS development:
 |-----------|----------|
 | `17pc030-GretinaTRGT` | Gretina trigger target hardware |
 | `17pc031-HeliosPreampPower` | Helios preamp power supply |
-| `20180921`, `20230818_edm` | Dated snapshots / EDM displays |
+| `20180921` | Dated snapshot (contents undocumented) |
+| `20230818_edm` | **EDM screen snapshot (Aug 18, 2023)** — 208 `.edl` files, more complete than `screens/` (141 files). Includes everything in `screens/` plus: CLO-variant screens (`clov*` — Clover detector?), legacy VXI screens (`VXI.edl`, `VXImain.edl`, `vxivolts.edl` — analog Gammasphere), `WheelMap.edl`/`WheelMapRBV.edl` (GS detector wheel geometry display), `StripeFPGAGeneric.edl` (generic StripeFPGA control), `ThrottleControl.edl`, `Trace.edl`, `TrigControl.edl`, `VMEDigMap.edl`, `xxx.edl`. Historical reference for the full EDM operator GUI in its final form before PyQt6 migration. |
 | `con6_20220728` | con6 (Solaris host) snapshot *(not in local mirror)* |
 | `con6_EPICS_base` | EPICS base from con6 era *(not in local mirror)* |
 | `con6_work` | con6 working files *(not in local mirror)* |
