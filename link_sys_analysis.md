@@ -316,5 +316,32 @@ rtrg_map = [
 # 0=X(disabled), 1=Active, 2=M(masked+powered)
 ```
 
+## Stage 5 — SYNC→Data Flip Sequence (Detailed)
+
+Stage 5 is the critical final step that transitions from SYNC patterns to real physics data:
+
+1. **5A:** Clear `sd_sync` on all DIGs → digitizers switch from SYNC to discriminator data
+2. **5B:** Wait 2s, verify all RTRGs show `ALL_LOCKED_RBV = 1` — if any router fails, abort
+3. **Pulse** `LOCK_RETRY` then `LOCK_ACK` on all RTRGs (clears lock retry state)
+4. **5C:** Clear `LRUCtl02` on all RTRGs (router Link L SYNC off) → routers send real data to MTRG
+   - Also clear MTRG `LRUCtl02`, `LRUCtl06`, `LRUCtl10` (L/R/U SYNC off)
+5. **5D:** Wait 2s, verify MTRG `LINK_INIT_STATE_RBV == "ACKED"` — if not, abort
+
+The SYNC clear order matters: DIGs first, then RTRGs, then MTRG LRU SYNCs.
+
+## ResetRouterLostLock Helper
+
+```python
+linkSys.ResetRouterLostLock(rtr_name)
+```
+
+Pulses `SM_LOST_LOCK_RESET` (0→1→0, 500ms between steps) on a specific Router. Used when a router's link-init state machine gets stuck after a lock-loss event. Does not restart the full link-up sequence.
+
+## Error Check Mode
+
+`LinkSys(MTRG, RTR_list, DIG_list, perform_error_checks=True)` — default True.
+
+When `perform_error_checks=False`, Stages 3, 4, 5 skip all `ALL_LOCKED_RBV` and `LINK_INIT_STATE_RBV` checks and return True unconditionally. Useful for forced re-init when lock state is known good.
+
 ---
-*Source: `DGS_tools_pack/ANLDAQ/tcpReceiver/link_sys.py` — Python link initialization script. Created: 2026-04-05.*
+*Source: `DGS_tools_pack/ANLDAQ/gui/link_sys.py` (669 lines) — Python LinkSys class. Verified 2026-04-10 against source. Created: 2026-04-05.*
