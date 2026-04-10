@@ -16,23 +16,23 @@ The raw 14-bit ADC sample passes through a series of programmable delay buffers 
 ```
 ADC_DATA[13:0]  (14-bit, 100 MHz)
     │
-    ▼ P1 delay  (reg_p1_window, default 1 cycle)
+    ▼ P1 delay  (reg_p1_window, default 1 cycle) ✅ verified 2026-04-10 — Registers.vhd:L216 (to_std_logic_vector(1,32))
     │
-    ▼ P2 delay  (reg_p2_window, default 2 cycles)
+    ▼ P2 delay  (reg_p2_window, default 2 cycles) ✅ verified 2026-04-10 — Registers.vhd:L227 (to_std_logic_vector(2,32))
     │
-    ▼ M delay   (reg_m_window[9:0], default 200 cycles = 2 µs)
+    ▼ M delay   (reg_m_window[9:0], default 200 cycles = 2 µs) ✅ verified 2026-04-10 — Registers.vhd:L176 (to_std_logic_vector(200,32))
     │   X_M  ← pre-event buffer; holds signal before the pulse arrives
     │
     ▼ K0 delay  (lower bits of reg_k_window)
     │   X_M_K0
     │
-    ▼ K delay   (upper bits of reg_k_window, default ~100 cycles)
+    ▼ K delay   (upper bits of reg_k_window, default 100 cycles) ✅ verified 2026-04-10 — Registers.vhd:L166 (to_std_logic_vector(100,32))
     │   X_M_K0_K
     │
-    ▼ D delay   (reg_d_window[6:0], default 10 cycles)
+    ▼ D delay   (reg_d_window[6:0], default 10 cycles) ✅ verified 2026-04-10 — Registers.vhd:L156 (to_std_logic_vector(10,32))
     │   X_M_K0_K_D
     │
-    ▼ D3 delay  (reg_d3_window[6:0], default 23 cycles)
+    ▼ D3 delay  (reg_d3_window[6:0], default 23 cycles) ✅ verified 2026-04-06 — Registers.vhd:L186 (to_std_logic_vector(23,32))
     │   X_M_K0_K_D_D3  ← used for baseline tracking input
     │
     ▼ TRIPLE_FILTER  (triple_filter.vhd)
@@ -46,7 +46,7 @@ ADC_DATA[13:0]  (14-bit, 100 MHz)
 
 **Triple filter:** Each stage is a (1-2-1) moving average. Three cascaded stages produce an effective kernel of [1,8,28,56,70,56,28,8,1] / 256, reducing high-frequency noise without significantly broadening the pulse.
 
-**Baseline tracker** (`baseline_tracker.vhd`): Estimates the DC baseline by accumulating a running difference `X(n) − X(n−T)` over a 1024-sample (10.24 µs) window. It holds off updates for a programmable time after every discriminator fire (`reg_baseline_delay`) to avoid pulling the baseline onto the pulse tail.
+**Baseline tracker** (`baseline_tracker.vhd`): Estimates the DC baseline by accumulating a running difference `X(n) − X(n−T)` over a 1024-sample (10.24 µs) window. ✅ verified 2026-04-10 — jta_channel.vhd:L1393 ("Accumulate 1024 samples") + L1924 ("10.24 usec prior to the pre-rise sum") It holds off updates for a programmable time after every discriminator fire (`reg_baseline_delay`) to avoid pulling the baseline onto the pulse tail.
 
 ---
 
