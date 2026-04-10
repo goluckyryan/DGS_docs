@@ -17,16 +17,16 @@ _Source: `DGS_tools_pack/raw_FPGA/MTRG/Firmware/VME_FPGA/A32D32_VME_FPGA/`. Crea
 
 ## Target Device
 
-| Field | Value |
-|-------|-------|
-| Family | Spartan-3 |
-| Part | xc3s400 |
-| Package | fg320 |
-| Speed Grade | -5 |
-| Tool | Xilinx ISE 13.4 |
-| Project File | `Firmware/VME_FPGA/A32D32_VME_FPGA/Work13.4/vme_A32_D32.xise` |
-| Top Entity | `vme_top` |
-| Bitfile | `Firmware/VME_FPGA/A32D32_VME_FPGA/Work13.4/20250711.mcs` |
+| Field | Value | Verified |
+|-------|-------|----------|
+| Family | Spartan-3 | ✅ verified 2026-04-10 — `vme_A32_D32.xise`: `Device Family=Spartan3` |
+| Part | xc3s400 | ✅ verified 2026-04-10 — `vme_A32_D32.xise`: `Device=xc3s400` |
+| Package | fg320 | ✅ verified 2026-04-10 — `vme_A32_D32.xise`: `Package=fg320` |
+| Speed Grade | -5 | ✅ verified 2026-04-10 — `vme_A32_D32.xise`: `Device Speed Grade=-5` |
+| Tool | Xilinx ISE 13.4 | ✅ verified 2026-04-10 — `Work13.4/` directory name |
+| Project File | `Firmware/VME_FPGA/A32D32_VME_FPGA/Work13.4/vme_A32_D32.xise` | |
+| Top Entity | `vme_top` | ✅ verified 2026-04-10 — `TOP.VHD:L42` (`entity vme_top is`) |
+| Bitfile | `Firmware/VME_FPGA/A32D32_VME_FPGA/Work13.4/20250711.mcs` | |
 
 ## Role
 
@@ -43,11 +43,11 @@ It bridges the host computer (VME bus) to the main FPGA, and controls all FPGA c
 
 | File | Lines | Description |
 |------|-------|-------------|
-| `TOP.VHD` | 68,233 | Top-level entity (`vme_top`) — instantiates all submodules |
-| `vme_addr_decode.vhd` | 15,625 | VME address space decoder and chip select generation |
-| `external_bus_controller.vhd` | 22,964 | Flash/FPGA bus multiplexer and access sequencer |
-| `configuration_controller.vhd` | 24,748 | FPGA programming sequencer (serial bitstream download) |
-| `register_block.vhd` | 18,451 | Status and control register bank |
+| `TOP.VHD` | 1,345 | Top-level entity (`vme_top`) — instantiates all submodules | ✅ verified 2026-04-10 — `wc -l TOP.VHD` |
+| `vme_addr_decode.vhd` | 314 | VME address space decoder and chip select generation | ✅ verified 2026-04-10 — `wc -l` |
+| `external_bus_controller.vhd` | 448 | Flash/FPGA bus multiplexer and access sequencer | ✅ verified 2026-04-10 — `wc -l` |
+| `configuration_controller.vhd` | 500 | FPGA programming sequencer (serial bitstream download) | ✅ verified 2026-04-10 — `wc -l` |
+| `register_block.vhd` | 392 | Status and control register bank | ✅ verified 2026-04-10 — `wc -l` |
 
 ## Architecture
 
