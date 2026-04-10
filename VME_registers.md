@@ -327,6 +327,7 @@ These registers sit above the main FPGA space and control the Spartan-3 VME inte
 EPICS PV prefix: `VME<CRATE>:<BOARD>:` (e.g. `VME66:MTRG:`)
 
 ### 0x0100–0x011C: Bus Control / Timestamp
+✅ verified 2026-04-10 — `asynMTrigParams.c:L741-746` (vxworks/dgsDrivers/dgsDriverApp/src/)
 
 | Offset | Register | R/W | Description |
 |--------|----------|-----|-------------|
