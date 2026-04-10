@@ -822,6 +822,41 @@ Companion to `JustGlobals.db`. Contains **hand-crafted PVs** that are not auto-g
 | `Setup_Script_State` | `mbbo` | Setup script status indicator (0=UNKNOWN, 1=TRIG OK, 2=DIG OK, 3=OTHER, 4=TRIG ERROR, 5=DIG ERROR, 6=OTHER ERROR, 7=SCRIPT RUNNING). |
 | `ScriptStage` | `ao` | Stage counter displayed during long scripts (written by the script to show progress). |
 
+### How `Online_CS_StartStop` Triggers All IOCs
+
+`Online_CS_StartStop` is a plain `bo` record in the softIOC — **no `OUT` link, no forward links, no fan-out**. It is simply a global CA-visible flag. The actual run start/stop mechanism is driven by **SNL (State Notation Language) sequencer programs** running inside each VME IOC.
+
+Each DIG IOC runs an instance of `inLoop` (source: `DGS_SVN/dgs/20180921/inLoop.st`), which monitors the PV via CA:
+
+```
+DECLMON(short, AcqRun, Online_CS_StartStop)  // CA monitor — reacts on any change
+DECLMON(short, AcqEna, {PVAcqEna})           // per-board enable (e.g. DAQB1_1_CS_Ena)
+```
+
+**State machine flow (`inLoop`):**
+
+```
+[setup]  wait for AcqRun==1 AND AcqEna==1
+           → drain FIFO (clearDigFIFO)
+           → set MLE=1 (Master Logic Enable on that DIG board)
+         → [run]
+
+[run]    continuously poll FIFO (checkDigFIFO + serviceOneBuffer)
+           → if AcqRun==0: clear MLE=0
+         → [waitfordone]
+
+[waitfordone]  drain remaining data → [setup]
+```
+
+**Key point:** Every VME DIG IOC runs its own `inLoop` instance, all CA-monitoring the same `Online_CS_StartStop` PV simultaneously. When `caput Online_CS_StartStop Start` is issued:
+1. All DIG IOC sequencers detect `AcqRun=1` in parallel
+2. Each independently drains its FIFO, enables its MLE, and begins readout
+3. No central coordinator — the broadcast PV *is* the synchronization primitive
+
+The trigger IOC (`inLoopTrig.st`) uses the same pattern to control the MTRG/RTRG side.
+
+✅ verified 2026-04-10 — `DGS_SVN/dgs/20180921/inLoop.st:L50,L110-190` + `ANLDAQ/EPICS/softIOC/db/dgsSupport.db:L20-27`
+
 ### MTRG Computed Readbacks (VME10)
 
 The MTRG firmware exposes trigger rate counters and the 48-bit timestamp as **split 16-bit registers** (HIGH + LOW). `dgsSupport.db` reassembles them using `calcout` records with `CALC="(B<<16)+A"` at 1-second scan:
