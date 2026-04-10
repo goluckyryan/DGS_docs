@@ -237,6 +237,23 @@ The key workhorse for `gain_from_parquet.py`. Holds fitted peaks and performs th
 
 _Source: `gray_apps/src/GrayCAL/core/CalibrationPoints.py` (756 lines) — explored 2026-04-09_
 
+#### `SyntheticSpectrumGenerator.py` — Synthetic Gamma-Ray Spectrum Generator
+
+Generates synthetic gamma-ray spectra for testing/validation of the fitting and calibration pipeline. Written by M.P. Carpenter (mpcarp).
+
+**Energy-dependent resolution:** `sigma(E) = sqrt(a + b×E + c×E²)` with defaults a=1, b=5e-3, c=1e-6 (keV units). Models realistic HPGe peak broadening vs energy.
+
+**Key methods:**
+- `generate_random_peaks(start, stop, n_peaks, min_distance, min_amp, max_amp)` — random spectrum with N peaks, minimum separation enforced; uses `evaluate_model2` (GF3-style: Gaussian + skew tail + step background)
+- `generate_isotope_spectrum(isotope_data, efficiency_curve, ...)` — physics-based spectrum from `IsotopeGammaData` + `radware_eff` efficiency; peaks scaled by relative intensity × efficiency at that energy
+- `set_tail(r, beta, step_height)` — configures asymmetric left-tail parameters (r=tail fraction, beta=decay constant, step_height=Compton step)
+- `add_background(bg_type, ...)` — adds flat/linear/exponential background
+- `plot()` — matplotlib visualization
+
+**Used for:** Unit testing `AutoFitter`, validating `CalibrationPoints.match_w_source()` with known peak positions, and demonstrating the full GrayCAL pipeline without real data.
+
+_Source: `gray_apps/src/GrayCAL/core/SyntheticSpectrumGenerator.py` (458 lines) — explored 2026-04-10_
+
 _Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06; radware_eff + isotope data explored 2026-04-08_
 
 ### GrayMAN — Gamma-Ray MultiPeak Analyzer Network
