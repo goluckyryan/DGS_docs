@@ -18,12 +18,12 @@ _Author: T. Lauritsen (ANL). Used by DGS, GRETINA, X-Array, DUO, and other detec
 | Program | Description |
 |---------|-------------|
 | `GEBSort` / `GEBSort_nogeb` | Main sorter (with/without live GEB data stream) |
-| `GEBMerge` | Merges multiple GEB data streams by timestamp |
+| `GEBMerge` | Merges multiple GEB data streams by timestamp ✅ verified 2026-04-10 — `GEBMerge.c:L1237,L1632` ("find lowest time stamp of the candidates we have") |
 | `GEBFilter` | Filters GEB events by type/condition |
 | `GEBCrop` | Crops/trims GEB files |
 | `GEBSplit` | Splits GEB files |
 | `GEBHeader` | Reads/prints GEB headers |
-| `find_MK` | Finds optimal M and K trapezoid parameters from data |
+| `find_MK` | Reads live EPICS PVs to compute recommended `dgs_MM` and `dgs_KK` values ✅ verified 2026-04-10 — `find_MK.c:L63-94` (reads `GLBL:DIG:GeC_{d,k,k0,d3,m}_window` via CA; K = d+k+k0+d3+0.15us hidden fixed; outputs in 10 ns units) |
 | `mk_dgs_map` | Generates the DGS detector map file |
 | `fwhm_onepeak` | Finds best PZ value by minimizing peak FWHM |
 | `SZ_factor` | Extracts the SZ energy extrapolation factor |
