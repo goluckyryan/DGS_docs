@@ -21,9 +21,9 @@ _Supporting: `LabNotes/20210314_TDC.ods`, `LabNotes/Jitter Analysis/`, `LabNotes
 
 The TAC-II is a **Time-to-Digital Converter (TDC)** implemented in FPGA firmware within the DGS Master Trigger (MTRG). It measures the arrival time of a NIM input signal (e.g. beam RF, external pulser) relative to the trigger timestamp, providing sub-nanosecond timing resolution for TAC-based coincidence measurements.
 
-- **Resolution:** ~30–50 ps (vernier interpolation)
+- **Resolution:** ~18–40 ps σ (vernier interpolation, synchronous tests) ✅ verified 2026-04-09 — TAC.docx §Tests: synchronous σ = 0.035 ns (first cable), 0.040 ns (+1 ns cable), 0.018 ns (+2 ns cable); per-tap adjustment = 50 ps per TAC.docx §Calculation; VHDL MAXDELAY=100ps, actual ~70 ps/step per `tdc_unit_cont.vhd:L160`. Asynchronous σ = 2.4 ns (dominated by input signal jitter, not TDC resolution).
 - **Coarse clock:** 250 MHz (4 ns per count), derived from the 50 MHz main trigger clock via DCM CLKFX (×5 multiply: `CLKFX_MULTIPLY=5, CLKIN_PERIOD=20ns`), then distributed in 4 phases (0°/90°/180°/270°) via a second DCM ✅ verified 2026-04-08 — `top.vhd:L1620-1659` (Vivado trunk: `CLOCK_250MHz` from `CLKFX`, `TDC_CLOCK_PH0/90/180/270` from DCM2)
-- **Fine interpolation:** 4 vernier chains (0°, 90°, 180°, 270° phases), each 64 taps × ~50 ps/tap
+- **Fine interpolation:** 4 vernier chains (0°, 90°, 180°, 270° phases), each 64 taps × 50 ps/tap (nominal per TAC.docx; VHDL targets 100 ps MAXDELAY, actual ~70 ps/tap measured) ✅ verified 2026-04-09 — TAC.docx §Calculation ("multiplying by 50ps"), `tdc_unit_cont.vhd:L115-116` (MAXDELAY=100ps), L160 ("~70ps/step")
 - **Output:** 15-word event packet, sent alongside trigger data
 
 ---
@@ -95,7 +95,7 @@ Each TAC-II event is **15 words of 16-bit values** (sent as lower 16 bits of 32-
 For each valid phase:
 
 ```
-Time = (Offset × 4 ns) + (per-phase adjustment) - (0.05 ns × vernier_position)
+Time = (Offset × 4 ns) + (per-phase adjustment) - (0.05 ns × vernier_position)   ✅ verified 2026-04-09 — TAC.docx §Calculation ("multiplying that by 50ps (0.050ns)")
 ```
 
 **Per-phase adjustments** (empirically measured):
