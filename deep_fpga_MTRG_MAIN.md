@@ -178,7 +178,7 @@ Remote Masters ↔ Links L, R, U ↔ SERDES_RX_Mach_R2 / link_tx_block
 
 | Clock | Frequency | Source | Used For |
 |-------|-----------|--------|----------|
-| mclk | 50 MHz | ICS581 mux (local osc or Link L RX) | Main logic, state machines |
+| mclk | 50 MHz | ICS581 mux (local osc or Link L RX) ✅ verified 2026-04-10 — `top.vhd:L179` (`CLK_SRC_SEL: out std_logic -- pin AK19, drives SELA of ICS581 clock mux`); `top.vhd:L239` (`xLOGIC_CLOCK: output of buffer driven by switched clock from ICS581`) | Main logic, state machines |
 | mclk_2x | 100 MHz | DCM from mclk | TDC, high-speed counters, FIFOs |
 | RCLK (per link) | 50 MHz | SERDES receiver | DC-balance removal, link sync |
 | VME_CLOCK | 50 MHz | Dedicated oscillator | VME register interface |
