@@ -108,7 +108,7 @@ For each RTRG (Router):
 1. Set clock to local OSC (`ClkSrc=0`), clear `FORCE_SYNC` — ensures the RTRG is on its own independent clock and not forcing a sync condition
 2. Toggle L/R/U DEN/REN/SYNC off then on:
    - **DEN** (Data Enable), **REN** (Receive Enable), **SYNC** (Sync pattern transmit) — see Stage 1 for definitions
-   - The toggle-to-wrong-value-then-correct pattern is intentional: EPICS Channel Access (CA) only pushes a write when the value changes. If the register already holds the desired value from a previous run, CA would skip the write. Toggling through an intermediate value forces the write to actually reach the hardware.
+   - The toggle-to-wrong-value-then-correct pattern is intentional: EPICS Channel Access (CA) only pushes a write when the value changes. If the register already holds the desired value from a previous run, CA would skip the write. Toggling through an intermediate value forces the write to actually reach the hardware. ✅ verified 2026-04-10 — `link_sys.py:L305-315, L318-344` (all Active/Masked/Disabled branches toggle to wrong values first, then set correct values)
 3. Set pre-emphasis levels (`PrE_0/1/2`) — compensates for cable signal loss on SERDES links; disable loopback (loopback is only used for testing, must be off for normal operation)
 4. Enable DC balance on Link L (`LinkL_DCbal=1`) — Link L is the SERDES link from MTRG to RTRG; DC balance encoding prevents long runs of 0s or 1s that would confuse the clock recovery circuit
 5. Set link masks per DIG link:
@@ -352,9 +352,9 @@ linkSys.Set_RTR_LINK_MAP([
 ])
 ```
 One row per router, 11 values for links A–H, L, R, U in that order. State values:
-- `0` = X (disabled: ILM=1, TPwr=0, RPwr=0, loopbacks off)
-- `1` = Active (ILM=0, TPwr=1, RPwr=1, loopbacks off)
-- `2` = M (masked but powered: ILM=1, TPwr=1, RPwr=1, loopbacks off — link powered but doesn't contribute to trigger)
+- `0` = X (disabled: ILM=1, TPwr=0, RPwr=0, loopbacks off) ✅ verified 2026-04-10 — `link_sys.py:L333-344` (else branch)
+- `1` = Active (ILM=0, TPwr=1, RPwr=1, loopbacks off) ✅ verified 2026-04-10 — `link_sys.py:L305-315` (state==1 branch)
+- `2` = M (masked but powered: ILM=1, TPwr=1, RPwr=1, loopbacks off — link powered but doesn't contribute to trigger) ✅ verified 2026-04-10 — `link_sys.py:L318-330` (state==2 branch)
 
 ## ResetRouterLostLock Helper
 
