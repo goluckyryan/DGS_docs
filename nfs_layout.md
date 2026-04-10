@@ -490,9 +490,9 @@ Link syntax: `#L0 A3 C1 S11 @` = Link / Adapter / Crate / Slot
 - [x] `vol2/global_32/ioc/py_scripts/compare_pvs.py` — documented 2026-04-05
 - [x] piserver extra 3 MACs — identified 2026-04-06 (spare/unassigned Pis)
 - [x] `trace_throttle2.py` — documented 2026-04-06 (see below)
-- [ ] `vol2/dgscalib/` — what's in `bin/` and `calib/`? (partial: dir listed, not read)
-- [ ] `vol4/dgs_testing/GEBSort/` — GEBSort build/config?
-- [ ] `vol3/sbx2022tuning/` — SBX tuning data
+- [x] `vol2/dgscalib/` — partially documented 2026-04-06 (see below); historical ROOT-based calibration macros, superseded
+- [ ] `vol4/dgs_testing/GEBSort/` — GEBSort build/config? (requires interactive SSH — deferred)
+- [ ] `vol3/sbx2022tuning/` — SBX tuning data (requires interactive SSH — deferred)
 - [ ] `vol2/global_32/edmroot/lncntrl/screens/` — LN EDM screens (grep only, no full reads!)
 - [ ] `vol2/global_32/devel/systems/gs/lnfill/gamln.db` — extract unique PV prefixes/record types for documentation
 

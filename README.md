@@ -39,6 +39,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [fpga.md](fpga.md) | FPGA firmware overview: DIG/RTRG/MTRG hierarchy, signal flow, end-to-end timing, build types, auxiliary firmware (FPGA/others/) |
 | [deep_fpga_DIG.md](deep_fpga_DIG.md) | DIG firmware: Spartan-3, ADC pipeline, discriminators, event packet format, pole-zero correction |
+| [deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md) | DIG per-channel signal processing: LED/CFD discriminator modes, delay chain, pileup, VME FPGA, IP cores (split from deep_fpga_DIG.md) |
 | [DIG_firmware_expert.md](DIG_firmware_expert.md) | DIG firmware expert guide: all modes, trigger_mux_select (IntAcptAll/ExtTTL/ExtTTCL/Diag), aux I/O |
 | [deep_fpga_RTRG.md](deep_fpga_RTRG.md) | RTRG firmware: Virtex-4, multiplicity aggregation, throttle, VME register map |
 | [deep_fpga_MTRG.md](deep_fpga_MTRG.md) | MTRG overview: 3 devices (Main FPGA, VME FPGA, CPLD) |
