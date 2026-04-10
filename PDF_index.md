@@ -128,6 +128,12 @@ _Root: `DGS_tools_pack/DGS_SVN/dgs/Documentation/Formal/Software/`_
 | 274KB | `asynDebugDriverDOCS.pdf` | asyn debug driver documentation — likely documents the `asynDebug.template` record type (removed from current `ioc/db/` but present in `DB_backup_20240205`) |
 | 358KB | `DebuggingEPICSChannelAccess.pdf` | Guide to debugging EPICS Channel Access issues |
 | 86KB | `pythonEPICS.pdf` | Python EPICS guide (likely pyepics intro for DGS developers) |
+| 146KB | `HowCarlware-TimwareWorks.docx` | Explains Carlware/Timware — the legacy multi-crate data merging and time-sorting software used before GEBSort/ANLDAQ. Historical reference for understanding pre-DGS2 data flow. |
+| 207KB | `howTheSenderWorks.docx` | Documents the MiniSender (IOC-side TCP data sender) internals — how data flows from VME FIFOs through the IOC outLoop to the TCP receiver. Predecessor or companion to `ANLDAQ/tcpReceiver/`. |
+| 3.0MB | `GammaWare.docx` | GammaWare analysis framework documentation — large, likely covers the full gamma-ray analysis pipeline (histogramming, coincidences, calibration). Related to ROOT/GEBSort era. |
+| 722KB | `DigitalGammasphereSW.pptx` | Presentation version of DGS software overview (same content as PDF, slide format). |
+| 48KB | `epicsPvs.pptx` | Slide deck on DGS EPICS PV organization (likely covers naming conventions, record types, DB structure). |
+| — | `IOC code design notes 20210914.pptx` | IOC code design notes from Sept 14 2021 — covers asyn driver architecture, outLoop/inLoop design. Companion to IOC_Code_Design wiki page. |
 
 ---
 
