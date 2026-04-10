@@ -743,6 +743,27 @@ _Source: `ANLDAQ/gui/scripts/trig_setup_Stage*.sh` + `Serdes_Linkup.sh` (code-ve
 
 ---
 
+## `gui_LinkSys.py` — Link System GUI Window
+
+295-line PyQt6 window that wraps `link_sys.py`'s `LinkSys` class with a graphical interface. Opened from the main GUI's "Link System" button.
+
+**Key constants:**
+- `LINK_IDS = ["A","B","C","D","E","F","G","H","L","R","U"]` — all 11 SERDES links
+- `MTRG_TYPE_OPTIONS = ["MASKED","PIXIE","DFMA","DUB","DXA"]` — external system types for MTRG link map
+
+**GUI layout:**
+- **MTRG Link Map** (`QGroupBox`): one row per link (A–H, L, R, U); columns = link ID / type combo (`rtr_names + MTRG_TYPE_OPTIONS`) / propagate combo (0/1, enabled only for L, R, U links)
+- **Router Link Map** (`QGroupBox`): grid of checkboxes — rows=routers, columns=links A–H,L,R,U; state can be Active/Masked/Disabled
+- **Stage selector** (`QSpinBox`, 1–5), **clock source** combo, **Run** button, scrollable **log output** area
+
+**Config save/load** (`SaveConfig`/`LoadConfig`): JSON file storing MTRG + RTR map state; allows reproducible link topology across sessions.
+
+**`LinkSysWorker(QThread)`**: runs the 5-stage `LinkSys` sequence in a background thread so the GUI stays responsive. Emits `stage_update(str)` and `finished(bool, str)` signals back to the window.
+
+_Source: `ANLDAQ/gui/gui_LinkSys.py` (295 lines, verified 2026-04-10)_
+
+---
+
 ## softIOC — Global Broadcast PV System (`JustGlobals.db`)
 
 _Source: `ANLDAQ/EPICS/softIOC/db/JustGlobals.db` (14,248 lines, auto-generated)_
