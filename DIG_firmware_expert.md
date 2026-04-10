@@ -597,3 +597,10 @@ _Document complete. PDF: 72 pages, SVN rev #6185, Sept 2021. Written to file: 20
 
 **Preamp Reset Kill**: Similar to hold-off. Handles transistor-reset preamplifiers (Gammasphere uses these).
 
+## See Also
+
+- `dgs/deep_fpga_DIG.md` — Full VHDL-level DIG firmware deep-dive
+- `dgs/preamp_reset_readme.md` — Detailed preamp reset (PRK) explanation: detection logic, blanking, BGO gate, PARST timestamp
+- `dgs/data_structures.md` — Complete DIG event packet format (all header types)
+- `dgs/connectors.md` — DIG connector pinouts
+

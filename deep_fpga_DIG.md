@@ -1213,6 +1213,7 @@ Located in each branch's `Cores/` directory:
 - `dgs/ANLDAQ.md` — DAQ software: `class_DIG.h` decodes DIG packet format documented here
 - `dgs/connectors.md` — DIG connector pinouts: RJ45 SERDES, 36-pin Aux I/O, RTRG IEC cable
 - `dgs/deep_fpga_building.md` — Build toolchain: ISE 14.7 on Ubuntu 24.04, Docker/Podman approach
+- `dgs/preamp_reset_readme.md` — Detailed explanation of preamp reset (PRK) detection logic, blanking timing, BGO veto gate, and PARST timestamp fields
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Dig*/` — VHDL source. PDF: `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05.*
