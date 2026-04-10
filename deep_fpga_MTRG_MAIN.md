@@ -41,7 +41,22 @@
 
 The main FPGA is the core of the Master Trigger. It:
 1. Receives digitizer summary data from up to 8 Routers via SERDES links (A-H)
-2. Runs up to 8 independent trigger algorithms
+2. Runs up to 8 independent trigger algorithms ✅ verified 2026-04-10 — `top.vhd:L2456–3103` (20220705 tag)
+
+**The 8 algorithms (EPICS PV enable bits A–H):**
+
+| # | VHDL label | Component | Source | EPICS enable |
+|---|-----------|-----------|--------|--------------|
+| 1 | `TRIG_LOGIC1` | `cpld_trig` | CPLD fast strobe (coarse multiplicity) | `EN_ALGO5` |
+| 2 | `TRIG_LOGIC2` | `sum_hits_X` | Sum X — X-plane multiplicity | `EN_SUM_X` |
+| 3 | `TRIG_LOGIC3` | `sum_hits_X` | Sum Y — Y-plane multiplicity | `EN_SUM_Y` |
+| 4 | `TRIG_LOGIC4` | `sum_hits_XY` | Sum XY — X+Y coincidence | `EN_SUM_XY` |
+| 5 | `TRIG_LOGIC5` | `cpld_trig` | Manual/Aux/RAM trigger | `EN_MAN_AUX` |
+| 6 | `TRIG_LOGIC6A/B` | `GITMO_TRIGGER` (6A) / remote (6B) | Link L: GITMO or remote trigger (muxed via `TRIG_LOGIC_6_ALGO_SEL`) | `EN_LINK_L` |
+| 7 | `TRIG_LOGIC7` | `REMOTE_MASTER_TRIG_SUPPORT` | Link R: remote master trigger | `EN_LINK_R` |
+| 8 | `TRIG_LOGIC8A/B` | `MYRIAD_TRIGGER` (8A) / remote (8B) | Link U: MyRIAD or remote trigger (muxed via `LINK_U_IS_TRIGGER_TYPE`) | `EN_MYRIAD_LINK_U` |
+
+✅ verified 2026-04-10 — `top.vhd:L2456,L2503,L2554,L2603,L2651,L2778,L2897,L3042` (20220705 tag); comments confirm per-link rules for algos 6/7/8.
 3. Collects trigger decisions and issues synchronized command frames back to all Routers
 4. Supports chaining to other Master Triggers via inter-trigger links (L, R, U)
 5. Generates precise event timestamps via a vernier TDC (TAC-II, ~30 ps resolution)
