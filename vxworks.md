@@ -376,12 +376,21 @@ _Source: `DGS_SVN/dgs/Documentation/Formal/Software/howTheSenderWorks.docx` (T. 
 ### FIFO Poll → DMA → Buffer Queue pipeline
 
 1. **`inLoop.st`** (per digitizer board, runs in VxWorks EPICS state machine): polls the digitizer FIFO status register at `*(board_base + 1)`. Returns one of: `Empty`, `HalfFull`, `Some`, `Wait`, `AlmostEmpty`.
-2. On data available: calls `serviceOneBuffer()` in `readFIFO.c`, which:
+2. On data available: calls `serviceOneBuffer()` in `readDigFIFO.c`, which:
    - Acquires **`DMASem`** (epicsEventFull semaphore) — DMA library in VxWorks 5.x is **not thread-safe**, so all 4 digitizers per crate share a single mutex.
-   - Takes a free buffer from the **Return Queue** (`gDigRawRetQ`).
+   - Takes a free buffer from **`qFree`** via `msgQReceive()` (VxWorks message queue, FIFO order).
    - Initiates **DMA transfer** from digitizer VME FIFO directly into IOC memory (no CPU copy).
-   - Posts the filled buffer onto the **Data Queue** (`gDigRawQ`).
-3. A separate sender process drains `gDigRawQ`, sends data to Linux cluster over TCP, and returns buffers to `gDigRawRetQ`.
+   - Posts the filled buffer onto **`qWritten`** via `msgQSend()` for the sender to pick up.
+3. **`SendReceiveSupport.c`** drains `qWritten` → sends data to Linux cluster over TCP (port 9001) → returns buffers to `qFree` via `putFreeBuf()`.
+
+**Three VxWorks msgQ queues** (all `MSG_Q_FIFO`, capacity `RAW_Q_SIZE=200`, message size = `sizeof(rawEvt*)` = 4 bytes — they pass *pointers*, not data):
+| Queue | Role |
+|-------|------|
+| `qFree` | Available (unallocated) buffer slots |
+| `qWritten` | Filled buffers waiting for TCP sender |
+| `qSender` | (Legacy/reserved — exists but lightly used in current code) |
+
+✅ verified 2026-04-11 — `QueueManagement.c:L83-97` (`msgQCreate` calls) + `readDigFIFO.c:L124-212` (receive from qFree, send to qWritten)
 
 ### Buffer Pool
 - **200 buffers** total, shared across all 4 digitizers in a crate ✅ verified 2026-04-08 — `DGS_DEFS.h:L48` (`RAW_Q_SIZE = 200`, changed from 400 on 2023-04-12 JTA)
