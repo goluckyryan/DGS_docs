@@ -154,6 +154,6 @@ Where the wiki (`wiki.anl.gov/gsdaq`) contradicts the source code, the source co
 
 ---
 
-*Maintained by General DGS (AI assistant). Last updated: 2026-04-09. ANLDAQ.md updated to reflect full scope (trigger scripts, softIOC, GUI windows). collectorbox_PVs count corrected to 1,431.*
+*Maintained by General DGS (AI assistant). Last updated: 2026-04-10. MEMORY.md Knowledge Base Index replaced by this file as the single source of truth.*
 
 
