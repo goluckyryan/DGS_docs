@@ -906,3 +906,4 @@ All 17 `calcout` records are hardcoded to `VME10` (the MTRG crate in the standar
 - `dgs/DIG_firmware_expert.md` — DIG firmware details; confirms packet format matched by `class_DIG.h`
 - `dgs/EPICS_asyn.md` — asyn driver internals: caput/caget flow, port concept, asynUInt32Digital
 - `dgs/collectorbox_devicesupport.md` — collector box EPICS device support (SPI driver, CAMAC_IO link)
+- `dgs/guceiver.md` — Guceiver live diagnostic GUI (waveform/spectrum/TAC-II tabs); companion to the main ANLDAQ GUI
