@@ -52,7 +52,7 @@ All hardcoded `/global/devel/...` paths from con6 were updated to `/home/ryan/DG
 | File | Variable | Old Value | New Value |
 |---|---|---|---|
 | `epics/base-3.14.12.1/Makefile` | `TOP` | `/global/devel/epics/base` | `/home/ryan/DGS_Tools_Pack/VxWorks_Compiler/epics/base-3.14.12.1` |
-| `epics/base-3.14.12.1/configure/CONFIG_SITE` | `CROSS_COMPILER_HOST_ARCHS` | `solaris-sparc-gnu` | `linux-x86_64` |
+| `epics/base-3.14.12.1/configure/CONFIG_SITE` | `CROSS_COMPILER_HOST_ARCHS` | `solaris-sparc-gnu` | `linux-x86_64` | ✅ verified 2026-04-11 — `vxworks/epics/base-3.14.12.1/configure/CONFIG_SITE:L115`
 | `epics/base-3.14.12.1/configure/os/CONFIG_SITE.Common.vxWorksCommon` | `WIND_BASE` | `/global/devel/vxWorks/Tornado2.2` | `/home/ryan/DGS_Tools_Pack/VxWorks_Compiler/vxWorks/Tornado2.2` |
 
 ### Source file path fixes
@@ -70,7 +70,7 @@ All hardcoded `/global/devel/...` paths from con6 were updated to `/home/ryan/DG
 | File | Fix | Reason |
 |---|---|---|
 | `configure/os/CONFIG_SITE.linux-x86_64.UnixCommon` | Removed stray backtick on line 2 | Caused "missing separator" Makefile parse error |
-| `configure/os/CONFIG_SITE.linux-x86_64.Common` | Added `CC=gcc-12`, `CCC=g++-12`, `CXX=g++-12`, `USR_CXXFLAGS += -fpermissive` | GCC 13 too strict; GCC 12 with `-fpermissive` handles EPICS 3.14 C++98 code |
+| `configure/os/CONFIG_SITE.linux-x86_64.Common` | Added `CC=gcc-12`, `CCC=g++-12`, `CXX=g++-12`, `USR_CXXFLAGS += -fpermissive` | GCC 13 too strict; GCC 12 with `-fpermissive` handles EPICS 3.14 C++98 code | ✅ verified 2026-04-11 — `vxworks/epics/base-3.14.12.1/configure/os/CONFIG_SITE.linux-x86_64.Common:L15-20`
 | `src/libCom/cxxTemplates/epicsSingleton.h` | Added `#include <cstddef>` | GCC 13: `size_t` not implicitly declared |
 | `src/libCom/cxxTemplates/tsDLList.h` | Added `#if __cplusplus >= 201103L` guard: use `= delete` in C++11 mode, private declaration in C++98 mode | GCC 12 C++11 mode treats private copy constructor differently from `= delete` |
 | `src/cas/generic/ioBlocked.h` | Changed `ioBlockedList` from `private tsDLList<ioBlocked>` inheritance to composition (`tsDLList<ioBlocked> m_list` member) | GCC 12 C++11: injected class name from private base leaked into derived class name lookup, causing access errors in `caServerI` and `casPVI` |
