@@ -156,7 +156,7 @@ Decodes TAC-II TDC packets (magic `0x0000AAAA`). The TAC-II provides fine-timing
 | Tab | Content |
 |---|---|
 | **Waveform** | Live oscilloscope: last N waveforms for selected board/channel |
-| **Spectrum** | Online energy histogram: `POST_RISE - PRE_RISE` accumulated over M events |
+| **Spectrum** | Online energy histogram: `(POST_RISE_ENERGY - PRE_RISE_ENERGY) / M_windows` per event; configurable bins (100–2000, default 500), x-range adjustable ✅ verified 2026-04-11 — `class_Receiver.py:L182`, `class_spectrumTab.py:L267` |
 | **Data** | Raw header field display (all DIG fields decoded) |
 | **TAC-II** | TAC timing data: trigger/TDC timestamps, vernier values, multiplicity |
 
