@@ -528,6 +528,12 @@ ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
 - Uses `--append` during active run (binary files are append-only)
 - Final sync on Ctrl+C
 
+**`Aux/` — Offline timing analysis tools** (development/debugging, not used in normal DAQ):
+- `script.cpp` (775 lines) — ROOT analysis script correlating TAC-II TDC timestamps with DIG timestamps; studies vernier interpolation precision and phase alignment. Histograms: `hTrigDig` (trigger vs DIG timing), `hPhaseDigVernier` (CFD phase vs vernier value), `hTOF`/`hTOF2` (time-of-flight using zero-crossing vs avg). Implements `ZeroCrossing()` (quadratic + linear interpolation). Builds an output ROOT TTree with TAC/DIG timing pairs.
+- `script_LED.cpp` (147 lines) — Same but for LED (leading-edge) mode traces.
+- `class_DIG.h` / `class_TDC.h` / `reader.h` — shared decode classes used by both scripts (same API as `fastEventConstructor` but standalone).
+- `downloadData.sh` / `readHexFile.sh` — utility scripts for pulling raw hex data from IOC.
+
 **`run_control_gui.py`** — Standalone Tkinter run control GUI for `dgs4`:
 - Runs on `dgs4` (shebang: `/home/dgs/.conda/envs/py3tk/bin/python3`); SSHes to `dcsu@dcs2.onenet` using `~/.ssh/id_rsa`
 - Reads experiment info (name, next run number, folder) via `expInfo.sh` on dcs2 at startup + on demand
