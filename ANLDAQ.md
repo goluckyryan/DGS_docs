@@ -766,7 +766,7 @@ _Source: `ANLDAQ/gui/gui_LinkSys.py` (295 lines, verified 2026-04-10)_
 
 ## softIOC — Global Broadcast PV System (`JustGlobals.db`)
 
-_Source: `ANLDAQ/EPICS/softIOC/db/JustGlobals.db` (14,248 lines, auto-generated)_
+_Source: `ANLDAQ/EPICS/softIOC/db/JustGlobals.db` (14,248 lines, auto-generated)_ ✅ verified 2026-04-10 — `wc -l JustGlobals.db`
 
 The `ANLDAQ/EPICS/softIOC` is a lightweight EPICS soft IOC that runs alongside the GUI. Its primary purpose is hosting `JustGlobals.db` — a **broadcast PV layer** that lets operators set any DIG parameter across all 12 VME crates simultaneously with a single caput.
 
@@ -808,7 +808,7 @@ Full PV name pattern: `GLBL:DIG:<NN>:<preset>_<param>` where `<NN>` is a fanout 
 
 ## softIOC — Support PVs (`dgsSupport.db`)
 
-_Source: `ANLDAQ/EPICS/softIOC/db/dgsSupport.db` (235 lines, hand-crafted — last edit 2025-03-23 JTA/Ryan)_
+_Source: `ANLDAQ/EPICS/softIOC/db/dgsSupport.db` (235 lines, hand-crafted — last edit 2025-03-23 JTA/Ryan)_ ✅ verified 2026-04-10 — `wc -l dgsSupport.db`
 
 Companion to `JustGlobals.db`. Contains **hand-crafted PVs** that are not auto-generated from the register map — glue records for run control, setup state, and computed readbacks.
 
