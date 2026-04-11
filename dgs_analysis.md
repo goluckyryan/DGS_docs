@@ -258,6 +258,15 @@ _Source: `gray_apps/src/GrayCAL/core/SyntheticSpectrumGenerator.py` (458 lines) 
 
 Defines the `Spectrum` dataclass: `E_bins` (numpy array of energy bin edges in keV), `counts` (numpy array), `label` (optional string), `metadata` (dict). Serialization methods: `save_to_json/load_from_json`, `save_to_npz/load_from_npz`, `save_to_hdf5/load_from_hdf5`. Used as the shared spectrum container across GrayCAL and GrayMAN.
 
+#### `FileReader.py` — Multi-format Spectrum File Reader
+
+Unified file reader for GrayCAL GUI (134 lines, by S. Carmichael). Supports `.root`, `.txt`, and `.spe` files.
+
+- **Constructor:** Takes `filepath`; auto-detects format from extension; for ROOT files, scans and lists all TH1 and TH2 histogram names via `uproot`.
+- **`get_hist_data(histname)`**: Returns `(centers, counts)` arrays. ROOT: uses `uproot` + `hist.to_numpy()`; TXT: `np.loadtxt` (2-column: energy, counts); SPE: delegates to `spedata.rdspe()` (counts only, centers = 0-indexed).
+- **`get_spectrum_data()`**: Iterates all known 1D+2D histogram names, returns list of `SpectrumData` objects.
+- Used by GrayCAL GUI when user opens a spectrum file for viewing/calibration.
+
 #### `spedata.py` — RadWare `.spe` File Reader/Writer
 
 Legacy Python class for reading and writing RadWare `.spe` binary spectrum files (gf3/GEBSort format). Uses Fortran-style record framing (4-byte size prefix + suffix around each record). Header: 8-char name + 4 ints (idim=nbins, 1, 1, 1). Spectrum: `idim` 32-bit floats.
