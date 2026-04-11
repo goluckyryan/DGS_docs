@@ -49,9 +49,9 @@ The main FPGA is the core of the Master Trigger. It:
 |---|-----------|-----------|--------|--------------|
 | 1 | `TRIG_LOGIC1` | `cpld_trig` | CPLD fast strobe (coarse multiplicity) | `EN_ALGO5` |
 | 2 | `TRIG_LOGIC2` | `sum_hits_X` | Sum X — X-plane multiplicity | `EN_SUM_X` |
-| 3 | `TRIG_LOGIC3` | `sum_hits_X` | Sum Y — Y-plane multiplicity | `EN_SUM_Y` |
+| 3 | `TRIG_LOGIC3` | `sum_hits_X` | Sum Y — Y-plane multiplicity (note: reuses `sum_hits_X` entity with Y sum/threshold inputs; trigger type = 03) | `EN_SUM_Y` |
 | 4 | `TRIG_LOGIC4` | `sum_hits_XY` | Sum XY — X+Y coincidence | `EN_SUM_XY` |
-| 5 | `TRIG_LOGIC5` | `cpld_trig` | Manual/Aux/RAM trigger | `EN_MAN_AUX` |
+| 5 | `TRIG_LOGIC5` | `cpld_trig` | CPLD fast strobe **edge-detected** (`xxxxFAST_STROBE`) — coincidence trigger (selected via `ALGO_5_SELECT`). PV name `EN_MAN_AUX` is misleading; this is the coincidence/fast-strobe algo. ✅ verified 2026-04-10 — `top.vhd:L2651,L2666,L4153` (20220705 tag) | `EN_MAN_AUX` |
 | 6 | `TRIG_LOGIC6A/B` | `GITMO_TRIGGER` (6A) / remote (6B) | Link L: GITMO or remote trigger (muxed via `TRIG_LOGIC_6_ALGO_SEL`) | `EN_LINK_L` |
 | 7 | `TRIG_LOGIC7` | `REMOTE_MASTER_TRIG_SUPPORT` | Link R: remote master trigger | `EN_LINK_R` |
 | 8 | `TRIG_LOGIC8A/B` | `MYRIAD_TRIGGER` (8A) / remote (8B) | Link U: MyRIAD or remote trigger (muxed via `LINK_U_IS_TRIGGER_TYPE`) | `EN_MYRIAD_LINK_U` |
