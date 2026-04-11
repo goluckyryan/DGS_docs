@@ -703,7 +703,10 @@ _Source: `fastEventContructor/README.md`. Test dataset: TAC2_021, 16 GB, 158 fil
 |---------|--------|-----------|--------|
 | EventBuilder_Q | 4 workers | 58.0s | 734M ROOT |
 | EventBuilder_PQ (no ReadPool) | 12 merge, 4 writers | 37.4s | 734M ROOT |
-| EventBuilder_PQ (with ReadPool) | 12 merge, 4 writers | 19.0s | 734M ROOT |
+| EventBuilder_PQ (full Scan + ReadPool) | 12 merge, 4 writers | 19.0s | 734M ROOT |
+| EventBuilder_PQ (QuickBounds + ReadPool) | 12 merge, 4 writers | **13.6s** | 734M ROOT |
+
+✅ verified 2026-04-11 — `fastEventContructor/README.md` (TAC2_021 benchmark table). QuickBounds variant added; replaces old full-scan pre-pass with per-file header sampling for faster sector partitioning.
 
 **EventBuilder_PQ thread scaling (with ReadPool + optimizations, nWriters=4):**
 
