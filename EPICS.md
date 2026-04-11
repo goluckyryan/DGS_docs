@@ -46,7 +46,7 @@ Every PV has a **record type** that determines what it stores and how it behaves
 ### Multi-bit binary (enum)
 | Type | Direction | Use |
 |------|-----------|-----|
-| `mbbi` | Input | Read enum (up to 16 states) — e.g., link state: IDLE/INIT/LOCKED |
+| `mbbi` | Input | Read enum (up to 16 states) — e.g., link state: IDLE/INIT/LOCKED | ✅ verified 2026-04-11 — `mbboRecord.h:L97,L112` (ZRST=Zero String through FFST=Fifteen String, 16 enum fields) |
 | `mbbo` | Output | Write enum — e.g., trigger mode select |
 
 ### String / waveform
