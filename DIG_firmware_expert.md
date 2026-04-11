@@ -206,7 +206,7 @@ Post-Rise – Pre-Rise subtraction subject to pole-zero effects, baseline drift,
 
 ### Pileup Rejected (simple case)
 
-Channel Readout Machine monitors PEQ and timestamp. T1 + T2 buffers each 1024 samples (20.48 µs at 100 MHz). Readout aligned to discriminator firing.
+Channel Readout Machine monitors PEQ and timestamp. T1 + T2 buffers each 1024 samples (20.48 µs at 100 MHz). Readout aligned to discriminator firing. ✅ verified 2026-04-11 — `Channel_Readout_Mach.vhd:L137` (11-bit `next_event_waveform_length`, max 1024 set by physical T1+T2 buffer size)
 
 User controls:
 - **Waveform offset**: samples before discriminator to start readout
