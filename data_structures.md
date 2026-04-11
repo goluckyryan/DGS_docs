@@ -325,6 +325,7 @@ fastEventConstructor / parquet_pysort (post-run)
 - `dgs/DIG_firmware_expert.md` — DIG firmware readout modes and packet structure
 - `dgs/dgs_analysis.md` — fastEventConstructor and parquet_pysort documentation
 - `dgs/ANLDAQ.md` — tcpReceiverMT and IOC sender documentation
+- `dgs/guceiver.md` — Guceiver live GUI: also decodes DIG and TAC-II packets from the same TCP stream
 
 ---
 *Created: 2026-04-06. Source: class_DIG.h + class_Hit.h + class_TDC.h*

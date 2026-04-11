@@ -542,6 +542,8 @@ See **[deep_fpga_building.md](deep_fpga_building.md)** for the full build guide,
 | [DIG_firmware_expert.md](DIG_firmware_expert.md) | All 8 readout modes, discriminator modes, pileup, timing, ADC linearity specs |
 | [ioc.md](ioc.md) | EPICS IOC: boot scripts, DB loading, firmware version PVs, MVME5500 setup |
 | [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, munch process, IOC connections |
+| [ANLDAQ.md](ANLDAQ.md) | DAQ GUI + TCP data receiver; trigger setup scripts; EPICS CA config per system |
+| [guceiver.md](guceiver.md) | Guceiver live diagnostic GUI: reads IOC TCP stream; DIG + TAC-II packet decoders |
 
 ---
 *Source: `DGS_tools_pack/fpga/` and `DGS_tools_pack/FPGA/` (gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05.*
