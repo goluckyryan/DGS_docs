@@ -787,7 +787,7 @@ The `ANLDAQ/EPICS/softIOC` is a lightweight EPICS soft IOC that runs alongside t
 
 ### How It Works
 
-Each top-level `GLBL:DIG:<preset>_<param>` PV fans out through a chain of `dfanout` records (`GLBL:DIG:F00:`, `F01:`, ...) until reaching `VMExx:GLBL:<param>` on every crate. Writing one PV → all 12 crates updated. The DB contains ~690 `dfanout` records and 69+ top-level broadcast PVs.
+Each top-level `GLBL:DIG:<preset>_<param>` PV fans out through a chain of `dfanout` records (`GLBL:DIG:F00:`, `F01:`, ...) until reaching `VMExx:GLBL:<param>` on every crate. Writing one PV → all 12 crates updated. The DB contains **2,124 `dfanout` records** (all records are dfanout type) and **177 top-level broadcast PVs** matching `GLBL:DIG:[A-Z]...`. ✅ verified 2026-04-11 — `grep -c "record(dfanout" JustGlobals.db` = 2124; `grep -c "record(.*GLBL:DIG:[A-Z]" JustGlobals.db` = 177. File: 14,248 lines.
 
 ### Preset Profiles
 
