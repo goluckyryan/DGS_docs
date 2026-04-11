@@ -41,7 +41,7 @@ The main 50 MHz trigger clock is multiplied to **250 MHz** inside the FPGA (DCM 
 | C | 180° | 1.750 ns |
 | D | 270° | 1.742 ns |
 
-Phase skew = 156 ps. Temperature-dependent variation expected in the tap delays.
+Phase skew = 156 ps. ✅ verified 2026-04-11 — TAC.docx §Chain delays: "skew of 156ps between chains: 1.670ns...1.826ns...1.750ns...1.742ns" measured via FPGA Editor tool (compilation 20160224). Note: may differ in Vivado port. Temperature-dependent variation expected in the tap delays.
 
 ### Vernier (Delay Line) TDC
 
