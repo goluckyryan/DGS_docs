@@ -254,7 +254,20 @@ Generates synthetic gamma-ray spectra for testing/validation of the fitting and 
 
 _Source: `gray_apps/src/GrayCAL/core/SyntheticSpectrumGenerator.py` (458 lines) — explored 2026-04-10_
 
-_Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06; radware_eff + isotope data explored 2026-04-08_
+#### `spectrum_types.py` — Spectrum Dataclass
+
+Defines the `Spectrum` dataclass: `E_bins` (numpy array of energy bin edges in keV), `counts` (numpy array), `label` (optional string), `metadata` (dict). Serialization methods: `save_to_json/load_from_json`, `save_to_npz/load_from_npz`, `save_to_hdf5/load_from_hdf5`. Used as the shared spectrum container across GrayCAL and GrayMAN.
+
+#### `spedata.py` — RadWare `.spe` File Reader/Writer
+
+Legacy Python class for reading and writing RadWare `.spe` binary spectrum files (gf3/GEBSort format). Uses Fortran-style record framing (4-byte size prefix + suffix around each record). Header: 8-char name + 4 ints (idim=nbins, 1, 1, 1). Spectrum: `idim` 32-bit floats.
+
+- `rdspe()` — reads `.spe` file, returns spectrum as tuple of floats; sets `self.spec`, `self.idim`, `self.name`
+- `wrspe(spename, spec)` — writes spectrum to `.spe` file with given name (padded to 8 chars) and float array
+
+Useful for importing/exporting spectra to/from RadWare tools (gf3, levit8r, etc.) and GEBSort.
+
+_Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06; radware_eff + isotope data explored 2026-04-08; spectrum_types + spedata explored 2026-04-11_
 
 ### GrayMAN — Gamma-Ray MultiPeak Analyzer Network
 
