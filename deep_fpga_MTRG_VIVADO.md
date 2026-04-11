@@ -24,6 +24,8 @@ _Source: `DGS_tools_pack/raw_FPGA/MTRG/Firmware/VIVADO_MAIN_FPGA/`. Created: 202
 | Top Entity | `trigger_top` |
 | Bitfile | `Firmware/VIVADO_MAIN_FPGA/trunk/Work13_4/trigger_top.bit` |
 
+✅ verified 2026-04-11 — `FPGA/MTRG/Firmware/VIVADO_MAIN_FPGA/trunk/project_1/project_1.xpr`: Part=`xcku060-ffva1517-1L-i`, Vivado v2018.3
+
 ## Role
 
 This is the Vivado-based port of the Master Trigger main FPGA, targeting the Kintex UltraScale device. It implements the same trigger logic as the ISE version (`MAIN_FPGA`) but uses updated Xilinx IP cores and the Vivado toolchain. This version is intended for newer hardware revisions.
@@ -53,7 +55,7 @@ The VHDL source files are the same as in `MAIN_FPGA/trunk/Source/`. Refer to [de
 
 **Location:** `Firmware/VIVADO_MAIN_FPGA/trunk/Cores/`
 
-Vivado IP blocks (replacing XCO cores from ISE version):
+Vivado IP blocks (replacing XCO cores from ISE version). ✅ verified 2026-04-11 — all core names confirmed in `project_1.xpr` Run entries:
 
 | Core | Description |
 |------|-------------|
