@@ -107,7 +107,7 @@ EPICS PV prefix: `VME<CRATE>:<BOARD>:` (e.g. `VME66:MDIG1:`)
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x0040 + ch×4` | `reg_channel_control<ch>` | Channel enable, mode, trigger type |
+| `0x0040 + ch×4` | `reg_channel_control<ch>` | Channel enable, mode, trigger type | ✅ verified 2026-04-10 — `asynDigParams.c:L459` (`setAddress(reg_channel_control0,0x0040)`)
 
 Range: `0x0040` (ch0) … `0x0064` (ch9)
 
@@ -117,7 +117,7 @@ Range: `0x0040` (ch0) … `0x0064` (ch9)
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x0080 + ch×4` | `reg_led_threshold<ch>` | Leading-edge discriminator threshold |
+| `0x0080 + ch×4` | `reg_led_threshold<ch>` | Leading-edge discriminator threshold | ✅ verified 2026-04-10 — `asynDigParams.c:L469` (`setAddress(reg_led_threshold0,0x0080)`)
 
 Range: `0x0080` (ch0) … `0x00A4` (ch9)
 
