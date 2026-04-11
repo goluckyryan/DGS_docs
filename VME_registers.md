@@ -165,7 +165,7 @@ Range: `0x0180` … `0x01A4`
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x01C0 + ch×4` | `reg_k_window<ch>` | K (integration/peaking) window length |
+| `0x01C0 + ch×4` | `reg_k_window<ch>` | K (integration/peaking) window length | ✅ verified 2026-04-11 — `asynDigParams.c:L519` (`setAddress(reg_k_window0,0x01C0)`)
 
 Range: `0x01C0` … `0x01E4`
 
@@ -173,7 +173,7 @@ Range: `0x01C0` … `0x01E4`
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x0200 + ch×4` | `reg_m_window<ch>` | M window (baseline/gap) length |
+| `0x0200 + ch×4` | `reg_m_window<ch>` | M window (baseline/gap) length | ✅ verified 2026-04-11 — `asynDigParams.c:L529` (`setAddress(reg_m_window0,0x0200)`)
 
 Range: `0x0200` … `0x0224`
 
