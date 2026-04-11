@@ -8,7 +8,7 @@ _Source: `DGS_tools_pack/raw_FPGA/` + `DGS_tools_pack/fpga/` repos. Created: 202
 | MTRG Main FPGA (ISE) | xc4vlx80 (Virtex-4 LX80) | Xilinx ISE | 14.7 | ✅ verified 2026-04-10 — Work13_4.xise `Device=xc4vlx80` |
 | MTRG Main FPGA (Vivado) | xcku060 (Kintex UltraScale) | Xilinx Vivado | 2018.3 |
 | MTRG VME FPGA | xc3s400 (Spartan-3) | Xilinx ISE | 14.7 | ✅ verified 2026-04-10 — vme_A32_D32.xise `Device=xc3s400` |
-| RTRG Main FPGA | xc4vlx80 (Virtex-4 LX80) | Xilinx ISE | 14.7 |
+| RTRG Main FPGA | xc4vlx80 (Virtex-4 LX80) | Xilinx ISE | 14.7 | ✅ verified 2026-04-11 — Work13_4.xise `Device=xc4vlx80` |
 | DIG Main FPGA | xc3s5000 (Spartan-3) | Xilinx ISE | 14.7 | ✅ verified 2026-04-10 — BUS_LEFT.xise `Device=xc3s5000` |
 
 ---
@@ -29,7 +29,7 @@ The `.xise` project files record the targets explicitly:
 |--------|-------------|
 | MTRG Main FPGA | `MTRG/Firmware/MAIN_FPGA/trunk/Work13_4/Work13_4.xise` ✅ verified 2026-04-10 — file exists; `Device=xc4vlx80, DeviceFamily=Virtex4` |
 | MTRG VME FPGA | `MTRG/Firmware/VME_FPGA/A32D32_VME_FPGA/Work13.4/vme_A32_D32.xise` ✅ verified 2026-04-10 — file exists; `Device=xc3s400` |
-| RTRG Main FPGA | `RTRG/Firmware/DGS_Version/Rtr4704_mod_for_reset/MAIN_FPGA_4704_mod/Work13_4/Work13_4.xise` ✅ verified 2026-04-10 — file exists |
+| RTRG Main FPGA | `RTRG/Firmware/DGS_Version/Rtr4704_mod_for_reset/MAIN_FPGA_4704_mod/Work13_4/Work13_4.xise` ✅ verified 2026-04-11 — `Device=xc4vlx80, DeviceFamily=Virtex4` |
 
 ### Ubuntu 24.04 Compatibility
 
