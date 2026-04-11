@@ -325,6 +325,7 @@ Located in each branch's `Cores/` directory:
 
 ## See Also
 
+- `dgs/deep_fpga_DIG.md` — DIG firmware overview: Spartan-3 architecture, ADC pipeline, event packet format, master/slave config, FIFO readout (this file is a continuation of that)
 - `dgs/fpga.md` — System-level overview: trigger hierarchy, signal flow, PEQ explanation, end-to-end timeline
 - `dgs/DIG_firmware_expert.md` — Operator-level guide: all 8 readout modes, register summary, discriminator config
 - `dgs/deep_fpga_RTRG.md` — Router firmware: multiplicity aggregation, throttle, VME register map
