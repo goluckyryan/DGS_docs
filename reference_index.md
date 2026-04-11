@@ -11,9 +11,9 @@ The DGS register maps are stored as large tab-delimited CSV files generated from
 **CSV locations:**
 ```
 /home/ryan/DGS_tools_pack/DGS_docs/RegisterMaps/
-  MasterDigitizerRegisterMap.csv    — DIG (988 entries) ✅ verified 2026-04-08 — grep -v ^#|^% | wc -l
-  DGSMasterTriggerRegisterMap.csv   — MTRG (4656 entries) ✅ verified 2026-04-08 — grep -v ^#|^% | wc -l
-  DGSRouterTriggerRegisterMap.csv   — RTRG (1112 entries) ✅ verified 2026-04-08 — grep -v ^#|^% | wc -l
+  MasterDigitizerRegisterMap.csv    — DIG (987 data rows, 1009 total lines) ✅ verified 2026-04-11
+  DGSMasterTriggerRegisterMap.csv   — MTRG (4655 data rows, 4685 total lines) ✅ verified 2026-04-11
+  DGSRouterTriggerRegisterMap.csv   — RTRG (1111 data rows, 1138 total lines) ✅ verified 2026-04-11
   MDRM.csv                          — DIG (duplicate/alternate version)
 ```
 
