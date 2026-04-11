@@ -6,7 +6,7 @@ _Source: `DGS_tools_pack/raw_FPGA/` + `DGS_tools_pack/fpga/` repos. Created: 202
 | Module | Device | Tool | Version |
 |--------|--------|------|---------|
 | MTRG Main FPGA (ISE) | xc4vlx80 (Virtex-4 LX80) | Xilinx ISE | 14.7 | ✅ verified 2026-04-10 — Work13_4.xise `Device=xc4vlx80` |
-| MTRG Main FPGA (Vivado) | xcku060 (Kintex UltraScale) | Xilinx Vivado | 2018.3 |
+| MTRG Main FPGA (Vivado) | xcku060-ffva1517-1L-i (Kintex UltraScale) | Xilinx Vivado | 2018.3 | ✅ verified 2026-04-11 — `MTRG/Firmware/VIVADO_MAIN_FPGA/trunk/project_1/project_1.xpr` (`Part=xcku060-ffva1517-1L-i`, `Vivado v2018.3`) |
 | MTRG VME FPGA | xc3s400 (Spartan-3) | Xilinx ISE | 14.7 | ✅ verified 2026-04-10 — vme_A32_D32.xise `Device=xc3s400` |
 | RTRG Main FPGA | xc4vlx80 (Virtex-4 LX80) | Xilinx ISE | 14.7 | ✅ verified 2026-04-11 — Work13_4.xise `Device=xc4vlx80` |
 | DIG Main FPGA | xc3s5000 (Spartan-3) | Xilinx ISE | 14.7 | ✅ verified 2026-04-10 — BUS_LEFT.xise `Device=xc3s5000` |
