@@ -155,11 +155,11 @@ Link L TX ◄──────────────────────�
 | 17 | CG | Clock guard (DC balance) |
 | 16 | THR | Global throttle request (OR of all 8 channels) |
 | 15:9 | Y-mult | Y-plane multiplicity (7 bits, 0–80) |
-| 8 | VAL | Data valid (after pipelines fill) |
+| 8 | VAL | Data valid: `ALL_DIGITIZERS_LOCKED AND ROUTER_LOCKED` |
 | 7:1 | X-mult | X-plane multiplicity (7 bits, 0–80) |
 | 0 | POL | Polarity (DC balance) |
 
-✅ verified 2026-04-07 — `router_data_path.vhd` header comment (lines 7–11): `LINKL_RAW_DATA[14:8]`=Y-mult, `LINKL_RAW_DATA[7]`=VAL, `LINKL_RAW_DATA[6:0]`=X-mult; these map to frame bits [15:9], [8], [7:1] respectively (LINKL_RAW_DATA[15:0] → frame[16:1]). Adder tree: 4-bit per-link → 5-bit → 6-bit → 7-bit total (3 ranks for 8 links). Physical max=80 (8 links × 10 ch).
+✅ verified 2026-04-07 — `router_data_path.vhd` header comment (lines 7–11): `LINKL_RAW_DATA[14:8]`=Y-mult, `LINKL_RAW_DATA[7]`=VAL, `LINKL_RAW_DATA[6:0]`=X-mult; these map to frame bits [15:9], [8], [7:1] respectively (LINKL_RAW_DATA[15:0] → frame[16:1]). Adder tree: 4-bit per-link → 5-bit → 6-bit → 7-bit total (3 ranks for 8 links). Physical max=80 (8 links × 10 ch). VAL = `ALL_DIGITIZERS_LOCKED AND ROUTER_LOCKED` ✅ verified 2026-04-11 — `router_data_path.vhd:L222`.
 
 ### Clock Domains
 
