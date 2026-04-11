@@ -239,7 +239,7 @@ Eight consecutive frames, each carrying one trigger decision slot. Unused slots 
 
 | Word | Bits | Field | Description |
 |------|------|-------|-------------|
-| 1 | 15:11 | Frame type | `10101` = NULL (no trigger); `01010` (0x5x) = local trigger; `01100` (0x6x) = remote trigger |
+| 1 | 15:11 | Frame type | `10101` = NULL (no trigger); `01010` (0x5x) = local trigger; `01100` (0x6x) = remote trigger | ✅ verified 2026-04-11 — `SERDES_RX_Mach.vhd:L735` (20230809): "nulls are 0xAAAA. Local triggers are, by fiat, 0x5nxx (n=0-7). Remote trigs are 0x6nXX" |
 | 1 | 10:8 | Trigger type | 0 = manual/aux/RAM; 1 = sumX/local coinc; 2 = sumY; 3 = sumXY; 4 = CPLD/fast strobe |
 | 1 | 7:0 | Trigger data | Algorithm-specific payload |
 | 2 | 15:0 | TRIG_TS[47:32] | Physics timestamp of the triggering event, bits 47–32 |
