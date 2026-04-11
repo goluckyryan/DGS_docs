@@ -97,8 +97,8 @@ These CSVs record which physical crystals were installed in which GS holes durin
 
 Key observations:
 - Holes 1, 2, 3, 4, 5, 6 have no Ge or HV entry — likely forward/backward beam holes or permanently empty positions
-- GS 53 (north) and GS 58 (south) are explicitly marked `EMPTY`
-- HV ranges from 3000–4800 V (typically 3500–4000 V per crystal)
+- GS 53 (north) and GS 58 (south) are explicitly marked `EMPTY` ✅ verified 2026-04-11 — `North_db.csv:L53` + `South_db.csv:L58`
+- HV ranges from 3000–4800 V (typically 3500–4000 V per crystal) ✅ verified 2026-04-11 — `North_db.csv` + `South_db.csv`: min=3000V, max=4800V
 - Two crystals noted as ANL serials (`ANL00` at GS 95, `ANL16` at GS 98) rather than numeric serials
 - BGO #s run 1–113 (not contiguous); SBX positions use compass notation (TL=top-left, BR=bottom-right, etc.)
 - Install dates cluster around May 15–31, 2017
