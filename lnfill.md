@@ -112,7 +112,7 @@ Automated control system for filling germanium detector **dewars** with liquid n
 - Pings 8 hosts: .148 (ln2con), .58 (pi5), .121 (lnfill IOC), .154 (piserver1), .88 (gs-cne), .149 (gs-cnw), .42 (gs-cse), .26 (gs-csw) ✅ verified 2026-04-09 — `LNFill_ping_cron.sh:L10` + DNS lookup from DCS2
 - For pi5: uses **SSH** instead of ping (catches OS-broken-but-network-up failures)
 - When SSH succeeds: also records `mem_available_mb` → Grafana trend ✅ verified 2026-04-09 — `LNFill_ping_cron.sh:L24-26`
-- On SSH failure: Discord alert to anomaly channel
+- On SSH failure: Discord alert to anomaly channel — exact message: `"⚠️ pi5-lnFill (<ip>) is unreachable via SSH at <date>"` ✅ verified 2026-04-11 — `LNFill_ping_cron.sh:L34-36`
 
 ### Pi5 Health Check (`LNFill_pi5_check.sh`, on DCS2)
 - Runs at 7:15 and 19:15 (15 min after scheduled fill starts)
