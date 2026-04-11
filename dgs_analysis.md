@@ -298,9 +298,17 @@ A separate PyQt6 GUI application for multi-peak gamma-ray spectrum analysis. Use
 - SNIP background subtraction (`core/snip.py`)
 - Matrix/2D spectrum viewer (`gui/matrix_viewer.py`)
 
+**Core module notes (explored 2026-04-11):**
+- **`snip.py`** — SNIP background estimation: iterative windowed min-filter with optional LLS (Log-Log-Sqrt) transform for stabilisation; `m` iterations controls smoothness. Returns `(y_corrected, background)`. Clean, complete implementation.
+- **`peak_detection.py`** — `find_peak_centroids()` searches fixed-separation peaks in a window around expected positions (simple local-max approach). Has an in-code `TODO: "Need to replace this with something more realistic"` — **placeholder, not production-ready**. `set_fitting_limits()` finds regions exceeding `threshold_factor × noise_level` above background, merges gaps ≤ `max_gap`, extends by ±5σ each side.
+- **`spectrum_model.py`** — Gaussian peak model utilities for fitting.
+- **`fitting.py`** — Multi-peak fitting using the spectrum model.
+
+> ⚠️ GrayMAN is less mature than GrayCAL — `peak_detection.py` has a known placeholder. Use GrayCAL's `AutoFitter` (from the `Fitter/grayfit/` library) for production peak finding.
+
 **Run:** `python src/GrayMAN/main.py`
 
-_Source: `dgs_analysis/armory/gray_apps/src/GrayMAN/` — explored 2026-04-06_
+_Source: `dgs_analysis/armory/gray_apps/src/GrayMAN/` — explored 2026-04-06; core internals verified 2026-04-11_
 
 ### grayfit — Shared Fitting Library
 
