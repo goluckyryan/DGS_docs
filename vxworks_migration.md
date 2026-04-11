@@ -3,9 +3,10 @@
 ## Source System
 
 - **Host**: con6, hostname `192.168.203.136`
-- **OS**: Sun Solaris 10 (SPARC)
+- **OS**: Sun Solaris 10 (SPARC) ✅ verified 2026-04-11 — `DecodingTheMakefile.txt:L4` (`EPICS_HOST_ARCH=solaris-sparc-gnu`)
 - **User**: dgs
-- **Original build script**: `/global/devel/dgsDrivers/makeScript.sh`
+- **Original build root**: `/global/devel/dgsDrivers/` ✅ verified 2026-04-11 — `DecodingTheMakefile.txt:L12` (`TOP = . ##for us this is /global/devel/dgsDrivers`)
+- **Build environment on con6:** `EPICS_BASE=/global/devel/epics/base`, `WIND_BASE=/global/devel/vxWorks/Tornado2.2`, `EPICS_HOST_ARCH=solaris-sparc-gnu`, `WIND_HOST_TYPE=sun4-solaris2` ✅ verified 2026-04-11 — `DecodingTheMakefile.txt:L4-8`
 
 ## What Was Copied from con6
 
