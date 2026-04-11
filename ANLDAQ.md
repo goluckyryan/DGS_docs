@@ -655,6 +655,21 @@ _Source: `gui_scalar.py` commit `0f3f2df` 2026-04-06 (code-verified)_
 
 ---
 
+## GUI: RAM Window (`gui_RAM.py`)
+
+`RAMWindow` (34 lines) — minimal popup window showing a **32×32 grid** of `RMapTwoStateButton` cells, each bound to a PV. Used to visualize MTRG RAM buffer contents (VETO_RAM, TRIG_RAM, SWEEP_RAM). Opened from the MTRG tab via a RAM selector combo box. Updates every **500 ms** via `QTimer`.
+
+**Three RAM types** (from `gui_MTRG.py:L393`):
+- `VETO_RAM` — trigger veto pattern RAM
+- `TRIG_RAM` — trigger pattern RAM
+- `SWEEP_RAM` — sweep pattern RAM
+
+Each RAM has a corresponding `_ADDR_SRC` PV (`VETO_RAM_ADDR_SRC`, etc.) that selects the address source; shown separately in the MTRG tab rather than in the RAM window grid.
+
+_Source: `ANLDAQ/gui/gui_RAM.py` (34 lines) + `gui_MTRG.py:L393-482` (code-read 2026-04-11)_
+
+---
+
 ## GUI: System Window (`gui_SYS.py`)
 
 `gui_SYS.py` (427 lines) — provides the system-level tabs embedded in the main `DGS Commander` window. All tab classes inherit from `sysTemplateTab` (same visible-only update pattern as other GUI modules: `QTimer` → `UpdatePVs()` skips hidden tabs). Update interval: **500 ms** for all system tabs.
