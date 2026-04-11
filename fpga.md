@@ -538,6 +538,7 @@ See **[deep_fpga_building.md](deep_fpga_building.md)** for the full build guide,
 | [preamp_reset_readme.md](preamp_reset_readme.md) | PRK holdoff timing, PREAMP_RESET_DELAY register in DIG firmware |
 | [digitizer_tester.md](digitizer_tester.md) | Digitizer Tester: dual 200 MHz DAC, analog switch matrix, TTCL link, waveform generation |
 | [deep_fpga_DIG.md](deep_fpga_DIG.md) | DIG firmware deep dive: Spartan-3, ADC pipeline, event packet format, pole-zero |
+| [deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md) | DIG per-channel signal processing: LED/CFD discriminator modes, delay chain, pileup, VME FPGA, IP cores |
 | [DIG_firmware_expert.md](DIG_firmware_expert.md) | All 8 readout modes, discriminator modes, pileup, timing, ADC linearity specs |
 | [ioc.md](ioc.md) | EPICS IOC: boot scripts, DB loading, firmware version PVs, MVME5500 setup |
 | [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, munch process, IOC connections |
