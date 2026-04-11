@@ -9,7 +9,7 @@
 ## Function
 
 - Generates arbitrary test waveforms via dual **16-bit DACs** (AD9747, up to 200 MHz) ✅ verified 2026-04-07 — `DAC_SPI.vhd:L1` (AD9747); `Dig_Tester_pkg.vhd` (clock_freq_sel: 00=50MHz, 01=100MHz, 11=200MHz)
-- Drives waveforms to up to 10 output channels via an **analog switch matrix**
+- Drives waveforms to up to 10 output channels via an **analog switch matrix** (8×10 ADG2108 chips; each channel independently selectable from: Digital discriminator, AUX0, AUX1, DAC0+, DAC0−, DAC1+, DAC1−) ✅ verified 2026-04-11 — `Analog_Switch_MUX.vhd:L3-4` ("8x10 ADG2108") + L283-297 (per-channel source select encoding)
 - Connects to TTCL (DGS/GRETINA trigger system) via **RJ45** — can sync to master timestamp or run asynchronously
 - Provides 2 **NIM outputs** for triggering/synchronization
 - VME register interface for waveform programming and control
@@ -50,7 +50,7 @@
 | `Waveform.vhd` | Waveform memory + sequencer |
 | `Waveform_Reader.vhd` | Reads waveform data from VME-loaded buffer |
 | `DAC_SPI.vhd` | SPI interface to DAC chips |
-| `Analog_Switch_MUX.vhd` | Analog switch matrix control |
+| `Analog_Switch_MUX.vhd` | Analog switch matrix control — 8×10 ADG2108 chips, 7 source signals per channel, SPI clock ≤769 kHz (1.3 µs min low time ✅ `L134`) |
 | `SERDES_TX_MACH.vhd` | TTCL transmit state machine |
 | `Timestamp_Generator.vhd` | Local timestamp counter |
 | `TS_Mask_Trigger.vhd` | Timestamp-based trigger generation |
