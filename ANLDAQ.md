@@ -561,7 +561,7 @@ ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
 ```
 Lightweight alternative to `start_run.sh` / `stop_run.sh` for quick tests without ELOG or parquet sort.
 
-**`copy2Slopebox.sh`** — Single-line placeholder (empty/stub). Not currently implemented.
+**`copy2Slopebox.sh`** — One-liner: `rsync -av tcpReceiver.cpp Makefile constant.h dgs@slopebox:/global/ioc/dgsReceiver/.` — copies TCP receiver source to the `slopebox` host's IOC receiver directory. Used to deploy receiver code updates to the slopebox machine. ✅ verified 2026-04-12 — `ANLDAQ/tcpReceiver/copy2Slopebox.sh`
 
 ### Packet Consistency: Receiver vs FPGA Firmware
 
