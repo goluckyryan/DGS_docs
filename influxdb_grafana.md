@@ -128,7 +128,7 @@ Helper used by lnFill scripts. Has two functions:
 - `WriteDiscordMessage(msg)` — posts to Discord via webhook
 - `WriteInflux(msg)` — writes a single line protocol message to `HPGeTemp` db
 
-Token and webhook loaded from files in the `lnFill/` directory.
+Token and webhook loaded from files in the `lnFill/` directory: `discord.WebHook` (webhook URL) and `influx.token` (InfluxDB write token). ✅ verified 2026-04-12 — `WriteDiscordMessage.py:L6,L17`
 
 ---
 
