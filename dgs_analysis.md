@@ -301,6 +301,30 @@ _Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06; radware_eff +
 
 _Source: `gray_apps/src/GrayCAL/gui/main_window.py` (explored 2026-04-11)_
 
+#### `polezero_dialog.py` — Pole-Zero Extraction GUI Dialog
+
+`PoleZeroDialog(QDialog)` — PyQt6 dialog for configuring and running PZ extraction from a 2D S1/S2 histogram loaded in GrayCAL. Wraps `estimate_pz_from_histogram()` from `pole_zero_fitter.py`.
+
+**Parameter groups (shown in scrollable dialog):**
+- **Scan Parameters** — `PZParams` coarse scan settings (pz_min, pz_max, pz_step) + gate settings
+- **Refinement** — fine-scan settings from `PZParams`
+- **Method selector** — chi2 / peakmatch / pca / ridge (combo box)
+- **PCA Parameters** — `PCAParams` (hidden unless method=pca)
+- **PeakMatch Params** — `PeakMatchParams` (hidden unless method=peakmatch)
+- **Ridge Params** — `RidgeParams` (hidden unless method=ridge)
+- **Axis Mode / Misc** — 2D histogram axis options
+
+**Workflow:**
+1. User selects a 2D spectrum (S1 vs S2 histogram) in the GrayCAL sidebar
+2. Opens via Tools → PoleZero menu
+3. Configures method + params in dialog
+4. Clicks Run → `run_extraction()` calls `estimate_pz_from_histogram(h2, s1_edges, s2_edges, params)` → returns `DetResult` with `.pz` coefficient
+5. Result shown in dialog; Save button calls `write_pz_cal(path, pz_map)` → `.cal` file
+
+**Key detail:** Dialog reads the current spectrum directly from parent `MainWindow`; validates it's a 2D histogram before allowing run. Stores last `DetResult` in `self._last_result` for save.
+
+_Source: `gray_apps/src/GrayCAL/gui/polezero_dialog.py` (494 lines, explored 2026-04-12)_
+
 ### GrayMAN — Gamma-Ray MultiPeak Analyzer Network
 
 **Full name:** GrayMAN (Gamma-Ray MultiPeak Analyzer Network)
