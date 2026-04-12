@@ -266,8 +266,13 @@ Two NIM inputs and two NIM outputs:
 | NIM Out 1 | `NIMSrc1` | Output | Trigger output — source selectable via `NIMSrc1` + `NIM1_SubSelect` PVs |
 | NIM Out 2 | `NIMSrc2` | Output | Trigger output — source selectable via `NIMSrc2` + `NIM2_SubSelect` PVs |
 
-**NIM output source options** (`NIMSrc1`/`NIMSrc2` PV):
-- `AUX/NIM` (0), `SumX` (1), `SumY` (2), `SumXY` (3), `CPLD FS` (4), `RemMstr(L)` (5), `RemMstr(R)` (6), `MyRIAD(U)` (7)
+**NIM output source options:**
+
+`NIMSrc1` (bits 13:12 of `reg_AUX_IO_CTL`): `SubSrc` (0), `AnyTrig` (1), `Sync` (2), `FastStrobe` (3) ✅ verified 2026-04-11 — `MTrigUser.template:L82-90`
+
+`NIMSrc2` (bits 15:14 of `reg_AUX_IO_CTL`): `SubSrc` (0), `AnyTrig` (1), `ImpSync` (2), `RemoteSync` (3) ✅ verified 2026-04-11 — `MTrigUser.template:L91-99`
+
+> ⚠️ **Previous doc listed incorrect values** (`AUX/NIM`, `SumX`, `SumY`, etc.) — those were from an older firmware version. Corrected 2026-04-11 against current `MTrigUser.template`.
 
 **NIM output sub-select** (`NIM1_SubSelect`/`NIM2_SubSelect` PV):
 - `TrigRam` (0), `VetoRam` (1), `SweepRam` (2), `EncXtra` (3), `FiltInProg` (4), `Diag` (5), `EncChng` (6), `SelSlowClk` (7)
