@@ -102,6 +102,23 @@ Key issues documented:
 
 ---
 
+## Problem: Missing BGO Events on Specific Detectors
+
+**Symptom:** BGO channels for one or more Ge detectors show zero or very low rate even when beam is present.
+
+**Possible cause:** Ge preamp reset blanking (`CHANNEL_KILLED`) is gating the paired BGO channels. When a Ge channel is in preamp-reset kill state, `external_disc_flag(i) <= not(CHANNEL_KILLED(i+5))` suppresses BGO channels 0–4 paired to that Ge.
+
+**Check:**
+- High preamp reset rate for the Ge channel → check `MOD###_DIG_PREAMP_RESET_DELAY` is reasonable (too large = blanks BGO for too long)
+- `MOD###_DIG_CHANNEL_CONTROL` bit 3 (`PREAMP_RESET_DELAY_EN`) — if enabled and delay is large, BGO can be effectively silenced
+- Monitor `MOD###_DIG_HIHILOLO_CNT` to see how often the preamp is resetting
+
+**Fix:** Reduce `PREAMP_RESET_DELAY` or disable it (`PREAMP_RESET_DELAY_EN=0`) for the affected channel.
+
+*(Source: `preamp_reset_readme.md`, `Digitizer.vhd:L1117`)*
+
+---
+
 ## Useful PVs for Diagnostics
 
 | PV | What It Shows |
