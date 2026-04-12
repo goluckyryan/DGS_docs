@@ -288,16 +288,16 @@ Deviations indicate the actual RC differs from the nominal slope box setting.
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `pz_min` | 0.930 | Coarse scan lower bound |
-| `pz_max` | 0.990 | Coarse scan upper bound |
-| `pz_step` | 0.0005 | Coarse scan step size |
+| `pz_min` | 0.930 | Coarse scan lower bound | ✅ verified 2026-04-12 — `pole_zero_fitter.py:L168`
+| `pz_max` | 0.990 | Coarse scan upper bound | ✅ verified 2026-04-12 — `pole_zero_fitter.py:L169`
+| `pz_step` | 0.0005 | Coarse scan step size | ✅ verified 2026-04-12 — `pole_zero_fitter.py:L170`
 | `s1_ref_width` | 10.0 | Half-width around V_dc for reference gate |
 | `s1_hi_min` | 300.0 | Min offset above V_dc for high-baseline gate |
 | `e_bins` | 8192 | Energy histogram bins for χ² evaluation |
 | `e_min/max` | 0–8192 | Energy axis range |
-| `do_refine` | True | Run fine-scan refinement after coarse scan |
-| `refine_pz_halfwidth` | 0.002 | Fine scan ± half-range around coarse best |
-| `refine_pz_step` | 0.0001 | Fine scan step size |
+| `do_refine` | True | Run fine-scan refinement after coarse scan | ✅ verified 2026-04-12 — `pole_zero_fitter.py:L186`
+| `refine_pz_halfwidth` | 0.002 | Fine scan ± half-range around coarse best | ✅ verified 2026-04-12 — `pole_zero_fitter.py:L187`
+| `refine_pz_step` | 0.0001 | Fine scan step size | ✅ verified 2026-04-12 — `pole_zero_fitter.py:L188`
 | `peak_search_emin/max` | 50–8192 | Energy range for peak finder in refinement |
 
 Note: `armory/gray_apps/polezero_parameters.md` referenced here does **not exist** — the above is extracted directly from `pole_zero_fitter.py:PZParams` (2026-04-08).
