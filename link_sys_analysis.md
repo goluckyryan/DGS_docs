@@ -372,3 +372,11 @@ When `perform_error_checks=False`, Stages 3, 4, 5 skip all `ALL_LOCKED_RBV` and 
 
 ---
 *Source: `DGS_tools_pack/ANLDAQ/gui/link_sys.py` (669 lines) — Python LinkSys class. Verified 2026-04-10 against source. Created: 2026-04-05.*
+
+## Cross-References
+
+- `dgs/ANLDAQ.md` — ANLDAQ GUI: trigger setup scripts (5-stage shell), SerdesLinkup button that calls this Python class
+- `dgs/fpga.md` — FPGA firmware overview: SERDES link role in 3-tier hierarchy
+- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: SERDES link registers driven by Stage 1
+- `dgs/deep_fpga_RTRG.md` — RTRG firmware: SERDES link registers driven by Stages 2–4
+- `dgs/troubleshooting.md` — Router lock loss, SYNC bit gotcha (Stage 5 clears SYNC)

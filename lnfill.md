@@ -302,3 +302,10 @@ set_hilo_lim 107 78
 
 ---
 *Source: `DGS_tools_pack/lnfill/` (git repo on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05. Operations section added from [wiki: LN System](https://wiki.anl.gov/gsdaq/LN_system): 2026-04-06.*
+
+## Cross-References
+
+- `dgs/influxdb_grafana.md` — InfluxDB/Grafana on DCS2; HPGeTemp database written by `SaveTemp.sh` / `StoreDetTemps.py`
+- `dgs/collectorboxpi.md` — Raspberry Pi soft IOC for HV control; parallel Pi infrastructure
+- `dgs/hardware_architecture.md` — LN2 system role in detector cooling chain
+- `dgs/troubleshooting.md` — LN2-related operational issues
