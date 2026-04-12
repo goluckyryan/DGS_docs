@@ -228,12 +228,32 @@ The Router also inserts the per-channel veto mask (`VETO[9:0]`) into bits [9:0] 
 | 0x100 | LOCK_BUS | Lock status of all 11 links |
 | 0x104–0x10C | DEN/REN/SYNC_BUS | Link enable/sync status |
 | 0x114–0x11C | TIMESTAMP[47:0] | Current 48-bit timestamp (3 words) |
-| 0x128 | MISC_STAT | Lost lock flags, all-locked status |
+| 0x128 | MISC_STAT | See bit map below |
 | 0x12C–0x148 | DIAG_COUNTER[1–8] | Diagnostic counters per channel |
 | 0x150 | THROTTLE_STATUS | Per-channel throttle status | ✅ verified 2026-04-09 — `TOP.VHD:L2315` (`REG_150_IN => THROTTLE_STATUS`) — both in `Rtr4704_mod_for_reset` (0x260E) and `20220705` tag |
 | 0x158 | CODE_DATE | Firmware build date — `0x0414` (April 14) ✅ verified 2026-04-06 — TOP.VHD:L392 |
 | 0x15C | CODE_REVISION | Code revision — `0x260E`: bits[15:12]=2 (PCB rev B), bits[11:8]=6 (DGS Router), bits[7:4]=0 (major), bits[3:0]=E (minor) ✅ verified 2026-04-06 — TOP.VHD:L369,L371–390 |
 | 0x1B0–0x1CC | LOCK_COUNTER[1–8] | Lock event counters per link |
+
+### MISC_STAT Register Bit Map (RTRG)
+
+EPICS PV: `VME$(CRATE):$(BOARD):reg_MISC_STAT_REG_RBV` (16-bit read-only)
+
+| Bit | Mask | PV Suffix | Description |
+|-----|------|-----------|-------------|
+| 0 | 0x0001 | `NIM_IN1_RBV` | **=1 when NIM input 1 is high (signal present).** Reflects the instantaneous logic level of the NIM IN1 front-panel input on this RTRG. |
+| 1 | 0x0002 | `NIM_IN2_RBV` | **=1 when NIM input 2 is high (signal present).** Same as bit 0 but for NIM IN2. |
+| 2 | 0x0004 | `ROUTER_LOCKED_RBV` | **=1 when this RTRG’s upstream SERDES link (to the MTRG) is locked and communicating.** This is the key health indicator for the RTRG — if 0 during a run, the RTRG is not receiving trigger commands from the MTRG and no data will flow from its digitizers. |
+| 7:3 | 0x00F8 | — | Reserved — always 0. |
+| 11:8 | 0x0F00 | — | Reserved — always 0. (A STATE_MON hook existed in the old Spreadsheet_ref variant but is not connected in the current production source.) |
+| 12 | 0x1000 | `LOST_LOCK_RBV` | **=1 if the SERDES state machine has lost lock at any point since last reset (latched).** Set by `SERDES_SM_LOST_LOCK_FLAG`. Unlike bit 2, this is sticky — it stays 1 even if lock is later re-acquired. A 1 here during a run means a transient link glitch occurred. |
+| 13 | 0x2000 | — | Reserved — always 0. |
+| 14 | 0x4000 | `ALL_LOCKED_RBV` | **=1 when all downstream SERDES links (to DIG boards on this RTRG’s channels) are locked.** Expected to be 1 during normal operation. If 0, one or more digitizer links on this RTRG are not communicating. |
+| 15 | 0x8000 | `LOCK_ERROR_RBV` | **=1 if lock was lost after being successfully acquired (latched/sticky).** Normally 0. A 1 here indicates the link was healthy at some point but then degraded — worth investigating even if currently re-locked. |
+
+✅ verified 2026-04-12 — `FPGA/RTRG/Firmware/DGS_Version/MAIN_FPGA/Source/TOP.VHD:L1214–1222,L2022,L2179–2180` + `ioc/db/RTrigUser.template:L3814–3864`
+
+**Note:** RTRG has one MISC_STAT register (no MISC_STAT2). MTRG has two: MISC_STAT (link init + frame-pending flags) and MISC_STAT2 (SPARE_LVDS + throttle request).
 
 ## IP Cores
 

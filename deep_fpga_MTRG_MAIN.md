@@ -465,8 +465,46 @@ This is detectable in software — `class_TDC.h` checks for the `0x1006/1005/100
 | 0x01B0 | SYSTEM_THROTTLE_MAP |
 | 0x0200–0x027C | Algorithm config (delay, overlap, prescale, veto) |
 | 0x0240–0x024C | Remote trigger settings |
+| 0x0200 | MISC_STAT (see bit map below) |
+| 0x0258 | MISC_STAT2 (see bit map below) |
 | 0x08F4 | ASYNC_CMD_FIFO (Frame 15 commands from VME) |
 | 0x08F8 | AUX_CMD_FIFO |
+
+### MISC_STAT Register Bit Map (MTRG)
+
+EPICS PV: `VME$(CRATE):$(BOARD):reg_MISC_STAT_RBV` (16-bit read-only)
+
+| Bit | Mask | PV Suffix | Description |
+|-----|------|-----------|-------------|
+| 0 | 0x0001 | `xNIM_IN1_RBV` | **=1 when NIM input 1 is high (signal present).** Reflects the raw instantaneous logic level of the NIM IN1 front-panel input. |
+| 1 | 0x0002 | `DLYD_TDC_IN_NIM_IN2_RBV` | **=1 when NIM input 2 is high (signal present).** Same as bit 0 but for NIM IN2. Formerly named `xNIM_IN2`; repurposed as the delayed TDC trigger input in later firmware. |
+| 2 | 0x0004 | `TIMESTAMP_ROLLOVER_RBV` | **=1 when the 48-bit timestamp counter has rolled over** (wrapped from max back to 0). Normally 0 during a run; a 1 here indicates the run has been going long enough to overflow the counter (≈3.3×10¹³ clock ticks at 100 MHz ≈ 388 days). |
+| 3 | 0x0008 | `FRAME_12_PENDING_RBV` | **=1 when a Frame 12 command is queued but not yet sent.** Frame 12 is the internal trigger command sent to RTRGs (routers replace it with Null for digitizers). A stuck high value here may indicate the TTCL command pipeline is stalled. |
+| 4 | 0x0010 | `FRAME_14_PENDING_RBV` | **=1 when a Frame 14 command is queued but not yet sent.** Frame 14 targets Digitizer Tester boards and MγRIAD. Normally pulses briefly; stuck high = pipeline stall. |
+| 5 | 0x0020 | `FRAME_16_PENDING_RBV` | **=1 when a Frame 16 synchronous capture command is queued but not yet sent.** Frame 16 is the DGS system-wide synchronous capture command (e.g. snapshot of scalers/counters). |
+| 6 | 0x0040 | `FRAME_17_PENDING_RBV` | **=1 when a Frame 17 auxiliary detector command is queued but not yet sent.** Frame 17 targets non-digitizer front-end devices. |
+| 7 | 0x0080 | — | Reserved — always 0. |
+| 11:8 | 0x0F00 | `LINK_INIT_STATE_RBV` (mbbi) | **SERDES link initialization state machine status.** Value indicates current state: 0=INIT (reset), 1=EN_SERDES (enabling transceivers), 2=SYNC (synchronizing), 3=WAIT_LOCK (waiting for all links to lock), 4=ALL_LOCK (all links locked, normal running), 5=ACKED (lock acknowledged), 6=ERROR (lock failed). Expected value during normal operation: **4 (ALL_LOCK)**. |
+| 12 | 0x1000 | `ANY_TRIGGER_VETO_RBV` | **=1 when at least one trigger veto source is currently active** (e.g. buffer full, throttle, manual veto). While 1, the MTRG suppresses trigger acceptance. Added 2016-04-01. |
+| 13 | 0x2000 | — | Reserved — always 0. |
+| 14 | 0x4000 | `ALL_LOCKED_RBV` | **=1 when all downstream SERDES links (to RTRGs) are in lock.** This is the normal healthy state for a running system. If 0 during a run, data from one or more RTRGs is not being received. |
+| 15 | 0x8000 | `LOCK_ERROR_RBV` | **=1 if any SERDES link lost lock at any point since last reset (latched/sticky).** Unlike bit 14, this bit does not clear when lock is re-acquired — it stays high until explicitly reset. Normally 0; any 1 here means a link glitch occurred and should be investigated. |
+
+✅ verified 2026-04-12 — `FPGA/MTRG/Firmware/VIVADO_MAIN_FPGA/trunk/Source/top.vhd:L1306–1319,L2140–2142` + `ioc/db/MTrigUser.template:L35283–35383`
+
+### MISC_STAT2 Register Bit Map (MTRG)
+
+EPICS PV: `VME$(CRATE):$(BOARD):reg_MISC_STAT2_RBV` (16-bit read-only). Provides access to SPARE_LVDS and auxiliary status bits.
+
+| Bit | Mask | PV Suffix | Description |
+|-----|------|-----------|-------------|
+| 7:0 | 0x00FF | — | **`xSPARE_LVDS[7:0]`** — 8 spare LVDS input bits from the front panel. FCO 200/201 pin-strapped as inputs (added 2009-08-26). Useful for monitoring external LVDS signals or debugging. Normally all 0 if nothing is connected. |
+| 9:8 | 0x0300 | — | **`xXXLVDS[1:0]`** — two additional LVDS input bits (added 2009-08-26). Same purpose as xSPARE_LVDS. |
+| 10 | 0x0400 | `GLOBAL_THROTTLE_REQUEST_RBV` | **=1 when at least one RTRG is asserting a global throttle request** (i.e. its local buffers are near full and it wants the MTRG to pause triggering). The MTRG uses this to engage system-wide throttle. Normally 0 during healthy running; a stuck 1 indicates sustained buffer pressure. |
+| 14:11 | 0x7800 | — | Reserved — always 0. |
+| 15 | 0x8000 | `L_SM_LOCKED_RBV` | **=1 when the SERDES Link L state machine is locked** (link to the downstream RTRG on the L port). In GITMO mode (added 2011-10-05), reflects GITMO machine lock instead. Expected to be 1 during normal operation; 0 means the L-link is not communicating. |
+
+✅ verified 2026-04-12 — `FPGA/MTRG/Firmware/VIVADO_MAIN_FPGA/trunk/Source/top.vhd:L1324–1341` + `ioc/db/MTrigUser.template:L35473–35483`
 
 ## IP Cores
 
