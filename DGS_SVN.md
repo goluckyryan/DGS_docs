@@ -16,9 +16,9 @@ The SVN tree contains a broad historical archive of DGS development:
 
 | Directory | Contents |
 |-----------|----------|
-| `17pc030-GretinaTRGT` | Gretina trigger target hardware |
-| `17pc031-HeliosPreampPower` | Helios preamp power supply |
-| `20180921` | Dated snapshot (contents undocumented) |
+| `17pc030-GretinaTRGT` | **GRETINA Target Wheel Interface PCB** (2017, ANL part 17pc030) — Allegro `.brd` layout + Gerber PDF + `TargetWheelInterface.doc`. Interfaces the GRETINA target wheel mechanism to the DAQ/trigger system. Not DGS-specific; archived here as it was designed at ANL in the same era. |
+| `17pc031-HeliosPreampPower` | **HELIOS Preamp Power Supply PCB** (2017, ANL part 17pc031) — Allegro `.brd` layout + OrCAD schematic (`.DSN`). Powers the HELIOS detector preamplifiers. Unrelated to DGS Gammasphere; archived alongside DGS PCBs as it was designed concurrently at ANL. |
+| `20180921` | **Asyn driver source snapshot (Sep 21, 2018)** — 43 C/C++ files: `asynDigitizerDriver.cpp/.h`, `asynMTDriver_JTA.cpp/.h`, `asynRTDriver_JTA.cpp/.h`, `asynDebugDriver.cpp/.h`, `asynDigParams.c/.h`, `asynMTrigParams.c/.h`, `asynRTrigParams.c/.h`, `asynSDigParams.c/.h`, and others. Snapshot of the VME asyn driver codebase before Git migration; historical reference for the state of the driver in 2018. Current version lives in `DGS_tools_pack/vxworks/dgsDrivers/`. |
 | `20230818_edm` | **EDM screen snapshot (Aug 18, 2023)** — 208 `.edl` files, more complete than `screens/` (141 files). Includes everything in `screens/` plus: CLO-variant screens (`clov*` — Clover detector?), legacy VXI screens (`VXI.edl`, `VXImain.edl`, `vxivolts.edl` — analog Gammasphere), `WheelMap.edl`/`WheelMapRBV.edl` (GS detector wheel geometry display), `StripeFPGAGeneric.edl` (generic StripeFPGA control), `ThrottleControl.edl`, `Trace.edl`, `TrigControl.edl`, `VMEDigMap.edl`, `xxx.edl`. Also includes two EDM launcher scripts: `dgscommander` (production DGS, CA 5064/5065, `/global/devel/` paths, launches `DGSrunControl.edl` read-only) and `dgscommander2` (test stand / SBX, CA 5074/5075, `/global/devel6/` paths, launches `DGSrunControl.edl` read-write). Both reference legacy Solaris/con6 paths — historical reference for the full EDM operator GUI in its final form before PyQt6 migration. |
 | `con6_20220728` | con6 (Solaris host) snapshot *(not in local mirror)* |
 | `con6_EPICS_base` | EPICS base from con6 era *(not in local mirror)* |
