@@ -575,3 +575,11 @@ Pulse Delay units: 100s of ns (time from end of pulse n to beginning of pulse n+
 
 *Documented from: 20160418 trig command link.pdf, v2.1*
 *Written to memory: 2026-04-05*
+
+## Cross-References
+
+- `dgs/fpga.md` — FPGA firmware overview; TTCL role in the 3-tier trigger hierarchy
+- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: 20-frame command generation, TAC-II TDC
+- `dgs/deep_fpga_RTRG.md` — RTRG firmware: TTCL reception, throttle logic
+- `dgs/deep_fpga_DIG.md` — DIG firmware: TTCL reception, trigger decision window
+- `dgs/data_structures.md` — GEB binary data format; TTCL-driven event timestamps

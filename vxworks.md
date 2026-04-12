@@ -427,3 +427,11 @@ _Source: `DGS_SVN/dgs/Documentation/Formal/Software/howTheSenderWorks.docx` (T. 
 - Cross-compiler is NOT in git — must download from JLab before building
 - `migration.md` documents how this was ported from Solaris/con6 to Ubuntu
 - Each VME crate loads the same `gretDet.munch` but uses a different boot script with crate-specific parameters
+
+## Cross-References
+
+- `dgs/ioc.md` — IOC config, boot scripts, firmware versions, MVME5500 setup
+- `dgs/vxworks_migration.md` — Detailed migration notes from Solaris/con6 to Ubuntu 24
+- `dgs/EPICS_asyn.md` — asyn driver internals: port model, worker threads, write flow
+- `dgs/VME_registers.md` — VME register addresses used by the IOC driver
+- `dgs/fpga.md` — FPGA firmware overview; the firmware binaries loaded by VxWorks

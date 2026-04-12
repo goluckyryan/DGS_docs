@@ -420,3 +420,15 @@ gnome-terminal -- bash -c "telnet 192.168.203.54 2001; exec bash"
 - Firmware version table is the ground truth for what IOC configuration is active
 - Multiple VME crates share the same munch binary but have per-crate boot scripts (`vme66.cmd`, `vme99.cmd`, etc.)
 - After updating firmware: update the `ioc/firmware/` binaries, update the README version table, update boot scripts if needed
+
+
+## Cross-References
+
+- `dgs/vxworks.md` — VxWorks cross-compilation: build pipeline, munch process, directory structure
+- `dgs/vxworks_migration.md` — Migration from Solaris/con6 to Ubuntu 24; all path/source fixes
+- `dgs/EPICS.md` — EPICS record types, CA tools, Python integration
+- `dgs/EPICS_asyn.md` — asyn driver: caput/caget flow, port concept, worker threads
+- `dgs/VME_registers.md` — Complete VME register addresses extracted from asyn driver source
+- `dgs/IOC_cmd.md` — IOC shell commands available in DGS VxWorks IOC
+- `dgs/fpga.md` — FPGA firmware overview; firmware revisions that must match IOC boot scripts
+- `dgs/troubleshooting.md` — IOC connectivity issues, SYNC bit gotcha
