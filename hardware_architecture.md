@@ -12,7 +12,7 @@ A single VME crate with one MTRG, one RTRG, and two DIGs (BUS_LEFT + BUS_RIGHT p
 | MTRG board | Master trigger — runs trigger algorithms, distributes decisions |
 | RTRG board | Router — aggregates DIG hits, forwards trigger commands |
 | DIG board × 2 | Digitizer pair (BUS_LEFT + BUS_RIGHT) — 10 ch each, 20 ch total |
-| Ge detector | Germanium crystal — primary gamma-ray detector |
+| Ge detector | Germanium crystal — primary gamma-ray detector (two types: segmented and non-segmented, see below) |
 | BGO detector | Anti-Compton shield around Ge |
 | Slope box | Signal conditioning — shapes and conditions Ge/BGO signals before DIG |
 | Raspberry Pi | Runs soft IOC (EPICS) for slope box / collector box HV and monitoring |
@@ -154,6 +154,29 @@ All systems share the **same physical network (onenet, 192.168.203.x)** but are 
 | Collector boxes | — | 4 |
 | Raspberry Pis | 1 | 4 (+ pi5-dgs admin) |
 | IOC boards (MVME5500) | 1 | 12 |
+
+---
+
+## Gammasphere Ge Detector Types
+
+_Source: `DGS_SVN/dgs/Detector_Repair/DetectorRepairProcedure.docx` (JTA, 2019-06-02)_
+
+Gamemasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
+
+| Type | Ge crystal | Signals | Electronics |
+|------|-----------|---------|-------------|
+| **Non-segmented** (older) | Single chunk, one contact | 1 signal (center) | 1 circuit board + HV filter |
+| **Segmented** (newer) | Sawn in half lengthwise | 3 signals: center contact + 2 side channels | 2 circuit boards + HV filter |
+
+**Operating conditions (both types):**
+- Vacuum: 10⁻⁵ to 10⁻⁶ Torr inside detector cold volume
+- Temperature: liquid nitrogen (~77 K)
+- Bias voltage: 3,000–4,000 V (range 3000–4800V across array; most common 4000V)
+- Preamp type: **transistor-reset preamplifier** (no resistor feedback; NPN transistor bleeds accumulated charge when output reaches ~+10V; second comparator turns NPN off at ~0V)
+- Normal reset rate: every few ms to a few hundred ms depending on neutron damage to crystal
+- Leakage current: typically ~1 nA
+
+**Common repair reasons:** bad resolution, excessive reset rate, no signal.
 
 ---
 
