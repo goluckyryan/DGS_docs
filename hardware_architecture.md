@@ -161,7 +161,7 @@ All systems share the **same physical network (onenet, 192.168.203.x)** but are 
 
 _Source: `DGS_SVN/dgs/Detector_Repair/DetectorRepairProcedure.docx` (JTA, 2019-06-02)_
 
-Gamemasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
+Gammasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
 
 | Type | Ge crystal | Signals | Electronics |
 |------|-----------|---------|-------------|
