@@ -266,7 +266,7 @@ Same as Frame 12. Router strips content; Digitizers see null.
 
 #### Frame 15 — Async Command
 
-Sourced from the `ASYNC_CMD_FIFO` VME register (address `0x08F4`).
+Sourced from the `ASYNC_CMD_FIFO` VME register (address `0x08F4`). ✅ verified 2026-04-12 — `registers.vhd:L20` (Vivado trunk): "Address 0x08F4 is reserved for the ASYNC COMMAND FIFO that is writable by VME and read by the master machine."
 
 | Word | Bits | Field | Description |
 |------|------|-------|-------------|
