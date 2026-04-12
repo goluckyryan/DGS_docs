@@ -457,8 +457,8 @@ OutFile (per board+channel)
 
 ### Key Constants (`constant.h`)
 
-- Max file size: **2 GB**
-- Default receive buffer: **1M words = 4 MB**
+- Max file size: **2 GB** ✅ verified 2026-04-12 — `tcpReceiver/constant.h:L7` (`MAX_FILE_SIZE_BYTE = 1024LL*1024*1024*2`)
+- Default receive buffer: **1M words = 4 MB** ✅ verified 2026-04-12 — `tcpReceiver/constant.h:L8` (`DEFAULT_DATA_SIZE = 1000000`)
 - TRIG raw packet: **16 words** → repacked to **10 words**
 
 ### GEB Header (`#define ENABLE_GEB_HEADER`)
