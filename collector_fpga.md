@@ -36,13 +36,16 @@ The collector box hosts **6 slots (S1–S6)**, each carrying DIGitizer boards.
 |------|------|----------|
 | 0 | `ctl_bank_readback` | Read-only register bank readback |
 | 1 | `ctl_pulsed_control` | Pulsed resets (startup ROM reset, master reset, serial reset, FIFO reset, etc.) |
-| 2 | `FPGA_CTL_REG` | Main FPGA control register |
-| 3 | `ctl_ila_control` | ILA (Integrated Logic Analyzer) control |
-| 4 | `ctl_mask` | Alarm mask |
-| 5 | `ctl_alarm_control` | Alarm control |
-| 6 | `ctl_mask_misc_control` | Misc mask control |
-| 7 | `scanner_INITIAL_ROM_ADDRESS` | Scanner ROM address |
-| 8 | `ADC_transactor_FIFO` | ADC transactor FIFO access |
+| 0 | `ctl_bank_readback` / `ctl_pulsed_control` | Bank readback / pulsed control |
+| 1 | `FPGA_CTL_REG` | Main FPGA control register |
+| 2 | `ctl_ila_control` | ILA (Integrated Logic Analyzer) control |
+| 3 | `ctl_mask` | Alarm mask |
+| 4 | `ctl_alarm_control` | Alarm control |
+| 5 | `ctl_mask_misc_control` | Misc mask control |
+| 6 | `scanner_INITIAL_ROM_ADDRESS` | Scanner ROM start address |
+| 7 | `ADC_transactor_FIFO` | ADC transactor FIFO (user port) |
+
+✅ verified 2026-04-12 — `collector_FPGA/CollectorBox_CtrlFPGA/CtrlFPGAinitializer.h:L2-10` (corrected addresses; previously off by 2)
 
 **Housekeeping registers (addr 123–127):**
 
@@ -53,6 +56,8 @@ The collector box hosts **6 slots (S1–S6)**, each carrying DIGitizer boards.
 | 125 | `pi_gpio_readback_2` | Raspberry Pi GPIO readback 2 |
 | 126 | `ctl_code_date` | Firmware build date |
 | 127 | `ctl_code_revision` / `ctl_dpram_bank_sel` | Firmware revision + DPRAM bank select |
+
+✅ verified 2026-04-12 — `collector_FPGA/CollectorBox_CtrlFPGA/CtrlFPGAinitializer.h:L11-16`
 
 **Per-slot monitoring (S1–S6, addr 129–254):**
 
