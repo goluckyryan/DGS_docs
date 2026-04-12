@@ -51,6 +51,8 @@ The main FPGA is the core of the Master Trigger. It:
 | 2 | `TRIG_LOGIC2` | `sum_hits_X` | Sum X — X-plane multiplicity | `EN_SUM_X` |
 | 3 | `TRIG_LOGIC3` | `sum_hits_X` | Sum Y — Y-plane multiplicity (note: reuses `sum_hits_X` entity with Y sum/threshold inputs; trigger type = 03) | `EN_SUM_Y` |
 | 4 | `TRIG_LOGIC4` | `sum_hits_XY` | Sum XY — X+Y coincidence | `EN_SUM_XY` |
+
+✅ verified 2026-04-12 — `MasterTrigger/20220705/Source/top.vhd:L2456,2503,2554,2603` (TRIG_LOGIC1=cpld_trig, 2=sum_hits_X, 3=sum_hits_X, 4=sum_hits_XY); EN PVs confirmed `ioc/db/MTrigUser.template:L33535-33575`
 | 5 | `TRIG_LOGIC5` | `cpld_trig` | CPLD fast strobe **edge-detected** (`xxxxFAST_STROBE`) — coincidence trigger (selected via `ALGO_5_SELECT`). PV name `EN_MAN_AUX` is misleading; this is the coincidence/fast-strobe algo. ✅ verified 2026-04-10 — `top.vhd:L2651,L2666,L4153` (20220705 tag) | `EN_MAN_AUX` |
 | 6 | `TRIG_LOGIC6A/B` | `GITMO_TRIGGER` (6A) / remote (6B) | Link L: GITMO or remote trigger (muxed via `TRIG_LOGIC_6_ALGO_SEL` + `LINK_L_IS_TRIGGER_TYPE`) | `EN_LINK_L` | ✅ verified 2026-04-11 — `top.vhd:L2778,L2833,L939,L1104` (20220705): `TRIG_LOGIC6A : GITMO_TRIGGER`, `TRIG_LOGIC6B : REMOTE_MASTER_TRIG_SUPPORT`; `LINK_L_IS_TRIGGER_TYPE <= TRIG_ALGO_MUX_SEL_REG(0)` |
 | 7 | `TRIG_LOGIC7` | `REMOTE_MASTER_TRIG_SUPPORT` | Link R: remote master trigger | `EN_LINK_R` | ✅ verified 2026-04-11 — `top.vhd:L2896,L2899` (20220705 tag): comment "TRIG_LOGIC7 will be remote triggers coming in from link R", instantiates `REMOTE_MASTER_TRIG_SUPPORT` |
