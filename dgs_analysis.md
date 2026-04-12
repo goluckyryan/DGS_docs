@@ -278,6 +278,29 @@ Useful for importing/exporting spectra to/from RadWare tools (gf3, levit8r, etc.
 
 _Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06; radware_eff + isotope data explored 2026-04-08; spectrum_types + spedata explored 2026-04-11_
 
+#### GrayCAL GUI — `main_window.py`
+
+**Entry point:** `gray_apps/src/GrayCAL/gui/main_window.py` (1,200+ lines, PyQt6). `MainWindow(QMainWindow)` is the top-level app window.
+
+**Layout:**
+- **Left sidebar** — `QTreeView`-based tree with file nodes, isotope nodes, spectrum nodes, fit result groups, fit session items, and fit result items. Role constants: `KIND_FILE_ROOT`, `KIND_SPECTRUM_ITEM`, `KIND_FIT_SESSION_ITEM`, `KIND_FIT_RESULT_ITEM`, etc.
+- **Right panel** — tabbed: spectrum viewer (Plotly or matplotlib), fits viewer, calibration viewer, data tab (isotope line table)
+- **Menu bar** — File→Open (ROOT/SPE), View, Tools (AutoFit, BatchFit, PoleZero, BackgroundFit, SpectrumGeneration)
+
+**Key workflows:**
+1. Open spectrum file → `FileReader` (ROOT/txt/SPE) → `SpectrumData` objects → sidebar tree
+2. Select isotope → `IsotopeGammaData` loads JSON → active gamma lines displayed in data tab
+3. AutoFit → `AutofitDialog` → `AutoFitter` → fit results displayed in sidebar + `FitsViewer`
+4. Match peaks → `on_match_button_click()` → `CalibrationPoints.match_w_source()` → calibration points table
+5. Calibrate → `CalibrationPoints.energy_calibration()` → gain/offset → `CalibrationViewer`
+6. BatchFit → `BatchfitDialog` → `BatchFit` core → bulk calibration across many spectra
+
+**Dialogs:** `AutofitDialog`, `BatchfitDialog`, `PoleZeroDialog`, `BackgroundFitDialog`, `SpectrumGenerationDialog`, `PlotControlDialog`, `CalPtsWindow` (calibration points editor), `PeakRangeDialog`.
+
+**File formats supported:** ROOT (via uproot), `.spe` (RadWare/Maestro text format), `.txt` (channel→counts). SPE loaded via `spedata` + `_load_spe_to_spectrumdata()` adapter.
+
+_Source: `gray_apps/src/GrayCAL/gui/main_window.py` (explored 2026-04-11)_
+
 ### GrayMAN — Gamma-Ray MultiPeak Analyzer Network
 
 **Full name:** GrayMAN (Gamma-Ray MultiPeak Analyzer Network)
