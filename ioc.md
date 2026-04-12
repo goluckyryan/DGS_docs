@@ -362,6 +362,8 @@ cd ioc && python3 findAllPV.py
 - **collectorboxpi/** — parallel IOC for collector box hardware (different platform)
 - **EPICS_asyn.md** — asyn driver internals: caput/caget flow diagrams, port concept, asynUInt32Digital
 - **collectorbox_devicesupport.md** — EPICS device support for collector box (SPI, CAMAC_IO)
+- **VME_registers.md** — complete VME register address map for all DGS FPGA boards
+- **DIG_firmware_expert.md** — DIG firmware expert guide; complements the DB template PV definitions with firmware-level detail
 
 ---
 
