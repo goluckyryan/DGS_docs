@@ -190,7 +190,7 @@ Each link uses **2 rows (one "wafer")** of the connector. Per-link signal layout
 | d+/d− | LVDS IN — Discriminator bit (fast multiplicity, routed to CPLD) | Input |
 | e+/e− | LVDS IN — Throttle request (from digitizer FIFO half-full flag) | Input |
 
-> ⚠️ Links **L and R** do **not** have the extra LVDS lines (D/E columns) — SERDES pairs only.
+> ⚠️ Links **L and R** do **not** have the extra LVDS lines (D/E columns) — SERDES pairs only. ✅ verified 2026-04-11 — `MTRG/top.vhd`: FAST_STROBE is a single signal from the external CPLD (not per-link); discriminator/throttle inputs only exist for links A–H via CPLD ribbon cables. Links L/R/U are SERDES-only inter-trigger connections. Trigger user manual §2.1 confirms the same figure (no d/e columns shown for L/R).
 
 ### Link Assignments
 
