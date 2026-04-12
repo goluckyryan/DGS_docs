@@ -299,7 +299,7 @@ The critical design point: **DIGs digitize and buffer continuously without waiti
 
 #### Pending Event Queue (PEQ) details
 
-Each channel has a **16-entry circular buffer** (the "trigger rondel") managed by three concurrent state machines:
+Each channel has a **16-entry circular buffer** (the "trigger rondel") managed by three concurrent state machines: ✅ verified 2026-04-12 — `jta_channel.vhd:L94` (`DIAG_PEHQ_ADDR : out std_logic_vector(3 downto 0)` — 4-bit address space = 16 entries)
 
 - **Filler** — writes a new entry (timestamp + status bits) on every `ACCEPTED_HIT`.
 - **Remover** — advances the read pointer on every `EVENT_EXPIRED`. `EVENT_EXPIRED` is the discriminator flag delayed by `M + TRIG_DELAY` (the waveform capture window, a few µs). This means entries are continuously retired as their waveform data window closes — the PEQ does **not** accumulate events over a long window — entries expire after ~20 µs.
