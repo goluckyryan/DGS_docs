@@ -21,7 +21,7 @@ SSH required legacy options: `-o KexAlgorithms=+diffie-hellman-group1-sha1 -o Ho
 | `/global/devel/sncseq/` | `sncseq/sncseq-2.0.12/` | State Notation Compiler/Sequencer 2.0.12 |
 | `/global/devel/vxWorks/Tornado2.2/` | `vxWorks/Tornado2.2/` | VxWorks headers only (target/h) |
 | `/global/devel/vxWorks/Tornado2.2/target/config/mv5500/universe.h` | `vxWorks/Tornado2.2/target/config/mv5500/universe.h` | MVME5500 BSP Universe VME bridge header (fetched separately) |
-| `/global/devel/vxWorks/Tornado2.2/host/src/hutils/munch.tcl` | `munch.tcl` | VxWorks C++ ctor/dtor munch script |
+| `/global/devel/vxWorks/Tornado2.2/host/src/hutils/munch.tcl` | `munch.tcl` | VxWorks C++ ctor/dtor munch script ✅ verified 2026-04-12 — `vxWorks/Tornado2.2/target/h/tool/gnu/defs.gnu:L126` (`MUNCH = wtxtcl $(WIND_BASE)/host/src/hutils/munch.tcl`) |
 
 **Cross-compiler**: Downloaded separately from https://coda.jlab.org/drupal/content/ppc-cross-compilers
 - File: `x86-linux.tar` (GCC 2.96, powerpc-wrs-vxworks, VxWorks 5.5 compatible)
