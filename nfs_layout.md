@@ -534,3 +534,12 @@ Revised version of `trace_throttle.py`. Key improvements over v1:
 ---
 
 *Source: SSH exploration of DCS2.onenet as dcsu, 2026-04-05.*
+
+## Cross-References
+
+- `dgs/collectorboxpi.md` — Raspberry Pi soft IOC; PXE boot infrastructure served from fs2.onenet piserver NFS
+- `dgs/influxdb_grafana.md` — InfluxDB/Grafana on DCS2 (192.168.203.56); same server as NFS mounts
+- `dgs/expMemory_2008_Chiara.md` — Active experiment data locations on NFS (vol3/vol4 paths)
+- `dgs/lnfill.md` — LN2 fill system; lnfill scripts on vol3, ln2con home on vol3
+- `dgs/ANLDAQ.md` — Data acquisition; raw run files land on NFS vol4/vol5
+- `dgs/dgs_analysis.md` — Post-analysis; reads from NFS experiment directories
