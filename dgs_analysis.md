@@ -50,10 +50,11 @@ git clone --recursive git@gitlab.phy.anl.gov:dgs-tools-pack/dgs_analysis.git
 - 4 pipelined ROOT writers (round-robin)
 
 **EventBuilder_PQ optimizations (extends Q):**
-- Pre-scan phase: reads only GEB headers to get per-file timestamp bounds + seek index
-- Sector partitioning: divides time span into N sectors with ghost regions at boundaries
-- N parallel merge threads × M pipelined writers per thread
+- **QuickBounds phase**: reads only the first+last GEB header of each file to get per-file timestamp bounds and compute hit count from `fileSize / blockSize`. Sector seeking uses binary search on the file (fixed block size → any hit N is at byte offset `N × blockSize`). Falls back to full scan for files with inconsistent payload sizes.
+- Sector partitioning: divides time span into N sectors with ghost regions (width = `timeWindow`) at boundaries to avoid splitting coincidence events
+- N parallel merge threads × M pipelined writers per thread (N×M partial files, merged at end)
 - Per-sector double-buffered ReadPool
+- Hits whose first event falls in a ghost region are discarded to prevent duplicates across sector boundaries
 
 ```sh
 # Build
@@ -750,7 +751,18 @@ Note: type 13 is absent (unassigned). DGS uses types 14 (digitizer hits) and 15 
 ---
 
 ## EventBuilder_PQ Benchmark Results
-_Source: `fastEventContructor/README.md`. Test dataset: TAC2_021, 16 GB, 158 files, ~60M hits. NVMe Kingston SFYRD4000G (~7 GB/s rated). nWriters=4._
+_Source: `fastEventContructor/README.md`. NVMe Kingston SFYRD4000G (~7 GB/s rated)._
+
+### TAC2_054 — Large run (17.4 GB, 157 files, ~228M hits)
+
+| Builder | Config | Scan | Merge | Total | Read Rate | Write Rate |
+|---------|--------|------|-------|-------|-----------|------------|
+| EventBuilder_S | 30 workers | — | — | 659.7s | — | — |
+| EventBuilder_PQ | 12 merge, 4 writers | 0.3s | 23.7s | **32.2s** | 735 MB/s | 127 MB/s |
+
+EventBuilder_PQ verified against EventBuilder_S: both produce 26,656,402 events. ✅ verified 2026-04-12 — `fastEventContructor/README.md`
+
+### TAC2_021 — (16 GB, 158 files, ~60M hits, nWriters=4)
 
 **Top-level comparison:**
 
