@@ -166,7 +166,7 @@ Plot update interval: selectable via UI (timer-driven, paused when tab not visib
 
 ## Board ID Lookup
 
-At startup, Guceiver reads `{board_name}:user_package_data` via EPICS CA for each board in the `dig_board_list` argument. This maps board name → integer board ID used to filter events in the receiver.
+At startup, Guceiver reads `{board_name}:user_package_data` via EPICS CA for each board in the `dig_board_list` argument. This maps board name → integer board ID used to filter events in the receiver. ✅ verified 2026-04-11 — `Guceiver.py:L35-38` (`pv_name = f"{bd_name}:user_package_data"`, `board_id = epics.caget(pv_name, timeout=1)`)
 
 ---
 
