@@ -92,3 +92,13 @@ VIVADO_MAIN_FPGA/trunk/
 |------|-------------|
 | `Work13_4/trigger_top.bit` | Main production bitfile |
 | `Work13_4/GRET_L_trigger_top.bit` | Variant for GRETINA Link L mode |
+
+✅ verified 2026-04-12 — both bitfiles confirmed present at `FPGA/MTRG/Firmware/VIVADO_MAIN_FPGA/trunk/Work13_4/` (trigger_top.bit + GRET_L_trigger_top.bit)
+
+## Cross-References
+
+- `dgs/deep_fpga_MTRG.md` — MTRG overview: all 3 devices (Main FPGA, VME FPGA, CPLD)
+- `dgs/deep_fpga_MTRG_MAIN.md` — ISE-based MTRG main FPGA (production); shared VHDL source files
+- `dgs/deep_fpga_MTRG_VME.md` — VME FPGA (Spartan-3): configures and communicates with the main FPGA
+- `dgs/deep_fpga_building.md` — Vivado 2018.3 build toolchain setup
+- `dgs/fpga.md` — FPGA firmware overview; MTRG role in the 3-tier trigger hierarchy
