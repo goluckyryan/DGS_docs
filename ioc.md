@@ -136,6 +136,19 @@ Boot sequence:
 11. `seq &inLoop` / `seq &outLoop` / `seq &MiniSender` — start DAQ state machines
 
 **`inLoop` B-parameter syntax:** `seq &inLoop,"CRATE=NN,B0=MDIG1,B1=MDIG2,...,B5=MTRG,B6=X"` ✅ verified 2026-04-07 — `ioc/boot/vme66.cmd:L180-190`
+
+**`inLoop` state machine** (`inLoop.st`, 969 lines, SNL): ✅ verified 2026-04-12 — source read
+
+| State | Purpose |
+|-------|---------|
+| `INIT` | Priority=190; sets `InloopIsRunning=0`; calls `SetupBoardAddresses()`; waits for `AcqRun` PV; on START → `INITIAL_FIFO_CLEAR`; times out after 10s if no start |
+| `INITIAL_FIFO_CLEAR` | Per-board FIFO clear: MTRG → `ClearTrigFIFO()`; DIGs → `ClearDigMstrLogicEnable()` + `ClearDigFIFO()` + `CalcDigMaxEventsPerRead()`; RTRGs require no clear. If 0 boards enabled → `IDLE_ERROR` |
+| `IDLE_ERROR` | No boards enabled — waits for `AcqRun` to go away, then returns to `INIT` |
+| `ENABLE_DIGITIZERS` | Enables channel select (`CS_Ena`) on all boards; arms the digitizer logic; → `SCAN_FOR_DATA` |
+| `SCAN_FOR_DATA` | Main readout loop: iterates boards round-robin; calls `transferDigFifoData()` / `DigitizerTypeFHeader()` for each board with data; pushes raw events to `rawEvtQ`; monitors FIFO fullness flags; → `SCAN_DELAY` between passes |
+| `SCAN_DELAY` | Throttle: waits `ScanDelay` seconds (default 0.01s, dynamically adjusted) before next scan pass |
+| `DISABLE_COLLECTION` | On stop signal: disables `CS_Ena` on all boards; → `DRAIN_REMAINING_DATA` |
+| `DRAIN_REMAINING_DATA` | Drains remaining FIFO data after run stop; sends end-of-run marker; → `INIT` |
 - B0–B6 map slot numbers to board names (or `X` = empty slot)
 - `inLoop` uses these to form PV names like `MDIG1_CS_Ena` for readout control (e.g. `B3=X` → PV `X_CS_Ena`)
 - The slot index in `BN=` must match the physical VME slot (0-indexed from slot 1)
