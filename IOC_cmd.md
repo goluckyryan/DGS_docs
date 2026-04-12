@@ -552,4 +552,17 @@ IOC IPs are for **data stream only** — do not telnet to them for shell access.
 
 ---
 
-*Verified against source: `VxWorks/dgsDrivers/dgsDriverApp/src/`, `VxWorks/epics/base-3.14.12.1/src/`, `VxWorks/asyn*/`. Last updated: 2026-04-08.*
+---
+
+## Cross-References
+
+- `dgs/ioc.md` — IOC boot scripts, startup sequence, firmware versions
+- `dgs/vxworks.md` — VxWorks cross-compilation, munch process, build pipeline
+- `dgs/EPICS_asyn.md` — asyn driver internals: port concept, worker threads, bulk writes
+- `dgs/VME_registers.md` — complete VME register address map for DIG/RTRG/MTRG
+- `dgs/EPICS.md` — EPICS record types, CA tools, Python integration
+- `dgs/troubleshooting.md` — IOC connectivity issues, common failures
+
+---
+
+*Verified against source: `VxWorks/dgsDrivers/dgsDriverApp/src/`, `VxWorks/epics/base-3.14.12.1/src/`, `VxWorks/asyn*/`. Last updated: 2026-04-12.*
