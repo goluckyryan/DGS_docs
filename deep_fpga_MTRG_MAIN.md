@@ -71,6 +71,8 @@ When `ALGO_5_SELECT=1` (coincidence trigger), the `reg_COINC_TRIG_MASK` register
 | 8–11 (0x100–0x800) | `COINC_TRIG_MASK_B1–B4` | Group B, algos 1–4 |
 | 12–14 (0x1000–0x4000) | `COINC_TRIG_MASK_B6–B8` | Group B, algos 6–8 |
 
+✅ verified 2026-04-13 — `backup_Generated_top.vhd:L1688-1701` (bit assignments confirmed: A1=bit0, A2=bit1, ..., B1=bit8, B2=bit9, ... B8=bit14; note bit7 unused — no A5/B5). Register comment in `registers.vhd` says "secondary ts offset" but signal names and bit assignments confirm coincidence mask function.
+
 Algo 5 itself (the CPLD/coincidence trigger) is **absent** from both groups — it cannot coincide with itself. To disable all coincidence selection: `caput VME32:MTRG:reg_COINC_TRIG_MASK 0`. ✅ verified 2026-04-12 — `MTrigUser.template:L1385-1495` (A1=0x01, A2=0x02, A3=0x04, A4=0x08, A6=0x10, A7=0x20, A8=0x40; B1=0x100 … B8=0x4000; A5/B5 absent).
 
 3. Collects trigger decisions and issues synchronized command frames back to all Routers
