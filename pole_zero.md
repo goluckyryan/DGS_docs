@@ -340,9 +340,25 @@ dgs-algo    1                      # 0=algo0, 1=SZ_1, 2=SZ_2
 **Energy algorithms:**
 | Value | Name | Description |
 |-------|------|-------------|
-| 0 | algo0 | Simple trapezoidal (no PZ correction) |
-| 1 | SZ_1 | Standard pole-zero corrected energy | 
-| 2 | SZ_2 | High-rate variant |
+| 0 | algo0 | Simple trapezoidal (no PZ correction): `e_raw = sum2 - sum1` |
+| 1 | SZ_1 | Standard PZ-corrected energy (exponential baseline averaging) |
+| 2 | SZ_2 | High-rate variant (SAMPLED_BASELINE extrapolation) |
+
+**SZ_1 implementation** (`dgs_decode_lib.cpp:L454`) ✅ verified 2026-04-12:
+- Baseline update: `base = base × (1 - α) + S1_norm × α` where **α = `BASE_ALPHA` = 0.01**
+- Update only when inter-event time `dtev ≥ 250` (= 2.5 µs at 10 ns/tick) — avoids pile-up contaminating baseline
+- Energy: `e_raw = S2_norm - S1_norm × pz1 - base × (1 - pz1)` (requires `base > 10.0` to be valid)
+- `pz1` = per-sample PZ coefficient from `.cal` file; `S1_norm = sum1 / M`, `S2_norm = sum2 / M`
+
+**SZ_2 implementation** (`dgs_decode_lib.cpp:L469`) ✅ verified 2026-04-12:
+- Uses SAMPLED_BASELINE (`sb`) from FPGA header field, plus window parameters:
+  - `pz2 = pz1^((M + msample) / M)`, `pz3 = pz1^(msample / M)`, `pz4 = pz1^((M + K) / M)`
+  - Default `msample = 8.0` (samples before trigger used as baseline reference)
+- Two timing regions (thresholds in 10 ns ticks, defaults: `t1=50` → 500 ns, `t2=20` → 200 ns):
+  - `dtev ≥ t2` (≥200 ns): compute fresh base from sum1 + sb using pz2/pz3 ratio formula
+  - `t2 > dtev > t1`: extrapolate from last known base using linear factor
+- Energy: `e_raw = S2_norm - S1_norm × pz4 - base × (1 - pz4)`
+- CLI: `--dgs-SZ-t1 50.0 --dgs-SZ-t2 20.0 --dgs-msample 8.0`
 
 ### decode.py output columns
 After PZ correction, `decode.py` writes:
