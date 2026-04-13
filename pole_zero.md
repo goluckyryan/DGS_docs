@@ -46,7 +46,7 @@ An **ideal detector** has an infinite preamp time constant (no exponential tail)
 
 $$E = S_2 - S_1 \cdot P_z - b\,(1 - P_z)$$
 
-Where $b$ is a running exponential average of $S_1$ (long-term baseline estimate) and $P_z \in (0,1)$ is the pole-zero coefficient.
+Where $b$ is a running exponential average of $S_1$ (long-term baseline estimate) and $P_z \in (0,1)$ is the pole-zero coefficient. ✅ verified 2026-04-13 — `dgs_decode_lib.cpp:L463` (`e_raw = sum2_n - sum1_n * pz1 - base * (1.0 - pz1)`)
 
 At the correct PZ, $S_1$ and $S_2$ become **uncorrelated** — scatter is flat, recovering the ideal case.
 
