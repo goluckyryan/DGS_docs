@@ -146,3 +146,11 @@ _Root: `DGS_tools_pack/DGS_SVN/dgs/Documentation/Formal/Software/`_
 5. `Firmware/Digitizer/Initial Draft - Digitizer Registers.pdf` — digitizer register map (242 pg, large)
 6. `Links/Trigger Data Link/20060804 trig_input_link_spec.pdf` — DIG→RTRG data format
 7. `Links/Router to Master Trigger Data Link/20080415 router2mt data link.pdf` — RTRG→MTRG link
+
+## Cross-References
+
+- `dgs/reference_index.md` — Hardware drawings index (schematics, PCB docs); complements this PDF index
+- `dgs/DIG_firmware_expert.md` — Distilled from "ANL Digitizer Firmware for Experts.pdf"
+- `dgs/ttcl.md` — Distilled from "20160418 trig command link.pdf"
+- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG firmware; related to MTRG register map PDFs
+- `dgs/deep_fpga_DIG.md` — DIG firmware; related to digitizer register PDFs
