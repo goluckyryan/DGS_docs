@@ -189,15 +189,19 @@ Available sources and key lines:
 | File | Isotope | Lines | E range (keV) |
 |------|---------|-------|---------------|
 | `Euautocal.json` | 152Eu (auto-cal) | 16 | 121.8 – 1408.0 |
-| `eu152.sou` / `Calib.json` | 152Eu (full) | — | — |
-| `co56.sou` | 56Co | — | — |
-| `ba133.sou` | 133Ba | — | — |
-| `am241.sou` | 241Am | — | — |
-| `na24.sou` | 24Na | — | — |
-| `y88.sou` | 88Y | — | — |
-| `ta182.sou` | 182Ta | — | — |
-| `se75.sou` | 75Se | — | — |
-| `am243.sou` | 243Am | — | — |
+| `eu152.sou` | 152Eu (full) | 22 | 121.8 – 1408.0 |
+| `eu_autocal.sou` | 152Eu (autocal subset) | 16 | 121.8 – 1408.0 |
+| `co56.sou` | 56Co | 14 | 846.8 – 3451.2 |
+| `ba133.sou` | 133Ba | 9 | 53.2 – 383.9 |
+| `am241.sou` | 241Am | 4 | 26.3 – 59.5 |
+| `am243.sou` | 243Am | 11 | 43.5 – 334.3 |
+| `na24.sou` | 24Na | 6 | 511.0 – 2754.0 |
+| `y88.sou` | 88Y | 2 | 898.0 – 1836.1 |
+| `ta182.sou` | 182Ta | 19 | 31.7 – 1231.0 |
+| `se75.sou` | 75Se | 9 | 66.1 – 400.7 |
+| `calib.sou` | mixed (calib) | 14 | 121.8 – 1836.1 |
+
+✅ verified 2026-04-13 — line counts and E ranges from `data/isotopes/sou-files/*.sou` (awk on energy column)
 
 `Euautocal.json` is the default for `gain_from_parquet.py` — 16 strong 152Eu lines from 121.8 to 1408.0 keV covering the full Ge dynamic range.
 
