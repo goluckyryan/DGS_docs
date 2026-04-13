@@ -338,8 +338,12 @@ Set before using CA tools:
 ```bash
 export EPICS_CA_SERVER_PORT=5064
 export EPICS_CA_REPEATER_PORT=5065
-export EPICS_CA_ADDR_LIST="192.168.203.141 192.168.203.142 192.168.203.143 192.168.203.144 192.168.203.145 192.168.203.177 192.168.203.178 192.168.203.179 192.168.203.180 192.168.203.181 192.168.203.182 192.168.203.183"
-export EPICS_CA_AUTO_ADDR_LIST=NO
+export EPICS_CA_ADDR_LIST=""   # empty = use subnet broadcast (onenet)
+export EPICS_CA_AUTO_ADDR_LIST=YES
+
+# Note: ANLDAQ uses empty CA_ADDR_LIST for DGS/DXA (broadcast on 192.168.203.x subnet).
+# Only SBX/DUO use specific addresses: EPICS_CA_ADDR_LIST="192.168.203.28 vme99.onenet"
+# ✅ verified 2026-04-13 — ANLDAQ/EPICS_para.sh:L14,L43 (DGS=empty), L34 (SBX=192.168.203.28+vme99.onenet)
 ```
 
 ### Collector box (softIOC on Pi)
