@@ -226,6 +226,9 @@ commander.py (PyQt6 GUI)               tcpReceiverMT (C++ server)
 
 ## EPICS System Configurations (from EPICS_para.sh)
 
+`EPICS_HOST_ARCH` is auto-detected: `export EPICS_HOST_ARCH="linux-$(uname -m)"` (e.g. `linux-aarch64` on Pi5, `linux-x86_64` on x86). ✅ verified 2026-04-13 — `EPICS_para.sh:L1` (commit 6af0b88, 2026-04-02)
+
+
 | System | CA Server Port | CA Repeater Port | Terminal Server | IOC IPs |
 |--------|---------------|-----------------|----------------|---------|
 | DGS | 5064 | 5065 | 192.168.203.186, 192.168.203.91 | .141–.145, .177–.183 (12 VMEs) |
