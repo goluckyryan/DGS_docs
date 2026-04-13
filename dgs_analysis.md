@@ -529,6 +529,8 @@ dgs> h1 / h2 > hratio
 ```
 dgs> spec > spec.png          # save figure (png, pdf, svg, ...)
 dgs> saveParquet out.parquet G(tid==6) CS CAL(e_raw, dgs_gain.cal)
+# Note: G(<gate>) is required for saveParquet. CS applies CSflag==0 filter.
+# CAL(col, file.cal) applies per-crystal gain/offset to <col>, adds e_cal column.
 ```
 
 #### Scripting
