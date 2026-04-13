@@ -140,6 +140,26 @@ Each branch under `BuildBranches/` has the same internal layout:
 └── Work/       # ISE project file (.xise) and build outputs (.bit, .bin)
 ```
 
+## Compile-Time Build Options (Generics)
+
+_Source: `DIG/MAIN_FPGA/Build options for the digitizer.docx` (JTA, 2016-05-27)_
+
+These ISE project generics/parameters control what is compiled into the firmware:
+
+| Generic | Type | Default | Description |
+|---------|------|---------|-------------|
+| `SLAVE_MODE` | bool | **0** (false) | Clock distribution: 0=master (use DS92LV18 clock), 1=slave (use front bus cable clock). **Always 0 for DGS production.** Code revision reads `0x4Cnn` if master, `0x4Dnn` if slave. |
+| `EXPANDED_T_BUFFER` | bool | — | **Defunct (hard-coded true since 2015).** All builds have 20 µs T buffer. |
+| `RUN_EXT_FIFO_AT_100MHZ` | bool | 1 | Use 100 MHz clock for external FIFO logic. Always 1 in practice; will be deprecated. |
+| `INCLUDE_ILA` | bool | 0 | Enable ChipScope ILA (internal logic analyzer). Uses ~10 BRAMs, risk of timing issues. Dev/debug only. |
+| `DIAG_MUX_SIZE` | int | 2 | DAC diagnostic output: 0=DAC disabled (1-2% slice savings), 1=DAC on (X waveform only), 2=DAC on with full per-channel mux. |
+| `MAJORANA_MODE_FLAG` | bool | 0 | Majorana experiment mode: disables triple-filter discriminator, uses running pre/post-rise sums instead. Fixed M-buffer size set by `MAJORANA_M_SIZE`. **Off for DGS production.** |
+| `MAJORANA_M_SIZE` | int | — | (Only when `MAJORANA_MODE_FLAG=1`) Fixed M-buffer size: 0=128, 1=256, 2=512, 3=1024 samples. |
+
+**Maximal build** (for resource estimation): `SLAVE_MODE=0, RUN_EXT_FIFO_AT_100MHZ=1, INCLUDE_ILA=1, DIAG_MUX_SIZE=2, MAJORANA_MODE_FLAG=0, MAJORANA_M_SIZE=3`
+
+---
+
 ## Build Branches
 
 All branches target `xc3s5000-fg900-5`.
