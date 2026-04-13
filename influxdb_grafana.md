@@ -84,7 +84,7 @@ GS5_GE_HV_DEMAND_VOLTS value=3000.0 1743890400000000000
 - `Temperature,gsid=NNN,en=0/1 value=<temp_C>` for each of 110 GS holes ✅ verified 2026-04-09 — `StoreDetTemps.py:L51` (`influx_entry = "Temperature,gsid="+str(i).zfill(3)+",en="...`)
 - `pi_Temp value=<temp_C>` — Raspberry Pi board temperature ✅ verified 2026-04-09 — `StoreDetTemps.py:L41`
 
-**PVs read:** `MOD001_DV_TEMP` … `MOD110_DV_TEMP` (from collector box softIOC)
+**PVs read:** `MOD001_DV_TEMP` + `MOD001_DV_EN` … `MOD110_DV_TEMP` + `MOD110_DV_EN` (from collector box softIOC via pyepics). If `DV_TEMP > 520 K`, the detector is not connected — value stored as 0. ✅ verified 2026-04-13 — `StoreDetTemps.py:L95` (`if detTemp[gsid] > 520: detTemp[gsid] = 0 # not connected`)
 **Also logs to:** `templog/templog_YYYYMMDD.csv` (CSV backup on DCS2)
 
 ### 2. DGS PV Snapshots (`DGS` database)
