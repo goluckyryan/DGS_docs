@@ -131,3 +131,9 @@ sudo apt-get install flex libfl-dev
 
 ---
 *Source: Migration session notes + `DGS_tools_pack/vxworks/` build environment. Created: 2026-04-05.*
+
+## Cross-References
+
+- `dgs/vxworks.md` — VxWorks cross-compilation: full build pipeline, directory structure, munch process
+- `dgs/ioc.md` — IOC config and boot scripts that load the compiled VxWorks image
+- `dgs/DGS_SVN.md` — SVN archive: `VxWorksDocs/` reference docs, `jta_notes_20200501.txt` migration context

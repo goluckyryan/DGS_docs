@@ -160,3 +160,10 @@ All other runs: delete from data0 once confirmed on NFS (spot-check MD5 of a few
 ---
 
 *Created: 2026-04-05*
+
+## Cross-References
+
+- `dgs/nfs_layout.md` — Full NFS mount layout on DCS2; vol3/vol4 directory structure
+- `dgs/run_procedures.md` — Typical DGS run workflow; GEBSort calibration and sorting steps
+- `dgs/dgs_analysis.md` — Post-experiment analysis: fastEventConstructor, parquet_pysort
+- `dgs/influxdb_grafana.md` — InfluxDB/Grafana monitoring on DCS2; temperature and health data
