@@ -231,3 +231,12 @@ Both read the same GEB binary files. For DGS exp2008_Chiara, parquet_pysort is t
 
 ---
 *Created: 2026-04-07. Source: `DGS_tools_pack/gebsort/` README + source files.*
+
+## Cross-References
+
+- `dgs/run_procedures.md` — Full DGS run workflow: where GEBSort fits in (PZ cal → energy cal → sort)
+- `dgs/dgs_analysis.md` — Modern alternative: fastEventConstructor (ROOT) + parquet_pysort pipeline
+- `dgs/data_structures.md` — GEB binary format: the input data format GEBSort reads
+- `dgs/pole_zero.md` — PZ correction theory; dgs_pz.cal consumed by GEBSort's bin_dgs
+- `dgs/ANLDAQ.md` — tcpReceiverMT produces the raw GEB files that GEBSort processes
+- `dgs/nfs_layout.md` — NFS paths where experiment data and GEBSort binaries live (vol4/dgs_testing/)

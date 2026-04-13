@@ -168,3 +168,12 @@ This processes GEB type 15 packets (after `tcpReceiverMT` repacking) to produce 
 ---
 
 *Created: 2026-04-07. Source: TAC.docx (J.T. Anderson, 2016-02-24) + FPGA VHDL.* ✅ verified 2026-04-07 — TAC.docx (DGS_System_Documentation/Firmware/Master_Trigger/TAC.docx): "The total pipeline delay is 350ns, so any differential greater than that, or a negative number, is an old TDC measurement and should not be used."
+
+## Cross-References
+
+- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: TAC-II TDC integration; NIM IN 2 as TDC stop input
+- `dgs/fpga.md` — FPGA firmware overview: TAC-II role in the trigger system
+- `dgs/ttcl.md` — TTCL: Frame 16 carries TAC-II TDC data back to DIGs
+- `dgs/data_structures.md` — TAC-II TDC data format in GEB binary stream (type 15 = DGSTRIG)
+- `dgs/guceiver.md` — Guceiver TAC-II tab: live display of TDC values from TCP stream
+- `dgs/connectors.md` — MTRG connector pinouts: NIM IN 2 = TAC-II TDC stop input

@@ -439,3 +439,12 @@ python working/gain_from_parquet.py \
 
 ---
 *Created: 2026-04-06. Source: `dgs_analysis/working/` + `armory/gray_apps/`*
+
+## Cross-References
+
+- `dgs/dgs_analysis.md` — pz_from_parquet.py, pz_from_evtparquet.py, gain_from_parquet.py; full analysis pipeline
+- `dgs/run_procedures.md` — K value formula; pole-zero in the DGS run workflow (GEBSort → pz_from_parquet)
+- `dgs/gebsort.md` — GEBSort: accepts dgs_pz.cal for corrected energy output
+- `dgs/DIG_firmware_expert.md` — DIG firmware: S1/S2 accumulator design; PREAMP_RESET_DELAY register
+- `dgs/preamp_reset_readme.md` — Preamplifier reset handling; why PZ correction is needed
+- `dgs/data_structures.md` — DIG event header: sum1/sum2/e_raw field locations in binary data
