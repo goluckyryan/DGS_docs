@@ -4,7 +4,7 @@
 
 ## What It Is
 
-An **EPICS soft IOC** running on Raspberry Pi (aarch64 / Debian 13) that controls and monitors **Collector Box** hardware (CollectorBox_RevA). This repo is currently deployed on **pi0 only (softIOC 201, South-East)**. The other 3 collector boxes (202–204) run on an old piserver setup with no documentation in `DGS_tools_pack`.
+An **EPICS soft IOC** running on Raspberry Pi (aarch64 / Debian 13) that controls and monitors **Collector Box** hardware (CollectorBox_RevA). All 4 Pi collector boxes now run this repo (as of commit 2309422, 2026-04-13 — "all pi changed to NFS server").
 
 Compiled against **EPICS 7.0.10** (patch level 1). Self-contained repo: includes `epics-base` and `autosave` as git submodules. ✅ verified 2026-04-06 — collectorboxpi/epics-base/configure/CONFIG_BASE_VERSION; autosave tag R5-11 ✅ verified 2026-04-06 — collectorboxpi/autosave/documentation/RELEASE_NOTES
 
@@ -247,10 +247,10 @@ There are **4 collector boxes** total. This repo contains `st_201.cmd` through `
 
 | Pi | IOC # | Location | GS Holes | Status |
 |----|-------|----------|-----------|--------|
-| pi0 | 201 | South-East | 2,4,6,...,60,70 (even GS 2–60 + GS 70) — 31 detectors | ✅ verified 2026-04-08 — `st_201.cmd`: 31 unique DetNbr values (GS 002–060 even + GS 070) |
-| pi1 | 202 | South-West | 62,64,66,...,110 (even GS 62–110) — 25 detectors | **Not yet implemented** — hardware/IOC not deployed |
-| pi2 | 203 | North-East | 1,3,5,...,59 (odd GS 1–59) | **Not yet implemented** — hardware/IOC not deployed |
-| pi3 | 204 | North-West | 61,63,...,109 (odd GS 61–109) | **Not yet implemented** — hardware/IOC not deployed |
+| pi0 | 201 | South-East | GS 018,020,022,024,026,028,030,036,038,040,042,044,052,054,056,070 — **16 detectors** | ✅ verified 2026-04-13 — commit 2309422, `st_201.cmd` |
+| pi1 | 202 | South-West | GS 064,066,068,072,074,076,078,080,082,084,086,088,092,094,096,098,102,104,106,110 — **20 detectors** | ✅ verified 2026-04-13 — commit 2309422, `st_202.cmd` |
+| pi2 | 203 | North-East | GS 011,013,017,019,021,023,025,027,029,031,033,035,037,041,043,045,049,051,055,057,059,065,105 — **23 detectors** | ✅ verified 2026-04-13 — commit 2309422, `st_203.cmd` |
+| pi3 | 204 | North-West | GS 061,063,071,073,075,077,079,081,083,087,089,093,095 — **13 detectors** | ✅ verified 2026-04-13 — commit 2309422, `st_204.cmd` |
 
 ✅ verified 2026-04-08 — `CollectorBox_RevA/iocBoot/iocCollectorApp/st_20{1,2,3,4}.cmd` (grep DetNbr). Location labels verified against `collectorboxpi/README.md:L257-259` + `nfs_layout.md` piserver README table.
 
