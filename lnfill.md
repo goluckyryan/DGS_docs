@@ -110,7 +110,7 @@ Automated control system for filling germanium detector **dewars** with liquid n
 
 ### Ping Check (`LNFill_ping_cron.sh`, on DCS2)
 - Pings 8 hosts: .148 (ln2con), .58 (pi5), .121 (lnfill IOC), .154 (piserver1), .88 (gs-cne), .149 (gs-cnw), .42 (gs-cse), .26 (gs-csw) ✅ verified 2026-04-09 — `LNFill_ping_cron.sh:L10` + DNS lookup from DCS2
-- For pi5: uses **SSH** instead of ping (catches OS-broken-but-network-up failures)
+- For pi5: uses **SSH** instead of ping (catches OS-broken-but-network-up failures) ✅ verified 2026-04-13 — `LNFill_ping_cron.sh:L23-24` (`if [ "${ip}" = "${pi5_ip}" ]; then # SSH check`)
 - When SSH succeeds: also records `mem_available_mb` → Grafana trend ✅ verified 2026-04-09 — `LNFill_ping_cron.sh:L24-26`
 - On SSH failure: Discord alert to anomaly channel — exact message: `"⚠️ pi5-lnFill (<ip>) is unreachable via SSH at <date>"` ✅ verified 2026-04-11 — `LNFill_ping_cron.sh:L34-36`
 
@@ -142,9 +142,9 @@ Runs alongside a fill to keep tank station pressures high by opening spare (T3) 
 6. Adaptive sleep: starts at 1s, grows to 30s max; resets to 0s when a valve opens
 7. Exits when all manifold valves close or `MAX_RUN_TIME` (2,200s) reached; leaves spare valves in Auto
 
-**Known failed sensors (hardcoded v2.3):** `PRESS_EXT2_FAIL=1`, `PRESS_TS2_T2_FAIL=1`, `PRESS_TS2_T3_FAIL=1`
+**Known failed sensors (hardcoded v2.3):** `PRESS_EXT2_FAIL=1`, `PRESS_TS2_T2_FAIL=1`, `PRESS_TS2_T3_FAIL=1` ✅ verified 2026-04-13 — `AddPress.sh:L49,L54,L55`
 
-**Gauge calibration (v2.3):** `PRESS_TS1_T3_CAL=+2` (reads 2 PSI low); all others = 0
+**Gauge calibration (v2.3):** `PRESS_TS1_T3_CAL=+2` (reads 2 PSI low); all others = 0 ✅ verified 2026-04-13 — `AddPress.sh:L42` (`PRESS_TS1_T3_CAL=2`)
 
 Fallback: if all pressure gauges for a station fail, assumes 28 PSI (early in run) or 20 PSI (after 400s).
 
