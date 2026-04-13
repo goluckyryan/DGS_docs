@@ -259,12 +259,14 @@ Verifies physical SERDES cable connections between digitizer boards and router b
 | Directory | Notes |
 |---|---|
 | `dgs_testing/` | Sep 2025 — contains `GEBSort/` (208-file source tree), `GEBSort_old/`, `calibration.txt`, `Merged/` (86 `.gtd` files), `Merged_haha/`, `dgsdata/` (receiver binaries + run dirs) |
-| `mbo/` | Dec 2025 — 40 entries, active |
+| `mbo/` | 123 GB — Michael Oberling trigger timing test data; `mult3_times_*.bin` files (10ns/30ns/100ns coincidence window scans with/without holdoff), `gebmerge.sh`/`gebmerge_new.sh` (uses `rcvr_merge` for data merging, not GEBMerge), core dumps (bug investigation) |
+| `1930_Favier/` | 5.2 TB — Favier experiment; `dgsdata/` (dgsReceiver binaries + dgs_runNNN dirs), `GEBSort/` + variants (`GEBSort_2019`, `GEBSort_ak`, `GEBSort-JB`, `GEBSort_rc`), `Merged/`, `Merged_decay/`, `dfmadata/`, `dxadata/`, `map_decay.dat` |
+| `1984_Recchia/` | 2.4 TB — Recchia experiment; similar structure |
+| `dgs20230807/` | 2.9 TB — DGS commissioning/test dataset (Aug 2023); `dgsdata/` (dgs_run001–002), `GEBSort/` + `GEBSort_ak/`, `Merged/` + multi-experiment merged trees, `dgs_pz_M700.cal`, `run_infos/` |
 | `yjc/` | Feb 2026 — 29 entries, active |
 | `ML_AK/` | Jul 2025 — machine learning? |
 | `NeutronShell_testing/` | Apr 2024 |
-| `dgs20230807/` | Dec 2023 — DGS test dataset |
-| + many experiment dirs | 1859–2175, 2019–2025 |
+| + many experiment dirs | 1859–2175, 2019–2025 (exp-prefixed) — each follows pattern: `dgsdata/`, `GEBSort*/`, `Merged*/` |
 
 ---
 
@@ -594,6 +596,55 @@ A working test area used for Sep 2025 DGS testing. Contains:
 - `core.18302`, `core.7887` — core dumps (crash artifacts)
 
 > **Cross-reference:** The `dgsReceive`/`dgsReceiver` binaries are standalone C programs (not ANLDAQ). The ANLDAQ Python GUI is the current production receiver; these binaries likely predate it or are test stand variants. The `.gtd` raw file format matches the GEB data format (see `dgs/data_structures.md`).
+
+---
+
+### vol4/mbo/ — Mike Carpenter's Workspace (Dec 2025) ✅ 2026-04-13
+*Source: `ssh dcsu@DCS2.onenet "ls -la /dgsdata/fs2/vol4/mbo/"` — 2026-04-13*
+
+Active workspace for Mike Carpenter (PI). Contains custom GEB merge/sort utilities and trigger timing studies.
+
+**Custom C/C++ merge tools:**
+
+| File | Description |
+|---|---|
+| `rcvr_merge.c` / `rcvr_merge` | GEB merge: reads multiple receiver output files, merges by timestamp, writes split output. |
+| `rcvr_merge_new.c` / `rcvr_merge_new` | Revised version: 32 KB read / 2 KB write buffers, up to 1024 input files. Compile: `gcc -O3 rcvr_merge_new.c -o rcvr_merge_new` |
+| `rcvr_merge_test.c` / `rcvr_merge_test` | Test variant of rcvr_merge_new. |
+| `rcvr_data_scrubber.c` / `rcvr_data_scrubber` | Data cleaning/scrubbing tool. |
+| `rcvr_unmerge` | Reverse: split merged GEB file back into per-crate files. |
+| `gebmerge.sh` / `gebmerge_new.sh` | Shell wrapper: copies binary to run dir, runs merge with 10 GB max file size. Takes run number as arg. |
+
+**GEB header struct used by `rcvr_merge_new.c`:**
+```c
+typedef struct {
+    int32_t  type;       // GEB packet type
+    int32_t  length;     // payload length in bytes
+    uint64_t timestamp;  // 64-bit timestamp
+} GEB_HEADER;
+```
+> Note: Uses a 64-bit `timestamp` field vs the standard 6-byte (48-bit) format in `data_structures.md`. May be extended-format or the upper 16 bits are unused padding — worth clarifying.
+
+**Trigger timing analysis (Python):**
+
+`trigger_reply_*.py` scripts analyze trigger timing distributions from binary event files (16-byte fixed-size events, 48-bit LE timestamp at bytes 8–13). Use a sliding window to find coincidences at various time thresholds:
+
+| Script variants | Windows tested |
+|---|---|
+| `trigger_reply_10ns.py` / `_mid.py` / `_mid_holdoff.py` | 10 ns threshold |
+| Same pattern for 30 ns, 50 ns, 100 ns | Multiple thresholds |
+
+**Output data (Dec 2025):**
+
+| File/Dir | Size | Description |
+|---|---|---|
+| `test.out.0.gtd` | 9.6 GB | Large merged GEB file |
+| `mult3_times_*.bin` | 26–323 MB | Multiplicity timing distributions per threshold/holdoff |
+| `test_103/`, `test_104/` | EXP1917 runs 103–104 raw `.gtd` files + timing analysis scripts |
+| `test_20/`, `test_20_ge/`, `test_20_trig/` | Run 20 data subsets |
+| `core.*` | Crash core dumps from Dec 15 2025 |
+
+> **Cross-reference:** `rcvr_merge` tools are NFS-only (not in any Git repo). Trigger holdoff tuning results here are directly relevant to MTRG holdoff register settings. See `dgs/deep_fpga_MTRG_MAIN.md` for trigger holdoff configuration.
 
 ---
 
