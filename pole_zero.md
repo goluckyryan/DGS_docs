@@ -399,6 +399,30 @@ python working/gain_from_parquet.py \
 
 ---
 
+## DetResult — Output Dataclass
+
+`estimate_pz_from_histogram()` returns a `DetResult` dataclass (`pole_zero_fitter.py:L252`). Key fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `det` | int | Crystal/detector ID |
+| `vdc` | float | DC baseline level (V_dc) used for S1 gating |
+| `pz_coarse` | float | Best PZ from coarse grid scan |
+| `pz_refined` | float | Best PZ after fine-scan refinement (use this) |
+| `axis_choice` | str | Which 2D axis was treated as S1 (auto-detected): `"native"` or `"transposed"` |
+| `chi2_curve` | ndarray | χ² vs PZ grid (diagnostic) |
+| `pz_grid` | ndarray | PZ values tested (matches chi2_curve) |
+| `eref` / `ehi` / `eall` | ndarray | 1D energy spectra at reference, high-S1, and all events |
+| `e_edges` | ndarray | Histogram bin edges for eref/ehi/eall |
+| `ridge_diag` | dict | Ridge-tracking diagnostics (method=ridge only) |
+| `peakmatch_diag` | dict | Peak-matching diagnostics (method=peakmatch only) |
+| `pz_split_low/high/delta` | float | Stability cross-check: PZ from low vs high S1 halves (peakmatch only) |
+| `evs1_values` | ndarray | Corrected energy vs S1 (2D diagnostic) |
+
+`write_pz_cal(path, pz_map)` takes `{det_id: pz_refined}` and writes the `.cal` file. ✅ verified 2026-04-13 — `pole_zero_fitter.py:L252-292`
+
+---
+
 ## Related Files
 
 | File | Description |
