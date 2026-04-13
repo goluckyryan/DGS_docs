@@ -253,3 +253,10 @@ _Source: `DGS_tools_pack/FPGA/others/MyRIAD/MAIN_FPGA/Source/MyRIAD_pkg.vhd` —
 ---
 
 *Created: 2026-04-05 (from SVN MyRIAD Abridged User Notes PDF). FPGA firmware section added 2026-04-08. Firmware revision verified from source 2026-04-12.*
+
+## Cross-References
+
+- `dgs/connectors.md` — MTRG front-panel connector pinouts; MγRIAD connects to Link U (NIM I/O, ECL CTL, ECL I/O, RJ45 TTCL)
+- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: Link U SERDES reception, `RECEIVED_MYRIAD_DATA` signal
+- `dgs/ttcl.md` — TTCL spec; MγRIAD receives timestamps and trigger decisions from MTRG over SERDES
+- `dgs/fpga.md` — 3-tier trigger hierarchy; MγRIAD as auxiliary trigger input via Link U

@@ -119,3 +119,11 @@ Key observations:
 ---
 
 *Created: 2026-04-05*
+
+## Cross-References
+
+- `dgs/collectorboxpi.md` — Collector box Pi IOC; detector assignments per box (SE/SW/NE/NW)
+- `dgs/collectorbox_PVs.md` — PV naming uses GS hole number (e.g. `GS001_...` through `GS110_...`)
+- `dgs/influxdb_grafana.md` — Temperature monitoring per GS hole (`gsid=NNN` tag in InfluxDB)
+- `dgs/sbx.md` — Slope Box Extension; GS_ID dongle encodes hole number for BGO HV addressing
+- `dgs/hardware_architecture.md` — System topology; 110 GS holes × 4 signals (1 Ge + 3 BGO)

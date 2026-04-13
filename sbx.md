@@ -243,3 +243,12 @@ The same I2C engine + opcode format is used in **both the SBX Stripe FPGA and th
 ---
 
 *Created: 2026-04-05 (from SVN code reading)*
+
+## Cross-References
+
+- `dgs/collector_fpga.md` — Pickoff card FPGAs (SBX Interface + Extension) that interface to SBX
+- `dgs/collectorboxpi.md` — Raspberry Pi soft IOC; controls BGO HV via pickoff card
+- `dgs/collectorbox_devicesupport.md` — EPICS device support; SPI protocol to pickoff card
+- `dgs/collectorbox_PVs.md` — Full PV list including BGO HV, SBX presence, slope box PVs
+- `dgs/hardware_architecture.md` — Signal chain overview: detector → slope box → pickoff → collector FPGA → digitizer
+- `dgs/gammasphere_geometry.md` — GS hole numbering system used for GS_ID dongle addressing
