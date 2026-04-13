@@ -31,7 +31,7 @@ Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS
 | `commander.py` | 852 | Main window: run control, board buttons, settings persistence |
 | `gui_DIG.py` | 374 | Digitizer board config window (per-channel + per-board PVs) |
 | `gui_MTRG.py` | 1425 | Master trigger board window (largest GUI module) |
-| `gui_RTR.py` | — | Router trigger board window |
+| `gui_RTR.py` | 550 | Router trigger board window (2 tabs: LINK Control, X/Y Map) |
 | `gui_DataTaking.py` | 227 | IOC config dialog + live run status window |
 | `gui_SYS.py` | 427 | System tabs: timestamps, link status, TCP rates, code revision (see GUI section below) |
 | `gui_Board.py` | — | Generic board PV window (table of all PVs for a board) |
@@ -658,6 +658,33 @@ The window has two tabs:
 - `ahit_count` — accepted hit count
 
 _Source: `gui_scalar.py` commit `0f3f2df` 2026-04-06 (code-verified)_
+
+---
+
+## GUI: Router Trigger Window (`gui_RTR.py`)
+
+`RTRWindow` (550 lines) — opened by clicking an RTRG board button in DGS Commander. Tab widget with **2 tabs** plus a top-level board info panel.
+
+_Source: `ANLDAQ/gui/gui_RTR.py` (code-read 2026-04-12)_
+
+**Top-level panel (always visible):**
+- `reg_MISC_STAT_REG` — RTRG miscellaneous status register (full bit field display)
+- Code Revision, Code Date, Timestamp A/B/C (hex display)
+- Clock Source toggle (local / external)
+- LED Controls: `LEDControl` combo + `LED4`/`LED5`/`LED6` toggle buttons
+- `SM_LOST_LOCK_RESET` pulse button (resets the lost-lock state machine)
+- Multiplicity readbacks (per-link discriminator bit counts)
+- Rate counters: `DISC_RATE_COUNTER_HIGH/LOW`, `TRIG_RATE_COUNTER_HIGH/LOW`
+
+| Tab | Class | Contents |
+|-----|-------|----------|
+| **LINK Control** | `rtrlinkControlTab` | Per-link SERDES grid: LOCK, DEN, REN, SYNC, RPwr, TPwr, Line Loopback, Local Loopback, ILM, LINK, Gated/Raw Throttle — all as `RMapTwoStateButton` rows. Plus LRU (LOCK_RETRY, LOCK_ACK) and throttle controls. |
+| **X/Y Map** | `rtrXYMapTab` | XMAP and YMAP bit grids (per-link enable for X and Y multiplicity sums). DISCRIMINATOR_DELAY per link. X_SELECT and Y_SELECT combo boxes. Updates every 500 ms. |
+
+**Key design notes:**
+- ILM, LOCK, XLM, YLM buttons use **inverted color** (active=red, inactive=green) to show masked/locked states intuitively
+- `make_pattern_list()` from `aux.py` builds regex patterns to auto-match PVs; no hardcoded PV lists for SERDES grid
+- RTR window is smaller/simpler than MTRG (550 vs 1425 lines) — no wheel RAM or CPLD tabs
 
 ---
 
