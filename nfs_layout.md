@@ -263,9 +263,9 @@ Verifies physical SERDES cable connections between digitizer boards and router b
 | `1930_Favier/` | 5.2 TB — Favier experiment; `dgsdata/` (dgsReceiver binaries + dgs_runNNN dirs), `GEBSort/` + variants (`GEBSort_2019`, `GEBSort_ak`, `GEBSort-JB`, `GEBSort_rc`), `Merged/`, `Merged_decay/`, `dfmadata/`, `dxadata/`, `map_decay.dat` |
 | `1984_Recchia/` | 2.4 TB — Recchia experiment; similar structure |
 | `dgs20230807/` | 2.9 TB — DGS commissioning/test dataset (Aug 2023); `dgsdata/` (dgs_run001–002), `GEBSort/` + `GEBSort_ak/`, `Merged/` + multi-experiment merged trees, `dgs_pz_M700.cal`, `run_infos/` |
-| `yjc/` | Feb 2026 — 29 entries, active |
+| `yjc/` | **184 GB** — Y.J. Chen analysis area (Feb 2026, active). Contents: `176hg_dgsdata/` + `176hg_dxadata/` + `176hg_dfmadata/` (raw GEB data for 176Hg experiment); `ROOT_FILES_189at/` + `ROOT_FILES_190at/` + `TREE_FILES_*/` (ROOT analysis output for 189,190At experiments); `geb-sort-tac2/` binary; `parquet-sort/` dir; `merge.py`; `Macros/`; compiled ROOT dict (`geb_class.h`, `.so`, `.pcm`, `.d`) |
 | `ML_AK/` | Jul 2025 — machine learning? |
-| `NeutronShell_testing/` | Apr 2024 |
+| `NeutronShell_testing/` | **654 GB** — Neutron shell testing / commissioning area (Apr 2024). Contains: `GEBSort/` (standard), `GEBSort_VK/` (V. Kumar variant), `.spc` spectra files (0.spc–6.spc), `2023_Nolen.code-workspace` VS Code workspace; `xiadata/` + `XIA_udp_linux/` — XIA Pixie-16 DAQ data (UDP-based readout, different DAQ chain from DGS). The Pixie-16 data coexists with DGS analysis infrastructure. |
 | + many experiment dirs | 1859–2175, 2019–2025 (exp-prefixed) — each follows pattern: `dgsdata/`, `GEBSort*/`, `Merged*/` |
 
 ---
