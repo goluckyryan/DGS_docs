@@ -192,3 +192,10 @@ Guceiver connects to the **same TCP port 9001** as `tcpReceiver` (the production
 See `dgs/ANLDAQ.md` for the tcpReceiver / production DAQ pipeline.
 See `dgs/data_structures.md` for the full binary event format.
 See `dgs/DIG_firmware_expert.md` for DIG header type 7/8 field definitions.
+
+## Cross-References
+
+- `dgs/ANLDAQ.md` — Production DAQ pipeline: tcpReceiverMT also connects to IOC TCP:9001
+- `dgs/data_structures.md` — Full binary event format: DIG (0xAAAAAAAA) and TAC-II (0x0000AAAA) packets
+- `dgs/DIG_firmware_expert.md` — DIG header type 7/8 field definitions decoded by Guceiver
+- `dgs/tac2.md` — TAC-II TDC: vernier interpolation, data format decoded by the TAC-II tab

@@ -189,3 +189,10 @@ WAIT_EDGE (normal operation resumes)
 
 ---
 *Source: `DGS_tools_pack/FPGA/` preamp reset documentation + `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05. Cross-refs added: 2026-04-09.*
+
+## Cross-References
+
+- `dgs/DIG_firmware_expert.md` — Full DIG firmware expert reference; covers PRK in context of discriminator modes
+- `dgs/deep_fpga_DIG.md` — DIG FPGA deep dive: ADC pipeline, discriminator, CHANNEL_KILLED signal flow
+- `dgs/pole_zero.md` — Pole-zero correction; preamp reset events corrupt PZ fits if not blanked properly
+- `dgs/EPICS.md` — EPICS PVs for preamp reset: `MOD###_DIG_PREAMP_RESET_DELAY`, `DIG_CHANNEL_CONTROL` bit 3

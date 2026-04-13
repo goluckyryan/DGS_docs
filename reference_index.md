@@ -250,3 +250,11 @@ _All paths relative to `/home/ryan/DGS_tools_pack/`_
 | Cabling — BGO rings | `BGO_Ring.pdf` | `DGS_docs/DGS_System_Documentation/cabling/` |
 | Raspberry Pi instructions | `Instructions for running Raspberry Pi.docx` | `DGS_docs/DGS_System_Documentation/` |
 | AUX IO pin mapping (MTRG front panel) | `AUX_IO_Pin_Mapping.xlsx` | `DGS_SVN/dgs/Schematics/Trigger_IO_Adapter/` |
+
+## Cross-References
+
+- `dgs/VME_registers.md` — VME byte-offset addresses from asyn driver source; complements CSV register maps
+- `dgs/DIG_firmware_expert.md` — DIG firmware expert guide; uses these register names extensively
+- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: register map for trigger algorithms and NIM I/O
+- `dgs/deep_fpga_RTRG.md` — RTRG firmware: router SERDES and multiplicity registers
+- `dgs/PDF_index.md` — Index of all DGS PDF documentation with reading priority guide

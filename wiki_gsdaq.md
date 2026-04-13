@@ -189,3 +189,11 @@ All known wiki pages have been visited as of 2026-04-07. Summary:
 ---
 
 *Created: 2026-04-05 (initial crawl)*
+
+## Cross-References
+
+- `dgs/overview_DGS.md` — Full Gammasphere system overview (primary reference, more detailed than wiki)
+- `dgs/hardware_architecture.md` — Hardware breakdown; expands on wiki's system overview
+- `dgs/collectorboxpi.md` — Collector box Pi IOC; expands on wiki's collector box page
+- `dgs/troubleshooting.md` — DGS troubleshooting; sourced from wiki's problems page + operational experience
+- `dgs/run_procedures.md` — Typical run procedures; expands on wiki's run procedures page
