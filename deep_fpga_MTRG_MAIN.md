@@ -59,6 +59,20 @@ The main FPGA is the core of the Master Trigger. It:
 | 8 | `TRIG_LOGIC8A/B` | `MYRIAD_TRIGGER` (8A) / remote (8B) | Link U: MyRIAD or remote trigger (muxed via `LINK_U_IS_TRIGGER_TYPE`) | `EN_MYRIAD_LINK_U` | ✅ verified 2026-04-11 — `top.vhd:L3038-3106` (20220705 tag): `TRIG_LOGIC8A : MYRIAD_TRIGGER`, `TRIG_LOGIC8B : REMOTE_MASTER_TRIG_SUPPORT`; `LINK_U_IS_TRIGGER_TYPE <= TRIG_ALGO_MUX_SEL_REG(2)` at L1106 |
 
 ✅ verified 2026-04-10 — `top.vhd:L2456,L2503,L2554,L2603,L2651,L2778,L2897,L3042` (20220705 tag); comments confirm per-link rules for algos 6/7/8.
+
+### Coincidence Trigger Mask (`ALGO_5_SELECT=1` mode)
+
+When `ALGO_5_SELECT=1` (coincidence trigger), the `reg_COINC_TRIG_MASK` register selects which pairs of algorithms must fire together. Each bit = one algorithm-pair select:
+
+| Bits | PV names | Meaning |
+|------|----------|---------|
+| 0–3 (0x01–0x08) | `COINC_TRIG_MASK_A1–A4` | Group A, algos 1–4 |
+| 4–6 (0x10–0x40) | `COINC_TRIG_MASK_A6–A8` | Group A, algos 6–8 |
+| 8–11 (0x100–0x800) | `COINC_TRIG_MASK_B1–B4` | Group B, algos 1–4 |
+| 12–14 (0x1000–0x4000) | `COINC_TRIG_MASK_B6–B8` | Group B, algos 6–8 |
+
+Algo 5 itself (the CPLD/coincidence trigger) is **absent** from both groups — it cannot coincide with itself. To disable all coincidence selection: `caput VME32:MTRG:reg_COINC_TRIG_MASK 0`. ✅ verified 2026-04-12 — `MTrigUser.template:L1385-1495` (A1=0x01, A2=0x02, A3=0x04, A4=0x08, A6=0x10, A7=0x20, A8=0x40; B1=0x100 … B8=0x4000; A5/B5 absent).
+
 3. Collects trigger decisions and issues synchronized command frames back to all Routers
 4. Supports chaining to other Master Triggers via inter-trigger links (L, R, U)
 5. Generates precise event timestamps via a vernier TDC (TAC-II, ~30 ps resolution)
