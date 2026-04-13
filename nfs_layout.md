@@ -258,7 +258,7 @@ Verifies physical SERDES cable connections between digitizer boards and router b
 
 | Directory | Notes |
 |---|---|
-| `dgs_testing/` | Sep 2025 — contains `GEBSort/`, `calibration.txt`, `Merged/` dirs |
+| `dgs_testing/` | Sep 2025 — contains `GEBSort/` (208-file source tree), `GEBSort_old/`, `calibration.txt`, `Merged/` (86 `.gtd` files), `Merged_haha/`, `dgsdata/` (receiver binaries + run dirs) |
 | `mbo/` | Dec 2025 — 40 entries, active |
 | `yjc/` | Feb 2026 — 29 entries, active |
 | `ML_AK/` | Jul 2025 — machine learning? |
@@ -479,8 +479,40 @@ Link syntax: `#L0 A3 C1 S11 @` = Link / Adapter / Crate / Slot
 **Replacement implications:**
 - Must either keep the AB 1771 rack (and write a new driver) or replace the hardware too
 - PV names (`LNG1-01_FV:VC`, `LNH1-01_SM`, `MOD107_DV_TEMP`…) can be replicated in any new soft IOC
-- Live lnfill NFS tree: `/dgsdata/fs2/vol2/global_32/devel/systems/gs/lnfill/`
+- Live lnfill NFS tree: `/dgsdata/fs2/vol2/global_32/devel/systems/gs/lnfill/` (active working copy)
+- Archived legacy copy: `/dgsdata/fs1/vol2/global_sl7/devel/systems/gs/lnfill/` (older, fewer files — see sl7 section below)
 - Git repo (`DGS_tools_pack/lnfill/`) is the ported Pi-based version (Python/pyepics control layer only, not the IOC itself)
+
+**gamln.db PV analysis** ✅ 2026-04-13 — `ssh dcsu@DCS2.onenet "grep -c 'record(' .../gamln.db"`
+
+1,357 EPICS records in `gamln.db`. Record type breakdown:
+| Type | Count | Role |
+|------|-------|------|
+| `mbbo` | 415 | Multi-bit output — valve modes (Auto/Open/Disable), alerts |
+| `sub` | 406 | Subroutine — complex fill logic, state machines |
+| `bo` | 179 | Binary output — valve open/close control |
+| `ai` | 166 | Analog input — sensors (level, pressure, temp, Vcc) |
+| `calc` | 140 | Calculated — threshold checks, Vcc monitors |
+| `bi` | 24 | Binary input — valve status readbacks |
+| `stringout` | 12 | String output |
+| `ao` | 8 | Analog output |
+| `stringin` | 5 | String input |
+| `mbbi/state` | 2 | Multi-bit input / state |
+
+PV prefix hierarchy (from `gamln.db`):
+| Prefix | Meaning |
+|--------|---------|
+| `LNG1`, `LNG2` | GN2 (gaseous nitrogen) valve groups 1/2 |
+| `LNH1`–`LNH4` | LN header valves 1–4 |
+| `LNM1`–`LNM4`, `LNM1A`–`LNM4A` | LN manifold valves 1–4 (A = alternate) |
+| `LNP1`, `LNP2` | LN pressure sensors |
+| `LNS1`, `LNS2` | LN supply valves |
+| `LNT1`–`LNT6` | LN tank valves 1–6 |
+| `LNVC` | LN VCC (sensor power) monitors |
+| `LN` | Top-level LN system PVs (fill mode, setpoints, heartbeat) |
+| `SETPOINT` | Fill setpoint PV |
+| `TEMPHI/LO/MC/DO` | Temperature alarm thresholds |
+| `CNOTOK` | Connection-not-OK alarm record |
 
 ---
 
@@ -491,10 +523,11 @@ Link syntax: `#L0 A3 C1 S11 @` = Link / Adapter / Crate / Slot
 - [x] piserver extra 3 MACs — identified 2026-04-06 (spare/unassigned Pis)
 - [x] `trace_throttle2.py` — documented 2026-04-06 (see below)
 - [x] `vol2/dgscalib/` — partially documented 2026-04-06 (see below); historical ROOT-based calibration macros, superseded
-- [ ] `vol4/dgs_testing/GEBSort/` — GEBSort build/config? (requires interactive SSH — deferred)
-- [ ] `vol3/sbx2022tuning/` — SBX tuning data (requires interactive SSH — deferred)
-- [ ] `vol2/global_32/edmroot/lncntrl/screens/` — LN EDM screens (grep only, no full reads!)
-- [ ] `vol2/global_32/devel/systems/gs/lnfill/gamln.db` — extract unique PV prefixes/record types for documentation
+- [x] `vol4/dgs_testing/GEBSort/` — documented 2026-04-13 (see below)
+- [x] `vol3/sbx2022tuning/` — documented 2026-04-13 (see below)
+- [x] `vol2/global_32/edmroot/lncntrl/screens/` — LN EDM screens documented 2026-04-13 (see below)
+- [x] `vol2/global_32/devel/systems/gs/lnfill/gamln.db` — PV prefixes/record types documented 2026-04-13 (see lnfill IOC section)
+- [x] `fs1/vol2/global_sl7/devel/systems/gs/lnfill/` — legacy/archived LNFill scripts documented 2026-04-13 (see below)
 
 ### trace_throttle2.py — Updated Connectivity Mapper ✅ read 2026-04-06
 *Source: `ssh dcsu@DCS2.onenet "cat /dgsdata/fs2/vol2/global_32/ioc/py_scripts/trace_throttle2.py"` — 2026-04-06*
@@ -533,7 +566,179 @@ Revised version of `trace_throttle.py`. Key improvements over v1:
 
 ---
 
-*Source: SSH exploration of DCS2.onenet as dcsu, 2026-04-05.*
+### vol4/dgs_testing/ — DGS Testing Area (Sep 2025)
+*Source: `ssh dcsu@DCS2.onenet "ls /dgsdata/fs2/vol4/dgs_testing/"` — 2026-04-13*
+
+A working test area used for Sep 2025 DGS testing. Contains:
+
+| Subdirectory | Contents |
+|---|---|
+| `GEBSort/` | 208-file GEBSort source tree (full `.c`/`.h`/`.o` + `UserChat.h`, `UserDeclare.h`, `UserEv.h`, `UserFunctions.h`, etc.) — full User*.h customization headers present |
+| `GEBSort_old/` | Earlier GEBSort version (includes `bgo_threshold_scan*.txt`, `am243.sou`, `AR.snippets`) |
+| `calibration.txt` | Energy calibration table: 3-column format (GS hole #, offset, gain, ~0.60–0.62 keV/ch); holes 27–49+ |
+| `Merged/` | 86 merged `.gtd` files (`GEBMerged_run_*.gtd_000`, `GEBMerged_haha*.gtd_000`) |
+| `Merged_haha/` | Additional merged output (1 file seen: `GEBMerged_haha0.gtd_000`) |
+| `dgsdata/` | Receiver binaries + numbered run directories (see below) |
+
+**dgsdata/ — Receiver Executables (built May 2025):**
+- `dgsReceive` / `dgsReceiver` — standard receiver (43,952 bytes, May 13 2025)
+- `dgsReceiver_mca` — MCA-mode receiver (44,134 bytes, May 13 2025)
+- `dgsReceiver_nosave` — no-save mode (39,817 bytes, Feb 5 2025)
+- `dgsReceiver_old` — older build (May 8 2025)
+- `dgs_run001` through `dgs_run027` (+ runtest, runtrace dirs) — per-run raw `.gtd` files
+  - Files named `dgs_run001.gtd01_000_01NN_X` (crate + channel suffix hex-encoded)
+- `start_run.sh`, `stop_run.sh`, `dgs_start_run_no_save.sh` — run control shell scripts
+- `histogram_daemon`, `histogram_from_binary`, `histogram_from_binary_rt` — live histogram tools (with `.c` sources)
+- `mca`, `mca_run44–46` — MCA data dirs
+- `live_plot.gnu` — gnuplot live plot script
+- `core.18302`, `core.7887` — core dumps (crash artifacts)
+
+> **Cross-reference:** The `dgsReceive`/`dgsReceiver` binaries are standalone C programs (not ANLDAQ). The ANLDAQ Python GUI is the current production receiver; these binaries likely predate it or are test stand variants. The `.gtd` raw file format matches the GEB data format (see `dgs/data_structures.md`).
+
+---
+
+### vol3/sbx2022tuning/ — Slope Box Tuning Data (2022)
+*Source: `ssh dcsu@DCS2.onenet "ls /dgsdata/fs2/vol3/sbx2022tuning/"` — 2026-04-13*
+
+| Subdirectory | Contents |
+|---|---|
+| `dgsdata/` | Raw DGS data from SBX tuning runs |
+| `GEBSort/` | GEBSort source tree used for this tuning campaign |
+| `gtreceiver/` | GT (GRETINA) receiver — legacy receiver binary/source |
+| `LOG_FILES/` | Run logs |
+| `Merged/` | Merged output `.gtd` files |
+| `ROOT_FILES/` | ROOT output histograms/trees from SBX tuning |
+
+> **Context:** Used for Slope Box characterization in 2022. `gtreceiver/` suggests this predates or overlaps with the migration from GRETINA-based tools. `GEBSort/` is the event sorter/builder used to process raw data. ROOT_FILES contains analysis output. See `dgs/sbx.md` for SBX hardware documentation.
+
+---
+
+---
+
+### fs1/vol2/global_sl7/devel/systems/gs/lnfill/ — Legacy LNFill Scripts (archived)
+*Source: `ssh dcsu@DCS2.onenet "ls /dgsdata/fs1/vol2/global_sl7/devel/systems/gs/lnfill/"` — 2026-04-13*
+
+An **older/archived copy** of the LN2 fill Python scripts on the `fs1` server (Scientific Linux 7 global environment). Fewer files than the active `fs2/vol2/global_32` copy — missing many utilities like `TankMan.py`, `set_hilo_lim.cr6`, etc.
+
+| File | Description |
+|---|---|
+| `gamln.db` | Same 23k-line EPICS DB as active copy |
+| `GeStat.py` / `GeStat.pyc` | Ge detector status class (reads `MODxxx_DV_TEMP`, `MODxxx_DV_EN` PVs via CaChannel) |
+| `LNFill.py` | Main fill script — takes detector IDs as args, reads fill mode PV (`LNFILL_MODE:XC`), logs to `LNFill.YYYY.log`; Python 2 |
+| `LNFill_monitor.py` / `LNFill_monitor2.py` | Monitoring loop scripts |
+| `LNFill_Auto.sh` | Bash loop: runs `LNFill_monitor2.py` every 1200s for 500 iterations |
+| `tempmon.db` | Temperature monitor EPICS DB |
+| `LNFill_Auto.log`, `LNFill_Auto..log` | Auto-run logs |
+| `LNFill.2016.log`–`LNFill.2018.log` | Historical fill logs 2016–2018 |
+| `lastFill.log` | Most recent fill record |
+| `Warmup_ManD_Feb22.log` | Manual warmup log Feb 2022 |
+| `fill_20200819_*.log` | August 2020 fill run logs |
+| `sandbox/` | Test/scratch area |
+
+**Key architecture details from `LNFill.py`:**
+- Uses `CaChannel` (legacy EPICS Python binding, not pyepics)
+- Fill log path was hardcoded to `/global/devel/systems/gs/lnfill/LNFill.2018.log` (old NFS path)
+- `GeStat` class reads `MODxxx_DV_TEMP` and `MODxxx_DV_EN` PVs for each detector
+- Argument: list of GS detector IDs (integers 1–110+)
+- Checks `LNFILL_MODE:XC` PV before filling
+
+> **Context:** This is the **predecessor** to `DGS_tools_pack/lnfill/` (current Pi-based system). Shows the original Python 2 + CaChannel architecture before migration to Python 3 + pyepics. The core IOC (`gamln.db`) is unchanged.
+
+---
+
+---
+
+### vol2/global_32/edmroot/lncntrl/screens/ — LN Control EDM Screens ✅ 2026-04-13
+*Source: `ssh dcsu@DCS2.onenet "ls + grep /dgsdata/fs2/vol2/global_32/edmroot/lncntrl/screens/"` — 2026-04-13*
+
+Only 2 EDM screen files (plus backups):
+
+| File | Lines | Purpose |
+|------|-------|--------|
+| `lnmain.edl` | 463 | LN main operator overview screen |
+| `tempmon.edl` | 7658 | Per-detector temperature monitor (all 110 Ge modules) |
+
+**`lnmain.edl` — key PVs:**
+- `LN_ATOD:XC` — auto-to-demand fill mode
+- `LN_MODE:XC` — LN operating mode
+- `LN_ATNF:XC` — auto tank fill
+- `LN_FILL_MODE:XC` — fill mode control
+- `LN_ALMSTAT:XC` — alarm status
+- `LN_REBOOT:XC` — IOC reboot trigger
+- LN IOC telnet: `192.168.203.121` (the MVME167 VME SBC)
+- Links to sub-screens: `lncontrols.edl`, `lnsettings.edl`, `lnalarm.edl`, `lnmanifold.edl`, `lntanks.edl`, `lnmansum.edl`, `lnmanup.edl`, `lnmandn.edl`, `lnmandnA20.edl`
+
+**`tempmon.edl` — key PVs:**
+- `MOD001_DV_TEMP` through `MOD110_DV_TEMP` — temperature per Ge detector (110 total)
+- `MOD001_DV_EN` through `MOD110_DV_EN` — enable/disable per detector
+- Covers all 110 Gammasphere Ge module slots
+
+> The LN IOC EPICS address is `192.168.203.121` (the MVME167 VME CPU running VxWorks). The EDM screens here are the legacy operator interface — currently the Pi lnfill system handles the fill logic while the IOC continues to manage the hardware directly.
+
+---
+
+### fs1/vol2/global_sl7/ — Legacy SL7 Build Environment ✅ 2026-04-13
+*Source: `ssh dcsu@DCS2.onenet "ls /dgsdata/fs1/vol2/global_sl7/"` — 2026-04-13*
+
+Note: This is `fs1.onenet` (not `fs2.onenet`) — a separate 40T volume. Path: `/dgsdata/fs1/vol2/`.
+
+**Top-level experiments on fs1/vol2:**
+| Directory | Size | Notes |
+|-----------|------|-------|
+| `exp1758/` | 7.4T | Older major experiment — 204 merged GTD runs |
+| `exp1881/` | 3.2T | 124 merged GTD runs |
+| `gsfma370–372/` | — | GSFMA test experiments (includes `dgsdata/` raw dirs) |
+| `cmg/` | — | (not accessible — path issue) |
+| `global_sl7/` | — | SL7 global build environment |
+| `test/` | — | Test data/GEBSort/Merged |
+
+**global_sl7/ subdirs:**
+- `devel/` → `devel6/` (symlink) — SL6.8 from dgs1
+- `devel6/` — SL6.8 build tree
+- `devel6_sl7/` — SL7.6 development build (most current on fs1)
+- `devel7_newbsp/` — SL6.8 with new IOC BSP support
+- `develbuild/` → `devel_tjm/` (symlink)
+- `new_mv5500_bsp/` — MVME5500 BSP experiment
+- `README` — documents: `devel6`=SL6.8 from dgs1, `devel6_sl7`=SL7.6 devel, `devel7_newbsp`=SL6.8 new BSP
+
+**devel6_sl7/dgs/ — DGS code:**
+- `edm/screens/` — full set of EDM screens (same as fs2 but SL7 variant): `acqControl.edl`, `DGSchannel.edl`, `DGSIOC.edl`, `DGSrunControl.edl`, `Router.edl`, `Trace.edl`, `Trace_all.edl`, `TrigLock.edl`, `Master.edl`, `chargeInj.edl`, `decomps.edl`, `getrigall.edl`, etc.
+- `edm/scripts/global_config` — bash script that sets global EPICS PV defaults via `caput`:
+  - `CryG_CS_*` global crystal settings (BRE, Pol, PZEna, LEDTh, RDDly, RDLen, CFDDly, CFDThr, CFDFrac, etc.)
+  - `DigG_CS_*` global DIG settings (ExtWin, NoiseWin, PileWin, TrigDly, LRCollTime, IntTime, CollTime, BaseRes, AuxIOMux, DCMReset)
+  - Per-IOC MuxCon, MLE, DAQB enable settings for all 12 IOCs
+- `edm/scripts/trigger_config` — bash sets trigger EPICS PVs via `caput`:
+  - `Trig0_CS_ClkSrc local` — master trigger uses local clock
+  - LRU control: positions 00,01,02,04,05,06,08,09,10,15 = ON
+  - Input link masks (ILM): A,B,C=0; D,E,F,G,H=1; L,R,U=0
+  - Transmit power: all cables A–H,L,R,U = 1
+- `firmware/` — DIG firmware: `chip_top_1.06_0016.bin`, `chip_top_1.06_0017.bin` (1.06 = older than current)
+- `firmware/mt/trigger_top.bin` — MT trigger firmware binary
+- `dgscommander`, `dgscommander2` — commander executables (not directories)
+
+**devel6_sl7/gtreceiver/ — GT Receiver Source:**
+Full source for the GRETINA/DGS GT receiver program:
+- `gtReceiver4.c` / `gtReceiver4.h` — main receiver (v4, last rev 1.13, Sep 19 2013, TL author)
+- `gtReceiver2.c`, `gtReceiver3.c` — earlier versions
+- `chicoReceiver` — CHICO2 receiver variant (standalone binary)
+- `nullRcv.py` — Python null receiver
+- `psNet.h`, `receiver.h` — network/receiver headers
+- `Makefile.Linux_i386`, `Makefile.Linux_x86_64` — 32/64-bit builds
+- Comment: "This code was proudly stoled from Carl Lionberger at LBL"
+- Purpose: standalone network data receiver for GRETINA-format data at DGS; connects to multiple servers (MAX_SERVERS=4), receives 7KB packets (PACKBYTES=1024*7), writes GRETINA format (`WRITEGTFORMAT=1`)
+
+**runcon/ — Run Control:**
+- `1-1/runcon.py` — wxPython 2.x GUI run control app (circa 2005, GRETINA-era)
+  - Manages runs: new run dialog (run number + comment + cabling file), run directory creation
+  - Uses `/remote/devel/runcon/connections/*.sgl` cabling files
+  - Data paths: `/remote/data/gretina`, `/remote/devel/gretDAQ`
+  - This is legacy GRETINA run control, not DGS-specific
+- `connections/*.sgl` — signal connection files (2005 era: `05032005.sgl`, `06172005.sgl`, etc.)
+- `runs/` — named run config dirs: `coincidence_scan_I/II/III`, `NoiseAnlysis`, `t1–t5`
+
+> **Context:** The `fs1/vol2` volume is legacy storage, mostly matching `fs2/vol2` in structure but older. The EDM screens and `global_config`/`trigger_config` scripts are operational reference — the `caput` values in `global_config` are the baseline DIG crystal/digitizer settings for GS runs. The trigger_config shows the TTCL LRU wiring pattern for the GS run (positions 00,01,02,04,05,06,08,09,10,15 active).
+
+*Source: SSH exploration of DCS2.onenet as dcsu, 2026-04-05 / 2026-04-13.*
 
 ## Cross-References
 

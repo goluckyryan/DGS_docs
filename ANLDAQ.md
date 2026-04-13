@@ -566,6 +566,33 @@ Lightweight alternative to `start_run.sh` / `stop_run.sh` for quick tests withou
 
 **`copy2Slopebox.sh`** — One-liner: `rsync -av tcpReceiver.cpp Makefile constant.h dgs@slopebox:/global/ioc/dgsReceiver/.` — copies TCP receiver source to the `slopebox` host's IOC receiver directory. Used to deploy receiver code updates to the slopebox machine. ✅ verified 2026-04-12 — `ANLDAQ/tcpReceiver/copy2Slopebox.sh`
 
+**`legacy/` — Older single-IOC receivers** (pre-MT era, kept for reference):
+- `dgsReceiver.cpp` (v6.57, 2,633 lines, by Michael Oberling) — original single-threaded receiver, connects to a single IOC at `argv[1]:9001`. Supports cross-platform compile (Linux + Windows/CodeBlocks with `ws2_32`). Build configuration controlled by `#define` switches at top of file:
+  - `WRITEGTFORMAT` — wraps data in GEB event header (replaces `0xAAAAAAAA` SOE word with GEB header)
+  - `FILE_PER_CHANNEL` (default on) — one output file per digitizer channel; alternatively one-per-DIG or one-per-IOC (`SINGLE_FILE`)
+  - `FOLDER_PER_RUN` — creates `runName/` subdirectory per run
+  - `DUMP_UNKNOWN_DATA_TO_DISK` + `DEBUG_OUTPUT_FILE` — write unrecognized packets and trigger debug data to separate files
+  - `SINGLESHOT`/`FULL_FILE_MODE` — exit automatically when output file(s) reach a size limit
+  - SOE constants: `DIG_SOE=0xAAAAAAAA`, `TRIG_SOE=0xAAAA0000`, `MAXCHID=16`, `MAXBOARDID=4095`, `INBUFSIZE=64KB`
+  - GEB type IDs hard-coded from `torben`'s list: `GEB_TYPE_DGS=14`, `GEB_TYPE_DGSTRIG=15`, plus others (DECOMP=1, RAW=2, TRACK=3, S800=5/9, GODDESS=19, XA=23, etc.)
+  - Output file naming: `runName/runName.prefix_NNN` (per channel) or `runName.prefix_NNN` (flat)
+  - Trigger (TRIG) packets are reformatted from 16 raw words → 12 words before saving
+- `dgsReceiver_Ryan.cpp` (v6.57 fork, 1,567 lines) — Ryan's experimental fork (2025-05-21). Differences vs MBO's version:
+  - Linux-only (Windows `#ifdef` blocks removed)
+  - Adds `const bool SAVE_TYPE_F = false;` — stub for controlling type-F header save behavior (TODO: not yet implemented)
+  - Otherwise identical build configuration and protocol
+- `dgsReceiver.h` (67 lines) — C API header for the classic receiver library: `initReceiver()`, `getReceiverData()`, `getEvent()`, `stopReceiver()`. Defines `SERVER_PORT=9001`, `INBUFSIZE=64KB`, `EVENT_MARKER=0xAAAAAAAA`
+- `psNet.h` (68 lines) — Shared network protocol layer header (server + client). Defines `evtServerRetStruct` (4 words: type, recLen, status, recs), `reqPacket`, `incoming`. Constants: `CLIENT_REQUEST_EVENTS=1`, `SERVER_NORMAL_RETURN=2`, `SERVER_SENDER_OFF=3`, `SERVER_SUMMARY=4`, `INSUFF_DATA=5`, `TARGSIZE=7168`, `SENDER_PORT=1101` (UDP sender), `SERVER_PORT=9001`. The 4-word reply header used by `dgsReceiver.h` is the `evtServerRetStruct` struct from this file.
+- `PyReceiver.py` (141 lines, by Ryan) — Python proof-of-concept receiver connecting to a single IOC at `argv[1]:argv[2]`. Sends a 4-byte big-endian request (`struct.pack(">I", 1)`), receives the 16-byte `evtServerRetStruct` reply, then recv-loops for all data bytes. Decodes events using `class_DIG` (from `Aux/class_DIG.h`). Handles `SERVER_SUMMARY` (type 4) and `INSUFF_DATA` (type 5) reply types. Validates header type and detects end-of-run via channel_id `0xD` in non-7/8 header packets. Useful for debugging single-IOC data streams from Python without compiling C++.
+
+**`udp_testing/` — UDP experimental infrastructure** (not production-used):
+- `udpReceiver.cpp` — C++ UDP receiver variant for testing UDP-based data delivery
+- `iocSimulator.py` — Python script that simulates an IOC's TCP server (port 9001) for receiver testing without live VME hardware
+- `test_udp.sh` — shell script to exercise the UDP receiver pipeline
+- These files support development/testing of `tcpReceiverUDP.cpp` (the multi-threaded variant that forwards data via UDP to an online analysis process in addition to writing to disk)
+
+_Source: `ANLDAQ/tcpReceiver/legacy/` + `udp_testing/` (code-read 2026-04-13)_
+
 ### Packet Consistency: Receiver vs FPGA Firmware
 
 The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet format (`Event_Header_FIFO.vhd`, `event_packer.vhd`):

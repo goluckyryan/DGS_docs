@@ -79,3 +79,31 @@ Some users run ISE natively on modern Linux by intercepting conflicting library 
 The Kintex UltraScale port of the MTRG Main FPGA uses Vivado 2018.3, which has better long-term Linux support. Vivado 2018.3 runs on Ubuntu 16.04 and 18.04 officially. On Ubuntu 24.04 it may require the same container approach or the `--disable-webtalk` workaround and manual library patches, but the situation is less severe than ISE.
 
 See [`deep_fpga_MTRG_VIVADO.md`](deep_fpga_MTRG_VIVADO.md) for the Vivado project details.
+
+---
+
+## Trigger System VHDL Simulation
+_Source: `DGS_tools_pack/FPGA/others/Trig_sys_sim/` — documented 2026-04-12_
+
+A standalone VHDL testbench (`ISE 13.4` project) that simulates two MTRG boards communicating over SERDES links. Useful for validating trigger command logic and SERDES state machine behavior without hardware.
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `trigger_data_types.vhd` | Common type definitions shared across MTRG, MyRIAD, Router |
+| `MstrTrig_pkg.vhd` | Component declaration for `trigger_top` (the MTRG Main FPGA entity) with `BUILD_TYPE` generic |
+| `bus_pkg.vhd` | Bus signal record definitions for test bench |
+| `bus_trans.vhd` | Bus transaction helpers (stimulate/check VME transactions) |
+| `crate_def_tb.vhd` | Top-level testbench: instantiates two `trigger_top` entities (LOCAL_MASTER + REMOTE_MASTER) as `BUILD_TYPE=4` (DGS Master Trigger) |
+| `regio_tb.vhd` | Register I/O testbench: verifies register reads/writes |
+| `top_tb1.VHD` | Alternate top-level testbench |
+| `MyRIAD_pkg.vhd` | Copy of MyRIAD package (for cross-system simulation) |
+
+### Usage
+
+Open in ISE 13.4 (`Work13_4/Work13_4.xise`), select the desired testbench as the simulation top, and run ISim (behavioral simulation). No synthesis target is needed.
+
+### Significance
+
+This simulation shares the same `trigger_top` component and `BUILD_TYPE` encoding as the production MTRG firmware (`BUILD_TYPE=4` for DGS Master Trigger). It was used during development to validate the SERDES link initialization protocol and command routing logic without requiring physical hardware.

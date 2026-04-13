@@ -56,8 +56,8 @@ The **Trigger Timing and Control Link (TTCL)** carries timestamps, trigger messa
 
 ### 3.1 Chipset
 
-- **SERDES:** National Semiconductor DS92LV18
-- **Physical interface (cable driver/receiver):** National Semiconductor DS90LV004
+- **SERDES:** National Semiconductor DS92LV18 ✅ verified 2026-04-12 — DGS_SVN BOM (U24–U31,U35–U37: DS92LV18TVV)
+- **Physical interface (cable driver/receiver):** National Semiconductor DS90LV004 ✅ verified 2026-04-12 — DGS_SVN BOM (U20–U22: DS90LV004TVS)
 
 ### 3.1.1 Timing
 
@@ -150,7 +150,7 @@ Key timing rules:
 
 ### 5.3 System Timestamp
 
-- 48-bit counter, incremented every **10 ns** (100 MHz) — the **System Timestamp**
+- 48-bit counter, incremented every **10 ns** (100 MHz) — the **System Timestamp** ✅ verified 2026-04-12 — RTRG/timestamp.vhd ("Big honkin' 48-bit counter") + router_top.syr (48-bit TRIG_TIMESTAMP register) + MTRG trigger_top_comp_defs.vhd:L161 (mclk_2x = 100 MHz)
 - Broadcast regularly to all front-end electronics for event synchronization
 - Serial link word rate is only 50 MHz, so: words are only loaded when the 100 MHz timestamp LSB = 0 (even number)
 - Receivers must synchronize their clock multipliers so that any 100 MHz counter synthesized from the 50 MHz link clock has its LSB = 0 immediately after rising edges coincident with the link word clock rising edge
@@ -198,8 +198,8 @@ DS92LV18 sends 20-bit words. Bits 17 and 0 are special; **16 bits** are payload 
 #### 6.1.2 DC Balance
 
 - Modules may count 1s and 0s per word and choose to send "true" or "inverted" data in bits 16..1 to maintain DC balance
-- **Bit 0 = Polarity Flag:** '0' = bits 16..1 are inverted (re-invert on receipt); '1' = data correct as received
-- All modules **must** implement logic to receive DC-balanced data; transmitting DC-balanced data is optional
+- **Bit 0 = Polarity Flag:** '0' = bits 16..1 are inverted (re-invert on receipt); '1' = data correct as received ✅ verified 2026-04-13 — `DCBAL_in_nofifo.vhd:L68` (`LATCHED_D_IN(0)='0'` → NOT, else pass-through)
+- All modules **must** implement logic to receive DC-balanced data; transmitting DC-balanced data is optional ✅ verified 2026-04-13 — `dc_balance_mach.vhd:L31,L120` (TX has `enable` port; when disabled, data passes unchanged)
 
 ### 6.2 Frame Format
 
@@ -223,6 +223,8 @@ Each command frame = 5 × 18-bit words:
 | 1–4 | 0xAAAA |
 | 5 | 0x0000 |
 
+✅ verified 2026-04-13 — `SERDES_RX_Mach_R2.vhd:L237` (null frames defined as `0xAAAA×4 + 0x0000`; null detection L409 checks `LATCHED_CONTROL_DATA /= X"AAAA"`)
+
 ### 6.2.2 Command Byte Summary Table
 
 | Command Byte (hex) | Meaning |
@@ -235,13 +237,13 @@ Each command frame = 5 × 18-bit words:
 | 0x10 | Front End Reset |
 | 0x18 | Front End Reset (serial links only) |
 | 0x22 | External Discriminator Request (DGS, added 20160418) |
-| 0x40 | Demand Front End Slow Data |
+| 0x40 | Demand Front End Slow Data | ✅ verified 2026-04-13 — `SERDES_RX_Mach_R2.vhd:L241` FRAME 13 FIXED_BITS = `X"40FB"` → cmd byte bits 16..9 = 0x40 |
 | 0x50–0x5A, 0xA5 | Trigger Decision Frame |
 | 0x81 | Imperative Sync (force reload of timestamps) |
 | 0x90–0x97 | Auxiliary Detector command (reserved) |
 | 0x98–0x9F | Main Detector Miscellaneous command (reserved) |
 | 0xAA | Null — do nothing |
-| 0xFF | End-of-Cycle (timing boundary marker only; no action) |
+| 0xFF | End-of-Cycle (timing boundary marker only; no action) | ✅ verified 2026-04-13 — `SERDES_RX_Mach_R2.vhd:L244` FRAME 20 FIXED_BITS W1 = `X"FFFF"` → cmd byte bits 16..9 = 0xFF |
 
 Undefined command byte received → receiver should NOT process it; report error to slow monitoring system (not to TTCS).
 

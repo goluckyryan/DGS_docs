@@ -239,4 +239,17 @@ Dual external FIFOs (A and B) hold trigger records for VME readout:
 
 ---
 
-*Created: 2026-04-05 (from SVN MyRIAD Abridged User Notes PDF). FPGA firmware section added 2026-04-08.*
+## Firmware Revision (from Source)
+_Source: `DGS_tools_pack/FPGA/others/MyRIAD/MAIN_FPGA/Source/MyRIAD_pkg.vhd` — verified 2026-04-12_
+
+| Constant | Value | Meaning |
+|----------|-------|---------|
+| `cCODE_REVISION` | `0x0B16` | PCB rev=0 (no proto suffix), firmware type=B (MyRIAD expansion), major=1, minor=6 |
+| `cCODE_DATE_MMDD` | `0x0810` | August 10 |
+| `cCODE_DATE_YEAR` | `0x2022` | 2022 |
+
+**Firmware type code B** = "MyRIAD Trigger expansion module" — same numeric encoding as all other DGS/GRETINA firmware (see `MyRIAD_pkg.vhd:L35–51` for full table). This is the production firmware as of 2022-08-10.
+
+---
+
+*Created: 2026-04-05 (from SVN MyRIAD Abridged User Notes PDF). FPGA firmware section added 2026-04-08. Firmware revision verified from source 2026-04-12.*

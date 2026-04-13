@@ -171,7 +171,7 @@ Gammasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
 **Operating conditions (both types):**
 - Vacuum: 10⁻⁵ to 10⁻⁶ Torr inside detector cold volume
 - Temperature: liquid nitrogen (~77 K)
-- Bias voltage: 3,000–4,000 V (range 3000–4800V across array; most common 4000V)
+- Bias voltage: 2,900–4,800 V across the array (most common values: 4000V and 4800V) ✅ verified 2026-04-13 — `collectorboxpi/CollectorBox_RevA/iocBoot/iocCollectorApp/st_202.cmd` DS_GEHV values (non-zero range: 2900–4800V); DS_GEHV=0 = empty/disabled slot
 - Preamp type: **transistor-reset preamplifier** (no resistor feedback; NPN transistor bleeds accumulated charge when output reaches ~+10V; second comparator turns NPN off at ~0V)
 - Normal reset rate: every few ms to a few hundred ms depending on neutron damage to crystal
 - Leakage current: typically ~1 nA

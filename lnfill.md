@@ -153,9 +153,23 @@ Fallback: if all pressure gauges for a station fail, assumes 28 PSI (early in ru
 ## Communications
 
 ### InfluxDB (on DCS2.onenet)
-- `SaveTemp.sh` pushes temperature data
+- `SaveTemp.sh` + `templog/StoreDetTemps.py` push temperature data (measurement: `Temperature,gsid=NNN,en=0/1 value=<K>`) to InfluxDB db `HPGeTemp` at `http://192.168.203.56:8181/api/v3/write_lp` ✅ verified 2026-04-13 — `SaveTemp.sh:L7` + `templog/StoreDetTemps.py:L51-57`
+- `LNFill_App.py` writes only coarse fill events to InfluxDB: `Fill,type=<X> value=1` at start and `Fill,type=<X> value=0` at end (via `WriteInflux()`) ✅ verified 2026-04-13 — `LNFill_App.py:L259,L532`. **Per-detector fill durations are NOT written to InfluxDB** — they exist only in text log files (`logs/fill_YYYYMMDD_HHMM.log`). This is the key gap for the LN2 fill time monitoring task (QUEUE.md).
+- `WriteDiscordMessage.py:WriteInflux()` sends line protocol via curl to `HPGeTemp` db ✅ verified 2026-04-13 — `WriteDiscordMessage.py:L23`
+- `LNFill_ping_cron.sh` writes `ping_status` metrics for hosts (ln2con, pi5, lnfill IOC, GS collector servers) ✅ verified 2026-04-13 — `LNFill_ping_cron.sh:L11` (`url=http://192.168.203.56:8181/...`)
 - Needs `influx.token` file: `export INFLUXDB_WRITE_TOKEN=<token>`
 - Token in elog: https://elog.phy.anl.gov/GS+maintenance/39
+
+#### Fill Duration Data Flow (for LN2 fill time monitoring task)
+Per-detector fill duration (seconds) is computed inside `DetMan.py:buildFillLog()` as `filltime = int(self.detMan[i].getOpenTime())` ✅ verified 2026-04-13 — `DetMan.py:L331`. This value is logged to `logs/fill_*.log` in a format like:
+```
+DET: A-12   35342   247  19.2K  16.6K  Cold   Cold    OK   247
+```
+(columns: hose-slot, GSID, fill_time_s, temp_before, temp_after, sensor_before, sensor_after, status, LED_cold_time)
+
+To implement fill duration trending, two approaches:
+1. **Log-parser script:** parse existing `logs/fill_*.log` files, extract per-GSID fill durations + timestamps → push to InfluxDB. Historical data available from existing logs.
+2. **Code injection:** add `WriteInflux(f'FillDuration,gsid={gsid} value={filltime}')` in `DetMan.py:buildFillLog()` after L352 — writes per-detector fill duration in real time going forward.
 
 ### Discord Webhooks
 Two webhook files required:

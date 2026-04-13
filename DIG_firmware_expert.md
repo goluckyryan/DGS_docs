@@ -12,10 +12,10 @@ The 10-channel DIG firmware runs as a continuously operating data pipeline. Each
 _Source: [ANL Digitizer Firmware for Advanced Users](https://wiki.anl.gov/gsdaq/ANL_Digitizer_Firmware_for_Advanced_Users) (wiki)_
 
 Inputs are differential. ADC chip nominally supports ±2V differential, but input buffer circuitry limits usable range:
-- **Best linearity:** ±1.2V differential = ±4,916 ADC counts from 0V (nominal 0V = 8,192 counts → range 3,276–13,108)
+- **Best linearity:** ±1.2V differential = ±4,916 ADC counts from 0V (nominal 0V = 8,192 counts → range 3,276–13,108) ✅ verified 2026-04-13 — jta_channel.vhd:L572 (midscale 0+ recoded to offset binary = 0x2000 = 8192)
 - **Relaxed use:** ±1.5V differential = ±6,144 ADC counts (range 2,048–14,336)
 - **Beyond ±1.5V:** marked non-linearity / signal compression
-- Conversion: **4,096 counts/volt** (ADC designed for 16,384 codes over 4V)
+- Conversion: **4,096 counts/volt** (ADC designed for 16,384 codes over 4V) ✅ verified 2026-04-13 — AD6645 is 14-bit (Digitizer.vhd:L59: ADC_DATA_PINS slv_13_0); 16384/4V = 4096 counts/V; ±1.2V×4096=4915.2≈4916 ✓, ±1.5V×4096=6144 ✓
 
 Summary: For Ge signals, keep within ±1.2V for best energy resolution; ±1.5V acceptable for most uses.
 
@@ -66,7 +66,7 @@ Two discriminators per channel:
 - **Coarse discriminator**: Always leading-edge mode. Fixed delay buffer depth. Same polarity as main. Used for fast multiplicity trigger for auxiliary detectors. Also captures early copies of pre-rise sum before main discriminator fires.
 - **Main discriminator**: Configurable — leading-edge or CFD mode, per-channel polarity.
 
-**Digital filter** (main discriminator): Y(n) = X(n) + 2·X(n-1) + X(n-2), convolved 4 times. Coefficients sum to 256, so lower 8 bits of FILTER_OUT discarded → still 14-bit output.
+**Digital filter** (main discriminator): A 9-tap FIR filter with Pascal's triangle coefficients 1-8-28-56-70-56-28-8-1 (= (1+2z⁻¹+z⁻²)⁴). Equivalent to convolving Y(n) = X(n) + 2·X(n-1) + X(n-2) with itself 4 times. Coefficients sum to 256 → lower 8 bits discarded in normalization; output is 15-bit (14-bit magnitude + 1 sign bit). Implemented in `single_filter.vhd` using DSP48 multipliers (×28, ×70) + shifts for ×1, ×8, ×56 terms. ✅ verified 2026-04-12 — `single_filter.vhd:L1-85` (coefficients, 15-bit output `dout(14 downto 0)`), `triple_filter.vhd:L18` ("sign bit added" comment)
 
 Three copies of this filter are applied to ADC samples: entering K buffer, between K and D, and exiting D. A MUX routes two copies to the leading-edge discriminator based on operating mode.
 

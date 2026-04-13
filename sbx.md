@@ -95,6 +95,8 @@ The routing is **fixed at fabrication** (hardwired traces), not dynamic. The cor
 | 43 | Ring 5, pin 4 |
 | 44/45 | Likely back plug (unconfirmed) |
 
+✅ verified 2026-04-13 — `SlopeBoxInterface/PickoffCard/bgo notes.txt:L1-19` (addr 32–43 all confirmed; addr 39 note: "doesn't affect the ring" and may be 2nd connection to ring 1 per same source)
+
 ### BGO threshold calibration notes
 - Address 19 = BGO differential offset; address 18 = BGOp threshold (documentation was backwards, fixed) ✅ verified 2026-04-09 — `SlopeBoxInterface/PickoffCard/bgo notes.txt`: "address 19 is the BGO differential offset and 18 is the BGOp threshold. correct in circuit but documentation was backwards, fixed."
 - BGOp threshold noise window: ~4 DAC counts
@@ -164,6 +166,65 @@ The SBX differentiator converts Ge preamp reset spikes into large opposite-polar
 - Reset rate: every few ms to ~100s of ms (depends on radiation damage)
 - PRK dead time: not significant unless detector needs annealing
 - **SBX GeCenter clamp time** (SBX Extension FPGA, `PARST_ANALOG_SWITCH_CTL` process, 100 MHz clock): `PARST_SWITCH_COUNT` default = `X"1388"` = 5000; loaded as `5000 & '0'` = 10000 counts at 100 MHz = **100 µs** default clamp duration. Register is 16-bit: bit 15 = enable flag, bits[14:0] = count (× 2 × 10 ns, max ~655 µs). ✅ verified 2026-04-06 — `SlopeboxInt_TopLevel_RevC.vhd:L552,L3208–3237`. Prior claim of "200–250 µs" was incorrect — that figure is not in the firmware source.
+
+---
+
+## I2C DPRAM Opcode Engine (`SlopeBoxExtension/I2C_Tools/I2C_Compiler/`)
+
+The Ctrl FPGA and Stripe FPGA (SBX) use a **DPRAM-based I2C state machine** to drive on-board I2C devices (ADCs, DACs, power monitors, etc.). The `I2C_Compiler` is a C tool that compiles CSV-format I2C transaction sequences into 32-bit DPRAM opcodes loaded into the FPGA's I2C engine ROM.
+
+### 32-bit Opcode Format
+
+Each DPRAM word is 32 bits, split as UPPER_16 (bits[31:16]) and LOWER_16 (bits[15:0]):
+
+**UPPER_16:**
+| Bits | Field | Description |
+|------|-------|-------------|
+| [15] | CONT | Continue — 1 = more words follow for this transaction |
+| [14:12] | OPCODE | Operation type (see table below) |
+| [11:8] | — | Reserved/unused |
+| [7:0] | DPRAM_ADDR | Address in DPRAM where read-back data is saved |
+
+**LOWER_16 (Opcode 0b000 — I2C data word):**
+| Bits | Field | Description |
+|------|-------|-------------|
+| [15:8] | CTRL_BYTE | Control flags (see below) |
+| [7:0] | I2C_BYTE | I2C data byte (device addr+R/W, register addr, or data) |
+
+**CTRL_BYTE bit fields (Opcode 000):**
+| Bit | Flag | Meaning |
+|-----|------|---------|
+| [7] | DONE | Last word of transaction |
+| [6] | RPTS | Repeated start condition |
+| [5] | NACK | NACK expected (don't retry) |
+| [4] | READ | Read transaction (1=read, 0=write) |
+| [3] | SAVE | Save result to DPRAM at DPRAM_ADDR |
+| [2] | EXTD | Extended (multi-byte) |
+| [1] | LOOP | Loop mode |
+| [0] | MACK | Master ACK |
+
+**LOWER_16 (Opcodes 001–101 — delay/jump):** holds 16-bit delay or jump address.
+
+**Opcodes:**
+| Code | Meaning |
+|------|---------|
+| 0b000 | I2C transaction word |
+| 0b001 | Start delay |
+| 0b010 | End delay |
+| 0b011 | Delay |
+| 0b100 | Delay variant |
+| 0b101 | Jump (relative or absolute) |
+| 0b110 | Reserved |
+| 0b111 | Reserved |
+
+### CSV Input Format
+The compiler reads `input.csv` with columns: `Start_Delay`, `End_Delay`, `Device_Address` (hex), `Read_or_Write`, `Reg_Address_or_Command` (hex), `Num_Reg_or_Cmd_Bytes`, `Write_Data` (hex), `Num_of_Data_Bytes`, `DPRAM_Write_Address`, `Force_Special_SAVE_SEQ` (bin), `Force_Special_Opcode` (bin).
+
+Outputs: `output.csv` (one hex 32-bit word per line) + `listing.csv` (annotated debug listing).
+
+The same I2C engine + opcode format is used in **both the SBX Stripe FPGA and the Collector Box Ctrl FPGA** — the flag constants in `collectorboxpi/CollectorBox_RevA/include/CollectorSupport.h` and `PickoffSupport.h` (e.g. `Collector_I2C_DONE=0x8000`, etc.) map directly to the CTRL_BYTE bits above.
+
+*Source: `DGS_SVN/dgs/SlopeBoxExtension/I2C_Tools/I2C_Compiler/main.c` (1026 lines, J. Anderson) — explored 2026-04-12*
 
 ---
 

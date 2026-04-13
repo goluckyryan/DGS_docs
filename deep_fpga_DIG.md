@@ -25,21 +25,8 @@
   - [ADC Interface](#adc-interface)
   - [External Discriminator Modes (per channel)](#external-discriminator-modes-per-channel)
   - [Event Packet Format](#event-packet-format)
-- [Per-Channel Signal Processing: LED and CFD Modes](#per-channel-signal-processing-led-and-cfd-modes)
-  - [Common Signal Path — Delay Chain and Filtering](#common-signal-path--delay-chain-and-filtering)
-  - [LED Mode — Leading-Edge Threshold Discriminator](#led-mode--leading-edge-threshold-discriminator)
-  - [CFD Mode — Constant Fraction Discriminator](#cfd-mode--constant-fraction-discriminator)
-  - [Mode Selection](#mode-selection)
-  - [After Discrimination — PEQ and Energy Integration](#after-discrimination--peq-and-energy-integration)
-  - [Pileup Detection](#pileup-detection)
-  - [VME Registers for Discriminator Configuration](#vme-registers-for-discriminator-configuration)
-- [VME FPGA](#vme-fpga)
-  - [Source Files](#source-files)
-  - [Bitfiles](#bitfiles)
-  - [Clock Select Register](#clock-select-register-clk_select)
-- [Main FPGA Bitfiles](#main-fpga-bitfiles)
-- [IP Cores](#ip-cores)
-- [See Also](#see-also)
+- [Per-Channel Signal Processing, VME FPGA & See Also](#per-channel-signal-processing-vme-fpga--see-also) → **[deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md)**
+- [Cross-References](#cross-references)
 
 ## Target Devices
 
@@ -115,7 +102,7 @@ Event_Header_FIFO    (BRAM, 512×36)        Bitstream load at power-up
 ## Role
 
 The Digitizer is a 10-channel waveform digitizer for germanium detector readout. It:
-1. Digitizes 10 detector channels via 14-bit ADCs running at 100 MHz
+1. Digitizes 10 detector channels via 14-bit ADCs running at 100 MHz ✅ verified 2026-04-12 — Digitizer.vhd:L59 (`ADC_DATA_PINS: in Array_9_0_slv_13_0`, i.e. 10ch × 14-bit) + L57 ("100 MHz ADC clock") + L876 (`CLK => clk100`)
 2. Runs per-channel signal processing — delay chains, threshold/CFD discriminators, pileup rejection, energy integration
 3. Sends discriminator hit patterns to the Router via SERDES link
 4. Receives trigger decisions back from the Router

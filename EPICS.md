@@ -325,7 +325,7 @@ dbLoadRecords("MDigUser.template", "CRATE=01,BOARD=MDIG1,PORT=VME01_MDIG1")
 
 ---
 
-## 7. DGS-Specific EPICS Setup
+## 8. DGS-Specific EPICS Setup
 
 ### CA Port assignments
 | System | CA port |

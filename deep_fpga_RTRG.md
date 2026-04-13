@@ -188,16 +188,16 @@ The Router receives the 20-frame command stream from the MTRG on Link L and forw
 | 2 | Detector status | Forwarded unchanged |
 | 3–10 | Trigger decisions (×8 slots) | Forwarded unchanged |
 | 11 | Spare (null) | Forwarded unchanged |
-| 12 | Router Command (counters, FIFOs) | **Stripped** — Digitizers see null (0xAAAA) |
+| 12 | Router Command (counters, FIFOs) | **Stripped** — Digitizers see null (0xAAAA) ✅ verified 2026-04-13 — `SERDES_RX_Mach_R2.vhd:L191` |
 | 13 | GRETINA Demand Slow Data | Forwarded unchanged |
-| 14 | Router Command | **Stripped** — Digitizers see null (0xAAAA) |
+| 14 | Router Command | **Stripped** — Digitizers see null (0xAAAA) ✅ verified 2026-04-13 — `SERDES_RX_Mach_R2.vhd:L191,L1183–1188` |
 | 15 | Async Command | Forwarded unchanged |
 | 16 | Sync Capture | Forwarded unchanged |
 | 17 | Auxiliary Detector Command | Forwarded unchanged |
 | 18–19 | Spare (null) | Forwarded unchanged |
 | 20 | End-of-Cycle | Forwarded unchanged |
 
-The Router also inserts the per-channel veto mask (`VETO[9:0]`) into bits [9:0] of Word 5 of each forwarded frame, based on throttle and trigger decisions.
+The Router **extracts** the per-channel veto mask (`VETO[9:0]`) from bits [9:0] of Word 5 of trigger-decision frames received from the MTRG (via `SERDES_RX_Mach_R2.vhd:L889,L1048`). The MTRG places the veto in those bits; the Router reads them and forwards the frame unchanged (`SANITIZED_CONTROL_DATA`) to all 8 Digitizers. The Router does **not** insert or modify VETO bits in outgoing frames. ✅ verified 2026-04-13 — `SERDES_RX_Mach_R2.vhd:L44,L889,L1048,L1119–1122` (SANITIZED_CONTROL_DATA passes LATCHED_CONTROL_DATA unchanged except frames 12/14)
 
 ## VME Register Map
 
