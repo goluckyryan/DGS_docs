@@ -220,7 +220,7 @@ Central data object for GrayCAL (author: M.P. Carpenter, 2025-09-04). Stores a r
 
 **Plotting:** Plotly-based `plot()` method returns `go.Figure`; used by GUI `SpectrumViewer`.
 
-_Source: `gray_apps/src/GrayCAL/core/SpectrumData.py` (720 lines) — explored 2026-04-09_
+_Source: `gray_apps/src/GrayCAL/core/SpectrumData.py` (720 lines) ✅ verified 2026-04-13 — wc -l confirms 720_
 
 #### `CalibrationPoints.py` — Peak-to-Source Matching & Energy Calibration
 
@@ -236,7 +236,7 @@ The key workhorse for `gain_from_parquet.py`. Holds fitted peaks and performs th
 
 **Key attributes:** `num_pts`, `centers[]`, `centers_unc[]`, `gamma_en[]` (literature values), `matched[]` (bool per peak), `en_par` ([gain, offset] after calibration), `en_red_chi2`, `eff_par`.
 
-_Source: `gray_apps/src/GrayCAL/core/CalibrationPoints.py` (756 lines) — explored 2026-04-09_
+_Source: `gray_apps/src/GrayCAL/core/CalibrationPoints.py` (756 lines) ✅ verified 2026-04-13 — wc -l confirms 756_
 
 #### `SyntheticSpectrumGenerator.py` — Synthetic Gamma-Ray Spectrum Generator
 
@@ -253,7 +253,7 @@ Generates synthetic gamma-ray spectra for testing/validation of the fitting and 
 
 **Used for:** Unit testing `AutoFitter`, validating `CalibrationPoints.match_w_source()` with known peak positions, and demonstrating the full GrayCAL pipeline without real data.
 
-_Source: `gray_apps/src/GrayCAL/core/SyntheticSpectrumGenerator.py` (458 lines) — explored 2026-04-10_
+_Source: `gray_apps/src/GrayCAL/core/SyntheticSpectrumGenerator.py` (458 lines) ✅ verified 2026-04-13 — wc -l confirms 458_
 
 #### `spectrum_types.py` — Spectrum Dataclass
 
