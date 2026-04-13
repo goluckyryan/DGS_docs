@@ -365,6 +365,23 @@ This matches the existing startup scripts in `dgsIoc/iocBoot/iocArray/vme*.cmd`.
 Original code lives on `con6` (Solaris, `192.168.203.136`, user `dgs`).
 See `migration.md` for a full list of what was copied and what was changed.
 
+## VxWorks API Reference Docs
+
+HTML and PDF reference manuals are archived in `DGS_tools_pack/DGS_SVN/dgs/VxWorksDocs/`:
+
+| File | Contents |
+|------|----------|
+| `sockLib.html` | Socket library API (`socket()`, `bind()`, `listen()`, `accept()`, `connect()`) — used in `SendReceiveSupport.c` |
+| `msgQLib.html` | Message queue API (`msgQCreate()`, `msgQSend()`, `msgQReceive()`) — used in `inLoop.st` queuing |
+| `msgQShow.html` | Message queue diagnostic/show functions |
+| `msgQSmLib.html` | Shared-memory message queue API |
+| `hostLib.html` | Host name/IP resolution (`hostGetByName()`) — used for IOC network setup |
+| `Tornado-Guide.pdf` | Tornado 2 IDE user guide |
+| `Vx-Progr-Guide1.pdf` | VxWorks Programmer's Guide (task model, I/O, networking) |
+| `Tornado-getStart.pdf` | Getting Started guide |
+
+Useful when reading `SendReceiveSupport.c`, `inLoop.st`, or any networking/IPC code in the IOC.
+
 ---
 *Source: `DGS_tools_pack/vxworks/README.md`. Created: 2026-04-05.*
 
