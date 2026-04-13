@@ -356,7 +356,7 @@ A separate PyQt6 GUI application for multi-peak gamma-ray spectrum analysis. Use
 - **`spectrum_model.py`** — Gaussian peak model utilities for fitting.
 - **`fitting.py`** — Multi-peak fitting using the spectrum model.
 
-> ⚠️ GrayMAN is less mature than GrayCAL — `peak_detection.py` has a known placeholder. Use GrayCAL's `AutoFitter` (from the `Fitter/grayfit/` library) for production peak finding.
+> ⚠️ GrayMAN is less mature than GrayCAL — `peak_detection.py` has a known placeholder. Use GrayCAL's `AutoFitter` (from the `Fitter/grayfit/` library) for production peak finding. ✅ verified 2026-04-13 — `GrayMAN/core/peak_detection.py:L2` (`pass`) + L5 (`"""Need to replace this with something more realistic"""`); function is duplicated (stub then basic impl).
 
 **Run:** `python src/GrayMAN/main.py`
 
