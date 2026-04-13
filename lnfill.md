@@ -167,7 +167,7 @@ Per-detector fill duration (seconds) is computed inside `DetMan.py:buildFillLog(
 ```
 DET: A-12   35342   247  19.2K  16.6K  Cold   Cold    OK   247
 ```
-(columns: hose-slot, GSID, fill_time_s, temp_before, temp_after, sensor_before, sensor_after, status, LED_cold_time)
+(columns: hose-slot, GSID, fill_time_s, temp_before, temp_after, sensor_before, sensor_after, status, LED_cold_time) ✅ verified 2026-04-13 — `DetMan.py:L338-351` (format string field order confirms hose[0]-hose[1], GSID, filltime, temps[0]/[1], sens[0]/[1], stat, ledT)
 
 To implement fill duration trending, two approaches:
 1. **Log-parser script:** parse existing `logs/fill_*.log` files, extract per-GSID fill durations + timestamps → push to InfluxDB. Historical data available from existing logs.
