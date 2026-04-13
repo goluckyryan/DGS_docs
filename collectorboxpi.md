@@ -288,3 +288,13 @@ EPICS CA port is set via `EPICS_env.sh`: **5064/5065** for array use, **5074/507
 - **ioc/** — shares the same IOC concept (VxWorks IOC for hardware boards; this is the Pi soft IOC for collector boxes)
 - **ANLDAQ** — may monitor collector box PVs via EPICS CA
 - **lnfill/** — parallel infrastructure (also Pi-based, also uses EPICS)
+
+## Cross-References
+
+- `dgs/collector_fpga.md` — CtrlFPGA + StripeFPGA firmware detail; the hardware the Pi IOC talks to
+- `dgs/collectorbox_PVs.md` — Full PV list (1,431 records/detector); use exec grep for PV lookups
+- `dgs/collectorbox_devicesupport.md` — EPICS device support internals: SPI driver, CAMAC_IO link
+- `dgs/sbx.md` — Slope Box Extension hardware; BGO HV, GS_ID dongle, pickoff card
+- `dgs/nfs_layout.md` — PXE boot infrastructure on fs2.onenet; piserver NFS layout and MAC table
+- `dgs/gammasphere_geometry.md` — GS hole numbering and collector box assignments
+- `dgs/influxdb_grafana.md` — Temperature data pushed to InfluxDB by SaveTemp.sh (runs on Pi)
