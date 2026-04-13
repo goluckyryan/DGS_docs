@@ -160,3 +160,9 @@ curl -s http://192.168.203.56:3000/api/health
 ```
 
 _Source: DCS2 exploration via SSH (dcsu@DCS2.onenet). Created: 2026-04-05_
+
+## Cross-References
+
+- `dgs/lnfill.md` — LN2 fill system; writes temperature data to HPGeTemp InfluxDB database
+- `dgs/expMemory_2008_Chiara.md` — Active experiment log; references monitoring dashboards
+- `dgs/nfs_layout.md` — DCS2 filesystem layout; InfluxDB/Grafana run on DCS2 (192.168.203.56)

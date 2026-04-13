@@ -275,3 +275,11 @@ Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[dev
 
 ---
 *Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/CollectorApp/src/` — C device support source. Created: 2026-04-05.*
+
+## Cross-References
+
+- `dgs/collectorboxpi.md` — Raspberry Pi soft IOC: PXE boot, HV control, collector assignments
+- `dgs/collector_fpga.md` — CtrlFPGA and StripeFPGA firmware; SPI register maps
+- `dgs/collectorbox_PVs.md` — Full PV list (1,431 records/detector)
+- `dgs/sbx.md` — Slope Box Extension; pickoff card; BGO HV; GS_ID dongle
+- `dgs/EPICS.md` — EPICS record types and device support concepts
