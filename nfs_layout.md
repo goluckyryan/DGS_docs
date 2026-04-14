@@ -826,6 +826,30 @@ Full source for the GRETINA/DGS GT receiver program:
 
 *Source: SSH exploration of DCS2.onenet as dcsu, 2026-04-05 / 2026-04-13.*
 
+---
+
+### fs2/vol5 — Selected Experiment Directories (survey)
+*Source: `ssh dcsu@DCS2.onenet "ls /dgsdata/fs2/vol5/"` — 2026-04-14*
+
+Top-level directories on vol5 (18 named experiments + test areas):
+`253no`, `ChicoTest`, `cmg`, `ebss2024`, `exp1756_Hoff`, `exp1985x_Chowdhury`, `exp2008_Chiara`, `exp2017_Morse`, `exp2026_Mueller-Gatermann2`, `exp2031x_Hartley`, `exp2045_Rogers`, `exp2059_Ackermann`, `exp2071_Andreyev`, `exp2078_Huang`, `exp2092x_Reviol`, `exp2202_Mattera`, `GT_test_ak`, `mpc`, `MSM`
+
+**exp2045_Rogers** (18 TB total):
+- `dgsdata/` (5.2 TB) — 173 raw run dirs (`dgs_run1`–`dgs_run172` + misc)
+- `Merged/` (4.9 TB) — 162 GEBMerged files
+- `xiadata/` (7.7 TB) — XIA detector data (separate DAQ system)
+- `GEBSort*/` — multiple analysis directories (GEBSort_ak, GEBSort_AR, GEBSort_co, GEBSort_DTD, GEBSort_Ni, GEBSort_spb, GEBSort_VK, etc.)
+- `Merged_XIA/` — merged DGS+XIA data
+- Pattern: large combined DGS+XIA experiment; many parallel GEBSort analysis directories suggest iterative calibration runs by multiple analysts
+
+**exp1756_Hoff** (7.8 TB total):
+- `dgsdata/` + `dfmadata/` — **DGS+DFMA combined experiment** (both DAQ systems running simultaneously)
+- `Merged/` — merged data
+- `GEBSort*/` — multiple analysis dirs including GEBSort_dssd, GEBSort_exp1977, GEBSort_12MeVA, GEBSort_6MeVA
+- `scripts/` — experiment scripts
+- `start_both_daq.sh` / `stop_both_daq.sh` — scripts to start/stop both DGS and DFMA DAQ simultaneously; evidence of multi-system coordination
+- Pattern: multi-system run (DGS+DFMA), DSSD detector data, beam energy variants (12 MeV/A, 6 MeV/A)
+
 ## Cross-References
 
 - `dgs/collectorboxpi.md` — Raspberry Pi soft IOC; PXE boot infrastructure served from fs2.onenet piserver NFS
