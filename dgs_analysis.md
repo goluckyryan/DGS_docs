@@ -685,7 +685,10 @@ Higher-level run processing wrapper. Drives **EventBuilder_X** (Parquet output, 
   ANALYSIS   : 1=run ROOT analyzer (default), 0=skip
 ```
 
-Sources `expInfo.sh` (from arg or script dir) for `expName`, `expFolder`, `dataFolder`.
+Sources `expInfo.sh` (from arg or script dir) for `expName`, `expFolder`, `dataFolder`. **Recommended setup:** create a symlink so the default path works without passing the arg every time:
+```bash
+ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh working/expInfo.sh
+```
 
 **Key settings (hardcoded in script):**
 - `timeWin=1000` ticks coincidence window ✅ verified 2026-04-09 — `ProcessRUN:L39`
