@@ -188,6 +188,10 @@ No RBV & Mismatch: 3
 
 Shared `keep(pv)` function used by `dumpPVs.py`, `putPVs.py`, `verifyPVs.py`, and external code. Defines which PVs are worth snapshotting (excludes fast-changing or internal PVs).
 
+**Filter effectiveness** ✅ verified 2026-04-14 — live count against `collector201_db.txt` + `vme01_db.txt`:
+- Collector box PVs: 2,471 / 14,200 kept = **83% filtered out**
+- VME PVs: 1,545 / 7,599 kept = **80% filtered out**
+
 > ⚠️ **Not used by `watchDog.py`** — that script has its own separate hardcoded filter (see above). Keep both in sync when adding new noisy PV patterns.
 
 ---
