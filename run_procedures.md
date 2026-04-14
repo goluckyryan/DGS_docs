@@ -53,10 +53,12 @@ ln -sf ../trackMain/crmat.LINUX crmat.LINUX
 
 ```bash
 # Start run (in data directory)
-start_run.sh 123
+start_run.sh "run comment here"   # arg1 = optional comment; run number auto-incremented from expInfo.sh
 
 # Stop run
 stop_run.sh
+
+> ✅ verified 2026-04-14 — `start_run.sh:L49` (`argComment="$1"`); run number comes from `NEXT_RUN` in `expInfo.sh`, not a CLI argument. See `knowledgeBase/ANLDAQ.md` §expInfo.sh for full setup.
 
 # Merge data files from run 123
 gebmerge.sh 123
