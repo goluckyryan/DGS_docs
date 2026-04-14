@@ -21,19 +21,20 @@ A single VME crate with one MTRG, one RTRG, and two DIGs (BUS_LEFT + BUS_RIGHT p
 
 ### MDIG vs SDIG — Master and Slave Digitizers
 
-**Same physical board, different firmware** (compile-time flag: `SLAVE_MODE`).
+**Same physical board, different firmware** (compile-time generic: `FRONT_BUS_LEFT` — replaces old `SLAVE_MODE` flag, removed 2022-08-15). ✅ verified 2026-04-13 — `Digitizer.vhd:L43-48` (SLAVE_MODE removed; FRONT_BUS_LEFT=1 in BUS_LEFT.xise, FRONT_BUS_LEFT=0 in BUS_RIGHT.xise)
 
-| | MDIG (Master Digitizer) | SDIG (Slave Digitizer) |
+| | MDIG (BUS_LEFT Digitizer) | SDIG (BUS_RIGHT Digitizer) |
 |---|---|---|
 | SERDES link to RTRG | ✅ Yes — full upstream/downstream | ❌ None — invisible to trigger |
-| Receives trigger/clock | From RTRG via SERDES | From MDIG via front-bus ribbon cable |
+| Receives trigger/clock | From RTRG via SERDES | From RTRG directly via digitizer fanout board (not from MDIG) ✅ verified 2026-04-13 — `Digitizer.vhd:L34-42` (front-bus clock scheme abandoned 2022-08-15; "external digitizer fanout board copies TTCL link to both boards") |
 | Sends multiplicity upstream | ✅ Yes | ❌ No (only throttle request bit via master) |
 | IOC talks to it | ✅ Yes | ✅ Yes (VME registers) |
 | SERDES lock checked by link_sys | ✅ Yes | ❌ No (locks passively via MDIG's clock) |
 | External discriminator source | Local ch9 (ch0–8 can select `Ch 9` as ext disc src; ch9 itself has `N/A` as option 0) ✅ verified 2026-04-08 — `MDigUser.template:L10038-10055` | ch9 of this SDIG board (same template structure as MDIG — `Ch 9` available for ch0–8) ✅ verified 2026-04-08 — `SDigUser.template:L10038-10055` |
 | Data channels | 10 (ch 0–9) | 10 (ch 0–9) — second set |
+| Front-bus ribbon cable use | Sends discriminator bits (FRONT_BUS_LEFT=TRUE) ✅ verified 2026-04-13 — `Digitizer.vhd:L987-1125` | Receives discriminator bits (FRONT_BUS_LEFT=FALSE) |
 
-**In a crate:** each MDIG+SDIG pair covers up to 20 detector channels. Connected by front-bus ribbon cable — MDIG distributes trigger/clock down to SDIG.
+**In a crate:** each MDIG+SDIG pair covers up to 20 detector channels. Connected by front-bus ribbon cable — used **only for discriminator bit exchange** (not clock/trigger since 2022-08-15). Both boards now receive TTCL independently via digitizer fanout board.
 
 **Naming:** NFS scripts use `MDIG1/SDIG1/MDIG2/SDIG2` (accurate). ANLDAQ `SYSTEM_DEFINES.sh` uses `MDIG1/MDIG2/MDIG3/MDIG4` (simplified — all called MDIG regardless of role). The IOC boot cmd only configures MDIGs (`asynDigitizerConfig`); SDIGs are accessed via VME but don't need separate SERDES init.
 

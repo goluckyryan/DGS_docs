@@ -37,5 +37,17 @@ MTRG/
 └── Gretina Trigger/              # Legacy GRETINA hardware reference
 ```
 
+## Cross-References
+
+- `dgs/fpga.md` — FPGA system overview: DIG/RTRG/MTRG hierarchy, trigger timing
+- `dgs/deep_fpga_MTRG_MAIN.md` — Main FPGA: trigger algorithms, TAC-II TDC, 20-frame command structure, VME map
+- `dgs/deep_fpga_MTRG_VIVADO.md` — Vivado port: Kintex UltraScale XCK060 version
+- `dgs/deep_fpga_MTRG_VME.md` — VME FPGA: Spartan-3, A32/D32 slave, FPGA config manager
+- `dgs/deep_fpga_MTRG_CPLD.md` — CPLD: fast strobe multiplicity logic (~1 µs latency)
+- `dgs/tac2.md` — TAC-II TDC detail: vernier interpolation, 250 MHz 4-phase clock, 64-tap delay lines
+- `dgs/ttcl.md` — TTCL spec: 20-frame command structure sent by MTRG
+- `dgs/VME_registers.md` — MTRG VME register address map
+- `dgs/connectors.md` — MTRG front panel: 125-pin SERDES, NIM I/O, CPLD ribbons
+
 ---
 *Source: `DGS_tools_pack/raw_FPGA/` + `DGS_tools_pack/fpga/` (git repos on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05.*
