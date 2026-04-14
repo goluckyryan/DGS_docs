@@ -12,8 +12,8 @@ Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 
 
 | Ring | θ (deg) | # Detectors | GS Holes |
 |------|---------|-------------|----------|
-| 1 | 17.3° | 5 | GS001, GS002, GS003, GS004, GS006 |
-| 2 | 31.7° | 5 | GS005, GS007, GS008, GS009, GS010 |
+| 1 | 17.3° | 5 | GS001, GS002, GS003, GS004, GS006 | ✅ verified 2026-04-14 — `angtheta.dat` lines 1–6
+| 2 | 31.7° | 5 | GS005, GS007, GS008, GS009, GS010 | ✅ verified 2026-04-14 — `angtheta.dat` lines 5,7–10
 | 3 | 37.4° | 5 | GS011, GS012, GS013, GS014, GS016 |
 | 4 | 50.1° | 10 | GS015, GS017, GS018, GS019, GS020, GS021, GS022, GS023, GS024, GS026 |
 | 5 | 58.3° | 5 | GS025, GS027, GS028, GS030, GS032 |
