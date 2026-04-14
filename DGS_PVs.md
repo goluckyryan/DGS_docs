@@ -579,3 +579,11 @@ for i in $(seq 0 13); do caget GS1_BGO_HV${i}; done
 
 _Source: `DGS_tools_pack/ioc/db/*.template`, `collectorboxpi/CollectorBox_RevA/db/*.db`_
 _Last updated: 2026-04-05_
+
+## Cross-References
+
+- `dgs/VME_registers.md` — VME register addresses; maps to PV names via asyn driver
+- `dgs/ioc.md` — IOC boot scripts and DB loading; how these PVs are instantiated
+- `dgs/EPICS.md` — EPICS record types used in this PV list
+- `dgs/EPICS_asyn.md` — asyn driver: how caput/caget maps to VME register reads/writes
+- `dgs/snapshot_pv.md` — snapshot_pv tools for saving/restoring PV values
