@@ -370,7 +370,7 @@ caget VME10:MTRG:Threshold
 
 ---
 
-## 8. Database Definition Files (.dbd)
+## 9. Database Definition Files (.dbd)
 
 `.dbd` files are the **schema layer** of EPICS — they define what record types, device supports, and drivers exist. Without them, the IOC cannot interpret `.db` files at load time.
 
