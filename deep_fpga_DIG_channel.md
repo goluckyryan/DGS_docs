@@ -73,7 +73,7 @@ THRESH_DISC_FLAG  (one-shot pulse)
 
 The two-tap comparison (PROMPT and DELAYED both above threshold) acts as a simple coincidence filter that suppresses single-sample noise spikes. The threshold value is set by `reg_led_threshold`.
 
-**Timing:** The discriminator flag is asserted approximately 5 clock cycles (50 ns) after the signal crosses threshold, accounting for filter pipeline latency. ⚠️ unverified — derived estimate; exact latency depends on filter tap count. Source needed: count pipeline stages in `jta_channel.vhd` LED path.
+**Timing:** The discriminator flag is asserted exactly **5 clock cycles (50 ns)** after the signal crosses threshold. ✅ verified 2026-04-14 — `thresh_disc.vhd:L259-260` (MBO comment 2014-09-12: "5 clocks from input to disc flag"; one pipeline delay added to PROMPT_INPUT to match CFD discriminator timing).
 
 ---
 
