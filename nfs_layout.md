@@ -81,6 +81,37 @@ Active volume — current experiments and ongoing work.
 | `mpc/` | Apr 2025 — contains `calib/`, `docs/`, `pyepics/pv_dashboard.py` |
 | `MSM/` | Feb 2025 (matthew.martin) |
 
+**vol5 sizes (explored 2026-04-13):** exp1756_Hoff 7.8T, exp2026_Mueller-Gatermann2 12T, exp2045_Rogers 18T, exp2008_Chiara 19T. Other experiments (exp1985x, exp2017, exp2031x, exp2059, exp2071, exp2078, exp2092x, exp2202, ebss2024, cmg, ChicoTest, 253no) not yet sized.
+
+### vol5/exp2008_Chiara/ — Active Experiment Structure ✅ explored 2026-04-13
+
+Directory layout:
+```
+exp2008_Chiara/
+├── data/           # Raw GEB run files: exp2008_NNN/exp2008_NNN_000_DDDD_C (per-digitizer)
+├── docs/
+├── gebsort/        # GEBSort output: PZ scan runs (0.88.root, 0.89.root, etc. + .dgs_pz.cal + .basepj)
+├── gebsort_cmg/
+├── LOG/
+├── LOG_FILES/
+├── Merged/
+├── ROOT_FILES/
+├── RunTimestamp.txt
+└── scripts/        # Per-experiment Python tuning scripts (NOT in git repo)
+```
+
+**`scripts/` tuning tools** (experiment-specific, written by Ryan/JTA):
+| Script | Purpose |
+|--------|---------|
+| `ge_set_gain.py` | Set GeCenterGain / GeSideInputSelect / BGOpSelect for all 110 GS channels in parallel (ThreadPoolExecutor, MAX_WORKERS=20) |
+| `ge_dc_offset_tune.py` | DC offset tuning for Ge channels |
+| `ge_threshold_tune.py` | Ge discriminator threshold tuning |
+| `sdig_led_threshold.py` | Slave DIG LED threshold adjustment |
+| `set_pv.py` / `set_pv.sh` | Generic PV setter |
+| `dgs_trace.py` | Waveform trace capture utility |
+
+> These scripts use `subprocess` + `caput`/`caget` CLI or pyepics directly. They are experiment-specific and not versioned in the main repos — copies live on NFS only.
+
 ### vol5/mpc/pyepics/pv_dashboard.py ✅ read 2026-04-05
 *Source: `ssh dcsu@DCS2.onenet "cat /dgsdata/fs2/vol5/mpc/pyepics/pv_dashboard.py"` — 2026-04-05*
 A **PyQt6 + pyepics** EPICS PV health dashboard. Clean modern example of proper pyepics usage.
