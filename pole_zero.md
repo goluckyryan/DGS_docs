@@ -19,8 +19,8 @@ _Reference paper: Begley, Zhu, Carpenter et al., NIM A 1040 (2022) 167113 — "A
 | $P_z$ | `pz1` | Per-sample pole-zero coefficient: $P_z = e^{-dt/k}$, $dt=10\,$ns |
 | $P'_{z}$ | `pz4` | Effective PZ over full window gap: $P_z^{K+M}$ |
 | $g$ | | $g = 1 - P_z$ |
-| $V_0$ | `LAST_POST_RISE_M_SUM` | Amplitude of the immediately preceding pulse |
-| $t_0$ | derived from `LAST_DISC_TIMESTAMP` | Time since the immediately preceding pulse |
+| $V_0$ | `LAST_POST_RISE_M_SUM` | Amplitude of the immediately preceding pulse | ✅ verified 2026-04-14 — `class_DIG.h:L63` (field name + comment: "Word 11(31:24) AND Word 12(31:24) AND Word 13(31:24)")
+| $t_0$ | derived from `LAST_DISC_TIMESTAMP` | Time since the immediately preceding pulse | ✅ verified 2026-04-14 — `class_DIG.h:L87` ("LED = 48 bit value, CFD = 30 bit value")
 | $\text{sb}$ | `SAMPLED_BASELINE` | FPGA-sampled baseline at trigger time (used by SZ\_2) — latched from `RUNNING_T1_SUM` (running S1 accumulator) at discriminator fire; 24-bit field, PEHQ bits 347:324; appears in event header Word 6 bits 23:0 ✅ verified 2026-04-09 — `jta_channel.vhd:L1937,L1796` (20230809 tag) |
 | $dt$ | | Sample period = 10 ns (100 MHz clock) ✅ verified 2026-04-07 — `Digitizer.vhd:L57` ("100 MHz ADC clock, differential pair") + `LEFT_RIGHT.ucf:L114` (ACQ_DCM_2X_BUFG = 100MHz) |
 
