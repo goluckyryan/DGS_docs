@@ -43,7 +43,7 @@ For full functional description see [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN
 | Debug | ChipScope (.cpj) | Integrated Logic Analyzer (ILA) |
 | Synthesis engine | XST | Vivado Synth |
 | Place & route | ISE PAR | Vivado P&R |
-| VHDL source | Shared | Mostly shared (~55/59 files identical); Vivado adds `matrix_trig.vhd`, `EVENT_FIFO.vhd`; ISE has `Generated_top.vhd`, `jta_odelay.vhd`, `jta_vernier_pos_finder.vhd` | ✅ verified 2026-04-13 — diff of MAIN_FPGA/trunk/Source/ vs VIVADO_MAIN_FPGA/trunk/Source/ |
+| VHDL source | Shared | Mostly shared (~55/59 files identical); Vivado active source adds `matrix_trig.vhd` (deprecated in ISE `UnusedOrDeprecated/`), `EVENT_FIFO.vhd`; ISE active source has `Generated_top.vhd`, `jta_odelay.vhd`, `jta_vernier_pos_finder.vhd` | ✅ verified 2026-04-13 — diff of MAIN_FPGA/trunk/Source/ vs VIVADO_MAIN_FPGA/trunk/Source/; ✅ verified 2026-04-14 — matrix_trig.vhd found at MAIN_FPGA/trunk/Source/UnusedOrDeprecated/matrix_trig.vhd (not in active ISE build) |
 
 ## Source Files
 
