@@ -28,7 +28,7 @@ Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS
 
 | File | Lines | Function |
 |------|-------|----------|
-| `commander.py` | 852 | Main window: run control, board buttons, settings persistence |
+| `commander.py` | 852 | Main window: run control, board buttons, settings persistence | ✅ verified 2026-04-14 — `wc -l commander.py`=852 |
 | `gui_DIG.py` | 374 | Digitizer board config window (per-channel + per-board PVs) |
 | `gui_MTRG.py` | 1425 | Master trigger board window (largest GUI module) |
 | `gui_RTR.py` | 550 | Router trigger board window (2 tabs: LINK Control, X/Y Map) |
@@ -189,8 +189,8 @@ Button color scheme: running=green, stopped=orange, finished=blue, error=red.
 ### `commander.py` — Main Window
 
 Startup sequence:
-1. Checks `SYSTEM` env var — if not set, re-execs itself via `bash -c "source EPICS_para.sh && exec python3 ..."`
-2. Calls `GeneratePVLists('../ioc/All_PV.json')` to build all PV lists
+1. Checks `SYSTEM` env var — if not set, re-execs itself via `bash -c "source EPICS_para.sh && exec python3 ..."` ✅ verified 2026-04-14 — `commander.py:L8-10`
+2. Calls `GeneratePVLists('../ioc/All_PV.json')` to build all PV lists ✅ verified 2026-04-14 — `commander.py:L21,L23`
 3. Creates `Board` objects for all DIG, RTR, MTRG, DAQ boards
 4. Launches PyQt6 `MainWindow`
 
