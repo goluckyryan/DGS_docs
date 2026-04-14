@@ -83,8 +83,8 @@ All hardcoded `/global/devel/...` paths from con6 were updated to `/home/ryan/DG
 
 | File | Fix | Reason |
 |---|---|---|
-| `asyn/asynDriver/asynDriver.h:215` | `__VAR_ARGS__` → `__VA_ARGS__` | Typo in variadic macro; fatal error with GCC 13 in C99/C17 mode |
-| `asyn/asynDriver/asynDriver.h:229` | `__VAR_ARGS__` → `__VA_ARGS__` | Same typo in `asynPrintIO` macro |
+| `asyn/asynDriver/asynDriver.h:215` | `__VAR_ARGS__` → `__VA_ARGS__` | Typo in variadic macro; fatal error with GCC 13 in C99/C17 mode | ✅ verified 2026-04-14 — fix applied, `__VA_ARGS__` present at L215
+| `asyn/asynDriver/asynDriver.h:229` | `__VAR_ARGS__` → `__VA_ARGS__` | Same typo in `asynPrintIO` macro | ✅ verified 2026-04-14 — fix applied, `__VA_ARGS__` present at L229
 | `asyn/Makefile` | Disabled vxi11 sources and test/example app DIRS | vxi11 requires `rpc/rpc.h` (ONC RPC) not present in Ubuntu 24 glibc; test apps not needed for MVME5500 target |
 
 ### sncseq-2.0.12
