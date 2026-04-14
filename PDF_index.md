@@ -125,6 +125,9 @@ _Root: `DGS_tools_pack/DGS_SVN/dgs/Documentation/Formal/`_
 | Size | File | Notes |
 |------|------|-------|
 | 76KB | `Unsorted Docs/dgs_systemdocs.pdf` | **DGS High-Level System Documentation** (T. Madden, APS-XSD, Nov 2011): Block diagram description of DGS — detector array → digitizers → routers → master trigger → VME IOC → sender → receiver → data merge. Defines core terminology (Sender, Receiver, Merger, Gammaware). Historical — predates current PyQt6 GUI and GEBSort; still accurate for basic architecture. |
+| — | `Unsorted Docs/dgsSender.pptx` | **dgsSender presentation** — covers the MiniSender / outLoop design inside the VME IOC. Companion to `howTheSenderWorks.docx`. |
+| — | `Unsorted Docs/DCBAL.doc` | **DC Balance documentation** — describes the DC balance logic on MTRG/RTRG SERDES links (needed with the fiber expander as of July 2022; see `EN_RTR_DCBAL` PV and `LinkL_DCbal` in `link_sys.py`). |
+| — | `Unsorted Docs/pv list digitizer.txt` | **Legacy VisualDCT PV list** — old `Dig$(DB)_` PV naming convention (e.g., `Dig$(DB)_CS_TrigDly`, `Dig$(DB)_CS_NoiseWin`); register addresses in hex (0x0, 0x8, 0xC, …). Pre-dates current `MOD###_DIG_` naming. Useful for cross-referencing old data/docs against modern PV names. |
 
 ### Historical Software Documentation
 
