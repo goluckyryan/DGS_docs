@@ -266,7 +266,11 @@ Verifies physical SERDES cable connections between digitizer boards and router b
 | `yjc/` | **184 GB** — Y.J. Chen analysis area (Feb 2026, active). Contents: `176hg_dgsdata/` + `176hg_dxadata/` + `176hg_dfmadata/` (raw GEB data for 176Hg experiment); `ROOT_FILES_189at/` + `ROOT_FILES_190at/` + `TREE_FILES_*/` (ROOT analysis output for 189,190At experiments); `geb-sort-tac2/` binary; `parquet-sort/` dir; `merge.py`; `Macros/`; compiled ROOT dict (`geb_class.h`, `.so`, `.pcm`, `.d`) |
 | `ML_AK/` | Jul 2025 — machine learning? |
 | `NeutronShell_testing/` | **654 GB** — Neutron shell testing / commissioning area (Apr 2024). Contains: `GEBSort/` (standard), `GEBSort_VK/` (V. Kumar variant), `.spc` spectra files (0.spc–6.spc), `2023_Nolen.code-workspace` VS Code workspace; `xiadata/` + `XIA_udp_linux/` — XIA Pixie-16 DAQ data (UDP-based readout, different DAQ chain from DGS). The Pixie-16 data coexists with DGS analysis infrastructure. |
-| + many experiment dirs | 1859–2175, 2019–2025 (exp-prefixed) — each follows pattern: `dgsdata/`, `GEBSort*/`, `Merged*/` |
+| `exp2019_Marin/` | Marin experiment — follows standard structure |
+| `exp2026_Mueller-Gatermann/` | **5.3 TB** — Mueller-Gatermann experiment; `dgsdata/` (170 run dirs), `GEBSort/` + `GEBSort_new/` + `GEBSort_xa/`, `Merged/`, `dfmadata/` + `dxadata/` + `plunger/` + `dgsReceiver/` + `dgstests/` ✅ explored 2026-04-13 |
+| `exp2027x_Lopez-Caceres/` | Lopez-Caceres experiment (x = extension/supplemental) |
+| `exp2051_Heery/` | **8.3 TB** — Heery experiment; `dgsdata/` (170 run dirs), `GEBSort/` + `GEBSort_VK_VK/`, `Merged/` (GEBMerged_*.gtd_000 files), `dfmadata/` + `dubdata/` + `xiadata/` + `plunger/` ✅ explored 2026-04-13 |
+| + many other experiment dirs | 1859–2175 range (exp-prefixed) — **Standard pattern:** `dgsdata/dgs_runNNN/` (raw GEB files), `GEBSort*/` (sort code + config), `Merged/` (GEBMerged*.gtd), optional subsystem dirs: `dfmadata/`, `dxadata/`, `dubdata/`, `xiadata/`, `plunger/` |
 
 ---
 
