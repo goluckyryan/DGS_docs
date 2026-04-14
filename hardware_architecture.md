@@ -16,7 +16,7 @@ A single VME crate with one MTRG, one RTRG, and two DIGs (BUS_LEFT + BUS_RIGHT p
 | BGO detector | Anti-Compton shield around Ge |
 | Slope box | Signal conditioning — shapes and conditions Ge/BGO signals before DIG |
 | Raspberry Pi | Runs soft IOC (EPICS) for slope box / collector box HV and monitoring |
-| Terminal server | Serial console access to MVME5500 and boards |
+| Terminal server | Serial console access to MVME5500 and boards (gs-ts-south: 192.168.203.186, gs-ts-north: 192.168.203.91) ✅ verified 2026-04-14 — `ANLDAQ/EPICS_para.sh:L47` |
 | Network switch | Connects IOC, Pi, host computer, EPICS CA traffic |
 
 ### MDIG vs SDIG — Master and Slave Digitizers
@@ -63,7 +63,7 @@ Slot 7: MTRG
 
 - The IOC accesses MTRG, RTRG, and DIG **directly via the VME backplane** (not over the network)
 - VME = the physical bus inside the crate connecting all boards
-- Universe II chip on MVME5500 bridges PowerPC CPU ↔ VME bus
+- Universe II chip on MVME5500 bridges PowerPC CPU ↔ VME bus ✅ verified 2026-04-14 — `dgsDrivers/src/README.md:L229` ("MVME5500's Universe II chip bridges the PowerPC")
 - All register reads/writes, DMA, and FIFO readout happen over this backplane
 
 ### Signal Chain
