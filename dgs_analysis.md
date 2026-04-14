@@ -111,7 +111,7 @@ make EventBuilder_PQ
 | `dgs_gain.cal` | Gain calibration (format: `# gsid  gain  offset` header + one line per crystal) |
 | `dgs_pz.cal` | Pole-zero calibration (format: no header, `{det:3d}  {pz:.6f}` per line) |
 | `angtheta.dat` | **Theta angles per GS hole** — 110 lines, one angle per line (degrees). Matches Gammasphere geometry order. Used for Doppler correction. Sample: hole 1–4 = 17.3°, hole 5 = 31.7°, etc. |
-| `filemap_dgs.dat` | **DAQ-id → GS-hole + channel-type mapping**. Format: `{GS_hole} {type} {DAQ_id}_{ch}`. Types: GE, BGO, SIDE, AUX. Example: `7 GE 0133_8` = GS hole 7, Ge channel, DAQ board 0133 ch 8. Used by `make_filemap_dgs.py` to build per-run filemaps. |
+| `filemap_dgs.dat` | **DAQ-id → GS-hole + channel-type mapping**. Format: `{GS_hole} {type} {DAQ_id}_{ch}`. Types: GE, BGO, SIDE, AUX. Example: `7 GE 0133_8` = GS hole 7, Ge channel, DAQ board 0133 ch 8. Used by `make_filemap_dgs.py` to build per-run filemaps. ✅ verified 2026-04-14 — `filemap_dgs.dat` lines 1-4 confirm format and example |
 | `map.dat` | DAQ id → tid/tpe mapping |
 
 **Build C++ lib:**
@@ -124,7 +124,7 @@ g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
 **Ultimate goal:** Roaring bitmap index — for each energy bin, a roaring bitmap stores the set of `event_id`s containing a hit, enabling rapid energy-gated coincidence queries without scanning the full dataset.
 
 **Threading details:**
-- `decode.py`: `ThreadPoolExecutor`, one worker per tid; GE/BGO files submitted as sub-tasks for overlapping I/O. Requires **Python 3.14.3t (free-threaded / no-GIL)** for true parallelism.
+- `decode.py`: `ThreadPoolExecutor`, one worker per tid; GE/BGO files submitted as sub-tasks for overlapping I/O. Requires **Python 3.14.3t (free-threaded / no-GIL)** for true parallelism. ✅ verified 2026-04-14 — `parquet_pysort/CLAUDE.md:L63` ("Python 3.14.3t (free-threaded) — No-GIL build"); `README.md:L145` ("Python 3.12+ — free-threaded build (3.14t) recommended")
 - `event_builder.py`: Reads all input into one Arrow table, splits into N chunks, calls C++ `build_events()` per chunk in parallel. Column renames (`header_ts→gs_ts`, etc.) are zero-copy Arrow references — no `.to_pylist()`.
 - `decode.py --write-threads N`: Output split into `_000.parquet`, `_001.parquet`, … — feed multiple files to `event_builder.py`.
 
