@@ -231,7 +231,7 @@ commander.py (PyQt6 GUI)               tcpReceiverMT (C++ server)
 
 | System | CA Server Port | CA Repeater Port | Terminal Server | IOC IPs |
 |--------|---------------|-----------------|----------------|---------|
-| DGS | 5064 | 5065 | 192.168.203.186, 192.168.203.91 | .141–.145, .177–.183 (12 VMEs) |
+| DGS | 5064 | 5065 | 192.168.203.186, 192.168.203.91 ✅ verified 2026-04-14 — `EPICS_para.sh:L47` (`TERMINAL_SERVER`) | .141–.145, .177–.183 (12 VMEs) |
 | DFMA | 5068 | 5069 | — | — |
 | DXA | 5072 | 5073 | 192.168.203.47 | .212, .213 |
 | SlopeBox | 5074 | 5075 | 192.168.203.139 | — |
