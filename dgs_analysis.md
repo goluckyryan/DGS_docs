@@ -129,9 +129,12 @@ g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
 - `decode.py --write-threads N`: Output split into `_000.parquet`, `_001.parquet`, … — feed multiple files to `event_builder.py`.
 
 **Algo notes:**
-- Algo 1 (SZ_1, low-rate): Baseline via exponential avg (`alpha=0.01`), only updated when `dtev ≥ 250 µs`.
-- Algo 2 (SZ_2, high-rate): Two regimes based on `dtev` vs `dgs_SZ_t1`/`dgs_SZ_t2`; extrapolates baseline from pre-learned factor when `dtev < dgs_SZ_t2`. Both require `base > 10.0` for nonzero energy.
-- `pileup_count` extraction in `jta.c` has a known bit-shift bug that always produces 0; replicated as-is for compatibility.
+- Algo 0: simple `sum2/MM - sum1/MM` (no pole-zero, no baseline).
+- Algo 1 (SZ_1, low-rate): Baseline via exponential avg (`BASE_ALPHA=0.01`, updated only when `dtev ≥ 250 µs`). Energy = `sum2/MM - sum1/MM * pz1 - base*(1-pz1)` where `pz1 = PZ^(1/MM)`. Both require `base > 10.0` for nonzero energy.
+- Algo 2 (SZ_2, high-rate): Uses `pz4 = PZ^((MM+KK)/MM)`. Two regimes based on `dtev` vs `dgs_SZ_t1`/`dgs_SZ_t2`: `≥ t2` computes baseline from `sampled_baseline` (FPGA-sampled, 24-bit, `MSAMPLE=1024` = 10.24 µs window) using PZ decay formula; `< t2` extrapolates from pre-learned `baselast`/`sum1last` factor. Energy formula same as SZ_1 but uses `pz4`. Requires `base > 10.0`.
+- `dtev`: computed from firmware `last_disc_timestamp` (time since last discriminator trigger), with wrap-around correction. Matches `lastdisc_dt_ticks()` in `bin_dgs.c`.
+- `sum2` field extraction in `jta.c` is header-type-dependent: types 0/1/3/5 use `>> 28` (4-bit); types 4/6/7/8 use `>> 24` (8-bit).
+- `pileup_count` extraction in `jta.c` has a known bit-shift bug (`(word5 & 0x00FFC000) >> 24`) that always produces 0; replicated as-is for compatibility.
 
 **GEBSort reference:** `GEBSort.cxx:GEBGetEv()` — coincidence grouping: `while ((TS - curTS) < dTS)`. Default `dTS=500` (= 5 µs at 10 ns/tick). ✅ verified 2026-04-09 — `GEBSort.cxx:L2502` (`Pars.dTS = 500`). `jta.c:DGSEvDecompose_v3()` parses payloads (big-endian swap, 48-bit timestamp from words 1+2, `trigger_timestamp` only in header types 7/8).
 
