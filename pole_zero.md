@@ -298,7 +298,7 @@ Deviations indicate the actual RC differs from the nominal slope box setting.
 | `do_refine` | True | Run fine-scan refinement after coarse scan | ✅ verified 2026-04-12 — `pole_zero_fitter.py:L186`
 | `refine_pz_halfwidth` | 0.002 | Fine scan ± half-range around coarse best | ✅ verified 2026-04-12 — `pole_zero_fitter.py:L187`
 | `refine_pz_step` | 0.0001 | Fine scan step size | ✅ verified 2026-04-12 — `pole_zero_fitter.py:L188`
-| `peak_search_emin/max` | 50–8192 | Energy range for peak finder in refinement |
+| `peak_search_emin/max` | 50–8192 | Energy range for peak finder in refinement | ✅ verified 2026-04-14 — `pole_zero_fitter.py:L191-192`
 
 Note: `armory/gray_apps/polezero_parameters.md` referenced here does **not exist** — the above is extracted directly from `pole_zero_fitter.py:PZParams` (2026-04-08).
 
