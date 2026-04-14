@@ -553,18 +553,9 @@ PV prefix hierarchy (from `gamln.db`):
 
 ---
 
-## What to Explore Next (Heartbeat G queue)
+## Detailed Findings — Subsections
 
-- [x] `vol2/global_32/ioc/py_scripts/trace_throttle.py` — documented 2026-04-05
-- [x] `vol2/global_32/ioc/py_scripts/compare_pvs.py` — documented 2026-04-05
-- [x] piserver extra 3 MACs — identified 2026-04-06 (spare/unassigned Pis)
-- [x] `trace_throttle2.py` — documented 2026-04-06 (see below)
-- [x] `vol2/dgscalib/` — partially documented 2026-04-06 (see below); historical ROOT-based calibration macros, superseded
-- [x] `vol4/dgs_testing/GEBSort/` — documented 2026-04-13 (see below)
-- [x] `vol3/sbx2022tuning/` — documented 2026-04-13 (see below)
-- [x] `vol2/global_32/edmroot/lncntrl/screens/` — LN EDM screens documented 2026-04-13 (see below)
-- [x] `vol2/global_32/devel/systems/gs/lnfill/gamln.db` — PV prefixes/record types documented 2026-04-13 (see lnfill IOC section)
-- [x] `fs1/vol2/global_sl7/devel/systems/gs/lnfill/` — legacy/archived LNFill scripts documented 2026-04-13 (see below)
+_(All originally-queued areas now explored and documented below. Remaining: vol5/exp2059_Ackermann, vol5/exp2071_Andreyev — lower priority.)_
 
 ### trace_throttle2.py — Updated Connectivity Mapper ✅ read 2026-04-06
 *Source: `ssh dcsu@DCS2.onenet "cat /dgsdata/fs2/vol2/global_32/ioc/py_scripts/trace_throttle2.py"` — 2026-04-06*
