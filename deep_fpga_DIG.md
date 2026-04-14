@@ -226,7 +226,7 @@ All branches target `xc3s5000-fg900-5`.
 ### Front Bus (Partner Digitizer Interface)
 | File | Description |
 |------|-------------|
-| `Front_Bus.vhd` | Bidirectional discriminator bit sharing via ribbon cable to adjacent digitizer; `FRONT_BUS_LEFT` generic selects sender (TRUE) or receiver (FALSE) role |
+| `Front_Bus.vhd` | Bidirectional discriminator bit sharing via ribbon cable to adjacent digitizer; `FRONT_BUS_LEFT` generic selects sender (TRUE) or receiver (FALSE) role ✅ verified 2026-04-14 — `Digitizer.vhd:L48` ("if set, this digitizer SENDS discriminator bits, if clear it RECEIVES them") |
 
 ### Event Data Aggregation & Readout
 | File | Description |
@@ -303,7 +303,7 @@ Host Computer
 
 ### SERDES TX Format (DIG → Router)
 
-The DIG sends one 16-bit word per 50 MHz clock continuously — there is no frame structure upstream. The DC-balance wrapper adds 2 bits (CG/POL), making the physical link 18 bits wide. Source: `SERDES_TX_Mach_DGS.vhd`.
+The DIG sends one 16-bit word per 50 MHz clock continuously — there is no frame structure upstream. The DC-balance wrapper pads the 16-bit word to 18 bits (`'0' & data & '1'`), making the physical link 18 bits wide. ✅ verified 2026-04-14 — `Digitizer.vhd:L2078` (`unbalanced_serdes_tx_data <= '0' & serdes_tx_data & '1'`); `dc_balance_mach.vhd:L32-33` (18-bit in/out). Source: `SERDES_TX_Mach_DGS.vhd`.
 
 | Bits (wire) | Bits (data) | Field | Description |
 |-------------|-------------|-------|-------------|
