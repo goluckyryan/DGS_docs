@@ -25,9 +25,9 @@ _Author: T. Lauritsen (ANL). Used by DGS, GRETINA, X-Array, DUO, and other detec
 | `GEBHeader` | Reads/prints GEB headers |
 | `find_MK` | Reads live EPICS PVs to compute recommended `dgs_MM` and `dgs_KK` values ✅ verified 2026-04-10 — `find_MK.c:L63-94` (reads `GLBL:DIG:GeC_{d,k,k0,d3,m}_window` via CA; K = d+k+k0+d3+0.15us hidden fixed; outputs in 10 ns units) |
 | `mk_dgs_map` | Generates the DGS detector map file |
-| `fwhm_onepeak` | Finds best PZ value by minimizing peak FWHM |
+| `fwhm_onepeak` | Finds best PZ value by minimizing peak FWHM — scans PZ 0.70→1.0 in 0.01 steps, fits parabola to find vertex ✅ verified 2026-04-14 — `fwhm_onepeak.c:L56,L103-125` |
 | `SZ_factor` | Extracts the SZ energy extrapolation factor |
-| `dgs_ecal` | Automatic energy calibration from known source |
+| `dgs_ecal` | Automatic energy calibration from known source (207Bi, 88Y, 60Co) — linear fit (gain/offset) per detector ✅ verified 2026-04-14 — `dgs_ecal.c:L49,L64-78` |
 
 ---
 
