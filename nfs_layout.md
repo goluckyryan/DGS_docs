@@ -248,7 +248,7 @@ Compares `longin`/`longout` PV names between two dated snapshots of `MTrigRegist
 - **Output:** count of old/new PVs, sorted lists of added and removed PV names with record type
 - Uses `pathlib` + `re` only — no EPICS required, pure file diff
 - **Not integrated into ANLDAQ GUI** — standalone dev utility
-- **Cross-reference:** `memory/dgs/ioc.md` documents the `ioc/db/` directory; MTRG templates are in `db/`
+- **Cross-reference:** `knowledgeBase/ioc.md` documents the `ioc/db/` directory; MTRG templates are in `db/`
 
 ---
 
