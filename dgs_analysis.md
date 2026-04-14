@@ -281,7 +281,21 @@ Legacy Python class for reading and writing RadWare `.spe` binary spectrum files
 
 Useful for importing/exporting spectra to/from RadWare tools (gf3, levit8r, etc.) and GEBSort.
 
-_Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06; radware_eff + isotope data explored 2026-04-08; spectrum_types + spedata explored 2026-04-11_
+#### `BatchFit.py` — Batch Calibration Container
+
+Holds calibration results from multiple histograms (e.g. all detector IDs in one run). Stores:
+- `ids` — list of detector IDs processed
+- `cal_spectra` — dict of `SpectrumData` per ID
+- `cal_collections` — dict of `FitSessionCollection` per ID
+- `cal_pts_dict` — dict of `CalibrationPoints` per ID
+
+Key methods:
+- `get_cal_centroids()` — returns per-gamma-line dict of `{energy_str: ([ids], [cal_en], [cal_en_res])}`; only for matched/calibrated detectors
+- `gen_rand_factors(num)` — test utility: generates random gain factors per ID (uniform center 0.5–1.5, σ=0.01)
+
+Author: Scott Carmichael (2025-12-11). Used by `BatchfitDialog` GUI (Tools → BatchFit).
+
+_Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06; radware_eff + isotope data explored 2026-04-08; spectrum_types + spedata explored 2026-04-11; BatchFit explored 2026-04-13_
 
 #### GrayCAL GUI — `main_window.py`
 
