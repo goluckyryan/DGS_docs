@@ -88,3 +88,10 @@
 ---
 
 *Created: 2026-04-05 (from SVN Digitizer_Tester VHDL source)*
+
+## Cross-References
+
+- `knowledgeBase/DGS_SVN.md` — `Digitizer_Tester/` entry in the SVN archive index
+- `knowledgeBase/fpga.md` — FPGA firmware overview; Digitizer Tester injects test signals into the trigger chain
+- `knowledgeBase/ttcl.md` — TTCL spec; the Digitizer Tester generates compatible discriminator bit patterns
+- `knowledgeBase/troubleshooting.md` — Using the Digitizer Tester for system diagnostics
