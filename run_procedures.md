@@ -205,22 +205,25 @@ The current experiment uses a Python+Parquet pipeline instead of GEBSort. Key di
 # 1. Download raw GEB data from NFS
 bash working/DownloadRaw.sh
 
-# 2. Decode GEB → Parquet (hit-level)
-./working/RunParquet --decode-only <run_files> --output expFolder/Parquet/decode/
+# 2. Decode GEB → Parquet (hit-level) via RunParquet
+#    Signature: RunParquet [--decode-only] <expInfo.sh> <run_number> [TIMEWIN] [THREADS]
+./working/RunParquet --decode-only ~/ANLDAQ/tcpReceiver/expInfo.sh 3
+# ✅ verified 2026-04-14 — RunParquet:L1-23 (usage comment + set -euo pipefail)
 
 # 3. PZ calibration from hit-level parquet
-python working/pz_from_parquet.py expFolder/Parquet/decode/exp_003_dgs.parquet \
+python working/pz_from_parquet.py expFolder/Parquet/decode/exp2008_003_dgs.parquet \
     --output working/dgs_pz.cal
 
 # 4. Energy calibration (152Eu source)
-python working/gain_from_parquet.py expFolder/Parquet/decode/exp_003_dgs.parquet \
+python working/gain_from_parquet.py expFolder/Parquet/decode/exp2008_003_dgs.parquet \
     --output working/dgs_gain.cal
 
 # 5. Full decode + event build → Parquet (event-level)
-./working/RunParquet <run_files> --pz-cal dgs_pz.cal --gain-cal dgs_gain.cal \
-    --output expFolder/Parquet/events/
+./working/RunParquet ~/ANLDAQ/tcpReceiver/expInfo.sh 3 1000 40
+# (no --pz-cal/--gain-cal flags; RunParquet does decode+event_builder only;
+#  pole-zero and gain are applied separately in analysis, not in RunParquet)
 
-# 6. Build ROOT events (parallel k-way merge)
+# 6. Build ROOT events (parallel k-way merge) via ProcessRUN (preferred over RunParquet)
 ./armory/fastEventContructor/EventBuilder_PQ \
     out.root <timeWindow_ns> 0 0 12 4 <parquet_files...>
 ```
