@@ -321,7 +321,7 @@ Command byte values (bits [15:8] of Word 1):
 
 #### Frame 17 — Auxiliary Detector Command
 
-Sourced from `AUX_CMD_FIFO` VME register (`0x08F8`). Content depends on auxiliary detector. Not decoded by DIG main FPGA. Word 5 carries VETO[9:0].
+Sourced from `AUX_CMD_FIFO` VME register (`0x08F8`). Content depends on auxiliary detector. Not decoded by DIG main FPGA. Word 5 carries VETO[9:0]. ✅ verified 2026-04-13 — `registers.vhd:L21` (comment: "Address 0x08F8 is reserved for the AUX COMMAND FIFO"); `top.vhd:L586-599` (Frame 17 signals)
 
 #### Frames 18–19 — Spare
 
