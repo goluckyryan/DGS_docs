@@ -118,7 +118,15 @@ _Indexed: 2026-04-05_
 
 ---
 
-## Historical Software Documentation (SVN Archive)
+## Historical System Documentation (SVN Archive)
+
+_Root: `DGS_tools_pack/DGS_SVN/dgs/Documentation/Formal/`_
+
+| Size | File | Notes |
+|------|------|-------|
+| 76KB | `Unsorted Docs/dgs_systemdocs.pdf` | **DGS High-Level System Documentation** (T. Madden, APS-XSD, Nov 2011): Block diagram description of DGS — detector array → digitizers → routers → master trigger → VME IOC → sender → receiver → data merge. Defines core terminology (Sender, Receiver, Merger, Gammaware). Historical — predates current PyQt6 GUI and GEBSort; still accurate for basic architecture. |
+
+### Historical Software Documentation
 
 _Root: `DGS_tools_pack/DGS_SVN/dgs/Documentation/Formal/Software/`_
 
