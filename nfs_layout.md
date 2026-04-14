@@ -81,7 +81,7 @@ Active volume — current experiments and ongoing work.
 | `mpc/` | Apr 2025 — contains `calib/`, `docs/`, `pyepics/pv_dashboard.py` |
 | `MSM/` | Feb 2025 (matthew.martin) |
 
-**vol5 sizes (explored 2026-04-13):** exp1756_Hoff 7.8T, exp2026_Mueller-Gatermann2 12T, exp2045_Rogers 18T, exp2008_Chiara 19T. Other experiments (exp1985x, exp2017, exp2031x, exp2059, exp2071, exp2078, exp2092x, exp2202, ebss2024, cmg, ChicoTest, 253no) not yet sized.
+**vol5 sizes (explored 2026-04-13/14):** exp1756_Hoff 7.8T, exp2059_Ackermann 6.3T, exp2026_Mueller-Gatermann2 12T, exp2045_Rogers 18T, exp2008_Chiara 19T. Other experiments (exp1985x, exp2017, exp2031x, exp2071, exp2078, exp2092x, exp2202, ebss2024, cmg, ChicoTest, 253no) not yet sized.
 
 ### vol5/exp2008_Chiara/ — Active Experiment Structure ✅ explored 2026-04-13
 
@@ -832,6 +832,15 @@ Top-level directories on vol5 (18 named experiments + test areas):
 - `GEBSort*/` — multiple analysis directories (GEBSort_ak, GEBSort_AR, GEBSort_co, GEBSort_DTD, GEBSort_Ni, GEBSort_spb, GEBSort_VK, etc.)
 - `Merged_XIA/` — merged DGS+XIA data
 - Pattern: large combined DGS+XIA experiment; many parallel GEBSort analysis directories suggest iterative calibration runs by multiple analysts
+
+**exp2059_Ackermann** (6.3 TB total, explored 2026-04-14):
+- `dfmadata/` — DFMA run dirs (`dfma_run_1` through `dfma_run_105`+) — **DGS+DFMA combined experiment**
+- `dxadata/` — X-Array data
+- `GEBSort/` — PZ calibration sweep: ROOT files named `0.880.root`, `0.890.root`, `0.900.root`, `0.910.root`... (0.01 step PZ scan); matching `.basepj` and `.xa_pz.cal` files
+- `GEBSort_ak/`, `GEBSort_VK/` — analysis dirs by different analysts
+- `Merged/`, `Julien/`, `Kumar/` — merged data and per-analyst output
+- `eftof_norm(80-94).jpg` — timing/normalization reference image
+- Pattern: Multi-system (DGS+DFMA+X-Array); explicit PZ sweep study preserved as calibration reference
 
 **exp1756_Hoff** (7.8 TB total):
 - `dgsdata/` + `dfmadata/` — **DGS+DFMA combined experiment** (both DAQ systems running simultaneously)
