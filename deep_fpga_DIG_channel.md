@@ -73,7 +73,7 @@ THRESH_DISC_FLAG  (one-shot pulse)
 
 The two-tap comparison (PROMPT and DELAYED both above threshold) acts as a simple coincidence filter that suppresses single-sample noise spikes. The threshold value is set by `reg_led_threshold`.
 
-**Timing:** The discriminator flag is asserted approximately 5 clock cycles (50 ns) after the signal crosses threshold, accounting for filter pipeline latency.
+**Timing:** The discriminator flag is asserted approximately 5 clock cycles (50 ns) after the signal crosses threshold, accounting for filter pipeline latency. ⚠️ unverified — derived estimate; exact latency depends on filter tap count. Source needed: count pipeline stages in `jta_channel.vhd` LED path.
 
 ---
 
@@ -107,7 +107,7 @@ Step 4 — Zero-crossing detection (cfd_disc.vhd):
 
 The zero-crossing tracks the point on the pulse where `fraction × amplitude = delayed_amplitude`, which moves in time but not in amplitude — giving the amplitude-independent timestamp.
 
-**Key difference from LED:** The timestamp latched in CFD mode is the zero-crossing time, not the threshold-crossing time. This typically improves coincidence timing resolution from ~10 ns (LED) to ~2–3 ns (CFD) for germanium detectors.
+**Key difference from LED:** The timestamp latched in CFD mode is the zero-crossing time, not the threshold-crossing time. This typically improves coincidence timing resolution from ~10 ns (LED) to ~1.7–2.5 ns (CFD) for germanium detectors. ✅ verified 2026-04-14 — `DIG_firmware_expert.md:L100` ("~1.7 ns (1σ) for large signals, ~2.5 ns for small signals at 800–1000 ns rise time" — from ANL Digitizer Firmware for Experts PDF)
 
 ---
 
