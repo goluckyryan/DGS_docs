@@ -12,8 +12,10 @@ The collector box contains **two FPGAs** plus pickoff card FPGAs for SBX:
 |------|-----------|------|
 | **CtrlFPGA** | `CollectorBox_CtrlFPGA/` | Housekeeping, monitoring, control |
 | **StripeFPGA** | `CollectorBox_StripeFPGA/` | Per-slot relay/stripe/LED control |
-| **PickoffCard SBX Interface** | `PickoffCard_SBX_Interface/` | Pickoff card for standard SBX |
-| **PickoffCard SBX Extension** | `PickoffCard_SBX_Extension/` | Pickoff card for SBX Extension (SBX2) |
+| **PickoffCard SBX Interface** | `PickoffCard_SBX_Interface/` | Pickoff card for standard SBX — **Spartan-6 XC6SLX4** (TQG144) |
+| **PickoffCard SBX Extension** | `PickoffCard_SBX_Extension/` | Pickoff card for SBX Extension (SBX2) — **Spartan-6 XC6SLX4** (TQG144) |
+
+> ✅ verified 2026-04-13 — `PickoffCard_SBX_Extension/Revision_A/Work/SlopeBoxInt.twr:L1` (`xc6slx4,tqg144,C,-2`). Tagged release: `FPGA/Firmware_Tags/SBX/tag_20221020/slopeboxint.bit` (Oct 20, 2022).
 
 The collector box hosts **6 slots (S1–S6)**, each carrying DIGitizer boards.
 
