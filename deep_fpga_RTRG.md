@@ -267,6 +267,62 @@ EPICS PV: `VME$(CRATE):$(BOARD):reg_MISC_STAT_REG_RBV` (16-bit read-only)
 | `fifo_16x64K_async` | 16-bit, 64K deep async FIFO |
 | `BRAM_1024X16_REGSHADOW` | Block RAM register shadow |
 
+## disc_mach.vhd — BGO/Ge Discriminator State Machine
+
+_Source: `Router/20220705/Source/disc_mach.vhd` — Authors: J. Anderson + M. Oberling_
+
+This is the per-channel module that classifies each hit as **CLEAN**, **DIRTY**, or **BGO_ONLY** — the core of Gammasphere's BGO Compton suppression trigger logic.
+
+### Concept
+
+Each Ge detector channel in the Router is paired with a BGO scintillator channel. The `disc_mach` watches the **leading edges** of both discriminator bits and applies a coincidence window (`OVERLAP_DELAY`) to classify events:
+
+| Condition | Output |
+|-----------|--------|
+| Ge fires, BGO does **not** fire within OVERLAP window | `CLEAN_EVENT` — Ge without Compton scatter; good physics event |
+| Ge fires, BGO fires within OVERLAP window | `DIRTY_EVENT` — Compton-scattered gamma; suppressed |
+| BGO fires, Ge does **not** fire within OVERLAP window | `BGO_ONLY_EVENT` — BGO signal only (noise / cosmic) |
+| Ge + BGO fire **simultaneously** | `DIRTY_EVENT` immediately (no timer needed) |
+
+### Three Timing Parameters
+
+1. **OFFSET** — compensates for relative discriminator timing between Ge and BGO (different rise times cause time walk); applied upstream before this state machine
+2. **OVERLAP** (`OVERLAP_DELAY`, 7-bit, register-controlled) — the coincidence window; events within this window are dirty
+3. **ASSERTION** — how long CLEAN/DIRTY/BGO_ONLY pulses are stretched before transmission to MTRG (separate register)
+
+### State Machine (4 states)
+
+```
+ST_IDLE
+  ├─ GE_EDGE only  → ST_OVERLAP_GE_FIRST  (start timer, wait for BGO)
+  ├─ BGO_EDGE only → ST_OVERLAP_BGO_FIRST (start timer, wait for Ge)
+  ├─ both edges    → ST_WAIT_DIRTY        (immediately dirty)
+  └─ no edge       → ST_IDLE
+
+ST_OVERLAP_GE_FIRST:
+  ├─ timer expires, no BGO → assert CLEAN_EVENT (1 clock) → ST_IDLE
+  └─ BGO_EDGE arrives      → assert DIRTY_EVENT (1 clock) → ST_IDLE
+
+ST_OVERLAP_BGO_FIRST:
+  ├─ timer expires, no Ge → assert BGO_ONLY_EVENT (1 clock) → ST_IDLE
+  └─ GE_EDGE arrives      → assert DIRTY_EVENT (1 clock) → ST_IDLE
+
+ST_WAIT_DIRTY:
+  └─ timer expires → assert DIRTY_EVENT (1 clock) → ST_IDLE
+```
+
+### Outputs
+
+The one-clock-wide pulses `CLEAN_EVENT`, `DIRTY_EVENT`, and `BGO_ONLY_EVENT` are fed to `overlap_mach.vhd` which stretches them into the ASSERTION time window used by the multiplicity sum logic.
+
+The stretched signals `HAVE_CLEAN` and `HAVE_DIRTY` (from `overlap_mach`) are transmitted to the MTRG as the X-sum (clean) and Y-sum (dirty) multiplicity contributions.
+
+> This is why the MTRG has separate `EN_SUM_X` and `EN_SUM_Y` trigger enables — X = clean (Compton-suppressed Ge hits), Y = dirty (Compton-coincident). The Gammasphere physics trigger typically fires on `EN_SUM_X` with a threshold.
+
+✅ verified 2026-04-13 — `disc_mach.vhd:L1-230` (full state machine), `SERDES_RX_Mach_R2.vhd` (upstream: feeds GE_DISC_FLAG + BGO_DISC_FLAG)
+
+---
+
 ## Build Artifacts
 
 | File | Description |
