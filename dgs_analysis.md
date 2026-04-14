@@ -358,11 +358,14 @@ A separate PyQt6 GUI application for multi-peak gamma-ray spectrum analysis. Use
 | `src/GrayMAN/gui/` | `GammaSpectrumAnalyzer` (main window), `canvas` (matplotlib), `matrix_viewer`, `dialogs` |
 | `src/GrayMAN/utils/` | Utilities |
 
-**Features:**
-- Interactive matplotlib-based spectrum viewer with sidebar + command window
-- Multi-peak fitting and automatic peak detection (`core/fitting.py`, `core/peak_detection.py`)
+**Features (updated 2026-04-14, main_window.py = 1,289 lines):**
+- PyQt6 `GammaSpectrumAnalyzer` main window: horizontal splitter (sidebar left, canvas+command right)
+- **3 tabs:** "1D Spectrum" (main matplotlib view + toolbar), "Fitter View" (dedicated fitting canvas), "2D Coincidence Matrix" (`MatrixViewer` widget)
+- Sidebar: spectrum type selector, background subtraction controls, peak finding/fitting buttons, display settings
+- Command window: text-based command interface (`execute_command()`)
+- Dialogs: `open_generate_spectrum_dialog`, `open_background_subtraction_dialog`, `open_find_peaks_dialog`, `open_set_fitting_limits_dialog`, `open_fit_peaks_dialog`, display settings
 - SNIP background subtraction (`core/snip.py`)
-- Matrix/2D spectrum viewer (`gui/matrix_viewer.py`)
+- Matrix/2D spectrum viewer (`gui/matrix_viewer.py`, 135 lines)
 
 **Core module notes (explored 2026-04-11):**
 - **`snip.py`** — SNIP background estimation: iterative windowed min-filter with optional LLS (Log-Log-Sqrt) transform for stabilisation; `m` iterations controls smoothness. Returns `(y_corrected, background)`. Clean, complete implementation.
