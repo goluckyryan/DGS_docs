@@ -26,7 +26,36 @@ Offset  Size  Field                  Description
 | 15 | `GEB_TYPE_DGSTRIG` | DGS trigger data (TAC-II TDC) ✅ verified 2026-04-07 — `dgsReceiver_Ryan.cpp:L142` |
 | 99 | *(internal)* | Decoded TAC2 trigger (used internally by fastEventConstructor) |
 
-Other type codes (1–13, 16–23) are GRETINA/NSCL/S800/aux detector formats — present in merged GEB streams but not produced by DGS IOC directly.
+**Complete GEB type table** (from `dgsReceiver_Ryan.cpp:L129-150` + `geb_format.py`) ✅ verified 2026-04-14:
+
+| Code | Constant | Description |
+|------|----------|-------------|
+| 1 | `GEB_TYPE_DECOMP` | Decomposed GRETINA |
+| 2 | `GEB_TYPE_RAW` | Raw GRETINA |
+| 3 | `GEB_TYPE_TRACK` | GRETINA tracking |
+| 4 | `GEB_TYPE_BGS` | BGS recoil separator |
+| 5 | `GEB_TYPE_S800_RAW` | S800 spectrometer raw |
+| 6 | `GEB_TYPE_NSCLnonevent` | NSCL non-event |
+| 7 | `GEB_TYPE_GT_SCALER` | GRETINA scaler |
+| 8 | `GEB_TYPE_GT_MOD29` | GRETINA Mod29 _(see note)_ |
+| 9 | `GEB_TYPE_S800PHYSDATA` | S800 physics |
+| 10 | `GEB_TYPE_NSCLNONEVTS` | NSCL non-events |
+| 11 | `GEB_TYPE_G4SIM` | Geant4 sim |
+| 12 | `GEB_TYPE_CHICO` | CHICO detector |
+| 14 | `GEB_TYPE_DGS` | **DGS digitizer** |
+| 15 | `GEB_TYPE_DGSTRIG` | **DGS TAC-II trigger** |
+| 16 | `GEB_TYPE_DFMA` | DFMA digitizer |
+| 17 | `GEB_TYPE_PHOSWICH` | Phoswich |
+| 18 | `GEB_TYPE_PHOSWICHAUX` | Phoswich aux |
+| 19 | `GEB_TYPE_GODDESS` | GODDESS |
+| 20 | `GEB_TYPE_LABR` | LaBr₃ |
+| 21 | `GEB_TYPE_LENDA` | LENDA neutron |
+| 22 | `GEB_TYPE_GODDESSAUX` | GODDESS aux |
+| 23 | `GEB_TYPE_XA` | X-Array (DXA) |
+| 24 | `GEB_TYPE_DUB` | DuoGe (DUO) |
+| 25 | `GEB_TYPE_FT` | FT detector |
+
+> ⚠️ **Type 8 ambiguity:** Some old DGS runs may have data under type 8 (GT_MOD29) rather than type 14. `dgsReceiver_Ryan.cpp:L1448` allows overriding `GEB_TYPE_DGS` from the command line. `geb_format.py` notes: _"Some experiments use 8 for DGS, it should be 14 in principle."_
 
 ---
 
