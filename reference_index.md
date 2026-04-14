@@ -119,7 +119,7 @@ grep -i "CODE_REVISION" /home/ryan/DGS_tools_pack/DGS_docs/RegisterMaps/DGSMaste
 grep "0x015C" /home/ryan/DGS_tools_pack/DGS_docs/RegisterMaps/DGSMasterTriggerRegisterMap.csv
 ```
 
-> **Also see:** `dgs/VME_registers.md` — byte-offset addresses extracted from asyn driver source code (`asynDigParams.c`, `asynMTrigParams.c`, `asynRTrigParams.c`). More precise for direct `VMERead32`/`VMEWrite32` shell access. Complements the CSV register maps above.
+> **Also see:** `knowledgeBase/VME_registers.md` — byte-offset addresses extracted from asyn driver source code (`asynDigParams.c`, `asynMTrigParams.c`, `asynRTrigParams.c`). More precise for direct `VMERead32`/`VMEWrite32` shell access. Complements the CSV register maps above.
 
 ---
 
@@ -253,8 +253,8 @@ _All paths relative to `/home/ryan/DGS_tools_pack/`_
 
 ## Cross-References
 
-- `dgs/VME_registers.md` — VME byte-offset addresses from asyn driver source; complements CSV register maps
-- `dgs/DIG_firmware_expert.md` — DIG firmware expert guide; uses these register names extensively
-- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: register map for trigger algorithms and NIM I/O
-- `dgs/deep_fpga_RTRG.md` — RTRG firmware: router SERDES and multiplicity registers
-- `dgs/PDF_index.md` — Index of all DGS PDF documentation with reading priority guide
+- `knowledgeBase/VME_registers.md` — VME byte-offset addresses from asyn driver source; complements CSV register maps
+- `knowledgeBase/DIG_firmware_expert.md` — DIG firmware expert guide; uses these register names extensively
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: register map for trigger algorithms and NIM I/O
+- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: router SERDES and multiplicity registers
+- `knowledgeBase/PDF_index.md` — Index of all DGS PDF documentation with reading priority guide

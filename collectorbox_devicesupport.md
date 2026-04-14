@@ -278,8 +278,8 @@ Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[dev
 
 ## Cross-References
 
-- `dgs/collectorboxpi.md` — Raspberry Pi soft IOC: PXE boot, HV control, collector assignments
-- `dgs/collector_fpga.md` — CtrlFPGA and StripeFPGA firmware; SPI register maps
-- `dgs/collectorbox_PVs.md` — Full PV list (1,431 records/detector)
-- `dgs/sbx.md` — Slope Box Extension; pickoff card; BGO HV; GS_ID dongle
-- `dgs/EPICS.md` — EPICS record types and device support concepts
+- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC: PXE boot, HV control, collector assignments
+- `knowledgeBase/collector_fpga.md` — CtrlFPGA and StripeFPGA firmware; SPI register maps
+- `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector)
+- `knowledgeBase/sbx.md` — Slope Box Extension; pickoff card; BGO HV; GS_ID dongle
+- `knowledgeBase/EPICS.md` — EPICS record types and device support concepts

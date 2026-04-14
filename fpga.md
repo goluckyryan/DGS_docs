@@ -554,12 +554,12 @@ See **[deep_fpga_building.md](deep_fpga_building.md)** for the full build guide,
 
 ## Cross-References
 
-- `dgs/deep_fpga_DIG.md` — DIG firmware deep dive: ADC pipeline, discriminators, event packet format
-- `dgs/deep_fpga_RTRG.md` — RTRG firmware deep dive: multiplicity aggregation, throttle, VME map
-- `dgs/deep_fpga_MTRG.md` — MTRG overview: 3 devices (Main FPGA, VME FPGA, CPLD)
-- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: trigger algorithms, 20-frame command, TAC-II
-- `dgs/ttcl.md` — TTCL spec: trigger command link word/frame/cycle format
-- `dgs/tac2.md` — TAC-II TDC in MTRG: vernier interpolation, delay chains, pipeline
-- `dgs/DIG_firmware_expert.md` — DIG firmware expert guide: all readout modes, timing registers
-- `dgs/ioc.md` — IOC config: firmware binary versions that must match hardware
-- `dgs/deep_fpga_building.md` — Build toolchain: ISE 14.7 / Vivado 2018.3
+- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware deep dive: ADC pipeline, discriminators, event packet format
+- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware deep dive: multiplicity aggregation, throttle, VME map
+- `knowledgeBase/deep_fpga_MTRG.md` — MTRG overview: 3 devices (Main FPGA, VME FPGA, CPLD)
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: trigger algorithms, 20-frame command, TAC-II
+- `knowledgeBase/ttcl.md` — TTCL spec: trigger command link word/frame/cycle format
+- `knowledgeBase/tac2.md` — TAC-II TDC in MTRG: vernier interpolation, delay chains, pipeline
+- `knowledgeBase/DIG_firmware_expert.md` — DIG firmware expert guide: all readout modes, timing registers
+- `knowledgeBase/ioc.md` — IOC config: firmware binary versions that must match hardware
+- `knowledgeBase/deep_fpga_building.md` — Build toolchain: ISE 14.7 / Vivado 2018.3

@@ -351,19 +351,19 @@ fastEventConstructor / parquet_pysort (post-run)
 - `dgs_analysis/armory/fastEventContructor/class_DIG.h` — DIG payload decoder
 - `dgs_analysis/armory/fastEventContructor/class_Hit.h` — GEBHeader + HIT class
 - `dgs_analysis/armory/fastEventContructor/class_TDC.h` — TAC-II TDC decoder
-- `dgs/DIG_firmware_expert.md` — DIG firmware readout modes and packet structure
-- `dgs/dgs_analysis.md` — fastEventConstructor and parquet_pysort documentation
-- `dgs/ANLDAQ.md` — tcpReceiverMT and IOC sender documentation
-- `dgs/guceiver.md` — Guceiver live GUI: also decodes DIG and TAC-II packets from the same TCP stream
+- `knowledgeBase/DIG_firmware_expert.md` — DIG firmware readout modes and packet structure
+- `knowledgeBase/dgs_analysis.md` — fastEventConstructor and parquet_pysort documentation
+- `knowledgeBase/ANLDAQ.md` — tcpReceiverMT and IOC sender documentation
+- `knowledgeBase/guceiver.md` — Guceiver live GUI: also decodes DIG and TAC-II packets from the same TCP stream
 
 ---
 *Created: 2026-04-06. Source: class_DIG.h + class_Hit.h + class_TDC.h*
 
 ## Cross-References
 
-- `dgs/ANLDAQ.md` — tcpReceiverMT and IOC sender; how GEB data is produced and transmitted
-- `dgs/guceiver.md` — Guceiver live GUI; decodes DIG and TAC-II packets from TCP stream
-- `dgs/dgs_analysis.md` — fastEventConstructor and parquet_pysort; consume GEB binary data
-- `dgs/DIG_firmware_expert.md` — Full DIG event header field definitions (expert reference)
-- `dgs/ttcl.md` — TTCL spec; timestamp generation that populates GEB timestamp field
-- `dgs/gebsort.md` — GEBSort event builder; reads GEB format, builds coincidence events
+- `knowledgeBase/ANLDAQ.md` — tcpReceiverMT and IOC sender; how GEB data is produced and transmitted
+- `knowledgeBase/guceiver.md` — Guceiver live GUI; decodes DIG and TAC-II packets from TCP stream
+- `knowledgeBase/dgs_analysis.md` — fastEventConstructor and parquet_pysort; consume GEB binary data
+- `knowledgeBase/DIG_firmware_expert.md` — Full DIG event header field definitions (expert reference)
+- `knowledgeBase/ttcl.md` — TTCL spec; timestamp generation that populates GEB timestamp field
+- `knowledgeBase/gebsort.md` — GEBSort event builder; reads GEB format, builds coincidence events

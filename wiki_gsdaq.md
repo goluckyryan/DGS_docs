@@ -192,8 +192,8 @@ All known wiki pages have been visited as of 2026-04-07. Summary:
 
 ## Cross-References
 
-- `dgs/overview_DGS.md` — Full Gammasphere system overview (primary reference, more detailed than wiki)
-- `dgs/hardware_architecture.md` — Hardware breakdown; expands on wiki's system overview
-- `dgs/collectorboxpi.md` — Collector box Pi IOC; expands on wiki's collector box page
-- `dgs/troubleshooting.md` — DGS troubleshooting; sourced from wiki's problems page + operational experience
-- `dgs/run_procedures.md` — Typical run procedures; expands on wiki's run procedures page
+- `knowledgeBase/overview_DGS.md` — Full Gammasphere system overview (primary reference, more detailed than wiki)
+- `knowledgeBase/hardware_architecture.md` — Hardware breakdown; expands on wiki's system overview
+- `knowledgeBase/collectorboxpi.md` — Collector box Pi IOC; expands on wiki's collector box page
+- `knowledgeBase/troubleshooting.md` — DGS troubleshooting; sourced from wiki's problems page + operational experience
+- `knowledgeBase/run_procedures.md` — Typical run procedures; expands on wiki's run procedures page

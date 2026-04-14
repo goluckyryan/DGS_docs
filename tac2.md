@@ -171,9 +171,9 @@ This processes GEB type 15 packets (after `tcpReceiverMT` repacking) to produce 
 
 ## Cross-References
 
-- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: TAC-II TDC integration; NIM IN 2 as TDC stop input
-- `dgs/fpga.md` — FPGA firmware overview: TAC-II role in the trigger system
-- `dgs/ttcl.md` — TTCL: Frame 16 carries TAC-II TDC data back to DIGs
-- `dgs/data_structures.md` — TAC-II TDC data format in GEB binary stream (type 15 = DGSTRIG)
-- `dgs/guceiver.md` — Guceiver TAC-II tab: live display of TDC values from TCP stream
-- `dgs/connectors.md` — MTRG connector pinouts: NIM IN 2 = TAC-II TDC stop input
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: TAC-II TDC integration; NIM IN 2 as TDC stop input
+- `knowledgeBase/fpga.md` — FPGA firmware overview: TAC-II role in the trigger system
+- `knowledgeBase/ttcl.md` — TTCL: Frame 16 carries TAC-II TDC data back to DIGs
+- `knowledgeBase/data_structures.md` — TAC-II TDC data format in GEB binary stream (type 15 = DGSTRIG)
+- `knowledgeBase/guceiver.md` — Guceiver TAC-II tab: live display of TDC values from TCP stream
+- `knowledgeBase/connectors.md` — MTRG connector pinouts: NIM IN 2 = TAC-II TDC stop input

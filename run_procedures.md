@@ -223,7 +223,7 @@ python working/gain_from_parquet.py expFolder/Parquet/decode/exp_003_dgs.parquet
     out.root <timeWindow_ns> 0 0 12 4 <parquet_files...>
 ```
 
-See `dgs/dgs_analysis.md` for full details on each step.
+See `knowledgeBase/dgs_analysis.md` for full details on each step.
 
 ---
 
@@ -233,15 +233,15 @@ See `dgs/dgs_analysis.md` for full details on each step.
 
 | Topic | File |
 |-------|------|
-| Full analysis pipeline (EventBuilder variants, RunParquet, parquetCLI) | `dgs/dgs_analysis.md` |
-| Pole-zero correction theory + `pz_from_parquet.py` | `dgs/pole_zero.md` |
-| Troubleshooting IOC, FIFO, link lock issues | `dgs/troubleshooting.md` |
-| Trigger bring-up (5-stage SERDES link-up scripts) | `dgs/ANLDAQ.md` § Trigger Setup Scripts |
-| DAQ GUI (ANLDAQ commander, data-taking tab) | `dgs/ANLDAQ.md` |
-| DIG firmware — readout modes, data formats | `dgs/DIG_firmware_expert.md` |
-| GEB data format + type codes | `dgs/data_structures.md`, `dgs/dgs_analysis.md` § GEB |
-| GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | `dgs/gebsort.md` |
-| Snapshot PV / save+restore settings | `dgs/snapshot_pv.md` |
+| Full analysis pipeline (EventBuilder variants, RunParquet, parquetCLI) | `knowledgeBase/dgs_analysis.md` |
+| Pole-zero correction theory + `pz_from_parquet.py` | `knowledgeBase/pole_zero.md` |
+| Troubleshooting IOC, FIFO, link lock issues | `knowledgeBase/troubleshooting.md` |
+| Trigger bring-up (5-stage SERDES link-up scripts) | `knowledgeBase/ANLDAQ.md` § Trigger Setup Scripts |
+| DAQ GUI (ANLDAQ commander, data-taking tab) | `knowledgeBase/ANLDAQ.md` |
+| DIG firmware — readout modes, data formats | `knowledgeBase/DIG_firmware_expert.md` |
+| GEB data format + type codes | `knowledgeBase/data_structures.md`, `knowledgeBase/dgs_analysis.md` § GEB |
+| GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | `knowledgeBase/gebsort.md` |
+| Snapshot PV / save+restore settings | `knowledgeBase/snapshot_pv.md` |
 
 ---
 

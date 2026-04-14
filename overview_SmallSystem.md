@@ -151,7 +151,7 @@ All small systems share:
 
 ## Cross-References
 
-- `dgs/overview_DGS.md` — Full Gammasphere system overview (the large system)
-- `dgs/hardware_architecture.md` — Hardware breakdown comparing DuoGe vs DGS configurations
-- `dgs/ANLDAQ.md` — DAQ GUI and TCP receiver; CA ports per system (DUO: 5080/5081, DXA: 5072/5073)
-- `dgs/wiki_gsdaq.md` — ANL wiki index; some pages cover small system specifics
+- `knowledgeBase/overview_DGS.md` — Full Gammasphere system overview (the large system)
+- `knowledgeBase/hardware_architecture.md` — Hardware breakdown comparing DuoGe vs DGS configurations
+- `knowledgeBase/ANLDAQ.md` — DAQ GUI and TCP receiver; CA ports per system (DUO: 5080/5081, DXA: 5072/5073)
+- `knowledgeBase/wiki_gsdaq.md` — ANL wiki index; some pages cover small system specifics

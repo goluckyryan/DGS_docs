@@ -104,7 +104,7 @@ The routing is **fixed at fabrication** (hardwired traces), not dynamic. The cor
 - Noise window: ~13 mV (~4 DAC counts × 3.32 mV) ✅ verified 2026-04-09 — same source: "noise window is about 13mV" (4 DAC counts)
 
 ### Nominal BGO HV operating point
-- **180 DAC units per tube** — established from `SVN/dgs/sbxscreens/Std_Test.sh` (JTA, 2021-04-02), the cross-test commissioning script
+- **180 DAC units per tube** — established from `SVN/dgs/sbxscreens/Std_Test.sh` (JTA, 2021-04-02), the cross-test commissioning script ✅ verified 2026-04-14 — `Std_Test.sh:L76-110` (`caput $Dnum_BGO_HV0..13 180` for all 14 tubes)
 - BGO HV sweep range used during tuning: **0 → 250 DAC units** (from `slopebox_scripts/BGO_Sweep_test`)
 - Ge/BGO HV both switched off first; BGO HV0-13 all set to 180 then BGO HV supply enabled; Ge HV enabled last
 - DC offset DACs (GeCenter, GeSide, BGOsum, BGOpattern): **150 DAC units** nominal
@@ -246,9 +246,9 @@ The same I2C engine + opcode format is used in **both the SBX Stripe FPGA and th
 
 ## Cross-References
 
-- `dgs/collector_fpga.md` — Pickoff card FPGAs (SBX Interface + Extension) that interface to SBX
-- `dgs/collectorboxpi.md` — Raspberry Pi soft IOC; controls BGO HV via pickoff card
-- `dgs/collectorbox_devicesupport.md` — EPICS device support; SPI protocol to pickoff card
-- `dgs/collectorbox_PVs.md` — Full PV list including BGO HV, SBX presence, slope box PVs
-- `dgs/hardware_architecture.md` — Signal chain overview: detector → slope box → pickoff → collector FPGA → digitizer
-- `dgs/gammasphere_geometry.md` — GS hole numbering system used for GS_ID dongle addressing
+- `knowledgeBase/collector_fpga.md` — Pickoff card FPGAs (SBX Interface + Extension) that interface to SBX
+- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC; controls BGO HV via pickoff card
+- `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support; SPI protocol to pickoff card
+- `knowledgeBase/collectorbox_PVs.md` — Full PV list including BGO HV, SBX presence, slope box PVs
+- `knowledgeBase/hardware_architecture.md` — Signal chain overview: detector → slope box → pickoff → collector FPGA → digitizer
+- `knowledgeBase/gammasphere_geometry.md` — GS hole numbering system used for GS_ID dongle addressing

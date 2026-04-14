@@ -434,17 +434,17 @@ python working/gain_from_parquet.py \
 | `armory/fastEventContructor/analyzer_pz_cal.cpp` | ROOT-based S1/S2 histogram producer |
 | `armory/gray_apps/src/Fitter/grayfit/pole_zero_fitter.py` | Core PZ algorithm |
 | `armory/gray_apps/polezero_parameters.md` | Full parameter reference |
-| `dgs/run_procedures.md` | Full run procedure including calibration workflow |
-| `dgs/DIG_firmware_expert.md` | DIG firmware trapezoid filter details (M/K/D windows) |
+| `knowledgeBase/run_procedures.md` | Full run procedure including calibration workflow |
+| `knowledgeBase/DIG_firmware_expert.md` | DIG firmware trapezoid filter details (M/K/D windows) |
 
 ---
 *Created: 2026-04-06. Source: `dgs_analysis/working/` + `armory/gray_apps/`*
 
 ## Cross-References
 
-- `dgs/dgs_analysis.md` — pz_from_parquet.py, pz_from_evtparquet.py, gain_from_parquet.py; full analysis pipeline
-- `dgs/run_procedures.md` — K value formula; pole-zero in the DGS run workflow (GEBSort → pz_from_parquet)
-- `dgs/gebsort.md` — GEBSort: accepts dgs_pz.cal for corrected energy output
-- `dgs/DIG_firmware_expert.md` — DIG firmware: S1/S2 accumulator design; PREAMP_RESET_DELAY register
-- `dgs/preamp_reset_readme.md` — Preamplifier reset handling; why PZ correction is needed
-- `dgs/data_structures.md` — DIG event header: sum1/sum2/e_raw field locations in binary data
+- `knowledgeBase/dgs_analysis.md` — pz_from_parquet.py, pz_from_evtparquet.py, gain_from_parquet.py; full analysis pipeline
+- `knowledgeBase/run_procedures.md` — K value formula; pole-zero in the DGS run workflow (GEBSort → pz_from_parquet)
+- `knowledgeBase/gebsort.md` — GEBSort: accepts dgs_pz.cal for corrected energy output
+- `knowledgeBase/DIG_firmware_expert.md` — DIG firmware: S1/S2 accumulator design; PREAMP_RESET_DELAY register
+- `knowledgeBase/preamp_reset_readme.md` — Preamplifier reset handling; why PZ correction is needed
+- `knowledgeBase/data_structures.md` — DIG event header: sum1/sum2/e_raw field locations in binary data

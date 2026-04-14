@@ -838,12 +838,12 @@ Key improvements with ReadPool (vs without):
 
 | Topic | File |
 |-------|------|
-| GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | `dgs/gebsort.md` |
-| Typical DGS run procedures (GEBSort workflow + modern ANLDAQ workflow) | `dgs/run_procedures.md` |
-| Pole-zero correction theory + `pz_from_parquet.py` detail | `dgs/pole_zero.md` |
-| GEB binary data format + GEBHeader struct | `dgs/data_structures.md` |
-| Gammasphere geometry (GS hole → θ/φ, map.dat context) | `dgs/gammasphere_geometry.md` |
-| DIG firmware readout modes (source of raw GEB payloads) | `dgs/DIG_firmware_expert.md` |
+| GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | `knowledgeBase/gebsort.md` |
+| Typical DGS run procedures (GEBSort workflow + modern ANLDAQ workflow) | `knowledgeBase/run_procedures.md` |
+| Pole-zero correction theory + `pz_from_parquet.py` detail | `knowledgeBase/pole_zero.md` |
+| GEB binary data format + GEBHeader struct | `knowledgeBase/data_structures.md` |
+| Gammasphere geometry (GS hole → θ/φ, map.dat context) | `knowledgeBase/gammasphere_geometry.md` |
+| DIG firmware readout modes (source of raw GEB payloads) | `knowledgeBase/DIG_firmware_expert.md` |
 
 ---
 

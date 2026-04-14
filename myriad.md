@@ -256,7 +256,7 @@ _Source: `DGS_tools_pack/FPGA/others/MyRIAD/MAIN_FPGA/Source/MyRIAD_pkg.vhd` —
 
 ## Cross-References
 
-- `dgs/connectors.md` — MTRG front-panel connector pinouts; MγRIAD connects to Link U (NIM I/O, ECL CTL, ECL I/O, RJ45 TTCL)
-- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: Link U SERDES reception, `RECEIVED_MYRIAD_DATA` signal
-- `dgs/ttcl.md` — TTCL spec; MγRIAD receives timestamps and trigger decisions from MTRG over SERDES
-- `dgs/fpga.md` — 3-tier trigger hierarchy; MγRIAD as auxiliary trigger input via Link U
+- `knowledgeBase/connectors.md` — MTRG front-panel connector pinouts; MγRIAD connects to Link U (NIM I/O, ECL CTL, ECL I/O, RJ45 TTCL)
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: Link U SERDES reception, `RECEIVED_MYRIAD_DATA` signal
+- `knowledgeBase/ttcl.md` — TTCL spec; MγRIAD receives timestamps and trigger decisions from MTRG over SERDES
+- `knowledgeBase/fpga.md` — 3-tier trigger hierarchy; MγRIAD as auxiliary trigger input via Link U

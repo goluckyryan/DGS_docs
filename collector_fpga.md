@@ -171,13 +171,13 @@ The Raspberry Pi (collectorboxpi soft IOC) communicates with both FPGAs via SPI:
 - StripeFPGA relay/LED control is driven from the Pi via the EPICS IOC
 - PickoffCard `PI_TRANSACTOR.vhd` implements the Pi ↔ pickoff card SPI protocol
 
-See: `dgs/collectorboxpi.md`, `dgs/collectorbox_devicesupport.md`, `dgs/sbx.md`
+See: `knowledgeBase/collectorboxpi.md`, `knowledgeBase/collectorbox_devicesupport.md`, `knowledgeBase/sbx.md`
 
 ---
 
 ## Cross-References
 
-- `dgs/collectorboxpi.md` — Raspberry Pi soft IOC, PXE boot, HV control
-- `dgs/collectorbox_PVs.md` — Full PV list (1,437 records/detector)
-- `dgs/collectorbox_devicesupport.md` — EPICS device support internals, SPI driver, CAMAC_IO
-- `dgs/sbx.md` — Slope Box Extension hardware, BGO HV, GS_ID dongle
+- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC, PXE boot, HV control
+- `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,437 records/detector)
+- `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support internals, SPI driver, CAMAC_IO
+- `knowledgeBase/sbx.md` — Slope Box Extension hardware, BGO HV, GS_ID dongle

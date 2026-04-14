@@ -321,7 +321,7 @@ set_hilo_lim 107 78
 
 ## Cross-References
 
-- `dgs/influxdb_grafana.md` — InfluxDB/Grafana on DCS2; HPGeTemp database written by `SaveTemp.sh` / `StoreDetTemps.py`
-- `dgs/collectorboxpi.md` — Raspberry Pi soft IOC for HV control; parallel Pi infrastructure
-- `dgs/hardware_architecture.md` — LN2 system role in detector cooling chain
-- `dgs/troubleshooting.md` — LN2-related operational issues
+- `knowledgeBase/influxdb_grafana.md` — InfluxDB/Grafana on DCS2; HPGeTemp database written by `SaveTemp.sh` / `StoreDetTemps.py`
+- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC for HV control; parallel Pi infrastructure
+- `knowledgeBase/hardware_architecture.md` — LN2 system role in detector cooling chain
+- `knowledgeBase/troubleshooting.md` — LN2-related operational issues

@@ -118,7 +118,7 @@ Dashboards are stored in `grafana.db` (no read access from `dcsu`). Based on wha
 - LN2 fill status and tank levels
 - Possibly: PV history browser (when `DGS` db is activated)
 
-> 💡 **Planned:** Custom Gammasphere detector map panel — all 110 GS holes as two polar projections (N+S hemisphere), colored by temperature from `HPGeTemp`. Design notes: `workspace/grafana_gammasphere_panel.md`. Geometry data: `dgs/gammasphere_geometry.md`.
+> 💡 **Planned:** Custom Gammasphere detector map panel — all 110 GS holes as two polar projections (N+S hemisphere), colored by temperature from `HPGeTemp`. Design notes: `workspace/grafana_gammasphere_panel.md`. Geometry data: `knowledgeBase/gammasphere_geometry.md`.
 
 ---
 
@@ -163,6 +163,6 @@ _Source: DCS2 exploration via SSH (dcsu@DCS2.onenet). Created: 2026-04-05_
 
 ## Cross-References
 
-- `dgs/lnfill.md` — LN2 fill system; writes temperature data to HPGeTemp InfluxDB database
-- `dgs/expMemory_2008_Chiara.md` — Active experiment log; references monitoring dashboards
-- `dgs/nfs_layout.md` — DCS2 filesystem layout; InfluxDB/Grafana run on DCS2 (192.168.203.56)
+- `knowledgeBase/lnfill.md` — LN2 fill system; writes temperature data to HPGeTemp InfluxDB database
+- `knowledgeBase/expMemory_2008_Chiara.md` — Active experiment log; references monitoring dashboards
+- `knowledgeBase/nfs_layout.md` — DCS2 filesystem layout; InfluxDB/Grafana run on DCS2 (192.168.203.56)

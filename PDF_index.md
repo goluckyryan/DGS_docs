@@ -8,7 +8,7 @@ _Indexed: 2026-04-05_
 
 | Pages | Size | File | Notes |
 |-------|------|------|-------|
-| 72 | 2.4MB | `Firmware/Digitizer/ANL Digitizer Firmware for Experts.pdf` | ✅ **Documented** → `dgs/DIG_firmware_expert.md` |
+| 72 | 2.4MB | `Firmware/Digitizer/ANL Digitizer Firmware for Experts.pdf` | ✅ **Documented** → `knowledgeBase/DIG_firmware_expert.md` |
 | — | — | `Non-Expert ANL Firmware - ANL version.pdf` | **Not in local docs** (wiki only). Shorter intro for scientists — recommended first read before Experts doc. |
 | 58 | 1.6MB | `Firmware/Digitizer/ANL Firmware for LBL Digitizer.pdf` | ANL firmware on LBL hardware variant — **superseded** by Non-Expert + Experts docs |
 | 242 | 1.5MB | `Firmware/Digitizer/Initial Draft - Digitizer Registers.pdf` | Full register map for the digitizer |
@@ -56,7 +56,7 @@ _Indexed: 2026-04-05_
 | 20 | 168KB | `Links/Trigger Timing and Control Link/20060804 trig command link.pdf` | v3 |
 | 20 | 193KB | `Links/Trigger Timing and Control Link/20080711 trig command link.pdf` | v4 |
 | 39 | 385KB | `Links/Trigger Timing and Control Link/20131203 trig command link.pdf` | v5 |
-| 40 | 860KB | `Links/Trigger Timing and Control Link/20160418 trig command link.pdf` | **v6 (latest)** — ✅ **Documented** → `dgs/ttcl.md` |
+| 40 | 860KB | `Links/Trigger Timing and Control Link/20160418 trig command link.pdf` | **v6 (latest)** — ✅ **Documented** → `knowledgeBase/ttcl.md` |
 
 ---
 
@@ -150,8 +150,8 @@ _Root: `DGS_tools_pack/DGS_SVN/dgs/Documentation/Formal/Software/`_
 
 ## Priority Queue (Suggested Order)
 
-1. ✅ `ANL Digitizer Firmware for Experts.pdf` — done → `dgs/DIG_firmware_expert.md`
-2. ✅ `Links/Trigger Timing and Control Link/20160418 trig command link.pdf` — done → `dgs/ttcl.md`
+1. ✅ `ANL Digitizer Firmware for Experts.pdf` — done → `knowledgeBase/DIG_firmware_expert.md`
+2. ✅ `Links/Trigger Timing and Control Link/20160418 trig command link.pdf` — done → `knowledgeBase/ttcl.md`
 3. `Firmware/Master_Trigger/DGS Master Trigger/subdoc/mem map.pdf` — DGS MTRG register map
 4. `Modules/DGS trigger system firmware user guide.pdf` — system-level trigger guide
 5. `Firmware/Digitizer/Initial Draft - Digitizer Registers.pdf` — digitizer register map (242 pg, large)
@@ -160,8 +160,8 @@ _Root: `DGS_tools_pack/DGS_SVN/dgs/Documentation/Formal/Software/`_
 
 ## Cross-References
 
-- `dgs/reference_index.md` — Hardware drawings index (schematics, PCB docs); complements this PDF index
-- `dgs/DIG_firmware_expert.md` — Distilled from "ANL Digitizer Firmware for Experts.pdf"
-- `dgs/ttcl.md` — Distilled from "20160418 trig command link.pdf"
-- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG firmware; related to MTRG register map PDFs
-- `dgs/deep_fpga_DIG.md` — DIG firmware; related to digitizer register PDFs
+- `knowledgeBase/reference_index.md` — Hardware drawings index (schematics, PCB docs); complements this PDF index
+- `knowledgeBase/DIG_firmware_expert.md` — Distilled from "ANL Digitizer Firmware for Experts.pdf"
+- `knowledgeBase/ttcl.md` — Distilled from "20160418 trig command link.pdf"
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG firmware; related to MTRG register map PDFs
+- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware; related to digitizer register PDFs

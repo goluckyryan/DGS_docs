@@ -291,10 +291,10 @@ EPICS CA port is set via `EPICS_env.sh`: **5064/5065** for array use, **5074/507
 
 ## Cross-References
 
-- `dgs/collector_fpga.md` — CtrlFPGA + StripeFPGA firmware detail; the hardware the Pi IOC talks to
-- `dgs/collectorbox_PVs.md` — Full PV list (1,431 records/detector); use exec grep for PV lookups
-- `dgs/collectorbox_devicesupport.md` — EPICS device support internals: SPI driver, CAMAC_IO link
-- `dgs/sbx.md` — Slope Box Extension hardware; BGO HV, GS_ID dongle, pickoff card
-- `dgs/nfs_layout.md` — PXE boot infrastructure on fs2.onenet; piserver NFS layout and MAC table
-- `dgs/gammasphere_geometry.md` — GS hole numbering and collector box assignments
-- `dgs/influxdb_grafana.md` — Temperature data pushed to InfluxDB by SaveTemp.sh (runs on Pi)
+- `knowledgeBase/collector_fpga.md` — CtrlFPGA + StripeFPGA firmware detail; the hardware the Pi IOC talks to
+- `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector); use exec grep for PV lookups
+- `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support internals: SPI driver, CAMAC_IO link
+- `knowledgeBase/sbx.md` — Slope Box Extension hardware; BGO HV, GS_ID dongle, pickoff card
+- `knowledgeBase/nfs_layout.md` — PXE boot infrastructure on fs2.onenet; piserver NFS layout and MAC table
+- `knowledgeBase/gammasphere_geometry.md` — GS hole numbering and collector box assignments
+- `knowledgeBase/influxdb_grafana.md` — Temperature data pushed to InfluxDB by SaveTemp.sh (runs on Pi)

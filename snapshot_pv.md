@@ -234,8 +234,8 @@ _Created: 2026-04-05_
 
 ## Cross-References
 
-- `dgs/collectorbox_PVs.md` — Full list of collector box PVs that snapshot_pv captures
-- `dgs/DGS_PVs.md` — DGS VME system PV list (VME crate PVs captured by snapshot_pv)
-- `dgs/EPICS.md` — EPICS record types and CA tools; context for PV naming conventions
-- `dgs/ioc.md` — IOC config; PVs originate from DB templates loaded at boot
-- `dgs/influxdb_grafana.md` — InfluxDB/Grafana monitoring stack (complementary to snapshot for trending)
+- `knowledgeBase/collectorbox_PVs.md` — Full list of collector box PVs that snapshot_pv captures
+- `knowledgeBase/DGS_PVs.md` — DGS VME system PV list (VME crate PVs captured by snapshot_pv)
+- `knowledgeBase/EPICS.md` — EPICS record types and CA tools; context for PV naming conventions
+- `knowledgeBase/ioc.md` — IOC config; PVs originate from DB templates loaded at boot
+- `knowledgeBase/influxdb_grafana.md` — InfluxDB/Grafana monitoring stack (complementary to snapshot for trending)

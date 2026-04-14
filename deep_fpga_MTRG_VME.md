@@ -130,7 +130,7 @@ ChipScope projects: `ChipScope/A32D32_VME_1x64.cpj`, `A32D32_VME_2x64.cpj`
 
 ## See Also
 
-- `dgs/deep_fpga_MTRG.md` — MTRG overview: all three devices (Main FPGA + VME FPGA + CPLD)
-- `dgs/deep_fpga_MTRG_MAIN.md` — Main FPGA: the device this VME FPGA programs and controls
-- `dgs/fpga.md` — VME control hierarchy: how all VME FPGAs fit into the system
-- `dgs/ioc.md` — EPICS IOC: the software that drives VME A32/D32 register writes
+- `knowledgeBase/deep_fpga_MTRG.md` — MTRG overview: all three devices (Main FPGA + VME FPGA + CPLD)
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — Main FPGA: the device this VME FPGA programs and controls
+- `knowledgeBase/fpga.md` — VME control hierarchy: how all VME FPGAs fit into the system
+- `knowledgeBase/ioc.md` — EPICS IOC: the software that drives VME A32/D32 register writes

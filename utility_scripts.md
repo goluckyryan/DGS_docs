@@ -126,8 +126,8 @@ Legacy EPICS database files (`resm1.db` – `resm6.db`) from the pre-upgrade VXI
 
 ## Cross-References
 
-- `dgs/DGS_SVN.md` — SVN archive context; NS_scripts and slopebox_scripts source
-- `dgs/collectorbox_PVs.md` — Current authoritative PV list (replaces outdated SVN PV references)
-- `dgs/snapshot_pv.md` — Modern Python/pyepics PV snapshot utilities (supersedes these legacy scripts)
-- `dgs/gammasphere_geometry.md` — GS hole → GS_ID numbering used by BGO tuning scripts
-- `dgs/sbx.md` — Slope box hardware; BGO HV channels addressed by slopebox_scripts
+- `knowledgeBase/DGS_SVN.md` — SVN archive context; NS_scripts and slopebox_scripts source
+- `knowledgeBase/collectorbox_PVs.md` — Current authoritative PV list (replaces outdated SVN PV references)
+- `knowledgeBase/snapshot_pv.md` — Modern Python/pyepics PV snapshot utilities (supersedes these legacy scripts)
+- `knowledgeBase/gammasphere_geometry.md` — GS hole → GS_ID numbering used by BGO tuning scripts
+- `knowledgeBase/sbx.md` — Slope box hardware; BGO HV channels addressed by slopebox_scripts

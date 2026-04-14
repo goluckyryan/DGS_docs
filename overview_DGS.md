@@ -225,9 +225,9 @@ DGS is a full software+firmware+hardware stack:
 
 ## Cross-References
 
-- `dgs/hardware_architecture.md` — Detailed hardware breakdown: DuoGe vs DGS, signal chain, collector box
-- `dgs/fpga.md` — FPGA firmware overview: 3-tier hierarchy, signal flow, trigger cycle
-- `dgs/ioc.md` — EPICS IOC configuration, firmware versions, boot scripts
-- `dgs/lnfill.md` — Liquid nitrogen cooling system
-- `dgs/ANLDAQ.md` — DAQ GUI, TCP receiver, run control
-- `dgs/overview_SmallSystem.md` — DuoGe (DUO) and X-Array (DXA) small system overview
+- `knowledgeBase/hardware_architecture.md` — Detailed hardware breakdown: DuoGe vs DGS, signal chain, collector box
+- `knowledgeBase/fpga.md` — FPGA firmware overview: 3-tier hierarchy, signal flow, trigger cycle
+- `knowledgeBase/ioc.md` — EPICS IOC configuration, firmware versions, boot scripts
+- `knowledgeBase/lnfill.md` — Liquid nitrogen cooling system
+- `knowledgeBase/ANLDAQ.md` — DAQ GUI, TCP receiver, run control
+- `knowledgeBase/overview_SmallSystem.md` — DuoGe (DUO) and X-Array (DXA) small system overview

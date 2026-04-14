@@ -325,16 +325,16 @@ Located in each branch's `Cores/` directory:
 
 ## See Also
 
-- `dgs/deep_fpga_DIG.md` — DIG firmware overview: Spartan-3 architecture, ADC pipeline, event packet format, master/slave config, FIFO readout (this file is a continuation of that)
-- `dgs/fpga.md` — System-level overview: trigger hierarchy, signal flow, PEQ explanation, end-to-end timeline
-- `dgs/DIG_firmware_expert.md` — Operator-level guide: all 8 readout modes, register summary, discriminator config
-- `dgs/deep_fpga_RTRG.md` — Router firmware: multiplicity aggregation, throttle, VME register map
-- `dgs/deep_fpga_MTRG_MAIN.md` — Master trigger firmware: trigger algorithms, TAC-II TDC, 20-frame commands
-- `dgs/ttcl.md` — TTCL spec: full frame-by-frame breakdown of the 20-frame command structure DIG receives
-- `dgs/ANLDAQ.md` — DAQ software: `class_DIG.h` decodes DIG packet format documented here
-- `dgs/connectors.md` — DIG connector pinouts: RJ45 SERDES, 36-pin Aux I/O, RTRG IEC cable
-- `dgs/deep_fpga_building.md` — Build toolchain: ISE 14.7 on Ubuntu 24.04, Docker/Podman approach
-- `dgs/preamp_reset_readme.md` — Detailed explanation of preamp reset (PRK) detection logic, blanking timing, BGO veto gate, and PARST timestamp fields
+- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware overview: Spartan-3 architecture, ADC pipeline, event packet format, master/slave config, FIFO readout (this file is a continuation of that)
+- `knowledgeBase/fpga.md` — System-level overview: trigger hierarchy, signal flow, PEQ explanation, end-to-end timeline
+- `knowledgeBase/DIG_firmware_expert.md` — Operator-level guide: all 8 readout modes, register summary, discriminator config
+- `knowledgeBase/deep_fpga_RTRG.md` — Router firmware: multiplicity aggregation, throttle, VME register map
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — Master trigger firmware: trigger algorithms, TAC-II TDC, 20-frame commands
+- `knowledgeBase/ttcl.md` — TTCL spec: full frame-by-frame breakdown of the 20-frame command structure DIG receives
+- `knowledgeBase/ANLDAQ.md` — DAQ software: `class_DIG.h` decodes DIG packet format documented here
+- `knowledgeBase/connectors.md` — DIG connector pinouts: RJ45 SERDES, 36-pin Aux I/O, RTRG IEC cable
+- `knowledgeBase/deep_fpga_building.md` — Build toolchain: ISE 14.7 on Ubuntu 24.04, Docker/Podman approach
+- `knowledgeBase/preamp_reset_readme.md` — Detailed explanation of preamp reset (PRK) detection logic, blanking timing, BGO veto gate, and PARST timestamp fields
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Dig*/` — VHDL source. PDF: `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05.*

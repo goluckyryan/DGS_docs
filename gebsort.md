@@ -223,20 +223,20 @@ Both read the same GEB binary files. For DGS exp2008_Chiara, parquet_pysort is t
 
 ## Related
 
-- `dgs/run_procedures.md` — GEBSort workflow in context of DGS runs
-- `dgs/dgs_analysis.md` — parquet_pysort (modern alternative)
-- `dgs/pole_zero.md` — PZ correction physics and algorithms
-- `dgs/data_structures.md` — GEB binary format
-- `dgs/tac2.md` — TAC-II TDC (sorted by `bin_tac2`)
+- `knowledgeBase/run_procedures.md` — GEBSort workflow in context of DGS runs
+- `knowledgeBase/dgs_analysis.md` — parquet_pysort (modern alternative)
+- `knowledgeBase/pole_zero.md` — PZ correction physics and algorithms
+- `knowledgeBase/data_structures.md` — GEB binary format
+- `knowledgeBase/tac2.md` — TAC-II TDC (sorted by `bin_tac2`)
 
 ---
 *Created: 2026-04-07. Source: `DGS_tools_pack/gebsort/` README + source files.*
 
 ## Cross-References
 
-- `dgs/run_procedures.md` — Full DGS run workflow: where GEBSort fits in (PZ cal → energy cal → sort)
-- `dgs/dgs_analysis.md` — Modern alternative: fastEventConstructor (ROOT) + parquet_pysort pipeline
-- `dgs/data_structures.md` — GEB binary format: the input data format GEBSort reads
-- `dgs/pole_zero.md` — PZ correction theory; dgs_pz.cal consumed by GEBSort's bin_dgs
-- `dgs/ANLDAQ.md` — tcpReceiverMT produces the raw GEB files that GEBSort processes
-- `dgs/nfs_layout.md` — NFS paths where experiment data and GEBSort binaries live (vol4/dgs_testing/)
+- `knowledgeBase/run_procedures.md` — Full DGS run workflow: where GEBSort fits in (PZ cal → energy cal → sort)
+- `knowledgeBase/dgs_analysis.md` — Modern alternative: fastEventConstructor (ROOT) + parquet_pysort pipeline
+- `knowledgeBase/data_structures.md` — GEB binary format: the input data format GEBSort reads
+- `knowledgeBase/pole_zero.md` — PZ correction theory; dgs_pz.cal consumed by GEBSort's bin_dgs
+- `knowledgeBase/ANLDAQ.md` — tcpReceiverMT produces the raw GEB files that GEBSort processes
+- `knowledgeBase/nfs_layout.md` — NFS paths where experiment data and GEBSort binaries live (vol4/dgs_testing/)

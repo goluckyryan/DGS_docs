@@ -335,11 +335,11 @@ The stretched signals `HAVE_CLEAN` and `HAVE_DIRTY` (from `overlap_mach`) are tr
 
 ## See Also
 
-- `dgs/fpga.md` — System-level overview: trigger hierarchy, throttle mechanism, SERDES link summary
-- `dgs/deep_fpga_DIG.md` — DIG firmware: upstream multiplicity bits the RTRG receives, downstream command frames DIG acts on
-- `dgs/deep_fpga_MTRG_MAIN.md` — MTRG firmware: trigger algorithms consuming RTRG multiplicity data
-- `dgs/ttcl.md` — TTCL: frame 12 (inter-trigger) and frame 14 (remote trigger) that RTRG replaces with null before forwarding to DIG
-- `dgs/connectors.md` — RTRG connector pinouts: 125-pin SERDES links, NIM I/O, CPLD ribbons
+- `knowledgeBase/fpga.md` — System-level overview: trigger hierarchy, throttle mechanism, SERDES link summary
+- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware: upstream multiplicity bits the RTRG receives, downstream command frames DIG acts on
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG firmware: trigger algorithms consuming RTRG multiplicity data
+- `knowledgeBase/ttcl.md` — TTCL: frame 12 (inter-trigger) and frame 14 (remote trigger) that RTRG replaces with null before forwarding to DIG
+- `knowledgeBase/connectors.md` — RTRG connector pinouts: 125-pin SERDES links, NIM I/O, CPLD ribbons
 
 ---
 

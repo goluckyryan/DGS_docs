@@ -134,14 +134,14 @@ Key issues documented:
 
 ## Cross-References
 
-- `dgs/ioc.md` — IOC config, boot scripts, firmware versions
-- `dgs/IOC_cmd.md` — VxWorks / iocsh commands for diagnostics (VMERead32, dbl, dbpr)
-- `dgs/link_sys_analysis.md` — SERDES link init sequence (5-stage); often the cause of SYNC/lock issues
-- `dgs/DIG_firmware_expert.md` — trigger_mux_select modes, readout configuration
-- `dgs/preamp_reset_readme.md` — PREAMP_RESET handling: CHANNEL_KILLED, delay register
-- `dgs/EPICS.md` — EPICS CA tools for PV inspection
-- `dgs/VME_registers.md` — VME register addresses for low-level hardware inspection
-- `dgs/run_procedures.md` — Standard run start/stop procedures
+- `knowledgeBase/ioc.md` — IOC config, boot scripts, firmware versions
+- `knowledgeBase/IOC_cmd.md` — VxWorks / iocsh commands for diagnostics (VMERead32, dbl, dbpr)
+- `knowledgeBase/link_sys_analysis.md` — SERDES link init sequence (5-stage); often the cause of SYNC/lock issues
+- `knowledgeBase/DIG_firmware_expert.md` — trigger_mux_select modes, readout configuration
+- `knowledgeBase/preamp_reset_readme.md` — PREAMP_RESET handling: CHANNEL_KILLED, delay register
+- `knowledgeBase/EPICS.md` — EPICS CA tools for PV inspection
+- `knowledgeBase/VME_registers.md` — VME register addresses for low-level hardware inspection
+- `knowledgeBase/run_procedures.md` — Standard run start/stop procedures
 
 ---
 

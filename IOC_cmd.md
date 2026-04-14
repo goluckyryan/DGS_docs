@@ -556,12 +556,12 @@ IOC IPs are for **data stream only** — do not telnet to them for shell access.
 
 ## Cross-References
 
-- `dgs/ioc.md` — IOC boot scripts, startup sequence, firmware versions
-- `dgs/vxworks.md` — VxWorks cross-compilation, munch process, build pipeline
-- `dgs/EPICS_asyn.md` — asyn driver internals: port concept, worker threads, bulk writes
-- `dgs/VME_registers.md` — complete VME register address map for DIG/RTRG/MTRG
-- `dgs/EPICS.md` — EPICS record types, CA tools, Python integration
-- `dgs/troubleshooting.md` — IOC connectivity issues, common failures
+- `knowledgeBase/ioc.md` — IOC boot scripts, startup sequence, firmware versions
+- `knowledgeBase/vxworks.md` — VxWorks cross-compilation, munch process, build pipeline
+- `knowledgeBase/EPICS_asyn.md` — asyn driver internals: port concept, worker threads, bulk writes
+- `knowledgeBase/VME_registers.md` — complete VME register address map for DIG/RTRG/MTRG
+- `knowledgeBase/EPICS.md` — EPICS record types, CA tools, Python integration
+- `knowledgeBase/troubleshooting.md` — IOC connectivity issues, common failures
 
 ---
 

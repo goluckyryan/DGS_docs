@@ -904,10 +904,10 @@ If `reg_raw_data_length = 0`, no waveform words are written and the packet ends 
 
 ## Cross-References
 
-- `dgs/DIG_firmware_expert.md` — Expert guide: all readout modes, data format, timing, trigger_mux_select
-- `dgs/preamp_reset_readme.md` — Preamp reset (PRK) handling: detection thresholds, CHANNEL_KILLED gate, PARST timestamp
-- `dgs/ttcl.md` — TTCL spec: trigger command frames received and acted on by DIG
-- `dgs/data_structures.md` — GEB binary format: DIG event packet layout
-- `dgs/connectors.md` — DIG connector pinouts: RJ45 SERDES, 36-pin Aux I/O
-- `dgs/VME_registers.md` — DIG VME register addresses from asyn driver source
-- `dgs/fpga.md` — FPGA system overview: DIG role in 3-tier trigger hierarchy
+- `knowledgeBase/DIG_firmware_expert.md` — Expert guide: all readout modes, data format, timing, trigger_mux_select
+- `knowledgeBase/preamp_reset_readme.md` — Preamp reset (PRK) handling: detection thresholds, CHANNEL_KILLED gate, PARST timestamp
+- `knowledgeBase/ttcl.md` — TTCL spec: trigger command frames received and acted on by DIG
+- `knowledgeBase/data_structures.md` — GEB binary format: DIG event packet layout
+- `knowledgeBase/connectors.md` — DIG connector pinouts: RJ45 SERDES, 36-pin Aux I/O
+- `knowledgeBase/VME_registers.md` — DIG VME register addresses from asyn driver source
+- `knowledgeBase/fpga.md` — FPGA system overview: DIG role in 3-tier trigger hierarchy

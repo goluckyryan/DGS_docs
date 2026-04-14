@@ -437,11 +437,11 @@ gnome-terminal -- bash -c "telnet 192.168.203.54 2001; exec bash"
 
 ## Cross-References
 
-- `dgs/vxworks.md` — VxWorks cross-compilation: build pipeline, munch process, directory structure
-- `dgs/vxworks_migration.md` — Migration from Solaris/con6 to Ubuntu 24; all path/source fixes
-- `dgs/EPICS.md` — EPICS record types, CA tools, Python integration
-- `dgs/EPICS_asyn.md` — asyn driver: caput/caget flow, port concept, worker threads
-- `dgs/VME_registers.md` — Complete VME register addresses extracted from asyn driver source
-- `dgs/IOC_cmd.md` — IOC shell commands available in DGS VxWorks IOC
-- `dgs/fpga.md` — FPGA firmware overview; firmware revisions that must match IOC boot scripts
-- `dgs/troubleshooting.md` — IOC connectivity issues, SYNC bit gotcha
+- `knowledgeBase/vxworks.md` — VxWorks cross-compilation: build pipeline, munch process, directory structure
+- `knowledgeBase/vxworks_migration.md` — Migration from Solaris/con6 to Ubuntu 24; all path/source fixes
+- `knowledgeBase/EPICS.md` — EPICS record types, CA tools, Python integration
+- `knowledgeBase/EPICS_asyn.md` — asyn driver: caput/caget flow, port concept, worker threads
+- `knowledgeBase/VME_registers.md` — Complete VME register addresses extracted from asyn driver source
+- `knowledgeBase/IOC_cmd.md` — IOC shell commands available in DGS VxWorks IOC
+- `knowledgeBase/fpga.md` — FPGA firmware overview; firmware revisions that must match IOC boot scripts
+- `knowledgeBase/troubleshooting.md` — IOC connectivity issues, SYNC bit gotcha

@@ -960,13 +960,13 @@ All 17 `calcout` records are hardcoded to `VME10` (the MTRG crate in the standar
 
 ## See Also
 
-- `dgs/ioc.md` — EPICS IOC boot scripts, DB files, PV definitions
-- `dgs/vxworks.md` — VxWorks build pipeline (produces the firmware ANLDAQ talks to)
-- `dgs/fpga.md` — DIG/RTRG/MTRG firmware overview
-- `dgs/dgs_analysis.md` — Downstream analysis (fastEventConstructor, parquet_pysort) consuming `tcpReceiverMT` output
-- `dgs/snapshot_pv.md` — PV snapshot utility (`dumpPVs.py` / `putPVs.py`) invoked by `start_run.sh`
-- `dgs/ttcl.md` — TTCL trigger timing (feeds the MTRG TAC-II data decoded in `class_TDC.h`)
-- `dgs/DIG_firmware_expert.md` — DIG firmware details; confirms packet format matched by `class_DIG.h`
-- `dgs/EPICS_asyn.md` — asyn driver internals: caput/caget flow, port concept, asynUInt32Digital
-- `dgs/collectorbox_devicesupport.md` — collector box EPICS device support (SPI driver, CAMAC_IO link)
-- `dgs/guceiver.md` — Guceiver live diagnostic GUI (waveform/spectrum/TAC-II tabs); companion to the main ANLDAQ GUI
+- `knowledgeBase/ioc.md` — EPICS IOC boot scripts, DB files, PV definitions
+- `knowledgeBase/vxworks.md` — VxWorks build pipeline (produces the firmware ANLDAQ talks to)
+- `knowledgeBase/fpga.md` — DIG/RTRG/MTRG firmware overview
+- `knowledgeBase/dgs_analysis.md` — Downstream analysis (fastEventConstructor, parquet_pysort) consuming `tcpReceiverMT` output
+- `knowledgeBase/snapshot_pv.md` — PV snapshot utility (`dumpPVs.py` / `putPVs.py`) invoked by `start_run.sh`
+- `knowledgeBase/ttcl.md` — TTCL trigger timing (feeds the MTRG TAC-II data decoded in `class_TDC.h`)
+- `knowledgeBase/DIG_firmware_expert.md` — DIG firmware details; confirms packet format matched by `class_DIG.h`
+- `knowledgeBase/EPICS_asyn.md` — asyn driver internals: caput/caget flow, port concept, asynUInt32Digital
+- `knowledgeBase/collectorbox_devicesupport.md` — collector box EPICS device support (SPI driver, CAMAC_IO link)
+- `knowledgeBase/guceiver.md` — Guceiver live diagnostic GUI (waveform/spectrum/TAC-II tabs); companion to the main ANLDAQ GUI

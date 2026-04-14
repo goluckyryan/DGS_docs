@@ -110,12 +110,12 @@ This simulation shares the same `trigger_top` component and `BUILD_TYPE` encodin
 
 ## Cross-References
 
-- `dgs/fpga.md` — FPGA system overview: which firmware runs on which device
-- `dgs/deep_fpga_DIG.md` — DIG firmware: ISE 14.7 Spartan-3 project, build branches
-- `dgs/deep_fpga_MTRG.md` — MTRG overview: ISE / Vivado projects, 3 devices
-- `dgs/deep_fpga_MTRG_VIVADO.md` — MTRG Vivado port: Kintex UltraScale build details
-- `dgs/deep_fpga_RTRG.md` — RTRG firmware: Virtex-4, ISE project
-- `dgs/vxworks.md` — VxWorks cross-compilation (IOC driver side of the build chain)
+- `knowledgeBase/fpga.md` — FPGA system overview: which firmware runs on which device
+- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware: ISE 14.7 Spartan-3 project, build branches
+- `knowledgeBase/deep_fpga_MTRG.md` — MTRG overview: ISE / Vivado projects, 3 devices
+- `knowledgeBase/deep_fpga_MTRG_VIVADO.md` — MTRG Vivado port: Kintex UltraScale build details
+- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: Virtex-4, ISE project
+- `knowledgeBase/vxworks.md` — VxWorks cross-compilation (IOC driver side of the build chain)
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/` + `DGS_tools_pack/fpga/`. Created: 2026-04-07.*
