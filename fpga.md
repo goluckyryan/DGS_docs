@@ -98,7 +98,7 @@ RTRG — Aggregates 8 digitizers
     │  X-plane hit count + Y-plane hit count + throttle OR
     │
     │  SERDES Link L (18-bit, 50 MHz)
-    │  TX word: [THR | Y-mult[4:0] | X-mult[5:0]]
+    │  TX word: [THR | Y-mult[6:0] | VAL | X-mult[6:0] | POL] (16-bit) ✅ verified 2026-04-14 — `router_data_path.vhd:L10-15,L230-233`
     ▼
 MTRG — Runs trigger algorithms
     │  8 algorithms (GITMO, MYRIAD, multiplicity, coincidence, etc.)
@@ -226,7 +226,11 @@ The **RTRG** receives hit flags from up to 8 DIGs simultaneously on Links A–H.
 
 It then sends a compact packet upstream to the MTRG on Link L:
 ```
-SERDES TX word: [THR | Y-mult[4:0] | X-mult[5:0]]
+SERDES TX word (16-bit, DC-balance wrapped to 18): `[bit15=THR | bits14:8=Y-sum(0-80, 7-bit) | bit7=VAL(all DIGs locked) | bits6:0=X-sum(0-80, 7-bit)]` ✅ verified 2026-04-14 — `router_data_path.vhd:L10-15` (header comment) + `L230-233` (signal assignments)
+- THR: OR of all digitizer throttle requests (`ANY_THROTTLE_REQUEST`)
+- Y-sum bits[14:8]: sum of Y-plane multiplicities from all 8 digitizers (0–80 max: 8 DIGs × 10 ch)
+- VAL bit[7]: `ALL_DIGITIZERS_LOCKED AND ROUTER_LOCKED` — data valid flag
+- X-sum bits[6:0]: sum of X-plane multiplicities from all 8 digitizers (0–80 max)
 ```
 
 The MTRG therefore sees a continuously updated multiplicity stream from each Router, refreshed every 20 ns.
