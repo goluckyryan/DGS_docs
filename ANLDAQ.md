@@ -391,7 +391,7 @@ Key flow-control PVs:
 |--------|--------|------|
 | `tcpReceiver` | `tcpReceiver.cpp` | Single-threaded, one IOC |
 | `tcpReceiverMT` | `tcpReceiverMT.cpp` | Multi-threaded, N IOCs from config file |
-| `tcpReceiverUDP` | `tcpReceiverUDP.cpp` | Multi-threaded + UDP forwarding (online analysis) |
+| `tcpReceiverUDP` | `tcpReceiverUDP.cpp` | Multi-threaded TCP receiver + UDP forwarding for online analysis. Extends `IOCReceiver`; adds a `UDPSender` per IOC that drains a **4 MB lock-free SPSC ring buffer** and packs data into UDP datagrams (max 1,472 bytes — 1500 MTU − 28 header). Ports: `UDP_BASE_PORT + ioc_index` starting at **12300**. Mode: `--raw` forwards raw TCP bytes; default forwards GEB header + payload. 64-byte fixed header precedes data in each UDP frame. Not the production receiver (`tcpReceiverMT` is); used for online monitoring (e.g. feeding a DAMM/online sort). |✅ verified 2026-04-15 — `tcpReceiverUDP.cpp:L12,L96,L199` (ring buf 4 MB, port 12300, max payload 1472) |
 
 ### TCP Protocol — Verified from Source Code
 
