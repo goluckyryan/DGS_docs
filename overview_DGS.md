@@ -110,7 +110,7 @@ DGS is a full software+firmware+hardware stack:
 | Slope Box | 1 per detector | Generates Ge+BGO bias HV; multiplexed ADC for temp/HV monitoring |
 | SBX (Slope Box Extension) | 1 per detector | Signal conditioning; BGO sum + pattern; GS_ID dongle; 48VDC distribution |
 | Pickoff Card | 1 per SBX | Routes signals to correct DIG channels; BGO HV demand control |
-| Collector Box (CollectorBox_RevA) | 4 total | Hub for 28 detectors each; interfaces to digitizers + Pi soft IOC |
+| Collector Box (CollectorBox_RevA) | 4 total | Hub for 25–30 detectors each (CB201: 30, CB202: 25, CB203: 30, CB204: 25 = 110 total); interfaces to digitizers + Pi soft IOC ✅ verified 2026-04-15 — collectorboxpi/collectorBox.sh:L16,27,38,49 |
 | DVI-I cable | 1 per detector | Carries analog signals + power + comms from SBX → Collector Box |
 
 ### Computers (192.168.203.x)
