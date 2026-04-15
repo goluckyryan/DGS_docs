@@ -104,7 +104,7 @@ make EventBuilder_PQ
 | `dgs_decode_lib.cpp` | C++ shared lib — pole-zero, energy, calibration |
 | `geb_format.py` | GEB header/payload format definitions |
 | `event_builder.py` | Stage 3 coincidence event builder |
-| `make_filemap_dgs.py` | Stage 1 filemap builder |
+| `make_filemap_dgs.py` | **Stage 1 filemap builder** (227 lines, by Youngju Cho). Reads raw GEB files in a run dir; for each DGS event verifies all events map to exactly one `(tpe, tid)` pair; writes `<exp>_<run>_fileMap.dat` (format: `tid  tpe  suffix`). DGS event ID extracted via `_dgs_id()`: `board_id = ((w0 >> 4) & 0xFFF)`, `chan_id = (w0 & 0xF)` → `id = board_id * 10 + chan_id` (big-endian first word). Supported detector types (`TPE_NAME`, from GTMerge.h): 0=NOTHING, 1=GE, 2=BGO, 3=SIDE, 4=AUX, 5=DSSD, 6=FP, 7=XARRAY, 8=CHICO2, 9=SSD, 10=CLOVER, 11=SPARE, 12=SIBOX, 14=DUBDET, 15=XIA. Sort rank: GE=0, BGO=1, SIDE=2, AUX=3. Also handles GEB_TYPE_GT_MOD29 events (skipped in filemap). ✅ verified 2026-04-15 — `make_filemap_dgs.py:L28-50` (TPE_NAME dict + _dgs_id formula) |
 | `read_parquet.py` | **PyArrow parquet inspector** (450 lines, by Youngju Cho). CLI: `--info` (metadata only, instant), `--columns col1 col2`, `--where "geb_type==8" "timestamp>8e11"`, `--head N`, `--tail N`, `--rows M N` (row slice), `--hex N` (print N words as hex), `--to-csv out.csv`. No pandas dependency — pure PyArrow. |
 | `PQDecode.chat` | Decode config: algo, MM, KK, threads, etc. |
 | `PQMerge.chat` | Merge config |
