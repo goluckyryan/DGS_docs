@@ -5,12 +5,14 @@
 A mirror/checkout of the DGS legacy **SVN (Subversion)** repository. This is the historical source of DGS code before the migration to Git.
 
 Contents:
-- `knowledgeBase/` — Main DGS SVN tree (large, many subdirectories)
+- `dgs/` — Main DGS SVN tree (large, many subdirectories)
 - `findFile.sh` — Utility script to search within the SVN tree
+
+**Local path:** `/home/ryan/DGS_tools_pack/DGS_SVN/dgs/`
 
 ---
 
-## Contents of `knowledgeBase/`
+## Contents of `dgs/`
 
 The SVN tree contains a broad historical archive of DGS development:
 
@@ -59,7 +61,7 @@ The SVN tree contains a broad historical archive of DGS development:
 | `sbxl_osc` | **Early Pi-based SBX/pickoff IOC dev notes**: `diagdump.txt` (EPICS boot trace for `PickoffApp_RevC` on Pi, CA ports 5074/5075 for test stand), `EPICS boot trace 20201028.txt` + `EPICS_init_trace_20200911` (IOC startup logs), `Breakdown of globals.ods` (spreadsheet of global variables), `NonEpics_SPI/` (direct SPI access without EPICS), bcm2835-1.63 library, `NotesOnVPNandSVN.txt` (VPN/SVN setup for Pi). Predecessor to current `collectorboxpi/` repo. |
 | `sbxscreens` | SBX EDM screens + commissioning scripts (see main table above) |
 | `SlopeBoxExtension` | SBX hardware + firmware + GS_ID dongle (→ `sbx.md`) |
-| `SlopeBoxInterface` | Slope box interface hardware: schematics, PCB layout, pickoff card design, power budget lab notes, RPi interface. `Documentation/LabNotes/SlopeBoxCurrentDraw.txt` (2018-05-07, JTA) measured per-rail current draw (no detector connected): +12V=105mA (1.26W), -12V=113mA (1.36W), +24V=21mA (0.5W), +5V=81mA (0.4W) → total ~3.5W idle, ~5.7W with HV on. Estimated total per-detector (slope box + Pickoff Rev B + RPi): ~22W → requires 802.3at PoE (30W/port); 802.3af (15.4W/port) insufficient. Power supply recommendation: CUI PYB30-Q48-T512 converter. |
+| `SlopeBoxInterface` | Slope box interface hardware: schematics, PCB layout, pickoff card design, power budget lab notes, RPi interface. `Documentation/LabNotes/SlopeBoxCurrentDraw.txt` (2018-05-07, JTA) measured per-rail current draw (no detector connected): +12V=105mA (1.26W), -12V=113mA (1.36W), +24V=21mA (0.5W), +5V=81mA (0.4W) → total ~3.5W idle, ~5.7W with HV on. Estimated total per-detector (slope box + Pickoff Rev B + RPi): ~22W → requires 802.3at PoE (30W/port); 802.3af (15.4W/port) insufficient. Power supply recommendation: CUI PYB30-Q48-T512 converter. ✅ verified 2026-04-15 — `SlopeBoxCurrentDraw.txt:L88` ("SUBTOTAL : call it 22W." = slope box 5.7W + Pickoff Rev B 6W + RPi 10W; +20% DC-DC overhead = 26.4W to PoE switch) |
 | `slopebox_scripts` | BGO HV sweep + counter averaging scripts: `BGO_Sweep_test` (sweeps `GS000_BGO_HV0..13` from 0→250 DAC in steps, averages `GS000_BGO[1-7]Sum_counter`), `caget_avg` (shell: reads PV N times, averages numeric value), `Avg_all_BGO_count` (reads all 8 BGO counter PVs via `caget_avg`). Run from `/global/devel/scripts/`. Legacy — see `utility_scripts.md` for current Python equivalents. |
 | `TrigToTrig` | **Trigger-to-trigger interconnect PCB** (PCB#1446 / Layout#06PC057, Rev A, June 6, 2021): passive LVDS signal interconnect board for GRETINA trigger module SERDES I/O. Contains **two CompactPCI Type B HM connectors** (P1, P2: `HM_TYPEB_RA_MALE_0` — 125-pin, 5×25 CPCI Type B), no active components. Purpose: re-maps SERDES LINK signals between two trigger module backplane connectors — functions as a wiring adapter/crossover between two GRETINA trigger crate slots. Net inventory (82 nets): **44 LINK signals** — 11 groups (A,B,C,D,E,F,G,H,L,R,U) × 4 signals each (e.g. `LINK_A0`–`LINK_A3`), matching GRETINA trigger SERDES link naming convention; **16 AB_LVDS signals** (`AB_LVDS0`–`AB_LVDS15`); **16 DE_LVDS signals** (`DE_LVDS0`–`DE_LVDS15`); **4 ULVDS signals** (`ULVDS0`–`ULVDS3`); **1 GND**. All signal nets have `ELECTRICAL_CONSTRAINT_SET='100 ohm stripline'` with `DIFFERENTIAL_PAIR` assignments — proper LVDS impedance controlled routing. OrCAD schematics + BOM + DRC report; Allegro layout; fab package `21KB001`. ✅ verified 2026-04-13 — `TrigToTrig/allegro/pstxnet.dat` (net list) + `TRIG_TO_TRIG.BOM` + `TRIG_TO_TRIG.DRC` |
 | `VXI_database` | **Legacy analog Gammasphere EPICS database** (6 files, ~192K lines total; resm1–4: 2,233 records each ✅ verified 2026-04-08; resm5–6: 1,718 records each ✅ verified 2026-04-08): `resm1.db`–`resm6.db` — pre-DGS VXI-based DAQ EPICS records for the original analog Gammasphere system. PV prefix conventions (✅ verified 2026-04-11 — `resm1.db` grep): `MOD###_` (module/digitizer), `BGO###_` (BGO detector), `VXI###_` (VXI crate channel), `GE###_` (Ge detector, e.g. `GE###_DV_TRAP`), `CR<crate>_<slot>_` (per-crate-slot ADC/DAC), `HEARTBEAT` (watchdog). Record types: mbbo/mbbi, ai/ao, bi/bo, sub, waveform. Key PV groups: `BGO###_CS_PAT[1-7]` (BGO coincidence pattern bits), `BGO###_CS_DB[1-7]` (delay buffer settings), `BGO###_CS_100KV` (HV control), `BGO###_DS/DV_LRE/TDC` (leading-edge/TDC status/value), `VXI###_DV_GE_CFD/PUD/SIDE` (Ge CFD, pole-up/down, side settings), `MOD###_DV_EN` (module enable), `MOD###_HV_CON` (HV control sub record). Historical reference only — predates DGS digitizers. |
