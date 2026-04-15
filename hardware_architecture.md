@@ -107,7 +107,7 @@ Each RTRG manages a "sector" of 8 DIGs = 80 channels = one VME crate.
 Many slope boxes (1 per Ge detector)
     │
     ▼
-Collector box (1 per sector, ~25–30 detectors) ✅ verified 2026-04-07 — collectorBox.sh:L8-49 (pi0/pi3=25 det, pi1/pi2=30 det)
+Collector box (1 per sector, ~25–31 detectors) ✅ verified 2026-04-07 — collectorBox.sh:L8-49
     │  SPI bus (bcm2835, 5-bit DEVSEL, 24-bit transactions)
     ▼
 Raspberry Pi (PXE boot from fs2.onenet)
@@ -120,7 +120,7 @@ EPICS CA (5064/5065) → host PC / ANLDAQ
 
 | Pi | IOC # | Name | GS Holes | Status |
 |----|-------|------|-----------|--------|
-| pi0 | 201 | South-East | GS 2–60 (even, 30 det) ✅ verified 2026-04-06 — `collectorBox.sh:L8-16` | New repo (CollectorBox_RevA) |
+| pi0 | 201 | South-East | GS 2–60 (even) + GS 70 = 31 holes ✅ verified 2026-04-15 — `st_201.cmd` (31 unique DetNbr values: 002–060 even + 070) | New repo (CollectorBox_RevA) |
 | pi1 | 202 | South-West | GS 62–110 (even, 25 det) ✅ verified 2026-04-06 — `collectorBox.sh:L19-27` | Old piserver (undocumented) |
 | pi2 | 203 | North-East | GS 1–59 (odd, 30 det) ✅ verified 2026-04-06 — `collectorBox.sh:L30-38` | Old piserver (undocumented) |
 | pi3 | 204 | North-West | GS 61–109 (odd, 25 det) ✅ verified 2026-04-06 — `collectorBox.sh:L41-49` | Old piserver (undocumented) |
