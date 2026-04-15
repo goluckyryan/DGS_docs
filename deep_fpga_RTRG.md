@@ -94,7 +94,7 @@ RTRG/
 ### Throttle Control
 | File | Description |
 |------|-------------|
-| `throttle_limiters.vhd` | Filters throttle requests from 8 Digitizers; requires continuous assertion for programmable time; stretches valid requests to >2 µs pulses |
+| `throttle_limiters.vhd` | Filters throttle requests from 8 Digitizers; requires continuous assertion for programmable time; stretches valid requests to >2 µs pulses ✅ verified 2026-04-14 — `throttle_limiters.vhd:L23-26,L80` ("minimum assertion time of 2us"; `COUNTER_START=400` @ 50 MHz = 2 µs) |
 
 ### Link Management
 | File | Description |
