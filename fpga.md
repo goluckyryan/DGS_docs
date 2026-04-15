@@ -185,7 +185,7 @@ When a DIG's internal FIFO is near-full, it asserts a throttle request upstream:
 DIG FIFO almost full
     → DIG asserts throttle on SERDES TX
     → RTRG throttle_limiters filter (must be held for programmable time)
-    → RTRG stretches valid throttle to >2 µs
+    → RTRG stretches valid throttle to ≥2 µs (monostable: COUNTER_START=400 @ 50 MHz) ✅ verified 2026-04-15 — `throttle_limiters.vhd:L80` (COUNTER_START=400), L341 (reset to COUNTER_START); L24-26 (comment: minimum 2us ensures propagation to Master)
     → RTRG sends throttle bit to MTRG in Link L TX packet
     → MTRG suspends trigger formation while throttle is asserted
 ```
