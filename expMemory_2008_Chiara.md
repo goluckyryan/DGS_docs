@@ -9,7 +9,7 @@
 | Status | **Active / Ongoing** |
 | Elog Logbook | `2008_Chiara` |
 | GEB_ID | 14 |
-| Next Run # | >043 (as of 2026-04-05 cleanup log; actual current run unknown — check DCS2) |
+| Next Run # | >122 (as of 2026-04-14; latest run dir is `exp2008_122` on vol5) |
 
 ---
 
@@ -24,7 +24,7 @@
 | Root data | `/mnt/data0/exp2008_Chiara/root_data/` |
 | Parquet data | `/mnt/data0/exp2008_Chiara/Parquet/` |
 
-Run subfolders: `exp2008_001`, `exp2008_002`, ... (runs 1–43+ completed; exact count unknown — check DCS2)
+Run subfolders: `exp2008_001`, `exp2008_002`, ... (runs 1–122 present as of 2026-04-14; latest: `exp2008_122`)
 
 ---
 
@@ -130,7 +130,7 @@ Run subfolders: `exp2008_001`, `exp2008_002`, ... (runs 1–43+ completed; exact
 
 - Data synced to NFS at `fs2.onenet:/mnt/vol5/atlasdata/dgs/exp2008_Chiara` via `sync_exp_data.sh`
 - Same ANLDAQ folder structure exists on pi5-dgs (Ryan's Pi) as well as DCS2
-- As of 2026-04-05 cleanup log, 43+ runs completed (runs 001–043 documented in cleanup log below)
+- As of 2026-04-14 check: 122 run directories present on vol5 (latest: `exp2008_122`)
 
 ---
 
