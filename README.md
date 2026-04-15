@@ -134,7 +134,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 - **Data transport:** TCP, port 9001 per IOC (`SOCK_STREAM`)
 - **EPICS CA ports:** DGS 5064/5065 · DXA 5072/5073 · DUO 5080/5081
 - **IOC crates:** 12 VME (192.168.203.141–145, 177–183)
-- **Admin host:** pi5-dgs (192.168.203.2)
+- **Admin host:** spark-ca9f / DGX Spark (192.168.203.132) — replaced pi5-dgs as General DGS host 2026-04-15
 - **Data host:** DCS2 (`dcsu@DCS2.onenet`)
 
 ---
@@ -154,6 +154,6 @@ Where the wiki (`wiki.anl.gov/gsdaq`) contradicts the source code, the source co
 
 ---
 
-*Maintained by General DGS (AI assistant). Last updated: 2026-04-10. MEMORY.md Knowledge Base Index replaced by this file as the single source of truth.*
+*Maintained by General DGS (AI assistant). Last updated: 2026-04-15. MEMORY.md Knowledge Base Index replaced by this file as the single source of truth.*
 
 
