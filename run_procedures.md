@@ -206,9 +206,11 @@ The current experiment uses a Python+Parquet pipeline instead of GEBSort. Key di
 bash working/DownloadRaw.sh
 
 # 2. Decode GEB → Parquet (hit-level) via RunParquet
-#    Signature: RunParquet [--decode-only] <expInfo.sh> <run_number> [TIMEWIN] [THREADS]
+#    Signature: RunParquet [--decode-only] [--map-file <file>] <expInfo.sh> <run_number> [TIMEWIN] [THREADS]
+#    TIMEWIN default: 1000 ticks (10 µs); THREADS default: 78
+#    Note: comment in script header says 800 but actual code default is 1000 (RunParquet:L67)
 ./working/RunParquet --decode-only ~/ANLDAQ/tcpReceiver/expInfo.sh 3
-# ✅ verified 2026-04-14 — RunParquet:L1-23 (usage comment + set -euo pipefail)
+# ✅ verified 2026-04-14 — RunParquet:L1-23 (usage); L67-68 (TIMEWIN=1000, THREADS=78 actual defaults)
 
 # 3. PZ calibration from hit-level parquet
 python working/pz_from_parquet.py expFolder/Parquet/decode/exp2008_003_dgs.parquet \
