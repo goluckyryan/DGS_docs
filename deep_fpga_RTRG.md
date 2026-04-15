@@ -218,8 +218,8 @@ The Router **extracts** the per-channel veto mask (`VETO[9:0]`) from bits [9:0] 
 | 0x058–0x094 | X/Y_PLANE_MAP[1–8] | Discriminator type mapping per channel |
 | 0x098 | ANY_THROTTLE_WIDTH | Throttle pulse width | ✅ verified 2026-04-09 — `TOP.VHD:L2270` (`REG_098 => ANY_THROTTLE_WIDTH_REG`) |
 | 0x09C | THROTTLE_LIMIT_TIME | Min assertion time for throttle | ✅ verified 2026-04-09 — `TOP.VHD:L2271` (`REG_09C => THROTTLE_LIMIT_TIME_REG`; added 2016-03-02 for `throttle_limiters`) |
-| 0x0C8 | TSCATTER_DELAY | Ge/BGO timing for dirty hits |
-| 0x0CC | CLEAN_DIRTY | Clean/dirty/module detection mode |
+| 0x0C8 | TSCATTER_DELAY | Ge/BGO timing for dirty hits — bits[14:8]=ASSERTION_DELAY (7-bit, how long CLEAN/DIRTY pulses are stretched), bits[6:0]=OVERLAP_DELAY (7-bit Compton scatter coincidence window) ✅ verified 2026-04-15 — `knowledgeBase/vhdl/RTRG_chan_in.md` §Key Constants (sourced from `chan_in.vhd` TSCATTER_DELAY_REG port usage) |
+| 0x0CC | CLEAN_DIRTY | Clean/dirty/module detection mode — bit[15]=use delay-corrected DELAYED_DATA vs RECOVERED_DATA; bits[3:0]=X_SELECT source (0000=DFMA raw, 0001=HAVE_CLEAN, 0010=HAVE_DIRTY, 0100=HAVE_MODULE, 1000=HAVE_CLOVER_CLEAN); bits[7:4]=Y_SELECT source ✅ verified 2026-04-15 — `knowledgeBase/vhdl/RTRG_chan_in.md` §CLEAN_DIRTY control register modes (sourced from `chan_in.vhd`) |
 
 ### Status Registers (Read)
 
