@@ -153,7 +153,7 @@ All systems share the **same physical network (onenet, 192.168.203.x)** but are 
 | Detector channels | 20 | up to 640 |
 | Slope boxes | 2 | 110 |
 | Collector boxes | — | 4 |
-| Raspberry Pis | 1 | 4 (+ pi5-dgs admin) |
+| Raspberry Pis | 1 | 4 (+ pi5-dgs, now retired from admin role) |
 | IOC boards (MVME5500) | 1 | 12 |
 
 ---

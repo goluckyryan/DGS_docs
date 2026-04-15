@@ -132,7 +132,8 @@ DGS is a full software+firmware+hardware stack:
 | lnfill IOC | .121 | — | VME IOC for LN valves/sensors |
 | ln2con | .148 | Fedora 12 | lnfill IOC boot host |
 | pi5-lnfill | .58 | Debian 13 | LN fill cron + HPGe temp push |
-| pi5-dgs | .2 | Debian 13 | Ryan's admin Pi — **this machine** |
+| spark-ca9f (DGX Spark) | .132 | Linux (arm64) | General DGS host — **this machine** (replaced pi5-dgs 2026-04-15) |
+| pi5-dgs | .2 | Debian 13 | Ryan's former admin Pi (retired from General DGS role 2026-04-15) |
 | piserver1 | .154 | Ubuntu 20.04 | Pi PXE server |
 | gs-pdu-north | .224 | — | Power strip north |
 | gs-pdu-south | .225 | — | Power strip south |

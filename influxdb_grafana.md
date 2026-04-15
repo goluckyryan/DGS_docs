@@ -86,7 +86,7 @@ caget Det033:SlopeBox:Temp
 - Format: `export INFLUXDB_WRITE_TOKEN="apiv3_..."`
 - The `dcsu` write token is scoped to **write-only** — cannot list databases or run queries
 - A separate read/admin token is needed for queries (held by `adminrt`)
-- **Read-only token (pi5-dgs):** stored at `~/workspace/secrets/influx3_read.token` on pi5-dgs. Do NOT expose this token. Parse it with: `grep '^Token:' ~/workspace/secrets/influx3_read.token | awk '{print $2}'`
+- **Read-only token (spark-ca9f / formerly pi5-dgs):** stored at `~/workspace/secrets/influx3_read.token` on spark-ca9f (DGX Spark — General DGS host as of 2026-04-15). Do NOT expose this token. Parse it with: `grep '^Token:' ~/workspace/secrets/influx3_read.token | awk '{print $2}'`
 
 ### Line Protocol Format
 ```
