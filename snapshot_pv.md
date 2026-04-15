@@ -51,7 +51,7 @@ Reads PV names from `*_db.txt`, connects via PyEPICS, reads all values in parall
 VME01:MDIG1:coarse_threshold0 value=500i 1743890400000000000
 GS5_GE_HV_DEMAND_VOLTS value=3000.0 1743890400000000000
 ```
-Fields: `measurement value=<val> <timestamp_ns>`
+Fields: `measurement value=<val> <timestamp_ns>` ✅ verified 2026-04-14 — `dumpPVs.py:L91` (`line = f'{escaped_pv} {field_str} {timestamp_ns}\n'`); int values get `i` suffix, floats plain, strings quoted
 
 ### Usage
 ```bash
@@ -77,7 +77,7 @@ python3 dumpPVs.py --all --outdir /mnt/data0/exp2008_Chiara/data/exp2008_036/
 ```
 
 ### Output files
-Named: `{YYYYMMDD_HHMMSS}_pv_{device}.txt`
+Named: `{YYYYMMDD_HHMMSS}_pv_{device}.txt` ✅ verified 2026-04-14 — `dumpPVs.py:L141` (`f"{date_str}_pv_{os.path.basename(f).replace('_db.txt', '')}.txt"`)
 Example: `20260405_161500_pv_vme01.txt`
 
 ### Implementation details
