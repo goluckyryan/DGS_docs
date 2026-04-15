@@ -95,9 +95,9 @@ Channel design changes slightly:
 - LED used to gate CFD (prevents false firings)
 - All three filter elements used: middle filter → LED (delayed input) AND CFD (prompt input)
 
-**CFD operation**: CFD state machine idle until LED fires. Saves LOCAL_ZERO (CFD equation value at LED fire time). Then calculates CFD equation – LOCAL_ZERO each clock. Fires when sign changes. LOCAL_ZERO subtraction ensures consistent operation even when DC level wanders (e.g. during pileup).
+**CFD operation**: CFD state machine idle until LED fires. Saves LOCAL_ZERO (CFD equation value at LED fire time). Then calculates CFD equation – LOCAL_ZERO each clock. Fires when sign changes. LOCAL_ZERO subtraction ensures consistent operation even when DC level wanders (e.g. during pileup). ✅ verified 2026-04-15 — `cfd_disc.vhd:L209-211` (`LOCAL_DIFFERENCE <= CFD_SUBTRACTION - LOCAL_ZERO`; `LOCAL_ZERO` latched on `CFD_SAMPLE_ZERO`); sign change detected at `L314` (`LOCAL_DIFFERENCE(13) = SIGN_TO_TRACK`)
 
-**Timestamp interpolation**: Three CFD sample values in header (at latch time, one tick earlier, two ticks earlier). Linear regression → intercept at zero → subtract fractional offset from timestamp. Accuracy ~1.7 ns (1σ) for large signals, ~2.5 ns for small signals at 800–1000 ns rise time.
+**Timestamp interpolation**: Three CFD sample values in header (at latch time, one tick earlier, two ticks earlier). Linear regression → intercept at zero → subtract fractional offset from timestamp. Accuracy ~1.7 ns (1σ) for large signals, ~2.5 ns for small signals at 800–1000 ns rise time. ✅ verified 2026-04-15 — `cfd_disc.vhd:L190-191, L332-334` (`INT_CFD_SAMPLES` 3-entry shift register of `LOCAL_DIFFERENCE`; captured on `CAPTURE_TIMESTAMP` pulse as `CFD_SAMPLES(2..0)`) — 1.7/2.5 ns figures from expert PDF
 
 **Improper CFD detection**: If holdoff falls during second pulse rise, LOCAL_ZERO latched late → CFD fires at wrong fraction. Sign check: correct firings have first two samples same sign, third opposite (or zero). All-same-sign → erroneous. Minimized by enabling early holdoff termination at peak.
 
