@@ -128,6 +128,8 @@ dload("bi.root")
 dgs_pz 350 141 dgs_pz.cal 1.003
 ```
 
+> Note: `dgs_pz` here is the **GEBSort standalone binary** (`gebsort/dgs_pz.c`), not the `dgs_PZ` GEBSort.chat keyword. The binary computes PZ coefficients from ROOT histograms; the chat keyword loads the `.cal` file. ✅ verified 2026-04-15 — `gebsort/dgs_pz.c` exists; `GEBSort.chat:L223` uses `dgs_PZ dgs_pz.cal` (keyword, no M/K args).
+
 Arguments:
 - `350` — M value (in 10 ns units = 3.50 µs; from `caput GLBL:DIG:m_window`) ✅ verified 2026-04-06 — `MDigUser.template`: all window PVs use `ESLO=0.010` (µs/count), so raw register = EGU/0.01; 3.5 µs → 350 counts
 - `141` — K value (in 10 ns units); calculated as sum of all K+D windows: ✅ verified 2026-04-06 — k_window, k0_window, d_window, d3_window all use ESLO=0.010 in MDigUser.template
