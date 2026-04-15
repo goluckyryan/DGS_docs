@@ -541,6 +541,7 @@ See **[deep_fpga_building.md](deep_fpga_building.md)** for the full build guide,
 | [reference_index.md](reference_index.md) | VME register map index + hardware drawings index |
 | [preamp_reset_readme.md](preamp_reset_readme.md) | PRK holdoff timing, PREAMP_RESET_DELAY register in DIG firmware |
 | [digitizer_tester.md](digitizer_tester.md) | Digitizer Tester: dual 200 MHz DAC, analog switch matrix, TTCL link, waveform generation |
+| [260E_trigger_scheme.md](260E_trigger_scheme.md) | RTRG 0x260E trigger scheme: chan_in.vhd (serial reception, DPRAM delay alignment, X/Y plane maps), router_data_path.vhd (multiplicity aggregation, Link-L output); VHDL-verified |
 | [deep_fpga_DIG.md](deep_fpga_DIG.md) | DIG firmware deep dive: Spartan-3, ADC pipeline, event packet format, pole-zero |
 | [deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md) | DIG per-channel signal processing: LED/CFD discriminator modes, delay chain, pileup, VME FPGA, IP cores |
 | [DIG_firmware_expert.md](DIG_firmware_expert.md) | All 8 readout modes, discriminator modes, pileup, timing, ADC linearity specs |
@@ -563,3 +564,4 @@ See **[deep_fpga_building.md](deep_fpga_building.md)** for the full build guide,
 - `knowledgeBase/DIG_firmware_expert.md` — DIG firmware expert guide: all readout modes, timing registers
 - `knowledgeBase/ioc.md` — IOC config: firmware binary versions that must match hardware
 - `knowledgeBase/deep_fpga_building.md` — Build toolchain: ISE 14.7 / Vivado 2018.3
+- `knowledgeBase/260E_trigger_scheme.md` — RTRG 0x260E trigger scheme deep-dive: chan_in.vhd, router_data_path.vhd, X/Y plane maps, hit classification, full signal flow; verified against VHDL source

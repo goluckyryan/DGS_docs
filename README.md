@@ -42,6 +42,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md) | DIG per-channel signal processing: LED/CFD discriminator modes, delay chain, pileup, VME FPGA, IP cores (split from deep_fpga_DIG.md) |
 | [DIG_firmware_expert.md](DIG_firmware_expert.md) | DIG firmware expert guide: all modes, trigger_mux_select (IntAcptAll/ExtTTL/ExtTTCL/Diag), aux I/O |
 | [deep_fpga_RTRG.md](deep_fpga_RTRG.md) | RTRG firmware: Virtex-4, multiplicity aggregation, throttle, VME register map |
+| [260E_trigger_scheme.md](260E_trigger_scheme.md) | RTRG 0x260E trigger scheme deep-dive: `chan_in.vhd` (serial reception, 18-bit SERDES word, 640 ns DPRAM delay alignment, X/Y plane maps), `router_data_path.vhd` (multiplicity aggregation, Link-L output), hit classification, full signal flow with timing |
 | [deep_fpga_MTRG.md](deep_fpga_MTRG.md) | MTRG overview: 3 devices (Main FPGA, VME FPGA, CPLD) |
 | [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) | MTRG Main FPGA: trigger algorithms, 20-frame command structure, TAC-II TDC, VME map, RF→NIM IN 2 |
 | [tac2.md](tac2.md) | TAC-II TDC in MTRG: vernier interpolation (~30–50 ps), 250 MHz 4-phase clock, 64-tap delay lines, data collection state machines, 350 ns pipeline delay |

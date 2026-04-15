@@ -8,7 +8,7 @@ Contents:
 - `dgs/` — Main DGS SVN tree (large, many subdirectories)
 - `findFile.sh` — Utility script to search within the SVN tree
 
-**Local path:** `/home/ryan/DGS_tools_pack/DGS_SVN/dgs/`
+**Local path:** `/home/dgsspark/DGS_tools_pack/DGS_SVN/dgs/`
 
 ---
 

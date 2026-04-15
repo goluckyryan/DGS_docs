@@ -591,3 +591,14 @@ graph TD
 ```
 
 > **DUO configuration**: Only Ge ch-5 (BGO ch-0) and Ge ch-6 (BGO ch-1) are active. Y_PLANE_MAP = A5/A6 (bits 5 and 6). CLEAN_DIRTY = 0x0101 (Y=HAVE_CLEAN, X=HAVE_CLEAN). SUM_OF_Y_THRESH = 1. A coincident clean hit on both Ge channels produces GLOBAL_Y_TOTAL = 2, crosses the threshold, and fires TRIG_LOGIC3.
+
+
+---
+
+## See Also
+
+- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware overview: Virtex-4 device, source file index, VME register map, disc_mach.vhd, Router→MTRG SERDES frame format
+- `knowledgeBase/fpga.md` — System-level trigger hierarchy: DIG→RTRG→MTRG signal flow, end-to-end timing, throttle mechanism
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG: consumes RTRG multiplicity/hit data to make global trigger decisions
+- `knowledgeBase/deep_fpga_DIG.md` — DIG: upstream source of the 18-bit SERDES words that chan_in.vhd receives
+- `knowledgeBase/ttcl.md` — TTCL frame format: frames 12/14 (inter-trigger/remote trigger) that the RTRG forwards with nulls

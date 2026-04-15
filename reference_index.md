@@ -10,7 +10,7 @@ The DGS register maps are stored as large tab-delimited CSV files generated from
 
 **CSV locations:**
 ```
-/home/ryan/DGS_tools_pack/DGS_docs/RegisterMaps/
+/home/dgsspark/DGS_tools_pack/DGS_docs/RegisterMaps/
   MasterDigitizerRegisterMap.csv    — DIG (987 data rows, 1009 total lines) ✅ verified 2026-04-11
   DGSMasterTriggerRegisterMap.csv   — MTRG (4655 data rows, 4685 total lines) ✅ verified 2026-04-11
   DGSRouterTriggerRegisterMap.csv   — RTRG (1111 data rows, 1138 total lines) ✅ verified 2026-04-11
@@ -19,16 +19,16 @@ The DGS register maps are stored as large tab-delimited CSV files generated from
 
 **Spreadsheet sources (with VBA db generator):**
 ```
-/home/ryan/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Firmware/Digitizer/
+/home/dgsspark/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Firmware/Digitizer/
   Dig reg map with vba.xls          — DIG register map + EPICS db generator
   Master Digitizer Register Map.xls
   Slave Digitizer Register Map.xls
   DGS_Digitizer.xlsx                — likely current version
 
-/home/ryan/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Firmware/Master_Trigger/DGS Master Trigger/
+/home/dgsspark/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Firmware/Master_Trigger/DGS Master Trigger/
   DGSMasterTriggerRegisterMap.xls
 
-/home/ryan/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Firmware/Router/
+/home/dgsspark/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Firmware/Router/
   DGSRouterTriggerRegisterMap.xls
 ```
 
@@ -110,13 +110,13 @@ Key registers:
 
 ```bash
 # Find a DIG register by name
-grep -i "cfd_fraction" /home/ryan/DGS_tools_pack/DGS_docs/RegisterMaps/MasterDigitizerRegisterMap.csv
+grep -i "cfd_fraction" /home/dgsspark/DGS_tools_pack/DGS_docs/RegisterMaps/MasterDigitizerRegisterMap.csv
 
 # Find a MTRG register address
-grep -i "CODE_REVISION" /home/ryan/DGS_tools_pack/DGS_docs/RegisterMaps/DGSMasterTriggerRegisterMap.csv
+grep -i "CODE_REVISION" /home/dgsspark/DGS_tools_pack/DGS_docs/RegisterMaps/DGSMasterTriggerRegisterMap.csv
 
 # Find all registers at a given VME address (e.g. 0x015C)
-grep "0x015C" /home/ryan/DGS_tools_pack/DGS_docs/RegisterMaps/DGSMasterTriggerRegisterMap.csv
+grep "0x015C" /home/dgsspark/DGS_tools_pack/DGS_docs/RegisterMaps/DGSMasterTriggerRegisterMap.csv
 ```
 
 > **Also see:** `knowledgeBase/VME_registers.md` — byte-offset addresses extracted from asyn driver source code (`asynDigParams.c`, `asynMTrigParams.c`, `asynRTrigParams.c`). More precise for direct `VMERead32`/`VMEWrite32` shell access. Complements the CSV register maps above.
@@ -125,7 +125,7 @@ grep "0x015C" /home/ryan/DGS_tools_pack/DGS_docs/RegisterMaps/DGSMasterTriggerRe
 
 ## Hardware Drawings Index
 
-_All paths relative to `/home/ryan/DGS_tools_pack/`_
+_All paths relative to `/home/dgsspark/DGS_tools_pack/`_
 
 ---
 

@@ -1,5 +1,5 @@
 # DGS PDF Document Index
-_Root: `/home/ryan/DGS_tools_pack/DGS_docs/`_
+_Root: `/home/dgsspark/DGS_tools_pack/DGS_docs/`_
 _Indexed: 2026-04-05_
 
 ---

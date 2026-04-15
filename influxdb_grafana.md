@@ -44,17 +44,49 @@ curl "http://192.168.203.56:8181/api/v3/write_lp?db=HPGeTemp" \
 ### Query API (SQL)
 ```bash
 # SQL query (InfluxDB 3 uses SQL, not InfluxQL)
+# IMPORTANT: the "db" field is required — omitting it returns a 400 error
+# Table name "Temperature" must be double-quoted (case-sensitive)
 curl "http://192.168.203.56:8181/api/v3/query_sql" \
   --header "Authorization: Bearer <token>" \
+  --header "Accept: application/json" \
   --header "Content-Type: application/json" \
-  -d '{"db": "HPGeTemp", "q": "SELECT * FROM Temperature ORDER BY time DESC LIMIT 10"}'
+  -d '{"db": "HPGeTemp", "q": "SELECT gsid, value FROM \"Temperature\" WHERE time >= now() - interval '\''30 minutes'\'' ORDER BY value DESC LIMIT 10"}'
 ```
+
+Returns a JSON array of row objects. Example response:
+```json
+[{"gsid": "041", "value": 94.64}, {"gsid": "043", "value": 94.52}, ...]
+```
+
+### Reading Detector Temperature via EPICS CA (Alternative)
+
+Each SBX (Slope Box) Pi publishes live detector temperatures as EPICS PVs.
+This is a fast alternative to InfluxDB for spot-checking a single detector.
+
+```bash
+# Set environment (onenet subnet, SBX Pi CA ports are 5080/5081)
+export EPICS_CA_ADDR_LIST=192.168.203.0/24   # or specific Pi IP
+export EPICS_CA_AUTO_ADDR_LIST=NO
+export EPICS_CA_SERVER_PORT=5080
+
+# Read temperature for detector 033 (sbxh3)
+caget Det033:SlopeBox:Temp
+
+# Or point directly at sbxh3 IP
+export EPICS_CA_ADDR_LIST=192.168.203.164
+caget Det033:SlopeBox:Temp
+```
+
+**When to use which:**
+- **InfluxDB query** — bulk reads across all detectors, historical trends, programmatic access
+- **caget** — quick live spot-check of a single detector; no token needed on the local subnet
 
 ### Authentication
 - Token file: `/home/phy/dcsu/lnFill/influx.token` ✅ verified 2026-04-09 — SSH DCS2: file exists, 123 bytes, `export INFLUXDB_WRITE_TOKEN=...`
 - Format: `export INFLUXDB_WRITE_TOKEN="apiv3_..."`
 - The `dcsu` write token is scoped to **write-only** — cannot list databases or run queries
 - A separate read/admin token is needed for queries (held by `adminrt`)
+- **Read-only token (pi5-dgs):** stored at `~/workspace/secrets/influx3_read.token` on pi5-dgs. Do NOT expose this token. Parse it with: `grep '^Token:' ~/workspace/secrets/influx3_read.token | awk '{print $2}'`
 
 ### Line Protocol Format
 ```

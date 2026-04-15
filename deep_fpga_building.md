@@ -48,7 +48,7 @@ Run ISE 14.7 inside a CentOS 6 or Ubuntu 14.04 container, with the repository mo
 
 ```bash
 docker run -it --rm \
-  -v /home/ryan/DGS_FPGA:/work \
+  -v /home/dgsspark/DGS_FPGA:/work \
   -e DISPLAY=$DISPLAY \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   <centos6-ise-image>:14.7 \
