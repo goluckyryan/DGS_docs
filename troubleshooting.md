@@ -42,7 +42,7 @@ Open the terminal window for the miscreant IOC from DGS Commander.
 
 **Common causes:**
 - SERDES accidentally disabled
-- SYNC bit still set in `LINK_LRU_CTRL` register of the Router — data not actually being sent to Master
+- SYNC bit still set in `LRUCtl02` PV of the Router (the Link L SYNC control) — data not actually being sent to Master
 - Cable length mismatch (jitter budget exceeded)
 
 **Check:** Use Router channel FIFOs to verify real discriminator data (bits 9:0) is arriving.
@@ -55,9 +55,9 @@ Open the terminal window for the miscreant IOC from DGS Commander.
 
 **Symptom:** Master trigger shows no multiplicity even though digitizers and routers appear healthy.
 
-**Common cause:** Forgot to clear the SYNC bit in `LINK_LRU_CTRL` of the Router. Data streams SYNC patterns to Master instead of real event data.
+**Common cause:** Forgot to clear the SYNC bit (`LRUCtl02=0`) in the Router. Data streams SYNC patterns to Master instead of real event data.
 
-**Fix:** Clear SYNC bit in Router's `LINK_LRU_CTRL` register.
+**Fix:** Clear SYNC bit — `caput VMExx:RTRy:LRUCtl02 0` for each router. Stage 5 of the SERDES link-up (`link_sys.py:L651`) does this automatically. ✅ verified 2026-04-15 — `link_sys.py:L651` (`LRUCtl02=0` cleared per router in Stage 5)
 
 *(Source: [wiki: Triggers and Digitizers](https://wiki.anl.gov/gsdaq/Triggers_and_digitizers))*
 
