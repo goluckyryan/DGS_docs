@@ -316,7 +316,7 @@ Default `FifoNum=6` (MAIN DATA FIFO) is set via `DOL=6`/`PINI=YES` at IOC boot. 
 | `TRIG_RAM_ADDR_SRC`, `SWEEP_RAM_ADDR_SRC` | mbbo/mbbi | Trigger/sweep RAM address sources |
 | `VETO_RAM_PA/PB/PC/PD_B0..B15` | bo/bi | Veto RAM port A-D bit-wise pattern (64 PVs) |
 | `TRIG_RAM_*`, `SWEEP_RAM_*` | bo/bi | Trigger/sweep RAM bit patterns |
-| `COINC_TRIG_MASK_A1..A7/B1..B7` (×110 detectors) | bo/bi | Coincidence trigger mask: which detectors participate in each of the 14 coincidence groups. **This is the bulk of the template — ~7,000 unique PVs (14 groups × ~110 det × 2 for RBV).** |
+| `COINC_TRIG_MASK_A1..A8/B1..B7` | bo/bi | Coincidence trigger mask: which detectors participate in each of 14 coincidence groups. **28 records total** (14 × bo + bi RBV) — one per group, not per detector. ✅ verified 2026-04-15 — `MTrigUser.template` grep: 28 COINC_TRIG_MASK records |
 | `SSI_InputSelect` | mbbo/mbbi | SSI clock input pin pair (16 options across J34–J37/P101/ECL) |
 | `SSI_BIT_RANGE` | mbbo/mbbi | SSI bit range (9..0 through 15..6) |
 | `LEDControl` | mbbo/mbbi | Front panel LED source: Link Status / Trig Status / Manual |
@@ -330,10 +330,14 @@ Default `FifoNum=6` (MAIN DATA FIFO) is set via `DOL=6`/`PINI=YES` at IOC boot. 
 | `CFIFO1..8_FORCE` | bo/bi | Force FIFO entries |
 | `CF0..7_F12RESET` | bo/bi | Frame 12 reset per command FIFO channel |
 
-**Size breakdown** (approximate):
-- `COINC_TRIG_MASK_*` records: ~7,000 PVs (dominates file size)
-- Per-bit RAM records (`VETO_RAM_*`, `TRIG_RAM_*`, `SWEEP_RAM_*`): ~200 PVs
-- Other functional PVs: ~350 unique names
+**Size breakdown** (corrected ✅ verified 2026-04-15 — `grep -c "^record("` on `ioc/db/MTrigUser.template`):
+- Total: **7,056 records** in this template
+- `VETO_RAM_*` records: **2,050** PVs (per-bit veto RAM patterns)
+- `TRIG_RAM_*` records: **2,052** PVs (per-bit trigger RAM patterns)
+- `SWEEP_RAM_*` records: **2,050** PVs (per-bit sweep RAM patterns)
+- RAM records total: **6,152** — these dominate the file
+- `COINC_TRIG_MASK_*` records: **28** PVs (14 coincidence groups × bo + bi RBV) — _not_ ~7,000 as previously estimated
+- Other functional PVs: **876** (all non-RAM, non-COINC_TRIG_MASK records)
 
 _Source: `ioc/db/MTrigUser.template` (70,386 lines) — explored 2026-04-08_
 
