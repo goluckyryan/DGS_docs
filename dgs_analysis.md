@@ -118,6 +118,7 @@ make EventBuilder_PQ
 ```bash
 g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
 ```
+✅ verified 2026-04-15 — `parquet_pysort/README.md:L61,L144`
 
 **In practice:** use `working/ProcessRUN` (C++ EventBuilder, primary) or `working/RunParquet` (Python parquet_pysort, legacy) — both driven from `expInfo.sh`.
 
