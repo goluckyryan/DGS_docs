@@ -153,7 +153,7 @@ The eight `chan_in` blocks each produce a 4-bit `X_PLANE_COUNT` and `Y_PLANE_COU
 - **Rank 2**: Two 6-bit sums — (ch1-4) and (ch5-8) for each plane
 - **Rank 3**: One 7-bit total — final X sum and final Y sum (max 80 each)
 
-The 3-rank pipeline introduces 3 clock cycles (60 ns) of latency between a hit arriving at `chan_in` and the corresponding count appearing in Link-L.
+The 3-rank pipeline introduces 3 clock cycles (60 ns) of latency between a hit arriving at `chan_in` and the corresponding count appearing in Link-L. ✅ verified 2026-04-15 — `router_data_path.vhd:L210-233` (SUM_HITS process runs on `mclk` = 50 MHz = 20 ns/clock; rank1→rank2→rank3+LINKL are all registered signals so each rank costs one clock edge = 3 clocks × 20 ns = 60 ns total)
 
 ### 3.2 Link-L Word Bit-Field Layout
 
