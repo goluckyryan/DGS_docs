@@ -66,7 +66,7 @@ It bridges the host computer (VME bus) to the main FPGA, and controls all FPGA c
 
 Programs the main FPGA after power-on or on demand:
 - Reads bitstream from external flash memory
-- Drives main FPGA configuration pins: PROGRAM, DONE, INIT, CCLK
+- Drives main FPGA configuration pins: PROGRAM, DONE, INIT, CCLK ✅ verified 2026-04-15 — `configuration_controller.vhd:L10,L43,L51-52,L72,L74,L121` (20200702 tag: entity ports fpga_init_in/out; CCLK from controller; ASSERT_PRGM/RELEASE_PRGM states; config_done_error)
 - Supports 3 chip-enable lines for multiple flash devices
 - Reports configuration status (success, init error) via VME registers
 
