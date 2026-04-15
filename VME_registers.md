@@ -405,8 +405,8 @@ EPICS PV prefix: `VME<CRATE>:<BOARD>:` (e.g. `VME66:MTRG:`)
 | `0x02B4` | `reg_COINC_OVERLAP_CONTROL` | R/W | Coincidence overlap control |
 | `0x02B8` | `reg_LOCAL_TRIG_DELAY_R` | R/W | Local trigger delay (Link R) |
 | `0x02BC` | `reg_LOCAL_TRIG_DELAY_U` | R/W | Local trigger delay (Link U) |
-| `0x02C0` | `reg_X_PLANE_LINK_MASK` | R/W | X-plane link mask |
-| `0x02C4` | `reg_Y_PLANE_LINK_MASK` | R/W | Y-plane link mask |
+| `0x02C0` | `reg_X_PLANE_LINK_MASK` | R/W | X-plane link mask — 16-bit, bit N=1 excludes link N from X-plane multiplicity sum (Sum-X, algo 2). Bit-PVs: `XLM_A`–`XLM_H` (bits 0–7). External/remote links (PIXIE/DFMA/DUB/DXA) are masked here; links L/R/U excluded from this register. ✅ verified 2026-04-15 — `registers.vhd:L166,L342` (addr 0x02C0); `mt_input_channel.vhd:L121` |
+| `0x02C4` | `reg_Y_PLANE_LINK_MASK` | R/W | Y-plane link mask — 16-bit, bit N=1 excludes link N from Y-plane multiplicity sum (Sum-Y, algo 3). Bit-PVs: `YLM_A`–`YLM_H` (bits 0–7). Same policy as XLM. ✅ verified 2026-04-15 — `registers.vhd:L167,L343` (addr 0x02C4); `mt_input_channel.vhd:L131` |
 | `0x02C8` | `reg_TRIGGER_HOLDOFF` | R/W | Trigger hold-off window |
 | `0x02CC` | `reg_UNUSED_2CC` | — | Unused / reserved |
 

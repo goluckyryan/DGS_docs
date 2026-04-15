@@ -114,6 +114,37 @@ Algo 5 itself (the CPLD/coincidence trigger) is **absent** from both groups — 
 | `eight_mt_channel.vhd` | Wrapper instantiating 8 `mt_input_channel` units; handles link masking and X/Y multiplicity sums |
 | `mt_input_channel.vhd` | Per-channel processing: DC-balance removal, FIFO handoff between SERDES clock and master clock, link status monitoring |
 
+#### Per-Link Mask Registers (ILM / XLM / YLM)
+
+Each MTRG input link (A–H, plus L/R/U for remote systems) has **three independent mask bits** that control how it participates in trigger processing:
+
+| Mask | Register | VME Addr | EPICS PV | Effect when set (=1) |
+|------|----------|----------|----------|----------------------|
+| **ILM** — Input Link Mask | `reg_INPUT_LINK_MASK` | `0x0800` | `VMExx:MTRG:ILM_<link>` | Completely block this link — no data reception, no participation in sums |
+| **XLM** — X-Plane Link Mask | `reg_X_PLANE_LINK_MASK` | `0x02C0` | `VMExx:MTRG:XLM_<link>` | Exclude this link from X-plane multiplicity sum (Sum-X trigger, algo 2) |
+| **YLM** — Y-Plane Link Mask | `reg_Y_PLANE_LINK_MASK` | `0x02C4` | `VMExx:MTRG:YLM_<link>` | Exclude this link from Y-plane multiplicity sum (Sum-Y trigger, algo 3) |
+
+From `mt_input_channel.vhd`:
+- X-sum contribution gated by: `CHANNEL_MASK OR X_PLANE_MASK OR (NOT SERDES_LOCK)`
+- Y-sum contribution gated by: `CHANNEL_MASK OR Y_PLANE_MASK OR (NOT SERDES_LOCK)`
+
+So a link contributes to the X or Y sum only if it is **not ILM-masked**, **not XLM/YLM-masked**, and **SERDES is locked**. ✅ verified 2026-04-15 — `eight_mt_channel.vhd:L165-166`, `mt_input_channel.vhd:L121,L131`
+
+#### Link Type Mask Policy (`trig_setup_Stage1.sh`)
+
+During trigger setup, the Stage 1 script (`ANLDAQ/gui/scripts/trig_setup_Stage1.sh`) applies ILM/XLM/YLM based on the **type** of device connected to each link (from `MT_LINK_MAP` in `SYSTEM_DEFINES.sh`):
+
+| Link Type | ILM | XLM | YLM | Notes |
+|-----------|-----|-----|-----|-------|
+| `RTR` (Router) | 0 (unmasked) | 0 (unmasked) | 0 (unmasked) | Full participation in all sums |
+| `PIXIE` | 0 | 1 | 1 | Receives ILM data but excluded from X/Y sums |
+| `DFMA` | 0 | 1 | 1 | Same; PROPAGATE_TRIG_FROM_DFMA sets F3-F7 propagation |
+| `DUB` | 0 | 1 | 1 | Same; PROPAGATE_TRIG_FROM_DUB sets F3-F7 propagation |
+| `DXA` | 0 | 1 | 1 | Same; PROPAGATE_TRIG_FROM_DXA sets F3-F7 propagation |
+| `MASKED` | 1 | 1 | 1 | Fully masked — no data, no sums |
+
+Links L, R, and U are **excluded from XLM/YLM processing** — the script explicitly skips XLM/YLM `caput` calls for these links (they connect to remote master triggers, not routers). ✅ verified 2026-04-15 — `trig_setup_Stage1.sh:L217-228`
+
 ### Trigger Algorithms
 | File | Description |
 |------|-------------|
