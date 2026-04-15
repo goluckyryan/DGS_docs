@@ -10,7 +10,7 @@ Each RTRG board instantiates one `chan_in` block per digitizer (DIG) connection.
 
 ### 1.1 Serial Data Reception
 
-The DIG sends a **18-bit SERDES word** every 20 ns clock:
+The DIG sends a **18-bit SERDES word** every 20 ns clock: ✅ verified 2026-04-15 — `chan_in.vhd:L16` (comment header: `|CG|FLG|CD9..CD5|D09..D00|POL|` = 18 bits)
 
 ```
 [17] = CG  (clock guard)
@@ -27,7 +27,7 @@ A parallel **fast path** (`FAST_D_OUT`) bypasses the FIFO to provide the lowest-
 
 ### 1.2 Per-Bit Timing Alignment
 
-Ten individual **DPRAM delay-line FIFOs** (one per discriminator bit) correct timing skew between Ge and BGO channels. Each FIFO is up to 32 taps deep (20 ns/tap = **640 ns maximum delay**). The per-bit delay values are loaded from `BIT_DELAY` via a VME register write with `LOAD_BIT_DELAY`. When `CLEAN_DIRTY(15)='1'`, the delay-corrected `DELAYED_DATA[9:0]` is used for all downstream logic; otherwise the raw `RECOVERED_DATA` bits are used.
+Ten individual **DPRAM delay-line FIFOs** (one per discriminator bit) correct timing skew between Ge and BGO channels. Each FIFO is up to 32 taps deep (20 ns/tap = **640 ns maximum delay**). ✅ verified 2026-04-15 — `chan_in.vhd:L260,266` (`DEPTH_pwr2 => 5` → 2^5=32 samples × 20 ns = 640 ns; inline comment: "or 640nsec") The per-bit delay values are loaded from `BIT_DELAY` via a VME register write with `LOAD_BIT_DELAY`. When `CLEAN_DIRTY(15)='1'`, the delay-corrected `DELAYED_DATA[9:0]` is used for all downstream logic; otherwise the raw `RECOVERED_DATA` bits are used.
 
 ### 1.3 Synchronization State Machine (REMAP_BITS_PROC)
 
@@ -163,6 +163,8 @@ Bits [14:8] = Y-plane multiplicity sum (7-bit, range 0–80)
 Bit [7]     = DATA_VALID  (= ALL_DIGITIZERS_LOCKED AND ROUTER_LOCKED)
 Bits [6:0]  = X-plane multiplicity sum (7-bit, range 0–80)
 ```
+
+✅ verified 2026-04-15 — `router_data_path.vhd:L230-233` (LINKL_RAW_DATA(15) = ANY_THROTTLE_REQUEST; (14:8) = Y sum; (7) = ALL_DIGITIZERS_LOCKED AND ROUTER_LOCKED; (6:0) = X sum)
 
 This 16-bit word occupies bits [16:1] of the 18-bit SerDes frame transmitted to the MTRG.
 
