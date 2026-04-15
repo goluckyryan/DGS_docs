@@ -22,7 +22,7 @@ Old template names (historical, pre-Git migration, from `DGS_SVN/dgs/Documentati
 |---|---|---|
 | `dgsDigRegisters.template` | `MDigRegisters.template` / `SDigRegisters.template` | Engineering VME registers per dig board |
 | `dgsDigUser.template` | `MDigUser.template` / `SDigUser.template` | User PVs per dig board |
-| `daqSegment.template` | `daqSegment2.template` | Per-channel user PVs (10 per board) |
+| `daqSegment.template` | `daqSegment2.template` | Per-board IOC control PVs: `CS_Ena` (software enable) + `FifoNum` (FIFO select, 16 options: MONFIFOs 1–8, MAIN DATA FIFO, CHAN A–H FIFOs) ✅ verified 2026-04-15 — `ioc/db/daqSegment2.template` (2 records: bo + mbbo) |
 | `dgsMTrigRegisters.template` | `MTrigRegisters.template` | MTRG engineering VME registers |
 | `dgsRTrigRegisters.template` | `RTrigRegisters.template` | RTRG engineering VME registers |
 | `dgsMTrigUser.template` | `MTrigUser.template` | MTRG user controls |
