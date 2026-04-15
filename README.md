@@ -109,7 +109,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 | File | Description |
 |------|-------------|
-| [nfs_layout.md](nfs_layout.md) | NFS mount layout on DCS2: vol2–vol5, fs1/vol2, piserver; directory inventory, IOC py_scripts, collector box PXE MAC map |
+| [nfs_layout.md](nfs_layout.md) | NFS mount layout on DCS2: vol2–vol5, fs1/vol2, fs2/vol3, piserver; full directory inventory (experiment data, IOC py_scripts, gamln.db PV structure, legacy lnfill, EDM screens, GEBSort binaries, sbx2022tuning); collector box PXE MAC map |
 | [utility_scripts.md](utility_scripts.md) | BGO HV tuning script, PV discovery scripts, data0 space monitor |
 | [snapshot_pv.md](snapshot_pv.md) | snapshot_pv repo: PV snapshot & watchdog utilities (Python/pyepics) |
 | [influxdb_grafana.md](influxdb_grafana.md) | InfluxDB 3 + Grafana monitoring on DCS2 (192.168.203.56) |
