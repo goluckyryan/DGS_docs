@@ -45,8 +45,8 @@ The XC3S5000 contains **104 BRAM blocks** (~1.9 Mb total), each configurable as 
 | Use | Blocks | Details |
 |-----|--------|---------|
 | Signal delay chains | 50 | 5 × `DP_BRAM_RWA_RB_1Kx18` per channel × 10 channels (P2, M×2, trigger delay×2) |
-| Accepted event FIFO | ~4 | `fifo_36x1025_sepclk_pfiport_fwft` — 1024-entry, 36-bit, dual-clock, per channel (10 total, packed by ISE) |
-| Event header FIFO | ~2 | `fifo_36x514_comclk_pfiport_fwft` — 512-entry, 36-bit, common clock |
+| Accepted event FIFO | ~4 | `fifo_36x1025_sepclk_pfiport_fwft` — 1025-entry, 36-bit, dual-clock, per channel (10 total, packed by ISE) ✅ verified 2026-04-15 — `Channel_Readout_Controller.vhd:L138` `cACPTD_EVENT_FIFO_DEPTH=1025`; instantiation at `Channel_Readout_Mach.vhd:L486` |
+| Event header FIFO | ~2 | `fifo_36x514_comclk_pfiport_fwft` — 513-entry (not 512), 36-bit, common clock ✅ verified 2026-04-15 — `Channel_Readout_Controller.vhd:L138` comment: "the fifo_36x514_comclk_pfiport_fwft is actually 513 elements deep" |
 | Register shadow BRAM | 1 | `Register_Logic.vhd` — VME register backing store |
 
 Shorter delay stages (K, D, D3) and the PEHQ (16-entry, 324-bit) use **SRL16/SRL32
@@ -92,7 +92,7 @@ Main FPGA (XC3S5000)                       VME FPGA (XC3S400)
 ─────────────────────────────              ────────────────────
 10× BRAM delay chains (50 blocks)          Flash memory (16-bit, 24-bit addr)
 10× acptd_event_fifo (BRAM, 1K×36)            │
-Event_Header_FIFO    (BRAM, 512×36)        Bitstream load at power-up
+Event_Header_FIFO    (BRAM, 513×36)        Bitstream load at power-up
         │                                      │
         └──────────→ IDT 7007 (36-bit) ←───────┘ (shared VME bus)
                           │
