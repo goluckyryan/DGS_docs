@@ -23,7 +23,9 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 | File | Description |
 |------|-------------|
-| [ANLDAQ.md](ANLDAQ.md) | DAQ GUI (PyQt6) + TCP data receiver; EPICS CA config per system; data flow; TCP protocol proof; trigger setup scripts (5-stage); softIOC (JustGlobals.db, dgsSupport.db); GUI windows (MTRG, Det, scalar, SYS) |
+| [ANLDAQ.md](ANLDAQ.md) | DAQ GUI (PyQt6) overview: EPICS CA config, VxWorks data pipeline (inLoop/outLoop/MiniSender), softIOC (JustGlobals.db, dgsSupport.db), class_PV/Board, findAllPV, commander.py |
+| [ANLDAQ_tcpReceiver.md](ANLDAQ_tcpReceiver.md) | tcpReceiver deep-dive: 3 binaries, TCP protocol proof, data flow, GEB header, class_DIG.h/class_TDC.h decoders, run control scripts, legacy receivers, packet consistency table |
+| [ANLDAQ_GUI_windows.md](ANLDAQ_GUI_windows.md) | GUI window reference: gui_MTRG (5 tabs), gui_Det (collector box map), gui_scalar, gui_RTR, gui_RAM, gui_SYS, gui_LinkSys; trigger setup scripts + SYSTEM_DEFINES.sh topology |
 | [guceiver.md](guceiver.md) | Guceiver: live diagnostic GUI (waveform, spectrum, TAC-II, raw data) — connects to IOC TCP:9001 |
 | [dgs_analysis.md](dgs_analysis.md) | Post-experiment analysis pipeline: EventBuilder variants (Q, PQ — k-way merge, parallel, double-buffered), parquet_pysort, GrayCAL (energy cal GUI), GrayMAN (peak analysis), Fitter (grayfit/AutoFitter/PZ fitter), parquetCLI, gain_from_parquet.py, pz_from_parquet.py, RunParquet, GEB data format |
 | [gebsort.md](gebsort.md) | GEBSort: event builder/sorter, GEBMerge, DGS calibration workflow (find_MK, fwhm_onepeak, dgs_ecal), GEBSort.chat config |
