@@ -6,9 +6,9 @@ The hardware contains three programmable devices:
 
 | Device | Chip | Role |
 |--------|------|------|
-| Main FPGA | Virtex-4 XC4VLX80 (ISE) / Kintex UltraScale XCK060 (Vivado) | Trigger logic, algorithms, SERDES links |
-| VME FPGA | Spartan-3 XC3S400 | VME slave, main FPGA configuration |
-| CPLD | XC9500XL XC95144XL | Fast strobe multiplicity threshold |
+| Main FPGA | Virtex-4 XC4VLX80 (ISE) / Kintex UltraScale xcku060-ffva1517 (Vivado) | Trigger logic, algorithms, SERDES links | ✅ verified 2026-04-16 — Work13_4.xise Device=xc4vlx80; project_1.xpr Part=xcku060-ffva1517-1L-i |
+| VME FPGA | Spartan-3 XC3S400 | VME slave, main FPGA configuration | ✅ verified 2026-04-16 — vme_A32_D32.xise Device=xc3s400 |
+| CPLD | XC9500XL XC95144XL | Fast strobe multiplicity threshold | ✅ verified 2026-04-16 — Work.xise Device=xc95144xl |
 
 > 🔌 **Front panel connectors & pinouts:** see `connectors.md` — covers the 125-pin hard metric SERDES connector (links A–H/L/R/U), NIM I/O, CPLD ribbon cables, and Aux I/O header.
 

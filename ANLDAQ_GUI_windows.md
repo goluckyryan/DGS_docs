@@ -134,7 +134,7 @@ _Source: `ANLDAQ/gui/gui_SYS.py` (code-read 2026-04-09)_
 | `globalSettingTab` | **Global Settings** | System-wide register controls (threshold multipliers, global enables, etc.) |
 
 ### Key Notes
-- PV naming differs by board type for code revision: MTRG uses `reg_CODE_REVISION`, RTR uses `Code_Revision`, DIG uses `regin_code_revision` (note prefix `regin_` vs `reg_`)
+- PV naming differs by board type for code revision: MTRG uses `reg_CODE_REVISION`, RTR uses `Code_Revision`, DIG uses `regin_code_revision` (note prefix `regin_` vs `reg_`) ✅ verified 2026-04-16 — `gui_MTRG.py:L1188`, `gui_RTR.py:L300`, `gui_SYS.py:L407`, `gui_DIG.py:L41`
 - TCP tab takes only `DAQ_list` (not MTRG/RTR/DIG); other tabs take all board lists
 - Timestamp tab shows MTRG + all RTRs + all DIGs in one scrollable panel — useful for verifying timestamp sync across the full chain
 
