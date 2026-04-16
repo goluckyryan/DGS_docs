@@ -185,14 +185,7 @@ WAIT_EDGE (normal operation resumes)
 - `knowledgeBase/ttcl.md` — Frame 15 (Async Command frame) definition — source of `FRONT_END_RESET` command
 - `knowledgeBase/VME_registers.md` — VME register addresses: `reg_led_threshold` (0x0080+ch×4), `reg_channel_control` (0x0040+ch×4), `reg_d3_window` (0x0240+ch×4)
 - `knowledgeBase/pole_zero.md` — Pole-zero correction context: why baseline stability after a reset matters
-- `knowledgeBase/QUEUE.md` (workspace) — `Python script to set preamp reset PVs` task (pending)
+- `workspace/QUEUE.md` — `Python script to set preamp reset PVs` task (pending)
 
 ---
 *Source: `DGS_tools_pack/FPGA/` preamp reset documentation + `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05. Cross-refs added: 2026-04-09.*
-
-## Cross-References
-
-- `knowledgeBase/DIG_firmware_expert.md` — Full DIG firmware expert reference; covers PRK in context of discriminator modes
-- `knowledgeBase/deep_fpga_DIG.md` — DIG FPGA deep dive: ADC pipeline, discriminator, CHANNEL_KILLED signal flow
-- `knowledgeBase/pole_zero.md` — Pole-zero correction; preamp reset events corrupt PZ fits if not blanked properly
-- `knowledgeBase/EPICS.md` — EPICS PVs for preamp reset: `MOD###_DIG_PREAMP_RESET_DELAY`, `DIG_CHANNEL_CONTROL` bit 3
