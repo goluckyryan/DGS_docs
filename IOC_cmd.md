@@ -552,8 +552,6 @@ IOC IPs are for **data stream only** — do not telnet to them for shell access.
 
 ---
 
----
-
 ## Cross-References
 
 - `knowledgeBase/ioc.md` — IOC boot scripts, startup sequence, firmware versions
