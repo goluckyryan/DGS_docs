@@ -291,7 +291,7 @@ Two NIM inputs and two NIM outputs:
 | `xNIM_IN1_RBV` | Readback: current state of NIM In 1 |
 | `DLYD_TDC_IN_NIM_IN2_RBV` | Readback: delayed TDC input from NIM In 2 |
 
-**Rev D NIM upgrade:** Fast NIM receivers allow TDC use — measures time between NIM leading edge and next 50 MHz clock edge to **< 300 ps** (single shot, no averaging). Used in DGS MTRG firmware for the TAC-II TDC implementation.
+**Rev D NIM upgrade:** Fast NIM receivers allow TDC use — measures time between NIM leading edge and next 50 MHz clock edge to **< 300 ps** (single shot, no averaging). Used in DGS MTRG firmware for the TAC-II TDC implementation. ✅ verified 2026-04-16 — `DGS trigger system firmware user guide.pdf` §1.3.1 ("better than 300ps accuracy (single shot, no averaging)")
 
 **In exp2008_Chiara:** `EN_NIM1_DELAY` is set to `N` (disabled) in `basic_settings.sh`.
 
@@ -308,8 +308,8 @@ Two NIM inputs and two NIM outputs:
 
 ## 5. Auxiliary I/O Header (Trigger Module)
 
-- **Top 11 rows:** RS485/TTL-compatible signals, selectable as inputs or outputs in **groups of 4**
-- **Bottom 2 rows:** Differential ECL outputs
+- **Top 11 rows:** RS485/TTL-compatible signals, selectable as inputs or outputs in **groups of 4** ✅ verified 2026-04-16 — `DGS trigger system firmware user guide.pdf` §2.4 ("organized into four banks…directionality of each bank individually selectable")
+- **Bottom 2 rows:** Differential ECL outputs ✅ verified 2026-04-16 — `DGS trigger system firmware user guide.pdf` §2.4.1.1 ("lower two rows…typically configured as differential ECL outputs…only mode in Rev D")
 - General purpose — exact function defined by firmware and register settings
 
 ---
