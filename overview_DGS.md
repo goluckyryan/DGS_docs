@@ -206,11 +206,11 @@ DGS is a full software+firmware+hardware stack:
 
 ## LN Cooling System
 
-- 4 tanks (A, B, C, D) — Tank B pressurizes A and D
-- 4 manifolds × 28 valves = 112 solenoid valves
+- 4 tanks (A, B, C, D) — Tank B pressurizes A and D ✅ verified 2026-04-16 — `lnfill.md` Physical System (source: `lnfill/README.md:L14`)
+- 4 manifolds × 28 valves = 112 solenoid valves ✅ verified 2026-04-16 — `lnfill.md` Physical System (`DetValve.py:L25` + `DetMan.py:L134`)
 - Fill detection: LED resistance change when LN reaches sensor
-- Controlled by `LNFill_App.py` on pi5 (192.168.203.58)
-- Scheduled: 7am + 7pm daily; 15-min emergency fills for warm detectors
+- Controlled by `LNFill_App.py` on pi5 (192.168.203.58) ✅ verified 2026-04-16 — `lnfill.md` Computers table (`LNFill_ping_cron.sh:L19`)
+- Scheduled: 7am + 7pm daily; 15-min emergency fills for warm detectors ✅ verified 2026-04-16 — `lnfill.md` Cron Jobs (`lnfill/README.md:L105,L110`: `00 07,19 * * *`; `*/15 * * * *`)
 - Monitored via InfluxDB/Grafana on DCS2; alerts via Discord
 - Full details: `lnfill.md`
 
