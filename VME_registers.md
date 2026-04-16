@@ -127,7 +127,7 @@ Range: `0x0080` (ch0) … `0x00A4` (ch9)
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x00C0 + ch×4` | `reg_CFD_fraction<ch>` | CFD fraction parameter |
+| `0x00C0 + ch×4` | `reg_CFD_fraction<ch>` | CFD fraction parameter | ✅ verified 2026-04-16 — `asynDigParams.c:L479` (`setAddress(reg_CFD_fraction0,0x00C0)`)
 
 Range: `0x00C0` (ch0) … `0x00E4` (ch9)
 
@@ -137,7 +137,7 @@ Range: `0x00C0` (ch0) … `0x00E4` (ch9)
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x0100 + ch×4` | `reg_raw_data_delay<ch>` | Pipeline delay before raw data capture |
+| `0x0100 + ch×4` | `reg_raw_data_delay<ch>` | Pipeline delay before raw data capture | ✅ verified 2026-04-16 — `asynDigParams.c:L489–498` (`setAddress(reg_raw_data_delay0,0x0100)` … `0x0124`)
 
 Range: `0x0100` (ch0) … `0x0124` (ch9)
 
@@ -147,7 +147,7 @@ Range: `0x0100` (ch0) … `0x0124` (ch9)
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x0140 + ch×4` | `reg_raw_data_length<ch>` | Number of samples captured in raw mode |
+| `0x0140 + ch×4` | `reg_raw_data_length<ch>` | Number of samples captured in raw mode | ✅ verified 2026-04-16 — `asynDigParams.c:L499–508` (`setAddress(reg_raw_data_length0,0x0140)` … `0x0164`)
 
 Range: `0x0140` (ch0) … `0x0164` (ch9)
 
@@ -157,7 +157,7 @@ Range: `0x0140` (ch0) … `0x0164` (ch9)
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x0180 + ch×4` | `reg_d_window<ch>` | D (differentiation) window length |
+| `0x0180 + ch×4` | `reg_d_window<ch>` | D (differentiation) window length | ✅ verified 2026-04-16 — `asynDigParams.c:L509–518` (`setAddress(reg_d_window0,0x0180)` … `0x01A4`)
 
 Range: `0x0180` … `0x01A4`
 
@@ -181,7 +181,7 @@ Range: `0x0200` … `0x0224`
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x0240 + ch×4` | `reg_d3_window<ch>` | D3 window parameter |
+| `0x0240 + ch×4` | `reg_d3_window<ch>` | D3 window parameter | ✅ verified 2026-04-16 — `asynDigParams.c:L539–548` (`setAddress(reg_d3_window0,0x0240)` … `0x0264`)
 
 Range: `0x0240` … `0x0264`
 
@@ -189,7 +189,7 @@ Range: `0x0240` … `0x0264`
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x0280 + ch×4` | `reg_disc_width<ch>` | Discriminator output width |
+| `0x0280 + ch×4` | `reg_disc_width<ch>` | Discriminator output width | ✅ verified 2026-04-16 — `asynDigParams.c:L549` (`setAddress(reg_disc_width0,0x0280)`)
 
 Range: `0x0280` … `0x02A4`
 
@@ -197,7 +197,7 @@ Range: `0x0280` … `0x02A4`
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x0300 + ch×4` | `reg_p1_window<ch>` | P1 window (pole-zero correction) |
+| `0x0300 + ch×4` | `reg_p1_window<ch>` | P1 window (pole-zero correction) | ✅ verified 2026-04-16 — `asynDigParams.c:L559–568` (`setAddress(reg_p1_window0,0x0300)` … `0x0324`)
 
 Range: `0x0300` … `0x0324`
 
@@ -205,33 +205,33 @@ Range: `0x0300` … `0x0324`
 
 | Offset | Register | R/W | Description |
 |--------|----------|-----|-------------|
-| `0x0400` | `reg_dac` | R/W | DAC control |
-| `0x0404` | `reg_p2_window0` | R/W | P2 window ch0 |
-| `0x0408` | `reg_ila_config` | R/W | ILA (in-circuit logic analyzer) config |
-| `0x040C` | `reg_channel_pulsed_control` | R/W | Channel pulsed control |
-| `0x0410` | `reg_diag_mux_control` | R/W | Diagnostic mux select |
-| `0x0414` | `reg_holdoff_control` | R/W | Trigger holdoff control |
-| `0x0418` | `reg_baseline_delay` | R/W | Baseline delay |
-| `0x041C` | `reg_diag_channel_input` | R/W | Diagnostic channel input |
-| `0x0420` | `reg_external_disc_mode` | R/W | External discriminator mode (IntAcptAll/ExtTTL/ExtTTCL/Diag) |
-| `0x0424` | `reg_rj45_spare_dout_control` | R/W | RJ45 spare digital output control |
-| `0x0428` | `regin_led_state` | R | LED discriminator state readback |
-| `0x0430` | `reg_led_control` | R/W | LED front-panel control |
-| `0x0434` | `reg_downsample_holdoff` | R/W | Downsampling holdoff |
-| `0x0484` | `regin_lat_timestamp_lsb` | R | Latched timestamp [31:0] |
-| `0x0488` | `regin_lat_timestamp_msb` | R | Latched timestamp [47:32] |
-| `0x048C` | `regin_live_timestamp_lsb` | R | Live timestamp [31:0] |
-| `0x0490` | `regin_live_timestamp_msb` | R | Live timestamp [47:32] |
-| `0x0494` | `reg_veto_gate_width` | R/W | Veto gate width |
-| `0x0500` | `reg_master_logic_status` | R | Master logic status |
-| `0x0504` | `reg_trigger_config` | R/W | Trigger configuration word |
-| `0x0508` | `regin_phase_errors` | R | SERDES phase error counter |
-| `0x050C` | `regin_phase_value` | R | Current SERDES phase value |
-| `0x0510` | `regin_phase_offset_a` | R | Phase offset A |
-| `0x0514` | `regin_phase_offset_b` | R | Phase offset B |
-| `0x0518` | `regin_phase_offset_c` | R | Phase offset C |
-| `0x051C` | `regin_serdes_phase_value` | R | SERDES phase value |
-| `0x0520–0x0540` | `reg_p2_window1–9` | R/W | P2 window ch1–9 (ch1 at 0x0520) |
+| `0x0400` | `reg_dac` | R/W | DAC control | ✅ verified 2026-04-16 — `asynDigParams.c:L569`
+| `0x0404` | `reg_p2_window0` | R/W | P2 window ch0 | ✅ verified 2026-04-16 — `asynDigParams.c:L570`
+| `0x0408` | `reg_ila_config` | R/W | ILA (in-circuit logic analyzer) config | ✅ verified 2026-04-16 — `asynDigParams.c:L580`
+| `0x040C` | `reg_channel_pulsed_control` | R/W | Channel pulsed control | ✅ verified 2026-04-16 — `asynDigParams.c:L581`
+| `0x0410` | `reg_diag_mux_control` | R/W | Diagnostic mux select | ✅ verified 2026-04-16 — `asynDigParams.c:L582`
+| `0x0414` | `reg_holdoff_control` | R/W | Trigger holdoff control | ✅ verified 2026-04-16 — `asynDigParams.c:L583`
+| `0x0418` | `reg_baseline_delay` | R/W | Baseline delay | ✅ verified 2026-04-16 — `asynDigParams.c:L584`
+| `0x041C` | `reg_diag_channel_input` | R/W | Diagnostic channel input | ✅ verified 2026-04-16 — `asynDigParams.c:L585`
+| `0x0420` | `reg_external_disc_mode` | R/W | External discriminator mode (IntAcptAll/ExtTTL/ExtTTCL/Diag) | ✅ verified 2026-04-16 — `asynDigParams.c:L586`
+| `0x0424` | `reg_rj45_spare_dout_control` | R/W | RJ45 spare digital output control | ✅ verified 2026-04-16 — `asynDigParams.c:L587`
+| `0x0428` | `regin_led_state` | R | LED discriminator state readback | ✅ verified 2026-04-16 — `asynDigParams.c:L588`
+| `0x0430` | `reg_led_control` | R/W | LED front-panel control | ✅ verified 2026-04-16 — `asynDigParams.c:L589`
+| `0x0434` | `reg_downsample_holdoff` | R/W | Downsampling holdoff | ✅ verified 2026-04-16 — `asynDigParams.c:L590`
+| `0x0484` | `regin_lat_timestamp_lsb` | R | Latched timestamp [31:0] | ✅ verified 2026-04-16 — `asynDigParams.c:L591`
+| `0x0488` | `regin_lat_timestamp_msb` | R | Latched timestamp [47:32] | ✅ verified 2026-04-16 — `asynDigParams.c:L592`
+| `0x048C` | `regin_live_timestamp_lsb` | R | Live timestamp [31:0] | ✅ verified 2026-04-16 — `asynDigParams.c:L593`
+| `0x0490` | `regin_live_timestamp_msb` | R | Live timestamp [47:32] | ✅ verified 2026-04-16 — `asynDigParams.c:L594`
+| `0x0494` | `reg_veto_gate_width` | R/W | Veto gate width | ✅ verified 2026-04-16 — `asynDigParams.c:L595`
+| `0x0500` | `reg_master_logic_status` | R | Master logic status | ✅ verified 2026-04-16 — `asynDigParams.c:L596`
+| `0x0504` | `reg_trigger_config` | R/W | Trigger configuration word | ✅ verified 2026-04-16 — `asynDigParams.c:L597`
+| `0x0508` | `regin_phase_errors` | R | SERDES phase error counter | ✅ verified 2026-04-16 — `asynDigParams.c:L598`
+| `0x050C` | `regin_phase_value` | R | Current SERDES phase value | ✅ verified 2026-04-16 — `asynDigParams.c:L599`
+| `0x0510` | `regin_phase_offset_a` | R | Phase offset A | ✅ verified 2026-04-16 — `asynDigParams.c:L600`
+| `0x0514` | `regin_phase_offset_b` | R | Phase offset B | ✅ verified 2026-04-16 — `asynDigParams.c:L601`
+| `0x0518` | `regin_phase_offset_c` | R | Phase offset C | ✅ verified 2026-04-16 — `asynDigParams.c:L602`
+| `0x051C` | `regin_serdes_phase_value` | R | SERDES phase value | ✅ verified 2026-04-16 — `asynDigParams.c:L603`
+| `0x0520–0x0540` | `reg_p2_window1–9` | R/W | P2 window ch1–9 (ch1 at 0x0520) | ✅ verified 2026-04-16 — `asynDigParams.c:L571–579`
 
 ### 0x0600–0x060C: Code Revision / Timestamp Error
 ✅ verified 2026-04-09 — `asynDigParams.c:L604-605` (`setAddress(regin_code_revision,0x0600)`, `setAddress(regin_code_date,0x0604)`)
