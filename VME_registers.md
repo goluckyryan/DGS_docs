@@ -520,7 +520,7 @@ Per-DIG-link (A–H), per-channel (0–9) input delay registers.
 
 **Pattern:** Link A starts at `0x0600`, link B at `0x0628`, with stride 0x04 per channel within each link. Each link covers 10 × 4 = 40 bytes.
 
-> **Note:** Several registers in links B, C, D have anomalous addresses that overlap with the status block (e.g. `B_5` @ `0x013C`, `B_9` @ `0x014C`, `C_9` @ `0x0174`, `D_5` @ `0x018C`, `D_9` @ `0x019C`). This appears to be a copy-paste error in `asynRTrigParams.c`; the pattern is otherwise sequential.
+> **Note:** Several registers in links B, C, D have anomalous addresses that overlap with the status block (e.g. `B_5` @ `0x013C`, `B_9` @ `0x014C`, `C_9` @ `0x0174`, `D_5` @ `0x018C`, `D_9` @ `0x019C`). This appears to be a copy-paste error in `asynRTrigParams.c`; the pattern is otherwise sequential. ✅ verified 2026-04-16 — `asynRTrigParams.c:L496,L500` (B_5=0x013C, B_9=0x014C confirmed in setAddress calls)
 
 | Link | First Offset | Last Offset | Register names |
 |------|-------------|-------------|----------------|
