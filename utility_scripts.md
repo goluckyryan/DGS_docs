@@ -74,7 +74,7 @@ Stored average BGO tuning values per hemisphere.
 
 ## Data0 Space Monitor (Cron)
 
-A cron job runs hourly checking `/mnt/data0` free space on DCS2. Previously hosted on pi5-dgs; may now run on spark-ca9f (DGX Spark, 2026-04-15 host migration — confirm with Ryan).
+A cron job runs hourly checking `/mnt/data0` free space on DCS2. Previously hosted on pi5-dgs. As of 2026-04-15, spark-ca9f (DGX Spark) is the new General DGS host. **Confirm with Ryan whether this cron job has been migrated to spark-ca9f or remains on pi5-dgs.** (Checked 2026-04-15: no crontab active on spark-ca9f; DCS2 unreachable for verification.)
 
 - **Threshold:** 300 GB free
 - **Action:** Discord alert to #dgsclaw if below threshold
