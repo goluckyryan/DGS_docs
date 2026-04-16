@@ -329,7 +329,7 @@ The stretched signals `HAVE_CLEAN` and `HAVE_DIRTY` (from `overlap_mach`) are tr
 
 ## Router → MTRG SERDES Frame Format (132-bit word per channel per cycle)
 
-_Source: `DGS_SVN/dgs/Documentation/Formal/Unsorted Docs/router to master format notes.txt`_
+_Source: `DGS_SVN/dgs/Documentation/Formal/Unsorted Docs/router to master format notes.txt`_ ✅ verified 2026-04-16 — exact bit positions confirmed against SVN source
 
 Each Router sends one 132-bit word to the MTRG per trigger cycle (2 µs), one word per connected DIG channel (up to 8). The MTRG receives these from all Routers to build its trigger decision.
 
@@ -345,10 +345,10 @@ Each Router sends one 132-bit word to the MTRG per trigger cycle (2 µs), one wo
 | 97 | (spare) | Reserved |
 | 96 | **CHANNEL_THROTTLE_REQUEST** | Set if this DIG wants triggers throttled |
 | 95:56 | **HIT PATTERN** (40 bits) | A(7:0), B(7:0), C(7:0), D(7:0), E(7:0) — discriminator hit bits from DIG channels |
-| 55:48 | TIMESTAMP [15:8] | Upper byte of 16-bit timestamp (⚠️ swapped with 47:40) |
-| 47:40 | TIMESTAMP [7:0] | Lower byte of 16-bit timestamp (sent before upper byte in frame) |
-| 39:36 | CC ENERGY [3:0] | Lower nibble of Central Contact Energy (⚠️ swapped with 35:24) |
-| 35:24 | CC ENERGY [15:4] | Upper 12 bits of Central Contact Energy |
+| 55:48 | TIMESTAMP [7:0] | **Low byte** of 16-bit timestamp |
+| 47:40 | TIMESTAMP [15:8] | **High byte** of 16-bit timestamp |
+| 39:36 | CC ENERGY [3:0] | **Low nibble** of Central Contact Energy |
+| 35:24 | CC ENERGY [15:4] | **High 12 bits** of Central Contact Energy |
 | 23:16 | SPARE WORD 13 | 13th word from digitizer |
 | 15 | **FS** — Frame Sync | Router pipeline synchronized to digitizer data |
 | 14 | **GCE** — Gray Code Error | Router sees gray code error from digitizer |
@@ -358,7 +358,7 @@ Each Router sends one 132-bit word to the MTRG per trigger cycle (2 µs), one wo
 | 3:1 | **CHAN_CHECK** (3 bits) | Ordinal 0–7: which of 8 DIG channels this word represents |
 | 0 | **PATTERN MATCH** | Set if Router's nth pattern register matched (n = CHAN_CHECK) |
 
-> ⚠️ **Timestamp and CC Energy bit ordering is swapped** within the frame — the lower byte arrives in bits 47:40 and the upper byte in bits 55:48. Similarly CC Energy lower nibble is at 39:36 and upper 12 bits at 35:24. This is an artifact of the SERDES serialization order.
+> ⚠️ **Timestamp and CC Energy byte/nibble ordering:** TIMESTAMP[7:0] (low byte) is in bits 55:48; TIMESTAMP[15:8] (high byte) is in bits 47:40 — i.e. the low byte is transmitted first (higher bit position) and the high byte second (lower bit position). Same pattern for CC Energy: [3:0] at bits 39:36, [15:4] at bits 35:24. The source explicitly flags this: "yes, there's a swap". ✅ verified 2026-04-16 — `router to master format notes.txt` (SVN): exact summary table at end of file
 
 ---
 
