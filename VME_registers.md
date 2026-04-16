@@ -657,7 +657,7 @@ VMERead32(0, 0x0600)
 
 ---
 
-*Verified against source: `VxWorks/dgsDrivers/dgsDriverApp/src/{asynDigParams.c,asynMTrigParams.c,asynRTrigParams.c,devGVME.c}`. Last updated: 2026-04-08.*
+*Verified against source: `VxWorks/dgsDrivers/dgsDriverApp/src/{asynDigParams.c,asynMTrigParams.c,asynRTrigParams.c,devGVME.c}`. Last updated: 2026-04-16.*
 
 ---
 

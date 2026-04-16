@@ -595,8 +595,6 @@ This is a hardware strobe mode — no TTCL/MTRG involvement. Useful for bench te
 
 _Document complete. PDF: 72 pages, SVN rev #6185, Sept 2021. Written to file: 2026-04-05._
 
-**Preamp Reset Kill**: Similar to hold-off. Handles transistor-reset preamplifiers (Gammasphere uses these).
-
 ## See Also
 
 - `knowledgeBase/deep_fpga_DIG.md` — Full VHDL-level DIG firmware deep-dive
