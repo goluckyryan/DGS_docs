@@ -27,7 +27,7 @@ A parallel **fast path** (`FAST_D_OUT`) bypasses the FIFO to provide the lowest-
 
 ### 1.2 Per-Bit Timing Alignment
 
-Ten individual **DPRAM delay-line FIFOs** (one per discriminator bit) correct timing skew between Ge and BGO channels. Each FIFO is up to 32 taps deep (20 ns/tap = **640 ns maximum delay**). ✅ verified 2026-04-15 — `chan_in.vhd:L260,266` (`DEPTH_pwr2 => 5` → 2^5=32 samples × 20 ns = 640 ns; inline comment: "or 640nsec") The per-bit delay values are loaded from `BIT_DELAY` via a VME register write with `LOAD_BIT_DELAY`. When `CLEAN_DIRTY(15)='1'`, the delay-corrected `DELAYED_DATA[9:0]` is used for all downstream logic; otherwise the raw `RECOVERED_DATA` bits are used.
+Ten individual **DPRAM delay-line FIFOs** (one per discriminator bit) correct timing skew between Ge and BGO channels. Each FIFO is up to 32 taps deep (20 ns/tap = **640 ns maximum delay**). ✅ verified 2026-04-15 — `chan_in.vhd:L260,266` (`DEPTH_pwr2 => 5` → 2^5=32 samples × 20 ns = 640 ns; inline comment: "or 640nsec") The per-bit delay values are loaded from `BIT_DELAY` via a VME register write with `LOAD_BIT_DELAY`. When `CLEAN_DIRTY(15)='1'`, the delay-corrected `DELAYED_DATA[9:0]` is used for all downstream logic; otherwise the raw `RECOVERED_DATA` bits are used. ✅ verified 2026-04-16 — `chan_in.vhd:L219,228-229` (`RAW_DATA_OUT <= ... DELAYED_DATA when CLEAN_DIRTY(15)='1' else RECOVERED_DATA`)
 
 ### 1.3 Synchronization State Machine (REMAP_BITS_PROC)
 
@@ -66,6 +66,8 @@ The `CLEAN_DIRTY` register selects which flag set drives the X and Y output bitm
 | `0010` | `HAVE_DIRTY[4:0]` | DGS dirty-hit counting |
 | `0100` | `HAVE_MODULE[4:0]` | DGS any-hit counting |
 | `1000` | `HAVE_CLOVER_CLEAN` | Clover geometry |
+
+✅ verified 2026-04-16 — `chan_in.vhd:L490-499` (X_SELECT driven by `CLEAN_DIRTY(3 downto 0)`; Y_SELECT by `CLEAN_DIRTY(7 downto 4)` with same encoding)
 
 `Y_SELECT` (bits [7:4]) picks the Y-plane source independently, allowing X and Y to count different event classes simultaneously.
 
