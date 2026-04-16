@@ -23,7 +23,7 @@ The **Slope Box** is the interface between the detector and the control/monitori
 
 ## Purpose
 
-> **Hardware note:** The SBX and Pickoff Card are **pure analog PCBs** — no FPGA, no firmware. All intelligence is in the Raspberry Pi IOC.
+> **Hardware note:** The SBX Pickoff Card is **FPGA-based** — it performs software-programmable signal conditioning, gain/offset control, individual BGO discrimination, and background scanning of the preamp/slope box via I2C. All FPGA configuration is done through EPICS via the Collector Box Raspberry Pi IOC (or a dedicated Pi for small systems).
 
 The SBX sits between the **Slope Box** and the **Collector Box** (or directly to the digitizer for small systems). It replaces the old VXI system entirely:
 - Converts single-ended analog signals from the Slope Box → **differential signals** for the Collector Box / digitizers
@@ -67,7 +67,13 @@ The SBX sits between the **Slope Box** and the **Collector Box** (or directly to
 
 ## Pickoff Card
 
-Sub-board within SBX. **Pure analog PCB** — no FPGA, no firmware. It is a hardwired patch panel that maps the 4 conditioned signals per detector to specific DIG input channels:
+Sub-board within SBX. **FPGA-based design** that serves as the primary analog signal conditioning and communications hub for each detector. Receives single-ended signals from the Slope Box, converts them to differential format, and generates the four digitizer signals sent to the Collector Box via DVI cable.
+
+> ⚠️ **Correction (2026-04-16):** Earlier notes described the Pickoff Card as a "pure analog PCB — no FPGA, no firmware." This was incorrect. The wiki confirms the SBX pickoff is FPGA-based with extensive software-programmable features. Source: [wiki: The Pickoff Card](https://wiki.anl.gov/gsdaq/The_Pickoff_Card)
+
+### Signal flow
+
+From 10 detector input signals (Ge center contact, 2 Ge side contacts, 7 BGO signals), the SBX pickoff generates the **four digitizer signals** sent to the Collector Box:
 
 | Signal | Description |
 |--------|-------------|
@@ -76,7 +82,36 @@ Sub-board within SBX. **Pure analog PCB** — no FPGA, no firmware. It is a hard
 | BGO Sum | Analog sum of 7 BGOs → DIG channel N+2 |
 | BGO Pattern | Discriminated BGO bits → DIG channel N+3 |
 
-The routing is **fixed at fabrication** (hardwired traces), not dynamic. The correct Pickoff card variant must match the physical installation (which GS hole, which Collector Box slot). Also provides BGO HV demand control via DAC (see address map below).
+### FPGA-programmable features
+
+All of the following are **software-controllable via EPICS** through the FPGA's serial communication interface:
+
+- **DC offsets** — software programmable for all four digitizer signals
+- **GeCenter gain** — 16 different software-selectable gain settings
+- **GeCenter decay time constants** — 16 different software-selectable values
+- **Preamp reset detection** — software programmable voltage comparator; connected to programmable clamping circuit (DC level + clamp time) for baseline restoration after preamp reset
+- **BGO sum attenuation** — 5-level programmable attenuation
+- **GeSide multiplexing** — 16 signal mux/addition combinations: both side channels, 2nd copy of GeCenter at fixed 5 MeV full scale, many FPGA digital pulse signals for diagnostics/tuning
+- **Individual BGO discriminators** — programmable threshold per BGO scintillator; connected to FPGA rate counters and to Collector Box via fast serial interface for Electric Honeycomb formation
+- **BGOpattern channel** — software-selectable access to each BGO signal, BGO pattern signal, or 3rd copy of GeCenter at fixed 8 MeV or 17 MeV full scale gain
+
+### Background scanning
+
+The FPGA runs automated background scan programs (stored in read-only memory) continuously:
+- Scanners continuously monitor the Preamp, Power Board, and Slope Box
+- At startup, EEPROMs of Preamp and Dongle are read
+- Scanner machines + transactor machines handle device-specific protocols (speed, signal types)
+- Collected status values are placed into a **dual-port RAM** for EPICS access
+- Scanners can be paused to allow EPICS manual writes to devices
+- All device-specific timing is hidden from EPICS by the arbiter machine
+
+### Physical / connectivity
+- Plugs directly into the Slope Box — eliminates old "grey cables" from pre-upgrade VXI era
+- Stacks with SBX power board (protruding connectors on two sides)
+- Optional **Raspberry Pi connector** for standalone detector operation
+- **DVI cable** to Collector Box carries: 4 digitizer signals + power + communications
+
+Also provides BGO HV demand control via DAC (see address map below).
 
 ### BGO HV demand map (from dev notes)
 | Address | BGO Ring/Pin |
