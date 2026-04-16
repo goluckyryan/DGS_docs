@@ -50,10 +50,10 @@ MTRG receiver (`MYRIAD_RCV_MACH`) locks onto this stream and extracts NIM/ECL st
 - Pinout compatible with FERA ADC system cables ✅ verified 2026-04-06 — MyRIAD Abridged User Notes.pdf p.3
 - Firmware-defined; current DGS build uses ECL CTL outputs as diagnostics:
   - **FERA FULL** pair → copy of multiplexed 50 MHz FPGA clock (locked = TTCL sync OK) ✅ verified 2026-04-06 — MyRIAD Abridged User Notes.pdf p.3
-  - **FERA ACK** pair → copy of NIM input 1 (level translator) ✅ verified 2026-04-06 — MyRIAD Abridged User Notes.pdf p.3
-  - **FERA OVF** pair → copy of MyRIAD's internal 50 MHz oscillator (differs from FERA FULL when CLOCK_SEL selects SerDes clock)
-  - **FERA WSI** pair (input) → alternate source for local trigger signal (firmware-selectable vs NIM input 0)
-  - **FERA VETO** pair (input) → readable from status register for testing; no active function in current firmware
+  - **FERA ACK** pair → copy of **NIM input 7** (0-based index, i.e. the GP Counter NIM input) ✅ verified 2026-04-16 — `MyRIAD.vhd:L1926` (`FERA_ACK_pin <= NIM_IN_PIN(7)`) ⚠️ PDF (p.3) says "NIM input 1" — VHDL is authoritative; PDF may refer to older firmware
+  - **FERA OVF** pair → driven by `CLOCK_50MHZ` via DDR output flip-flop (OFDDRRSE), producing a 50 MHz square wave — used for jitter comparison with `MAIN_FPGA_MACH_CLK_1_pin` ✅ verified 2026-04-16 — `MyRIAD.vhd:L1929-1940` (`CLOCK_50_DRIVER_DDR` OFDDRRSE, MBO comment 2022-08-10: "changed to CLOCK_50MHz for jitter comparison")
+  - **FERA WSI** pair (input) → alternate source for local trigger signal; if `GATING_REG` bit is set, rising edge of `FERA_WSI_IO_pin` is used as trigger input instead of NIM In 0 ✅ verified 2026-04-16 — `MyRIAD.vhd:L1062-1064` (`if FERA_WSI_PIPE(1)='0' and FERA_WSI_PIPE(0)='1'` → local trigger)
+  - **FERA VETO** pair (input) → readable via `ECL_STATUS_B[0]` status register; no active trigger function in current firmware ✅ verified 2026-04-16 — `MyRIAD.vhd:L1976` (`ECL_STATUS_B <= "00000000000000" & FERA_WSI_IO_pin & FERA_VETO_pin`)
 
 ### ECL I/O Header (16 differential ECL signals)
 - Default: 16 receiver inputs (100 Ω termination per differential pair)
