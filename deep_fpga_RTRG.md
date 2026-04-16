@@ -17,10 +17,14 @@
   - [Data Packet to Master Trigger](#data-packet-to-master-trigger-link-l-tx)
   - [Clock Domains](#clock-domains)
   - [SERDES Links](#serdes-links)
+  - [Command Frame Handling](#command-frame-handling)
 - [VME Register Map](#vme-register-map)
   - [Control Registers (Write)](#control-registers-write)
   - [Status Registers (Read)](#status-registers-read)
+  - [MISC_STAT Register Bit Map](#misc_stat-register-bit-map-rtrg)
 - [IP Cores](#ip-cores)
+- [disc_mach.vhd — BGO/Ge Discriminator State Machine](#disc_machvhd--bgoge-discriminator-state-machine)
+- [Router → MTRG SERDES Frame Format](#router--mtrg-serdes-frame-format-132-bit-word-per-channel-per-cycle)
 - [Build Artifacts](#build-artifacts)
 
 ## Target Device
@@ -323,27 +327,6 @@ The stretched signals `HAVE_CLEAN` and `HAVE_DIRTY` (from `overlap_mach`) are tr
 
 ---
 
-## Build Artifacts
-
-| File | Description |
-|------|-------------|
-| `Work13_4/router_top.bit` | Production bitfile (current) |
-| `MAIN_FPGA/Work13_4/router_top.bit` | Earlier version bitfile |
-| `MAIN_FPGA/Work13_4/experimental_router_top.bit` | Experimental variant |
-
----
-
-## See Also
-
-- `knowledgeBase/fpga.md` — System-level overview: trigger hierarchy, throttle mechanism, SERDES link summary
-- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware: upstream multiplicity bits the RTRG receives, downstream command frames DIG acts on
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG firmware: trigger algorithms consuming RTRG multiplicity data
-- `knowledgeBase/ttcl.md` — TTCL: frame 12 (inter-trigger) and frame 14 (remote trigger) that RTRG replaces with null before forwarding to DIG
-- `knowledgeBase/connectors.md` — RTRG connector pinouts: 125-pin SERDES links, NIM I/O, CPLD ribbons
-- `knowledgeBase/260E_trigger_scheme.md` — Deep dive into RTRG 0x260E trigger scheme: `chan_in.vhd` serial reception + bit alignment, `router_data_path.vhd` multiplicity aggregation, X/Y plane maps, Link-L output format; verified against VHDL source
-
----
-
 ## Router → MTRG SERDES Frame Format (132-bit word per channel per cycle)
 
 _Source: `DGS_SVN/dgs/Documentation/Formal/Unsorted Docs/router to master format notes.txt`_
@@ -376,6 +359,27 @@ Each Router sends one 132-bit word to the MTRG per trigger cycle (2 µs), one wo
 | 0 | **PATTERN MATCH** | Set if Router's nth pattern register matched (n = CHAN_CHECK) |
 
 > ⚠️ **Timestamp and CC Energy bit ordering is swapped** within the frame — the lower byte arrives in bits 47:40 and the upper byte in bits 55:48. Similarly CC Energy lower nibble is at 39:36 and upper 12 bits at 35:24. This is an artifact of the SERDES serialization order.
+
+---
+
+## Build Artifacts
+
+| File | Description |
+|------|-------------|
+| `Work13_4/router_top.bit` | Production bitfile (current) |
+| `MAIN_FPGA/Work13_4/router_top.bit` | Earlier version bitfile |
+| `MAIN_FPGA/Work13_4/experimental_router_top.bit` | Experimental variant |
+
+---
+
+## See Also
+
+- `knowledgeBase/fpga.md` — System-level overview: trigger hierarchy, throttle mechanism, SERDES link summary
+- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware: upstream multiplicity bits the RTRG receives, downstream command frames DIG acts on
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG firmware: trigger algorithms consuming RTRG multiplicity data
+- `knowledgeBase/ttcl.md` — TTCL: frame 12 (inter-trigger) and frame 14 (remote trigger) that RTRG replaces with null before forwarding to DIG
+- `knowledgeBase/connectors.md` — RTRG connector pinouts: 125-pin SERDES links, NIM I/O, CPLD ribbons
+- `knowledgeBase/260E_trigger_scheme.md` — Deep dive into RTRG 0x260E trigger scheme: `chan_in.vhd` serial reception + bit alignment, `router_data_path.vhd` multiplicity aggregation, X/Y plane maps, Link-L output format; verified against VHDL source
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Rtr4704*/` — VHDL source + bitfiles. Created: 2026-04-05.*
