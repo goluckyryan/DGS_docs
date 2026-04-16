@@ -433,7 +433,7 @@ python working/gain_from_parquet.py \
 | `working/PQDecode.chat` | Main decode config (edit per experiment) |
 | `armory/fastEventContructor/analyzer_pz_cal.cpp` | ROOT-based S1/S2 histogram producer |
 | `armory/gray_apps/src/Fitter/grayfit/pole_zero_fitter.py` | Core PZ algorithm |
-| `armory/gray_apps/polezero_parameters.md` | Full parameter reference |
+| `armory/gray_apps/polezero_parameters.md` | Full parameter reference — **⚠️ does not exist** (parameters extracted directly from `pole_zero_fitter.py:PZParams`) |
 | `knowledgeBase/run_procedures.md` | Full run procedure including calibration workflow |
 | `knowledgeBase/DIG_firmware_expert.md` | DIG firmware trapezoid filter details (M/K/D windows) |
 
