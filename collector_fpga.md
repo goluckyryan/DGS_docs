@@ -98,7 +98,7 @@ CtrlFPGA uses a 16-bit ADC with 5V span: **13,107 counts/V**. ✅ verified 2026-
 **Ground fault monitor (AD8236, 22 Ω shunt, gain=100):** **28,835 counts/mA** ✅ verified 2026-04-16 — `Scan_DVI_Power.c:L67-69` ("AD8236 measures the voltage drop across a 22 ohm resistor ... 13107cnt/V multiplied by 2.2V/ma gives us 28,835 counts per mA")
 - Fitted relationship for relay-open with external detector path: `ADCval ≈ 5e6 × Rdet^−0.731` ✅ verified 2026-04-16 — `Scan_DVI_Power.c:L94`
 
-**ADC scanner update rates (6 ADCs, 1 scanner):**
+**ADC scanner update rates (6 ADCs, 1 scanner):** ✅ verified 2026-04-16 — `DGS_SVN/dgs/NewBlackBox/RaspberryPi/PreEpicsCode/Scan_DVI_Power.c:L111-131`
 - Fast (DRATE=11, 23,739 sps): 3.29–5.31 ms total update cycle
 - Slow (DRATE=00, 1,831 sps): 42.6–69 ms total update cycle
 
@@ -154,7 +154,7 @@ Key source files:
 - `RefTop.vhd` — top-level entity
 - `PI_TRANSACTOR.vhd` — Pi transactor (SPI communication with Raspberry Pi)
 - `ADGS5412_controller.vhd` — analog switch controller
-- `LTC1660_controller.vhd` — DAC controller (LTC1660: 8-ch 10-bit DAC)
+- `LTC1660_controller.vhd` — DAC controller (LTC1660: 8-ch 10-bit DAC) ✅ verified 2026-04-16 — `PickoffCard_SBX_Extension/Revision_C/Source/LTC1660_controller.vhd:L127-134` (DAC A–H = 8 ch, 10-bit data `LATCHED_PI_DATA(9 downto 0)`)
 - `I2C_STARTUP_ROM.vhd` — I2C startup ROM sequencer
 - `LOOK_UP_TABLE1.VHD` / `Ref_LUT1.VHD` — lookup tables
 - `Ref_SlopeBoxScan.vhd` — slope box scanning logic
