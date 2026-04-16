@@ -155,7 +155,7 @@ All other runs: delete from data0 once confirmed on NFS (spot-check MD5 of a few
 
 ## Monitoring
 
-- Hourly cron job active (cron id: `d3285cee-893e-49c4-91df-85e57ace9b07`): checks data0 free space, alerts Ryan in #dgsclaw if < 200 GB.
+⚠️ **Data0 space monitor cron status (as of 2026-04-16):** The hourly data0 space monitor cron (id: `d3285cee-893e-49c4-91df-85e57ace9b07`) that previously ran on pi5-dgs is **NOT active** on spark-ca9f (crontab empty). The data0 filesystem is on DCS2, not spark-ca9f. Confirm with Ryan whether this monitoring should be migrated — either to a cron on DCS2 itself, or to spark-ca9f with an SSH-based check.
 
 ---
 
