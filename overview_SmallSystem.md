@@ -11,7 +11,7 @@
 ## Signal Chain (Small Systems)
 
 > Small systems (DUO, DXA) do **not** use a Collector Box.
-> The SBX Raspberry Pi IOC is an older version — source not in `DGS_tools_pack`.
+> The SBX Raspberry Pi IOC is an older version in `DGS_SVN/dgs/SlopeBoxInterface/RaspberryPi/LocalEpics/` — **not** `collectorboxpi/` (which is for the full GS Collector Box Pi). ✅ verified 2026-04-16 — `LocalEpics/db/PickoffPVs.db` uses custom `PickoffLocalSerial` SPI driver.
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -103,7 +103,7 @@ _Source: [wiki: Computers and networks](https://wiki.anl.gov/gsdaq/Computers_and
 
 ### Notes
 - Uses the same DIG/RTRG/MTRG FPGA hardware chain as full DGS, scaled down
-- SBX Raspberry Pis (sbxh3, sbxcc) run the `collectorboxpi/` soft IOC
+- SBX Raspberry Pis (sbxh3, sbxcc) run the older legacy IOC from `DGS_SVN/dgs/SlopeBoxInterface/RaspberryPi/` — **not** `collectorboxpi/` (which is for the GS Collector Box Pi). The SBX Pi IOC uses a custom `PickoffLocalSerial` EPICS driver for SPI/GPIO communication with the Pickoff card. ✅ verified 2026-04-16 — `DGS_SVN/dgs/SlopeBoxInterface/RaspberryPi/LocalEpics/db/PickoffPVs.db:L1` (custom driver, not collectorboxpi)
 - IOC boots from tangerine (FTP server), runs as vme66
 
 ---
