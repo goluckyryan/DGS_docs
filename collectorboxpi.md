@@ -73,7 +73,41 @@ Compiled against **EPICS 7.0.10** (patch level 1). Self-contained repo: includes
 |------|---------|
 | `Pre_EPICS_Collector/SCAN_OUTPUT_3_COMM_<N>.txt` | Cable/detector hardware scan results |
 | `mca_data_<N>.txt` | MCA resolution and reset period per detector |
-| `special_detectors.txt` | Per-detector overrides (HV, type, etc.) |
+| `special_detectors.txt` | Per-detector overrides + displaced cable re-assignments (see below) |
+
+### special_detectors.txt — Per-Detector Overrides and DISPLACED Cables
+_Source: `collectorboxpi/README.md:L120-185`, commits 6667ec3, 874cd1b, 092a3cc (2026-04-15/16)_
+
+Read by `GenerateCmdFile.py`. Supports two kinds of entries:
+
+**1. Per-detector macro overrides** — override any macro used in `dbLoadRecords` for a specific detector:
+```
+<detector_number> , <macro_name> , <value>
+```
+Example: GS048 uses a PT500 thermometer instead of the standard Pt1000:
+```
+048 , DV_TEMP_INPA , GS048_Calc_PT500_Temp
+048 , DV_TEMP_PREC , 2
+```
+
+**2. DISPLACED** — cross-box cable re-assignments. When a GS detector hole is physically re-cabled from one collector box to another (hardware fault, geometry change), add a `DISPLACED` entry for the **original** box:
+```
+<detector_number> , DISPLACED , <box_number>
+```
+Example — GS070 re-cabled from box 202 to box 201:
+```
+070 , DISPLACED , 202
+```
+
+| PV | Behaviour on the listed (original) box |
+|----|---------------------------------------|
+| Active cable records (SlopeBox, Pickoff, etc.) | **Skipped** — no records loaded |
+| `True_GS{X}_to_VME_GS` (via `unused_gs.db`) | **Omitted entirely** — receiving box emits the correct mapping via its active `SlopeBox.db` |
+| `VME_GS{X}_to_True_GS` (via `unused_dvi.db`) | **`VAL=000`** if the VME slot is empty; normal active-cable value if another detector now occupies it |
+
+The **receiving box** needs no entry — when its scan file reports an active cable with `DNG_ID=X`, `SlopeBox.db` is loaded and automatically emits both `VME_GS{VMEGS}_to_True_GS = X` and `True_GS{X}_to_VME_GS = VMEGS`. Chain displacements are handled naturally — each displaced GS needs only one `DISPLACED` line on its original box.
+
+> ⚠️ **Old keyword `DISABLE`** is still accepted with a deprecation warning. It only skipped active cable records but did NOT suppress `True_GS{X}_to_VME_GS` on the original box, causing duplicate/conflicting PVs with the receiving box. `DISPLACED` fixes both issues. ✅ verified 2026-04-16 — commits 874cd1b + 092a3cc (`collectorboxpi/README.md:L120-185`, `GenerateCmdFile.py` DISPLACED logic)
 
 ---
 
