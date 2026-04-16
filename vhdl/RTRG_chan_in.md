@@ -71,12 +71,12 @@ When ENABLE_VETO='1':
 - `LIVE_CHANNEL_VETO[5:1]` ← DIRTY_EVENT[4:0] OR BGO_ONLY_EVENT[4:0] (BGO channels)
 
 ### COARSE_GE_SUM
-5-bit sum of `FAST_D_OUT[14:10]` (coarse Ge bits), added one bit at a time into a 3-bit result. Zeroed if INPUT_MASK='1'. Low-latency path (bypasses FIFO).
+5-bit sum of `FAST_D_OUT[14:10]` (coarse Ge bits), added one bit at a time into a 3-bit result. Zeroed if INPUT_MASK='1'. Low-latency path (bypasses FIFO). ✅ verified 2026-04-16 — `chan_in.vhd:L211-213` (`COARSE_GE_BITS <= FAST_D_OUT(14 downto 10)` when not masked; sum is bitwise add of 5 bits into 3-bit result)
 
 ## Key Constants / Parameters
-- Delay depth: 32 taps × 20 ns = **640 ns max per-bit delay**
-- ASSERTION_DELAY: `TSCATTER_DELAY_REG[14:8]`, 7-bit (0–127 clocks)
-- OVERLAP_DELAY (Compton scatter window): `TSCATTER_DELAY_REG[6:0]`, 7-bit, passed to disc_mach
+- Delay depth: 32 taps × 20 ns = **640 ns max per-bit delay** ✅ verified 2026-04-16 — `chan_in.vhd:L266` (`DEPTH_pwr2 => 5` → 2^5=32 samples, comment confirms 640 ns)
+- ASSERTION_DELAY: `TSCATTER_DELAY_REG[14:8]`, 7-bit (0–127 clocks) ✅ verified 2026-04-16 — `chan_in.vhd:L285` (`ASSERTION_DELAY <= TSCATTER_DELAY_REG(14 downto 8)`)
+- OVERLAP_DELAY (Compton scatter window): `TSCATTER_DELAY_REG[6:0]`, 7-bit, passed to disc_mach ✅ verified 2026-04-16 — `chan_in.vhd:L294` (`OVERLAP_DELAY => TSCATTER_DELAY_REG(6 downto 0)`)
 
 ## Connections to Other Modules
 - **Receives from**: Digitizer via SERDES (DATA_IN); VME control registers (X_PLANE_MAP, Y_PLANE_MAP, CLEAN_DIRTY, TSCATTER_DELAY_REG, BIT_DELAY, INPUT_MASK, ENABLE_VETO)
