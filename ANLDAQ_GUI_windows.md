@@ -226,6 +226,129 @@ _Source: `ANLDAQ/gui/gui_LinkSys.py` (295 lines, verified 2026-04-10)_
 
 ---
 
+---
+
+## GUI: Digitizer Board Window (`gui_DIG.py`)
+
+`DIGWindow` (374 lines) — opened by clicking a DIG board button in DGS Commander. Shows all status and controls for a single digitizer board in a single-level grid layout (no tabs).
+
+_Source: `ANLDAQ/gui/gui_DIG.py` (code-read 2026-04-16)_ ✅ verified 2026-04-16
+
+### Layout — Group Boxes
+
+| Group | Contents |
+|-------|----------|
+| **Board Info / Status** | Code Revision, Code Date, VME Code Rev., Serial No., Timestamps (MSB/LSB), Geo Addr, Board ID, FW Type, LED State, Power OK, Over/Under Volt Stat, 3× Temp Sensors, Misc Logic Status, SD Config, VME gp Ctrl, Ext Disc Src/Mode, TS Err Count |
+| **SerDes Status/Control** | SERDES Lock, SM Locked, Lost Lock Flag, Rx/Tx Pwr, Local/Line Loopback, PEM, Sync, Stringent Lock |
+| **FIFO Status/Control** | Master FIFO Reset, FIFO A/B Empty, FIFO A/B Full, FIFO Almost Full, Prog Flag, FIFO Depth, FIFO Prog Err/Flg |
+| **Channel Triggers/Controls** | 10-row table: per-channel Enable toggle, LED Threshold, Disc Count, Accepted Hit Count, Downsample Factor. Bottom row: "All Ch." threshold field, Counter Mode combo. "Open Channel" button → opens `CHWindow` |
+| **Throttle Control** | Throttle Mode, LFSR Rate, Prog Throttle Mode, LFSR Seed |
+| **Board Control** | Master Logic Enable, Readout (CS_Ena), Trigger Mode (`trigger_mux_select`), CFD Mode, Comp Win Min/Max, Veto Enable, Clock Source, Reset Lost Lock, Ext Disc TS, Downsample Holdoff, Diag Mux Control, Diag Wave Select, VME Disc Req |
+| **ADC Status** | Phase Shift Overflow, DCM clock stopped, DCM Reset, DCM Lock, DCM Ctrl Status |
+| **Acquisition Status** | Same 5 fields for ACQ clock domain |
+| **Phase Status** | Phase Check, Hunting Down/Up, Phase Failure/Success |
+
+### Key behaviors
+- `UpdatePVs()` runs every **500 ms** via `QTimer`; only updates if window is **visible**
+- During ACQ run (`isACQRunning=True`): forces update on `led_threshold`, `channel_enable`, `disc_count`, `ahit_count`
+- Closing the window stops the timer and calls `board.UnsubscribeChannels()` (unregisters CA callbacks)
+- `SetAllChThreshold()` writes the same threshold to all 10 channels simultaneously
+- Widget type auto-selected: `RComboBox` (>2 states), `RTwoStateButton` (2 states), `RLineEdit` (scalar; hex display if flagged)
+
+---
+
+## GUI: Per-Channel Window (`gui_CH.py`)
+
+`CHWindow` (402 lines) — opened by "Open Channel" in `DIGWindow`. Shows all per-channel parameters for a single digitizer board, organized in **5 tabs**. Each tab updates every **500 ms** via `QTimer`; updates skip hidden tabs.
+
+_Source: `ANLDAQ/gui/gui_CH.py` (code-read 2026-04-16)_ ✅ verified 2026-04-16
+
+### Tab Structure
+
+| Tab | Class | Contents |
+|-----|-------|----------|
+| **Channel** | `ChannelTab` | Drop-down to select ch 0–9; then shows all settings for that channel in group boxes. Switching channel re-binds all widgets to the new channel's PVs. |
+| **Window Settings** | `SettingsTabTemplate` | Scrollable grid: rows=ch 0–9, columns=`led_threshold`, `k0`, `k`, `d`, `d3`, `m`, `p1`, `p2`, Trace Delay, Trace Length. "All" row at bottom sets all channels at once. |
+| **General Settings** | `SettingsTabTemplate` | Scrollable grid: same pattern for Enable, Polarity, Pileup, CFD E-Sum Mode, CFD Frac, Preamp Reset En, Preamp Reset, Downsample, Dec Pause, Trig TS Mode, Early Pre-M Capture, Mux Word Select, Control reg |
+| **Ext. Discr.** | `SettingsTabTemplate` | Mode and Source per channel |
+| **Status** | `SettingsTabTemplate` | Enable, Trigger count, Accepted Trig, Accepted Event, Dropped Event, Count Reset — `forceUpdate=True` so it always polls live even when not changing |
+
+### `ChannelTab` — single-channel detail view
+Group boxes within the Channel tab:
+- **Window Settings** — Threshold, k0/k/d/d3/m/p1/p2, Trace Delay, Trace Length. "Load Delays" `RSetButton` applies timing parameters to FPGA.
+- **Status** — Trigger count, Accepted Trigger count, Accepted Event count, Dropped Event count, Counter Reset, count mode combos.
+- **General Settings** — all per-channel boolean/enum controls (Enable, Polarity, Pileup, CFD Mode, etc.)
+- **Ext. Discr.** — Mode and Source combos.
+
+### `SettingsTabTemplate` — bulk view
+A reusable widget that renders a grid where **rows = channels (0–9)**, **columns = PV fields**. Each cell is an `RComboBox`, `RTwoStateButton`, or `RLineEdit` auto-selected by PV state count. An "All" row at the bottom broadcasts the same value to all channels via `_setAllChannels(pvName, value)`.
+
+Tab switch triggers `UpdatePVs(forced=True)` to re-populate newly visible tab immediately.
+
+---
+
+## GUI: Generic Board PV Window (`gui_Board.py`)
+
+`BoardPVWindow` (432 lines) — a generic catch-all viewer opened for board types that don't have a dedicated window (anything that's not DIG, MTRG, or RTR). Also used internally by `DIGWindow` / `MTRGWindow` / `RTRWindow` for specialized sub-views.
+
+_Source: `ANLDAQ/gui/gui_Board.py` (code-read 2026-04-16)_ ✅ verified 2026-04-16
+
+### Layout strategy
+
+The window auto-detects PV categories and builds specialized group boxes for each:
+
+| Detected category | PV prefix/pattern | Rendered as |
+|-------------------|-------------------|-------------|
+| XMAP/YMAP | `XMAP_`, `YMAP_`, `DISCRIMINATOR_DELAY` | 2D checkbox grid (same as RTR X/Y Map tab) |
+| SERDES links | `LOCK`, `DEN`, `REN`, `SYNC`, `RPwr`, `TPwr`, `SLiL`, `SLoL`, `ILM`, `LINK`, `GATED_THROTTLE`, `RAW_THROTTLE` | Per-link button rows |
+| Diagnostics | `Diag_`, `LOCK_COUNT` | Labeled diag display |
+| FIFO Reset | `FIFOReset` | Reset buttons |
+| RAM (MTRG) | `VETO_RAM`, `TRIG_RAM`, `SWEEP_RAM` | Open `RAMWindow` buttons |
+| MTRG Link Propagate | `LINK_L/R/U_PROPAGATE` | Toggle buttons per link |
+| Veto enables | `EN_NIM_VETO_`, `EN_RAM_VETO_`, `EN_REMTRIG_VETO_`, `EN_SOFTWARE_VETO_`, `EN_THROTTLE_VETO_` | Button grid |
+| Everything else | all remaining PVs | Auto-widget scroll list |
+
+If the board has channels (`NumChannels > 0`), a channel selector combo is shown at the top. Selecting a channel switches the PV list to that channel's PVs.
+
+All widgets update every **500 ms** via `QTimer`; updates skip hidden windows.
+
+---
+
+## GUI: Data Taking Window (`gui_DataTaking.py`)
+
+Two classes in this module handle run start/stop and live receiver output:
+
+_Source: `ANLDAQ/gui/gui_DataTaking.py` (code-read 2026-04-16)_ ✅ verified 2026-04-16
+
+### `IOCConfigDialog`
+A modal dialog for editing the IOC connection list fed to `tcpReceiverMT`. Format: one IOC per line — `IP  Port  DataType` (port defaults to 9001, DataType defaults to 8; lines with `#` are comments).
+
+### `RunStatusWindow`
+A `QMainWindow` that manages a live DAQ run:
+
+**On open:**
+1. Creates run folder: `{expFolder}/{expName}_{runNum:03d}/`
+2. Writes `ioc_config.txt` from the IOC config dialog
+3. Auto-compiles `tcpReceiverMT` if needed (`make tcpReceiverMT` in `ANLDAQ_DIR/tcpReceiver/`)
+4. Spawns `tcpReceiverMT <config_file> <file_prefix>` as a subprocess
+
+**Live display (200 ms poll):**
+- Live log output (ANSI codes stripped, max 2000 lines)
+- Parses `======  X.XXX Mbytes | ...` lines to show total data size
+- Status label: Starting → Running → Finished / Stopped / Exited(N)
+
+**Stop run flow:**
+1. Prompts for a stop comment (if manual)
+2. Calls `parent.StopAcquisition(comment)` to flush IOC data (triggers EPICS `Online_CS_StartStop=Stop`)
+3. Waits **5 seconds**, then sends `SIGTERM` to `tcpReceiverMT`
+4. On `SIGTERM` exit (code = -SIGTERM): status = "Stopped"; on 0: "Finished"; other: "Exited(N)"
+
+**Key constants:**
+- `ANLDAQ_DIR` — from env var or auto-detected as parent of `gui/`
+- `RECEIVER_BIN` — `{ANLDAQ_DIR}/tcpReceiver/tcpReceiverMT`
+
+---
+
 ## See Also
 
 - `knowledgeBase/ANLDAQ.md` — parent overview (class_PV, class_Board, findAllPV, commander.py)
