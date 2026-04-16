@@ -1,7 +1,7 @@
 # CollectorBox PV List
 PV template records per detector (GS${DetNbr} = detector hole number).
 Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/db/`
-Total records: 1,437 per detector × up to 110 detectors
+Total records: 1,431 per detector × up to 110 detectors ✅ verified 2026-04-16 — `grep -c "^record(" CollectorBox_RevA/db/*.db` sum = 1,431 (Pickoff.db:448, StrpFPGA.db:294, Pickoff_reg.db:264, CtrlFPGA_reg.db:121, CollectorDiagCtl.db:71, StrpFPGA_reg.db:42, PickoffDiagCtl.db:40, unused_cable.db:39, unused_gs.db:38, SlopeBox.db:24, PreampCalcChain.db:16, CtrlFPGA.db:16, PowerBoardCalcChain.db:10, HV_STEP.db:5, DetSpec.db:2, unused_dvi.db:1)
 
 ---
 
@@ -1567,7 +1567,7 @@ See `snapshot_pv/pv_filter.py` for the implementation.
 
 ---
 
-_Total: 1,431 records_ ✅ verified 2026-04-09 — `grep -c "^record(" CollectorBox_RevA/db/*.db | awk sum = 1,431` (887 per-detector + 544 global/collector records; prior count of 1,437 was off by 6)
+_Total: 1,431 records_ ✅ verified 2026-04-16 — `grep -c "^record(" CollectorBox_RevA/db/*.db` sum = 1,431
 
 ---
 *Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/db/` — EPICS database templates. Created: 2026-04-05.*

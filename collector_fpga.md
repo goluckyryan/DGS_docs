@@ -178,6 +178,6 @@ See: `knowledgeBase/collectorboxpi.md`, `knowledgeBase/collectorbox_devicesuppor
 ## Cross-References
 
 - `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC, PXE boot, HV control
-- `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,437 records/detector)
+- `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector ✅ verified 2026-04-16)
 - `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support internals, SPI driver, CAMAC_IO
 - `knowledgeBase/sbx.md` — Slope Box Extension hardware, BGO HV, GS_ID dongle

@@ -80,7 +80,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [collector_fpga.md](collector_fpga.md) | Collector box FPGA firmware: CtrlFPGA (housekeeping/monitoring), StripeFPGA (relay/stripe/LED), pickoff card FPGAs (SBX Interface + Extension) |
 | [collectorboxpi.md](collectorboxpi.md) | Collector box soft IOC on Raspberry Pi; HV control; PXE boot setup |
-| [collectorbox_PVs.md](collectorbox_PVs.md) | CollectorBox PV list: 1,431 records/detector (887 per-detector + 544 global); GS/MOD/VME_GS/Ge_ID numbering explained |
+| [collectorbox_PVs.md](collectorbox_PVs.md) | CollectorBox PV list: 1,431 records/detector; GS/MOD/VME_GS/Ge_ID numbering explained |
 | [collectorbox_devicesupport.md](collectorbox_devicesupport.md) | EPICS device support internals: SPI driver, CAMAC_IO link, conversion coefficients |
 | [gammasphere_geometry.md](gammasphere_geometry.md) | Gammasphere array geometry: 110 GS holes, 17 rings, θ angles per hole, full hole→angle map |
 

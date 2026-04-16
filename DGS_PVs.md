@@ -420,7 +420,7 @@ Pattern: `VME10:MTRG:{register}` (single MTRG in VME10)
 
 Pattern: `GS{N}_{register}` where N = GS hole number (1–110)
 EPICS CA port: part of collector box soft IOC on each Raspberry Pi
-~1,437 PVs per detector (see `memory/dgs/collectorbox_PVs.md` for full list)
+~1,431 PVs per detector ✅ verified 2026-04-16 (see `knowledgeBase/collectorbox_PVs.md` for full list)
 
 ### 4a. SlopeBox / Detector Identification (SlopeBox.db)
 
