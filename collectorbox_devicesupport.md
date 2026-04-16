@@ -112,20 +112,23 @@ Loaded by `InitializeCoefficients()` at IOC init. Used by `CollectorCalc` PVs.
 | 5 | +12V supply | V = [5/(4096×0.338)] × count ✅ verified 2026-04-07 — CollectorSupport.c:L700 (1K/2.96K divider) |
 | 6 | -12V supply | V = -[5/(4096×0.348)] × count ✅ verified 2026-04-07 — CollectorSupport.c:L704 (4.22K/12.1K divider) |
 | 7 | +5V supply | V = [5/(4096×0.808)] × count ✅ verified 2026-04-07 — CollectorSupport.c:L708 (422/522 divider) |
-| 8 | CenterFET bias | V = [11/(125×32768)] × count |
-| 9 | CenterFET current | I = [11/(5×32768)] × count (mA) |
-| 10,11 | FET Vds | V = [1249/(31125×32768)] × count |
-| 14 | SideFET bias | V = [11/(125×32768)] × count |
-| 15 | SideFET current | I = -[11/(5×32768)] × count (mA) |
-| 16,17 | Side offset V | V = [2249/(31125×131072)] × count |
+| 8 | CenterFET bias | V = [11/(125×32768)] × count ✅ verified 2026-04-16 — CollectorSupport.c:L717 (sign flipped 20220223 per M. Oberling; stored as positive slope) |
+| 9 | CenterFET current | I = [11/(5×32768)] × count (mA) ✅ verified 2026-04-16 — CollectorSupport.c:L721 (stored as positive; sign flip noted in comment only) |
+| 10,11 | CenterFET/SideFET Vds | V = [1249/(31125×32768)] × count ✅ verified 2026-04-16 — CollectorSupport.c:L724,L728 |
+| 12,13 | U10 gain 1X/4X offset | passthrough (slope=1.0, offset=0) ✅ verified 2026-04-16 — CollectorSupport.c:L731-735 |
+| 14 | SideFET bias | V = [11/(125×32768)] × count ✅ verified 2026-04-16 — CollectorSupport.c:L739 |
+| 15 | SideFET current | I = -[11/(5×32768)] × count (mA) ✅ verified 2026-04-16 — CollectorSupport.c:L742 (slope stored as negative) |
+| 16,17 | Side B/A offset voltage | V = [2249/(31125×131072)] × count ✅ verified 2026-04-16 — CollectorSupport.c:L745,L749 |
+| 18,19 | U7 gain 1X/4X offset | passthrough (slope=1.0, offset=0) ✅ verified 2026-04-16 — CollectorSupport.c:L752-756 |
 | 20 | Enclosure temp | T = (175/65535)×count − 45 (°C) |
 | 21 | Enclosure humidity | H = (100/65535)×count (%) |
 | 22 | PCB temp | T = count/256 (°C) |
 | 23–26 | Fan RPM | RPM = 675000/(count×N), N=1,2,4,8 ✅ verified 2026-04-07 — CollectorSupport.c:L778-787 (MAX6653 datasheet p.12) |
-| 27 | Slope box DAC | DAC = volts × (4096/5000) |
-| 29 | Power board temp | T = count × 0.125 (°C) |
-| 30 | Collector remote temp | T = count × 0.125 + 17 (°C) |
-| 31 | Timestamp (bits 26:11) | ms = count × 0.02048 |
+| 27 | Slope box DAC | DAC = volts × (4096/5000) ✅ verified 2026-04-16 — CollectorSupport.c:L800 |
+| 28 | °C → Kelvin | K = C + 273 (slope=1, offset=273) ✅ verified 2026-04-16 — CollectorSupport.c:L807-809 (added 20230309, previously unused) |
+| 29 | Power board temp | T = count × 0.125 (°C) ✅ verified 2026-04-16 — CollectorSupport.c:L813-815 |
+| 30 | Collector remote temp | T = count × 0.125 + 17 (°C) ✅ verified 2026-04-16 — CollectorSupport.c:L817-819 (empirical offset) |
+| 31 | Timestamp (bits 26:11) | ms = count × 0.02048 ✅ verified 2026-04-16 — CollectorSupport.c:L821-824 (bit 11 = 20.48 µs at 100 MHz) |
 
 ### PT100 / PT500 Temperature Fit (2-step)
 1. **ADC → Resistance:** R = slope×count + intercept
