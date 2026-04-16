@@ -426,6 +426,89 @@ _Source: `DGS_SVN/dgs/Documentation/Formal/Software/howTheSenderWorks.docx` (T. 
 
 ---
 
+## Trigger FIFO Readout — `readTrigFIFO.c`
+_Source: `dgsDrivers/dgsDriverApp/src/readTrigFIFO.c`, `inLoopSupport.c` — updated 2026-04-16_
+
+The trigger modules (MTRG and RTRG) have their own separate FIFO readout path, distinct from `readDigFIFO.c`. The key entry point from inLoop is `CheckAndReadTrigger()` (in `inLoopSupport.c`), which calls `transferTrigFifoData()` from `readTrigFIFO.c`.
+
+### FIFO Index Map
+
+Each trigger module exposes up to 16 FIFOs, accessed via VME address offsets:
+
+| Index | VME Offset | Name |
+|-------|-----------|------|
+| 0 | 0x0160 | MON FIFO 1 |
+| 1 | 0x0164 | MON FIFO 2 |
+| 2 | 0x0168 | MON FIFO 3 |
+| 3 | 0x016C | MON FIFO 4 |
+| 4 | 0x0170 | MON FIFO 5 |
+| 5 | 0x0174 | MON FIFO 6 |
+| 6 | **0x5000** | MON FIFO 7 (primary DAQ FIFO — **moved 2025-05-28**) |
+| 7 | 0x017C | MON FIFO 8 |
+| 8–15 | 0x0180–0x019C | CHAN FIFOs 1–8 |
+
+> **Note:** MON FIFO 7 (index 6) was previously at `0x0178`, moved to `0x5000` in firmware update 2025-05-28 (JTA). This is the main DAQ data FIFO for most applications.
+
+✅ verified 2026-04-16 — `readTrigFIFO.c:L78-96` (FIFO_READ_ADDRESS array + comments) + `inLoopSupport.c:L678-694` (FIFO index cheat sheet)
+
+### FIFO Status Register
+
+- **MON_FIFO_STATE** at offset `0x01B4` (MTRG) / `0x01A0` — 16-bit register; 2 bits per FIFO:
+  - Bit `2n+1` = Full flag for FIFO n
+  - Bit `2n+0` = Empty flag for FIFO n
+- **CHAN_FIFO_STATE** at offset `0x01A4`
+- **MON FIFO 7 live depth** at `0x0154` (live counter, in longwords)
+- **MON FIFO 7 latched depth** at `0x01AC` (latched at event boundaries — used for readout sizing)
+
+### `CheckAndReadTrigger()` Logic (in `inLoopSupport.c`)
+
+1. Read FIFO status register; extract `FullFlag` and `EmptyFlag` for the requested `FifoNum`.
+2. **Overflow check** (MON_FIFO7 only): if full → send `TriggerTypeFHeader(mode=2)` error header, call `ClearTrigFIFO()`, return `-1`.
+3. **Empty check**: if empty and `SendNextEmpty` flag set → send `TriggerTypeFHeader(mode=0)` informational header, return `0`.
+4. **Depth determination**: MON_FIFO7 reads latched depth from `0x01AC`; all other FIFOs assume fixed 256 longwords.
+5. **Transfer**: call `transferTrigFifoData(board, numLongwords, FifoNum, queueFlag, &nBytesXferred)` in a retry loop (`NoBufferAvail`).
+
+### `transferTrigFifoData()` Flow
+
+- Gets a free buffer from `qFree` queue (same shared pool as digitizer readout).
+- Stores FIFO index as `rawBuf->data_type` — lets `outLoop` distinguish which trigger FIFO the data came from.
+- DMA reads from `bd->base32 + FIFO_READ_ADDRESS[FifoNum]/4` in chunks of `DMA_CHUNK_SIZE_IN_BYTES = 0x10000` (64 KB) — chunked because empirical testing found DMA errors on transfers >0x10000 bytes (discovered 2025-06-07, JTA).
+- Validates data: first word must be `0x0000AAAA`; mismatch prints error but does not abort.
+- Posts filled buffer to `qWritten` for TCP sender.
+
+### Key Size Constants (from `DGS_DEFS.h`)
+
+| Constant | Value | Notes |
+|----------|-------|-------|
+| `TRIG_MON_FIFO_SIZE` | 4 KB | Max transfer for MON FIFOs 1–6, 8 |
+| `MAX_TRIG_RAW_XFER_SIZE` | 256 KB (4 × 65536 bytes) | Max for MON FIFO 7 |
+| `DMA_CHUNK_SIZE_IN_BYTES` | 0x10000 (64 KB) | DMA chunk limit (2025-06-07) |
+| `MAX_DIG_RAW_XFER_SIZE` | 512 KB | Digitizer FIFO max |
+
+✅ verified 2026-04-16 — `DGS_DEFS.h:L36-53`
+
+### Type-F Headers
+
+When a trigger FIFO is empty, overflowed, or at end-of-run, `TriggerTypeFHeader()` generates a synthetic 4-word GEB-format header and pushes it to `qWritten`. The 4-word format:
+
+| Word | Content |
+|------|---------|
+| 0 | `0xAAAAAAAA` (GEB sync word) |
+| 1 | `GeoAddr[31:27] / PacketLen[26:16] / UserPkgData[15:4] / ChannelID[3:0]` |
+| 2 | LED Timestamp[31:0] (latched via pulsed control bit 4 at `0x8E0`) |
+| 3 | `HeaderLen[31:26] / EventType[25:23] / HeaderType[19:16] / TS[47:32]` |
+
+**Mode values:**
+- `mode=0` (empty): ChannelID = `0xE` (Empty); HeaderType = `0xF` (informational)
+- `mode=1` (end-of-run): ChannelID = `0xD` (Done); HeaderType = `0xF`
+- `mode=2` (overflow/underflow): ChannelID = `0xF` (Error); EventType = 2 (underflow)
+
+Controlled by compile-time `#ifdef` flags: `INLOOP_GENERATE_EMPTY_TYPEF`, `INLOOP_GENERATE_EOD_TYPEF`, `INLOOP_GENERATE_ERROR_TYPEF`.
+
+✅ verified 2026-04-16 — `readTrigFIFO.c:L380-545` (TriggerTypeFHeader switch cases) + `inLoopSupport.c:L725-782` (CheckAndReadTrigger)
+
+---
+
 ## Connections to Other Subsystems
 
 - **ioc/** — `gretDet.munch` ends up in `ioc/bin/`; `dgsDriver.dbd` ends up in `ioc/dbd/`

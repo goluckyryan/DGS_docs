@@ -71,7 +71,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [VME_registers.md](VME_registers.md) | Complete VME register address map for DIG, MTRG, and RTRG main FPGAs + VME FPGA + flash; address patterns, bit-field notes, IOC shell usage examples |
 | [EPICS.md](EPICS.md) | EPICS primer: record types, tools, Python integration for DGS |
 | [EPICS_asyn.md](EPICS_asyn.md) | asyn driver support: caput flow diagram, port concept, worker threads, bulk writes, passive hardware callbacks |
-| [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary |
+| [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary; trigger FIFO readout (`readTrigFIFO.c`, `CheckAndReadTrigger`, Type-F headers, DMA chunking, FIFO index map) |
 | [vxworks_migration.md](vxworks_migration.md) | Migration notes from con6 (Solaris) to Ubuntu 24 |
 
 ### Collector Box & Gammasphere
