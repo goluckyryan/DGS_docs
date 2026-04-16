@@ -27,16 +27,16 @@ Each packet consists of a **14-word header** (words 0–13) followed by zero or 
 
 | Bits | Field | Description |
 |------|-------|-------------|
-| 35:32 | EOP | `0001` = last word of packet; `0000` = normal |
+| 35:32 | EOP | `0001` = last word of packet; `0000` = normal ✅ verified 2026-04-16 — `event_packer.vhd:L165,169` (`acptd_event_fifo_din(35 downto 32) <= "0001"` = EOP; `"0000"` = normal) |
 | 31:0 | Data | 32-bit header word or waveform sample pair |
 
-Bits [35:32] are used internally for packet framing and are not forwarded to VME — the host sees 32-bit words only.
+Bits [35:32] are used internally for packet framing and are not forwarded to VME — the host sees 32-bit words only. ✅ verified 2026-04-16 — `Channel_FIFO_Readout_Mach.vhd:L78` (`coll_fifo_data_extra: std_logic_vector(35 downto 32)` — "upper four bits of the din die here, as they can't go to the external FIFO")
 
 ## LED Header (14 words, words 0–13)
 
 ```
 Bit layout:  31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01 00
-Word  0:  |                              FIXED 0xAAAAAAAA (event delimiter)                               |
+Word  0:  |                              FIXED 0xAAAAAAAA (event delimiter)  ✅ verified 2026-04-16 — `Event_Header_FIFO.vhd:L90` (`cEVENT_DELIMITER := X"AAAAAAAA"`)                             |
 Word  1:  |  GeoAddr[4:0]  | PacketLen[10:0] (filled at readout) |     UserDef[11:0]     |  CH_ID[3:0]   |
 Word  2:  |                              TIMESTAMP_OF_EVENT[31:0]                                         |
 Word  3:  | HDR_LEN[5:0] | EVT_TYPE[2:0] | 0 |TM|PM| HEADER_TYPE[3:0] |  TIMESTAMP_OF_EVENT[47:32]       |
@@ -62,7 +62,7 @@ Note: `MPX_FIELD[23:0]` in Word 11 is the multiplexed field — when `CP` (Word 
 | PacketLen[10:0] | W1[26:16] | Total packet length in 32-bit words (filled at readout) |
 | UserDef[11:0] | W1[15:4] | User tag from `reg_user_package_data` |
 | CH_ID[3:0] | W1[3:0] | Channel number (0–9) |
-| HDR_LEN[5:0] | W3[31:26] | Header length constant = 28 |
+| HDR_LEN[5:0] | W3[31:26] | Header length constant = 28 ✅ verified 2026-04-16 — `Event_Header_FIFO.vhd` DGS build: `constant cHEADER_LENGTH := 28` (36-bit FIFO words; 14 VME words × 2 per FIFO word) |
 | EVT_TYPE[2:0] | W3[25:23] | Event type (filled at readout) |
 | TM | W3[21] | `TRIG_TS_MODE`: 0 = use arrival TS; 1 = use trigger-mux TS |
 | PM | W3[20] | `PEQ_BYPASS`: 1 = pending event queue bypassed |
