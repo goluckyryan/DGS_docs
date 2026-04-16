@@ -232,11 +232,11 @@ Each command frame = 5 × 18-bit words:
 | 0x00 | Null — do nothing |
 | 0x01 | Sync (check timestamp) |
 | 0x02 | Debugging Control Command |
-| 0x04 | Front end calibration inject |
-| 0x08 | Latch Status & Monitoring Data |
-| 0x10 | Front End Reset |
-| 0x18 | Front End Reset (serial links only) |
-| 0x22 | External Discriminator Request (DGS, added 20160418) |
+| 0x04 | Front end calibration inject | ✅ verified 2026-04-16 — `DIG/MAIN_FPGA/BuildBranches/DGS_TAG_20180607_TWEAK/DGS/Source/SERDES_RX_Mach.vhd:L305` (`when X"04" => CAL_INJECT_FLAG <= '1'`) |
+| 0x08 | Latch Status & Monitoring Data | ✅ verified 2026-04-16 — `SERDES_RX_Mach.vhd:L308` (`when X"08" => LATCH_STATUS_FLAG <= '1'`) |
+| 0x10 | Front End Reset | ✅ verified 2026-04-16 — `SERDES_RX_Mach.vhd:L311` (`when X"10" => FRONT_END_RESET_FLAG <= '1'`) |
+| 0x18 | Front End Reset (serial links only) | ✅ verified 2026-04-16 — `SERDES_RX_Mach.vhd:L314` (`when X"18" => RESET_LINKS_FLAG <= '1'`) |
+| 0x22 | External Discriminator Request (DGS, added 20160418) | ✅ verified 2026-04-16 — `DIG/MAIN_FPGA/BuildBranches/DGS_TAG_20180607_TWEAK/DGS/Source/SERDES_RX_Mach.vhd:L317` (`when X"22" => EXTERNAL_DISC_FLAG_PENDING <= '1'`; block added 20160418 comment at L278)
 | 0x40 | Demand Front End Slow Data | ✅ verified 2026-04-13 — `SERDES_RX_Mach_R2.vhd:L241` FRAME 13 FIXED_BITS = `X"40FB"` → cmd byte bits 16..9 = 0x40 |
 | 0x50–0x5A, 0xA5 | Trigger Decision Frame |
 | 0x81 | Imperative Sync (force reload of timestamps) |
