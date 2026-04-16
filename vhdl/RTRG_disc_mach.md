@@ -63,9 +63,10 @@ Each clock, pipelines GE_DISC_FLAG and BGO_DISC_FLAG one tick. Detects rising ed
 | Both edges simultaneously | DIRTY_EVENT (after OVERLAP_TIMER counts down) |
 
 ## Key Constants / Parameters
-- `OVERLAP_DELAY`: 7-bit input, range 0–127 clocks (0–1270 ns at 100 MHz). Controls the coincidence window width. Sourced from `TSCATTER_DELAY_REG[6:0]` in chan_in.vhd.
+- `OVERLAP_DELAY`: 7-bit input, range 0–127 clocks (0–1270 ns at 100 MHz). Controls the coincidence window width. Sourced from `TSCATTER_DELAY_REG[6:0]` in chan_in.vhd. ✅ verified 2026-04-16 — `chan_in.vhd:L294` (`OVERLAP_DELAY => TSCATTER_DELAY_REG(6 downto 0)`)
+- `TSCATTER_DELAY_REG[14:8]` → `ASSERTION_DELAY` (7-bit one-shot stretch duration for CLEAN/DIRTY/MODULE outputs in chan_in.vhd). ✅ verified 2026-04-16 — `chan_in.vhd:L285`
 
 ## Connections to Other Modules
-- **Instantiated by**: chan_in.vhd (5× normal instances for Ge/BGO pairs 4:0, plus 1× CLOVER_DISC_MACH)
-- **Receives**: GE_DISC_FLAG and BGO_DISC_FLAG from DELAYED_DATA or RECOVERED_DATA (selected in chan_in.vhd), OVERLAP_DELAY from TSCATTER_DELAY_REG[6:0]
-- **Sends**: CLEAN_EVENT, DIRTY_EVENT, BGO_ONLY_EVENT → ONE_SHOTS process in chan_in.vhd (stretched into HAVE_CLEAN, HAVE_DIRTY, HAVE_MODULE)
+- **Instantiated by**: chan_in.vhd (5× normal instances for Ge/BGO pairs 4:0 via `DISC_MACH_BLK: for i in 0 to 4 generate`, plus 1× `CLOVER_DISC_MACH`) ✅ verified 2026-04-16 — `chan_in.vhd:L288–368`
+- **Receives**: GE_DISC_FLAG and BGO_DISC_FLAG from DELAYED_DATA or RECOVERED_DATA (selected in chan_in.vhd), OVERLAP_DELAY from TSCATTER_DELAY_REG[6:0] ✅ verified 2026-04-16 — `chan_in.vhd:L294`
+- **Sends**: CLEAN_EVENT, DIRTY_EVENT, BGO_ONLY_EVENT → ONE_SHOTS process in chan_in.vhd (stretched into HAVE_CLEAN, HAVE_DIRTY, HAVE_MODULE using ASSERTION_DELAY = TSCATTER_DELAY_REG[14:8]) ✅ verified 2026-04-16 — `chan_in.vhd:L329,339,349`
