@@ -81,22 +81,22 @@ Also monitors `BGO_FPGA_33V`, `BGO_FPGA_25V`, `BGO_FPGA_12V` (BGO board power ra
 ### ADC Hardware Calibration Constants
 _Source: `DGS_SVN/dgs/NewBlackBox/RaspberryPi/PreEpicsCode/Scan_DVI_Power.c` (pre-EPICS reference code)_
 
-CtrlFPGA uses a 16-bit ADC with 5V span: **13,107 counts/V**.
+CtrlFPGA uses a 16-bit ADC with 5V span: **13,107 counts/V**. ✅ verified 2026-04-16 — `Scan_DVI_Power.c:L53-54` ("ADC input span is 5V and ADC is a 16 bit device, so we expect that the conversion is nominally 65535/5, or 13,107 counts per volt.")
 
 | Rail | Expected ADC value |
 |------|-------------------|
-| 3.3V | ≈ 43,353 counts |
-| 2.5V | ≈ 32,767 counts |
-| 1.8V | ≈ 23,593 counts |
-| 1.2V | ≈ 15,728 counts |
+| 3.3V | ≈ 43,353 counts | ✅ verified 2026-04-16 — `Scan_DVI_Power.c:L56`
+| 2.5V | ≈ 32,767 counts | ✅ verified 2026-04-16 — `Scan_DVI_Power.c:L57`
+| 1.8V | ≈ 23,593 counts | ✅ verified 2026-04-16 — `Scan_DVI_Power.c:L58`
+| 1.2V | ≈ 15,728 counts | ✅ verified 2026-04-16 — `Scan_DVI_Power.c:L59`
 
-**48V current monitor (TMCS1101A4B):** 400 mV/A → **5,243 counts/A**
+**48V current monitor (TMCS1101A4B):** 400 mV/A → **5,243 counts/A** ✅ verified 2026-04-16 — `Scan_DVI_Power.c:L61-62` ("TMCS1101A4B conversion ratio is 400mv/A. So 13107cnt/v multiplied by 0.4V/A gives us 5243 counts per Amp.")
 - Warning threshold: > 2,700–3,000 counts (~0.5–0.6 A)
 - Shutdown threshold: > 5,000 counts (~0.95 A)
 - Expected: SBX + detector < 0.6 A under any circumstance
 
-**Ground fault monitor (AD8236, 22 Ω shunt, gain=100):** **28,835 counts/mA**
-- Fitted relationship for relay-open with external detector path: `ADCval ≈ 5e6 × Rdet^−0.731`
+**Ground fault monitor (AD8236, 22 Ω shunt, gain=100):** **28,835 counts/mA** ✅ verified 2026-04-16 — `Scan_DVI_Power.c:L67-69` ("AD8236 measures the voltage drop across a 22 ohm resistor ... 13107cnt/V multiplied by 2.2V/ma gives us 28,835 counts per mA")
+- Fitted relationship for relay-open with external detector path: `ADCval ≈ 5e6 × Rdet^−0.731` ✅ verified 2026-04-16 — `Scan_DVI_Power.c:L94`
 
 **ADC scanner update rates (6 ADCs, 1 scanner):**
 - Fast (DRATE=11, 23,739 sps): 3.29–5.31 ms total update cycle
