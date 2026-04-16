@@ -236,8 +236,6 @@ See `knowledgeBase/dgs_analysis.md` for full details on each step.
 
 ---
 
----
-
 ## Cross-References
 
 | Topic | File |

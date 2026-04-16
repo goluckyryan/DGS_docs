@@ -250,5 +250,6 @@ The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet for
 ## See Also
 
 - `knowledgeBase/ANLDAQ.md` — parent overview, VxWorks pipeline, EPICS config
+- `knowledgeBase/ANLDAQ_GUI_windows.md` — gui_DataTaking: GUI front-end that spawns and controls tcpReceiverMT
 - `knowledgeBase/data_structures.md` — GEB header format + DIG event packet layout
 - `knowledgeBase/dgs_analysis.md` — downstream analysis consuming tcpReceiverMT output

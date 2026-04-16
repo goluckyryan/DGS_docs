@@ -352,6 +352,7 @@ A `QMainWindow` that manages a live DAQ run:
 ## See Also
 
 - `knowledgeBase/ANLDAQ.md` — parent overview (class_PV, class_Board, findAllPV, commander.py)
+- `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiverMT deep-dive: protocol, GEB header, run control
 - `knowledgeBase/link_sys_analysis.md` — link_sys.py 5-stage sequence (called by gui_LinkSys.py)
 - `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG firmware details for trigger tab PVs
 - `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware details for RTR window PVs
