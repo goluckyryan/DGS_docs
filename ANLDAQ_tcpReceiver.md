@@ -85,7 +85,7 @@ OutFile (per board+channel)
 
 - Max file size: **2 GB** ✅ verified 2026-04-12 — `tcpReceiver/constant.h:L7` (`MAX_FILE_SIZE_BYTE = 1024LL*1024*1024*2`)
 - Default receive buffer: **1M words = 4 MB** ✅ verified 2026-04-12 — `tcpReceiver/constant.h:L8` (`DEFAULT_DATA_SIZE = 1000000`)
-- TRIG raw packet: **16 words** → repacked to **10 words**
+- TRIG raw packet: **16 words** → repacked to **10 words** ✅ verified 2026-04-16 — `tcpReceiver/constant.h:L4-5` (`TRIG_DATA_SIZE=16`, `TRIG_PACKET_LENGTH=10`)
 
 ### GEB Header (`#define ENABLE_GEB_HEADER`)
 
@@ -199,7 +199,7 @@ Lightweight alternative to `start_run.sh` / `stop_run.sh` for quick tests withou
   - SOE constants: `DIG_SOE=0xAAAAAAAA`, `TRIG_SOE=0xAAAA0000`, `MAXCHID=16`, `MAXBOARDID=4095`, `INBUFSIZE=64KB`
   - GEB type IDs hard-coded from `torben`'s list: `GEB_TYPE_DGS=14`, `GEB_TYPE_DGSTRIG=15`, plus others (DECOMP=1, RAW=2, TRACK=3, S800=5/9, GODDESS=19, XA=23, etc.)
   - Output file naming: `runName/runName.prefix_NNN` (per channel) or `runName.prefix_NNN` (flat)
-  - Trigger (TRIG) packets are reformatted from 16 raw words → 12 words before saving
+  - Trigger (TRIG) packets are reformatted from 16 raw words → **10 words** before saving (the internal `reformatted_hdr[]` array is 12 words but only 10 are written, starting from `reformatted_hdr[1]`; `packet_length_in_words=10` at L1657) ✅ verified 2026-04-16 — `legacy/dgsReceiver.cpp:L126,L1657,L2079-2100`
 - `dgsReceiver_Ryan.cpp` (v6.57 fork, 1,567 lines) — Ryan's experimental fork (2025-05-21). Differences vs MBO's version:
   - Linux-only (Windows `#ifdef` blocks removed)
   - Adds `const bool SAVE_TYPE_F = false;` — stub for controlling type-F header save behavior (TODO: not yet implemented)
