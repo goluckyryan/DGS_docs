@@ -495,10 +495,6 @@ If `reg_raw_data_length = 0`, no waveform words are written and the packet ends 
 
 ---
 
-
----
-
-
 ## Cross-References
 
 - `knowledgeBase/deep_fpga_DIG.md` — DIG architecture, source files, signal flow, SERDES, build options
