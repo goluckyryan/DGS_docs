@@ -25,7 +25,8 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [ANLDAQ.md](ANLDAQ.md) | DAQ GUI (PyQt6) overview: EPICS CA config, VxWorks data pipeline (inLoop/outLoop/MiniSender), softIOC (JustGlobals.db, dgsSupport.db), class_PV/Board, findAllPV, commander.py |
 | [ANLDAQ_tcpReceiver.md](ANLDAQ_tcpReceiver.md) | tcpReceiver deep-dive: 3 binaries, TCP protocol proof, data flow, GEB header, class_DIG.h/class_TDC.h decoders, run control scripts, legacy receivers, packet consistency table |
-| [ANLDAQ_GUI_windows.md](ANLDAQ_GUI_windows.md) | GUI window reference: gui_MTRG (5 tabs), gui_Det (collector box map), gui_scalar, gui_RTR, gui_RAM, gui_SYS, gui_LinkSys; trigger setup scripts + SYSTEM_DEFINES.sh topology |
+| [ANLDAQ_GUI_windows.md](ANLDAQ_GUI_windows.md) | GUI window reference: gui_MTRG (5 tabs), gui_Det (collector box map), gui_scalar, gui_RTR, gui_RAM, gui_SYS, gui_LinkSys |
+| [trig_setup_scripts.md](trig_setup_scripts.md) | 5-stage trigger setup scripts (trig_setup_Stage1–5.sh): full step-by-step MTRG→RTRG→DIG link initialization, SYSTEM_DEFINES.sh GS topology (4 RTRGs, 44 DIGs, MTRG in VME10), DC balance/fiber notes, algorithm reference |
 | [guceiver.md](guceiver.md) | Guceiver: live diagnostic GUI (waveform, spectrum, TAC-II, raw data) — connects to IOC TCP:9001 |
 | [dgs_analysis.md](dgs_analysis.md) | Post-experiment analysis pipeline: EventBuilder variants (Q, PQ — k-way merge, parallel, double-buffered), parquet_pysort, gray_apps summary, parquetCLI, gain_from_parquet.py, pz_from_parquet.py, RunParquet, ProcessRUN, GEB data format |
 | [dgs_analysis_grayapps.md](dgs_analysis_grayapps.md) | gray_apps full reference: GrayCAL (HPGe energy calibration GUI, core modules, polezero_dialog), GrayMAN (multi-peak spectrum analysis), grayfit (AutoFitter, FittingRunner, PeakFinder, pole_zero_fitter, FitResult hierarchy) — split from dgs_analysis.md |
