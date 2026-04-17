@@ -406,9 +406,9 @@ python working/pz_from_parquet.py $expFolder/Parquet/decode/exp2008_003_dgs.parq
 
 For event-level parquet (list columns), use `pz_from_evtparquet.py` instead.
 
-### pz_from_evtparquet.py *(new Apr 2026)*
+### pz_from_evtparquet.py *(added Apr 2026)*
 
-Extract pole-zero constants from **event-level** `.parquet` files (where `detID`, `sum1`, `sum2` are `list<>` columns rather than flat columns). Flattens lists to rows then runs the same 2D-histogram + PZ fitting pipeline per crystal.
+Extract pole-zero constants from **event-level** `.parquet` files (where `detID`, `sum1`, `sum2` are `list<>` columns rather than flat columns). Flattens lists to rows then runs the same 2D-histogram + PZ fitting pipeline per crystal. ✅ verified 2026-04-17 — `pz_from_evtparquet.py:L1-30` (docstring + argparse confirm interface)
 
 ```bash
 python working/pz_from_evtparquet.py <file.parquet> [options]
@@ -420,9 +420,9 @@ python working/pz_from_evtparquet.py <file.parquet> [options]
   --quiet            Suppress per-crystal progress
 ```
 
-### DownloadRaw.sh *(new Apr 2026)*
+### DownloadRaw.sh *(added Apr 2026)*
 
-Copies raw GEB run data from NFS to local `expFolder/data/` via rsync.
+Copies raw GEB run data from NFS to local `expFolder/data/` via rsync. ✅ verified 2026-04-17 — `DownloadRaw.sh:L1-30` (header comments + nfsFolder check at L59 confirmed)
 
 ```bash
 ./working/DownloadRaw.sh [--dry-run] <expInfo.sh> <run_number> [run_number ...]
