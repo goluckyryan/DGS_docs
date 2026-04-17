@@ -246,7 +246,7 @@ The downlink chain (MTRG → Digitizers):
 
 ### 4.4 Coarse Ge Fast Path to CPLD
 
-`TOTAL_COARSE_GE_SUM[5:0]` (summed by `router_data_path` in a single cycle) is transmitted to an on-board CPLD via 3 DDR lines on `SUMCOPY[3:1]`: lower 3 bits on the rising edge, upper 3 bits on the falling edge of the 50 MHz clock. The CPLD uses this 6-bit count for a fast pre-trigger multiplicity decision. The resulting `FAST_STROBE` signal returns from the CPLD to the RTRG for NIM output/diagnostic use.
+`TOTAL_COARSE_GE_SUM[5:0]` (summed by `router_data_path` in a single cycle) is transmitted to an on-board CPLD via 3 DDR lines on `SUMCOPY[3:1]`: lower 3 bits on the rising edge, upper 3 bits on the falling edge of the 50 MHz clock. The CPLD uses this 6-bit count for a fast pre-trigger multiplicity decision. The resulting `FAST_STROBE` signal returns from the CPLD to the RTRG for NIM output/diagnostic use. ✅ verified 2026-04-17 — `TOP.VHD:L877-895` (ODDR_inst generate loop ×3: D1=TOTAL_COARSE_GE_SUM(i), D2=TOTAL_COARSE_GE_SUM(i+3) → lower 3 bits on positive edge, upper 3 bits on negative edge of MCLK)
 
 ### 4.5 Clock Architecture
 
@@ -472,7 +472,7 @@ The MTRG supports 8 simultaneous trigger algorithm slots:
 | TRIG_LOGIC7 | `REMOTE_MASTER_TRIG_SUPPORT` | Link R | Remote master trigger input |
 | TRIG_LOGIC8A/B | `MYRIAD_TRIGGER` / `REMOTE_MASTER_TRIG_SUPPORT` | Link U / MYRIAD | MYRIAD or remote master |
 
-**Key architecture note**: TRIG_LOGIC3 (Y-plane trigger) is literally a second instantiation of `sum_hits_X.vhd`, with `GLOBAL_Y_TOTAL` wired to its `SUM_OF_X` port and `SUM_OF_Y_THRESH` to its `SUM_OF_X_THRESH`. There is no separate `sum_hits_Y.vhd`.
+**Key architecture note**: TRIG_LOGIC3 (Y-plane trigger) is literally a second instantiation of `sum_hits_X.vhd`, with `GLOBAL_Y_TOTAL` wired to its `SUM_OF_X` port and `SUM_OF_Y_THRESH` to its `SUM_OF_X_THRESH`. There is no separate `sum_hits_Y.vhd`. ✅ verified 2026-04-17 — `top.vhd:L2423,L2438-2439` (`TRIG_LOGIC3: sum_hits_X` with `SUM_OF_X => GLOBAL_Y_TOTAL, SUM_OF_X_THRESH => SUM_OF_Y_THRESH`)
 
 ✅ verified 2026-04-17 — `sum_hits_X.vhd` (20180507 trunk, L80): The threshold comparison uses **strictly greater than (`>`)** only — `if (SUM_OF_X > SUM_OF_X_THRESH)`. There is no `COMPARE_MODE_CTL` bit or `==` mode in this file. An earlier claim that `SUM_OF_X_THRESH[15]` selects between `>` and `==` comparison was **incorrect** — the threshold is treated as a full 16-bit unsigned value with no mode-selection bit.
 

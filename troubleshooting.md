@@ -142,6 +142,7 @@ Key issues documented:
 - `knowledgeBase/ioc.md` — IOC config, boot scripts, firmware versions
 - `knowledgeBase/IOC_cmd.md` — VxWorks / iocsh commands for diagnostics (VMERead32, dbl, dbpr)
 - `knowledgeBase/link_sys_analysis.md` — SERDES link init sequence (5-stage); often the cause of SYNC/lock issues
+- `knowledgeBase/trig_setup_scripts.md` — 5-stage trigger setup scripts (trig_setup_Stage1–5.sh): full step-by-step MTRG→RTRG→DIG init; use when bringing up the system from cold
 - `knowledgeBase/DIG_firmware_expert.md` — trigger_mux_select modes, readout configuration
 - `knowledgeBase/preamp_reset_readme.md` — PREAMP_RESET handling: CHANNEL_KILLED, delay register
 - `knowledgeBase/EPICS.md` — EPICS CA tools for PV inspection

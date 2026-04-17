@@ -74,11 +74,12 @@ Stored average BGO tuning values per hemisphere.
 
 ## Data0 Space Monitor (Cron)
 
-A cron job runs hourly checking `/mnt/data0` free space on DCS2. Previously hosted on pi5-dgs. As of 2026-04-15, spark-ca9f (DGX Spark) is the new General DGS host. **Confirm with Ryan whether this cron job has been migrated to spark-ca9f or remains on pi5-dgs.** (Checked 2026-04-15: no crontab active on spark-ca9f; DCS2 unreachable for verification.)
+A cron job that ran hourly checking `/mnt/data0` free space on DCS2. Previously hosted on pi5-dgs.
 
 - **Threshold:** 300 GB free
 - **Action:** Discord alert to #dgsclaw if below threshold
 - **Current status (2026-04-05 09:00 CDT):** 396 GB free (78% used) — runs are accumulating
+- **Migration status (checked 2026-04-17):** No crontab active on spark-ca9f (DGX Spark, current General DGS host). This cron job has **not** been migrated — ask Ryan if it should be set up on spark-ca9f.
 
 ---
 
@@ -122,7 +123,7 @@ Legacy EPICS database files (`resm1.db` – `resm6.db`) from the pre-upgrade VXI
 
 ---
 
-*Source: `DGS_tools_pack/DGS_SVN/dgs/NS_scripts/`. Created: 2026-04-05.*
+*Source: `DGS_tools_pack/DGS_SVN/dgs/NS_scripts/`. Created: 2026-04-05. Updated: 2026-04-17 (cron migration status check).*
 
 ## Cross-References
 

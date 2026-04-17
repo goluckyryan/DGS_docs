@@ -124,10 +124,10 @@ Automated control system for filling germanium detector **dewars** with liquid n
 - On failure: Discord alert to anomaly channel (`discord_anomaly.WebHook`) — exact message: `"⚠️ pi5-lnFill: LNFill_App.py is NOT running at <date>"` ✅ verified 2026-04-16 — `LNFill_pi5_check.sh:L15-17`
 
 ### Fill Duration Alert (`LNFill_check.sh`, on DCS2)
-- **Not currently in crontab** — must be invoked manually or via another mechanism
-- Reads `LNFill_cron.log`, finds last Fill Begin/End pair, computes duration in minutes
-- If duration < threshold (default 10 min), sends Discord alert to anomaly channel: `"Last Fill Duration Alert: <X> minutes @ <begin_ts>"`
-- Threshold is configurable via first argument: `LNFill_check.sh <THRESH_MIN>`
+- **Not currently in crontab** — must be invoked manually or via another mechanism ✅ verified 2026-04-17 — `dcsu@DCS2` crontab only contains `LNFill_pi5_check.sh`
+- Reads `LNFill_cron.log`, finds last Fill Begin/End pair, computes duration in minutes ✅ verified 2026-04-17 — `LNFill_check.sh:L11-40`
+- If duration < threshold (default 10 min), sends Discord alert to anomaly channel: `"Last Fill Duration Alert: <X> minutes @ <begin_ts>"` ✅ verified 2026-04-17 — `LNFill_check.sh:L79`
+- Threshold is configurable via first argument: `LNFill_check.sh <THRESH_MIN>` ✅ verified 2026-04-17 — `LNFill_check.sh:L17` (`THRESH_MIN=${1:-10}`)
 - Uses `discord_anomaly.WebHook` for alerts ✅ verified 2026-04-16 — `LNFill_check.sh` (full script read from DCS2)
 
 ---

@@ -75,7 +75,7 @@ Key lines to check/modify before sorting:
 ```
 bin_dgs
 beta 0.0
-dgs_MM 350          ← M window value (in 10 ns units); 350 = 3.50 µs
+dgs_MM 350          ← M window value (in 10 ns units); 350 = 3.50 µs ✅ verified 2026-04-17 — `basic_settings_DGS.sh:L46` (`m_window=3.5`) = 3.5 µs = 350 in 10 ns units. Note: `GEBSort.chat:L219` currently shows 200 (different template; must match the m_window used during data taking)
 dgs_PZ dgs_pz.cal   ← pole-zero calibration file
 dgs_ecal dgs_ehi.cal ← energy calibration file
 ```
@@ -243,7 +243,7 @@ See `knowledgeBase/dgs_analysis.md` for full details on each step.
 | Full analysis pipeline (EventBuilder variants, RunParquet, parquetCLI) | `knowledgeBase/dgs_analysis.md` |
 | Pole-zero correction theory + `pz_from_parquet.py` | `knowledgeBase/pole_zero.md` |
 | Troubleshooting IOC, FIFO, link lock issues | `knowledgeBase/troubleshooting.md` |
-| Trigger bring-up (5-stage SERDES link-up scripts) | `knowledgeBase/ANLDAQ.md` § Trigger Setup Scripts |
+| Trigger bring-up (5-stage SERDES link-up scripts) | `knowledgeBase/trig_setup_scripts.md` |
 | DAQ GUI (ANLDAQ commander, data-taking tab) | `knowledgeBase/ANLDAQ.md` |
 | DIG firmware — readout modes, data formats | `knowledgeBase/DIG_firmware_expert.md` |
 | GEB data format + type codes | `knowledgeBase/data_structures.md`, `knowledgeBase/dgs_analysis.md` § GEB |

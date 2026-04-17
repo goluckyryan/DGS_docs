@@ -31,7 +31,7 @@ All requests require a Bearer token in the `Authorization` header.
 | Database | What's in it | Who writes |
 |----------|-------------|-----------|
 | `HPGeTemp` | Detector temperatures (all 110 GS holes), Pi board temp | lnFill `SaveTemp.sh` → `StoreDetTemps.py` | ✅ verified 2026-04-09 — `StoreDetTemps.py:L57` (curl write to 192.168.203.56:8181/api/v3/write_lp?db=HPGeTemp)
-| `DGS` | DGS PV snapshots (line protocol from `dumpPVs.py`) | `snapshot_pv/dumpPVs.py` (commented-out code, not yet active) |
+| `DGS` | DGS PV snapshots (line protocol from `dumpPVs.py`) | `snapshot_pv/dumpPVs.py` (commented-out code, not yet active) ✅ verified 2026-04-17 — `dumpPVs.py:L171,L188` (`WriteInflux(...)` calls commented out at both call sites) |
 
 ### Write API (InfluxDB line protocol)
 ```bash

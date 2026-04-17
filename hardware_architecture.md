@@ -59,6 +59,15 @@ Slot 7: MTRG
 - The IOC (MVME5500) connects to onenet via Ethernet
 - EPICS CA traffic (PV reads/writes) flows over onenet between IOC, host PC, and Pis
 
+### VME Crate Structure
+
+- Each VME crate contains **3 individual VME backplanes**, each acting as an independent VME system
+- Each VME system hosts **4 digitizers** → up to 12 DIGs per crate, 40 channels per VME system, 120 ch per crate
+- One of the 12 VME systems per crate is reserved for the Router Trigger (RTRG) + associated electronics
+- Each VME backplane also has **one IOC board (MVME5500)**
+- **VME Fiber Expander** board provides fully optical interface between MTRG (System Trigger) and RTRGs — replaced original short copper cables ✅ wiki `/gsdaq/VME_Crates` 2026-04-17
+- Prior to digital upgrade (before 2023): VXI crates used (larger, housed in a separate electronics "shack" room); VXI system dismantled post-upgrade
+
 ### VME Backplane
 
 - The IOC accesses MTRG, RTRG, and DIG **directly via the VME backplane** (not over the network)
@@ -91,6 +100,15 @@ Accepted events → VME FIFO → MVME5500 (VME backplane) → tcpReceiver → ho
 
 Scales up to 1 MTRG × 8 RTRG × 8 DIG × 10 ch = **640 channels**. ✅ verified 2026-04-06 — `FPGA/MTRG/Firmware/MAIN_FPGA/trunk/.../trigger_top_comp_defs.vhd`: `JTA_8X...` arrays confirm 8 data links (A–H, one per RTRG); 11 total SERDES (8 data + L/R/U)
 Each RTRG manages a "sector" of 8 DIGs = 80 channels = one VME crate.
+
+### Digitizer Hardware Origin
+
+- DGS digitizer boards are **GRETINA-origin hardware** (designed by LBNL; firmware completely new for ANL experiments) ✅ wiki `/gsdaq/Digitizers` 2026-04-17
+- ADC samples: **signed 14-bit @ 100 MHz (10 ns period)**
+- Experiments using this hardware/firmware family: DGS, DFMA (Digital FMA), HELIOS, X-Array (since 2018)
+- **Center/Sum DIGs** (MDIG/BUS_LEFT): connected to RTRG — participate in trigger and veto logic
+- **Side/Pattern DIGs** (SDIG/BUS_RIGHT): receive clock+trigger via front-bus cable from neighbor; one-way link — cannot participate in trigger or veto
+- As of 2023: **Slope Box Extension (SBX) replaced old pickoff cards** — provides programmable time constants and replaces original power/control/monitoring system
 
 ### Additional Hardware vs. DuoGe
 

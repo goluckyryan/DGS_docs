@@ -77,7 +77,7 @@ Algo 5 itself (the CPLD/coincidence trigger) is **absent** from both groups — 
 
 3. Collects trigger decisions and issues synchronized command frames back to all Routers
 4. Supports chaining to other Master Triggers via inter-trigger links (L, R, U)
-5. Generates precise event timestamps via a vernier TDC (TAC-II, ~30 ps resolution)
+5. Generates precise event timestamps via a vernier TDC (TAC-II, ~30 ps resolution ✅ verified 2026-04-17 — `tdc_unit2.vhd:L155,L109-110`: ~70 ps/MUXCY step, MAXDELAY=100ps; synchronous σ = 18–40 ps per TAC.docx §Tests)
 6. Provides VME register access for configuration and status
 
 ## Source Files
@@ -430,7 +430,7 @@ The result is a thermometer code: the position of the `1→0` transition gives f
 | TDC_C | 180° (+2 ns) | `TDC_FINE_COUNT_C` (4-bit) |
 | TDC_D | 270° (+3 ns) | `TDC_FINE_COUNT_D` (4-bit) |
 
-Sampling with clocks at 0°/90°/180°/270° subdivides the 4 ns clock period into 1 ns slices. Combined with the sub-ns tap resolution of the vernier chain, this yields ~30 ps effective resolution.
+Sampling with clocks at 0°/90°/180°/270° subdivides the 4 ns clock period into 1 ns slices. Combined with the sub-ns tap resolution of the vernier chain, this yields ~30 ps effective resolution. ✅ verified 2026-04-17 — `tdc_unit2.vhd:L155` (~70 ps/step nominal), `L109-110` (MAXDELAY=100ps); empirical σ = 18–40 ps per TAC.docx §Tests (see `tac2.md`).
 
 #### Stop-When-Hit Operation
 
@@ -453,7 +453,7 @@ Arming is driven by `AUTO_READ_TDC` in `top.vhd`, a delayed copy of `TRIGGER_OCC
 Coarse resolution : 4 ns   (250 MHz period, counted by TDC_COARSE_COUNT)
 Phase subdivision : ÷ 4    (0°/90°/180°/270°)  → 1 ns per phase step
 Vernier tap delay : ~70 ps per MUXCY stage; ~10 ps within same CLB slice
-Effective result  : ~30 ps (limited by tap-to-tap uniformity across silicon)
+Effective result  : ~30 ps (limited by tap-to-tap uniformity across silicon) ✅ verified 2026-04-17 — tdc_unit2.vhd + TAC.docx (synchronous σ 18–40 ps)
 MAXDELAY constraint: 100 ps (forces router to keep chain compact)
 ```
 

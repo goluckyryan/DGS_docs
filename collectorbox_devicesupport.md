@@ -238,8 +238,8 @@ Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[dev
 ## What Pi Source Can vs Cannot Answer
 
 **Fully answered by Pi source code:**
-- SPI transaction format: 24-bit `[R/W|Addr(7)][Data(15:8)][Data(7:0)]`
-- DEVSEL bus: 5-bit GPIO selects up to 32 devices on the SPI bus
+- SPI transaction format: 24-bit `[R/W|Addr(7)][Data(15:8)][Data(7:0)]` ✅ verified 2026-04-17 — `NonEPICS_SPI_lib.c:L283-285` (`spi_message[0]=(RWflag<<7)+(Addr&0x7F)`, `[1]=Data>>8`, `[2]=Data&0xFF`)
+- DEVSEL bus: 5-bit GPIO selects up to 32 devices on the SPI bus ✅ verified 2026-04-17 — `NonEPICS_SPI_lib.c:L66-71,L159-175` (DEVSEL(4:0) = GPIO26/25/24/23/13; DEVSEL31 is the max value)
 - Two-layer architecture (mailbox vs direct SPI)
 - Read-modify-write vs write-only distinction (empty vs non-empty `parm`)
 - Indirect address/data modes via mailboxes

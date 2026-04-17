@@ -153,11 +153,15 @@ Links G, H, R, U are unused (`X`) in this config. Link L of each RTRG connects b
 
 ## Key Design Notes
 
+- **EPICS whole-register vs breakout PV gotcha:** Writing to a whole-register PV (e.g., `VME10:MTRG:reg_INPUT_LINK_MASK`) updates `reg_INPUT_LINK_MASK_RBV` but does **not** update the associated breakout PVs (`ILM_A`–`ILM_H`). Conversely, writing to a breakout PV updates the hardware register and `reg_INPUT_LINK_MASK_RBV`, but does **not** update the `reg_INPUT_LINK_MASK` process variable. Because the GUI control windows use breakout PVs exclusively, all scripts must also use **breakout PVs only** (not whole-register writes) to keep the GUI synchronized with hardware state. ✅ verified 2026-04-17 — `Serdes_Linkup.sh:L7–29` (full explanation in header comment)
+
 - **Double-write pattern:** EPICS can lose track of hardware state. Many PVs are written to the *wrong* value first, then the *correct* value, to force the driver to re-assert the desired state (seen extensively in Stage 2).
 - **Fiber expander (2022+):** DC balance must be enabled on MTRG (`EN_RTR_DCBAL`) and each RTRG (`LinkL_DCbal`). Cable pre-emphasis (`PEHLRU/PEEFG/PEABCD`) must be 0 when using fiber.
 - **Clock synchronization:** All boards start on local clock. After link lock is confirmed, the system can optionally switch to MTRG-distributed clock (not shown in basic 5-stage init).
 - **Author:** JTA (J. T. Anderson, likely) — initials appear in comments for 2022–2024 additions.
-- **`Serdes_Linkup.sh`:** Another script in the directory — likely a consolidated invocation of stages 1–5. Not yet read.
+- **`Serdes_Linkup.sh`:** Sequential wrapper that invokes Stages 1–5 in order. Sets `SCRIPT_DIR` to `${ANLDAQ_DIR}/gui/scripts/new_scripts` (legacy path — `new_scripts/` subdir does not exist in the current repo; stage scripts live directly in `scripts/`). ✅ verified 2026-04-17 — `Serdes_Linkup.sh:L3` (SCRIPT_DIR assignment), `L48/57/67/78/87` (stage invocations)
+  - ⚠️ After completion, **Link L F1 propagation is removed** — cross-system clock/triggering must be reconstituted manually after this script finishes (noted in end-of-script echo block: `Serdes_Linkup.sh:L106–111`)
+  - Also documents the EPICS **whole-register vs breakout PV gotcha** (see Key Design Notes below)
 
 ---
 

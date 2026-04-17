@@ -279,7 +279,7 @@ Controls which clock the digitizer uses as its system clock. The two bits (`sysc
 
 **Important:** the register bits are **inverted** before the output pins (`sysclk_sel0_out <= NOT sysclk_sel0`) to match the original LBL digitizer board design. EPICS values are correct end-to-end — the inversion is transparent to software.
 
-Default at reset: `sysclk_sel0=1, sysclk_sel1=0` → OSC (local oscillator).
+Default at reset: `sysclk_sel0=1, sysclk_sel1=0` → OSC (local oscillator). ✅ verified 2026-04-17 — `VME_FPGA_ANL/Source/register_block.vhd:L165-166` (`sysclk_sel0 <= '1'; sysclk_sel1 <= '0'; -- initialize to use internal clock`)
 
 | `clk_select` EPICS value | `sel[1:0]` | Meaning |
 |---|---|---|
@@ -287,6 +287,8 @@ Default at reset: `sysclk_sel0=1, sysclk_sel1=0` → OSC (local oscillator).
 | 1 | `01` | **OSC** — local on-board oscillator (default) |
 | 2 | `10` | S/D — same as 0 |
 | 3 | `11` | AUX — auxiliary clock input |
+
+✅ verified 2026-04-17 — `MDigUserVME.template` (`clk_select` mbbo: ZRST=S/D, ONST=OSC, TWST=S/D, THST=AUX); `register_block.vhd:L351-352` (write to 0x0910 sets sysclk_sel[1:0] from VME_data_in[1:0])
 
 **EPICS PV:** `VME$(CRATE):$(BOARD):clk_select` (mbbo, `MDigUserVME.template` / `SDigUserVME.template`)
 

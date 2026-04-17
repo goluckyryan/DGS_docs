@@ -238,7 +238,9 @@ Each command frame = 5 × 18-bit words:
 | 0x18 | Front End Reset (serial links only) | ✅ verified 2026-04-16 — `SERDES_RX_Mach.vhd:L314` (`when X"18" => RESET_LINKS_FLAG <= '1'`) |
 | 0x22 | External Discriminator Request (DGS, added 20160418) | ✅ verified 2026-04-16 — `DIG/MAIN_FPGA/BuildBranches/DGS_TAG_20180607_TWEAK/DGS/Source/SERDES_RX_Mach.vhd:L317` (`when X"22" => EXTERNAL_DISC_FLAG_PENDING <= '1'`; block added 20160418 comment at L278)
 | 0x40 | Demand Front End Slow Data | ✅ verified 2026-04-13 — `SERDES_RX_Mach_R2.vhd:L241` FRAME 13 FIXED_BITS = `X"40FB"` → cmd byte bits 16..9 = 0x40 |
-| 0x50–0x5A, 0xA5 | Trigger Decision Frame |
+| 0x50–0x57 | Trigger Decision Frame (local/GITMO algos: 0x50=algo1, 0x51=algo2, 0x52=algo3, 0x53=algo4, 0x54=algo5, 0x56=GITMO) | ✅ verified 2026-04-17 — `VIVADO_MAIN_FPGA/trunk/Source/top.vhd:L2240–2435`; `last_manual_top.vhd:L2341–2536`
+| 0x60–0x6F | Re-propagated trigger from Link L (remote algo type in low nibble) | ✅ verified 2026-04-17 — `remote_trig_support.vhd:L388`
+| 0x70–0x7F | Re-propagated trigger from Link R/U (delay mode) | ✅ verified 2026-04-17 — `remote_trig_support.vhd:L411`
 | 0x81 | Imperative Sync (force reload of timestamps) |
 | 0x90–0x97 | Auxiliary Detector command (reserved) |
 | 0x98–0x9F | Main Detector Miscellaneous command (reserved) |
@@ -370,14 +372,20 @@ All frames 3–10 are identically formatted:
 | 0x5A | Auxiliary detector input only | System Timestamp when auxiliary detector edge sensed |
 | 0xA5 | Combination (energy sum, pattern, etc.) | Lowest (earliest) timestamp of all included data |
 
-**DGS/DFMA Trigger Type Codes:**
+**DGS/DFMA Trigger Type Codes (actual firmware values):**
 | Code | Trigger Type | Event Timestamp |
 |------|-------------|----------------|
-| 0x01–0x05 | Local trigger algorithm 1–5 | System Timestamp at decision time (within 200 ns of SERDES data receipt) |
-| 0x06 | Re-propagated trigger from Link L | Same |
-| 0x07 | Re-propagated trigger from Link R | Same |
-| 0x08 | Re-propagated trigger from Link U | Same |
-| 0x00 | External input (NIM) | System Timestamp at edge detection |
+| 0x50 | Local trigger algorithm 1 (CPLD fast strobe) | System Timestamp at decision time | ✅ verified 2026-04-17 — `VIVADO_MAIN_FPGA/trunk/Source/top.vhd:L2240`; `MAIN_FPGA/trunk/Source/last_manual_top.vhd:L2341`
+| 0x51 | Local trigger algorithm 2 (sum_hits_X) | Same | ✅ verified 2026-04-17 — `top.vhd:L2288`; `last_manual_top.vhd:L2389`
+| 0x52 | Local trigger algorithm 3 (sum_hits_X) | Same | ✅ verified 2026-04-17 — `top.vhd:L2339`; `last_manual_top.vhd:L2440` (comment: "change trigger type code from 02 to 03" — codes were changed from 0x01–0x05 to 0x50–0x54)
+| 0x53 | Local trigger algorithm 4 (sum_hits_XY) | Same | ✅ verified 2026-04-17 — `top.vhd:L2390`; `last_manual_top.vhd:L2491`
+| 0x54 | Local trigger algorithm 5 (CPLD fast strobe) | Same | ✅ verified 2026-04-17 — `top.vhd:L2435`; `last_manual_top.vhd:L2536`
+| 0x56 | GITMO trigger (external GS) | Same | ✅ verified 2026-04-17 — `GITMO_TRIGGER.vhd:L279`
+| 0x6X | Re-propagated trigger from Link L (X = remote algo type[2:0]) | Same | ✅ verified 2026-04-17 — `remote_trig_support.vhd:L388` (`TRIGGER_SUBTYPE <= X"6" & '0' & REMOTE_TRIG_TYPE`)
+| 0x7X | Re-propagated trigger from Link R/U (delay mode; X = type[2:0]) | Same | ✅ verified 2026-04-17 — `remote_trig_support.vhd:L411` (`TRIGGER_SUBTYPE <= X"7" & '0' & REMOTE_TRIG_TYPE`)
+| 0x00 | External input (NIM via GITMO, no timestamp match) | System Timestamp at edge detection | ✅ verified 2026-04-17 — `GITMO_TRIGGER.vhd:L204` (`TRIGGER_SUBTYPE <= X"00"`)
+
+> **⚠️ Note:** The TTCL spec PDF (v2.1, 2013) lists codes 0x01–0x05 for local algorithms 1–5. The actual firmware uses **0x50–0x54** — the codes were deliberately changed. The DIG `SERDES_RX_Mach.vhd` confirms: "Local triggers are, by fiat, 0x5nxx (n=0-7). Remote trigs are 0x6nXX." ✅ verified 2026-04-17 — `DIG SERDES_RX_Mach.vhd:L735` (comment at TRIGGER_DECISION_FRAME_WORD_1 state)
 
 **Front End Selection byte:**
 - 0x00 = broadcast trigger (all front ends respond)

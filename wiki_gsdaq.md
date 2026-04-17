@@ -184,6 +184,9 @@ All known wiki pages have been visited as of 2026-04-07. Summary:
 | `/gsdaq/The_Slope_Box` | 2026-04-05 | → `sbx.md` |
 | `/gsdaq/The_Slope_Box_Extension` | 2026-04-05 | → `sbx.md` |
 
+| `/gsdaq/VME_Crates` | 2026-04-17 | Crate structure (3 backplanes, 4 DIGs each, fiber expander, VXI history) → `hardware_architecture.md` § VME Crate Structure |
+| `/gsdaq/Digitizers` | 2026-04-17 | GRETINA-origin HW; 14-bit @ 100 MHz; Center/Sum vs Side/Pattern DIG roles; SBX replaced old pickoff 2023 → `hardware_architecture.md` § Digitizer Hardware Origin |
+
 **No pending wiki pages.** If new pages appear on the wiki, add them here.
 
 ---

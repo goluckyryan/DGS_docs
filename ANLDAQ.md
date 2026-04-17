@@ -29,16 +29,16 @@ Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS
 | File | Lines | Function |
 |------|-------|----------|
 | `commander.py` | 852 | Main window: run control, board buttons, settings persistence | ✅ verified 2026-04-14 — `wc -l commander.py`=852 |
-| `gui_DIG.py` | 374 | Digitizer board config window (per-channel + per-board PVs) |
+| `gui_DIG.py` | 374 | Digitizer board config window (per-channel + per-board PVs) | ✅ verified 2026-04-17 — `wc -l gui_DIG.py`=374 |
 | `gui_MTRG.py` | 1425 | Master trigger board window (largest GUI module) | ✅ verified 2026-04-17 — `wc -l gui_MTRG.py`=1425 |
 | `gui_RTR.py` | 550 | Router trigger board window (2 tabs: LINK Control, X/Y Map) | ✅ verified 2026-04-17 — `wc -l gui_RTR.py`=550 |
-| `gui_DataTaking.py` | 227 | IOC config dialog + live run status window |
+| `gui_DataTaking.py` | 227 | IOC config dialog + live run status window | ✅ verified 2026-04-17 — `wc -l gui_DataTaking.py`=227 |
 | `gui_SYS.py` | 427 | System tabs: timestamps, link status, TCP rates, code revision (see GUI section below) | ✅ verified 2026-04-17 — `wc -l gui_SYS.py`=427 |
 | `gui_Board.py` | — | Generic board PV window (table of all PVs for a board) |
 | `gui_LinkSys.py` | — | Link system window (`link_sys.py` launcher) | ✅ verified 2026-04-17 — `wc -l gui_LinkSys.py`=295 |
 | `gui_scalar.py` | — | Scalar/rate monitor window |
 | `gui_Det.py` | — | Detector view window |
-| `class_Board.py` | 73 | Board abstraction (see below) |
+| `class_Board.py` | 73 | Board abstraction (see below) | ✅ verified 2026-04-17 — `wc -l class_Board.py`=73 |
 | `class_PV.py` | — | EPICS PV abstraction (see below) |
 | `class_PVWidgets.py` | — | PV-bound Qt widgets (see below) |
 | `custom_QClasses.py` | — | Custom Qt base classes (see below) |
@@ -76,12 +76,12 @@ Wraps a single EPICS PV with DGS-specific metadata:
 
 Represents one VME board (DIG, RTRG, MTRG, DAQ):
 
-- `BD_name` — board prefix (e.g. `MDIG0101`, `RTR001`, `MTRG001`)
-- `Board_PV[]` — list of board-level `PV` objects (subscribed immediately on creation)
-- `CH_PV[ch][pv_idx]` — 2D array of per-channel `PV` objects (10 ch for DIG)
-  - Channel PVs are **not subscribed at creation** — only subscribed via `SubscribeChannels()` when a channel window opens, and unsubscribed via `UnsubscribeChannels()` when it closes
+- `BD_name` — board prefix (e.g. `MDIG0101`, `RTR001`, `MTRG001`) ✅ verified 2026-04-17 — `class_Board.py:L10,L16`
+- `Board_PV[]` — list of board-level `PV` objects (subscribed immediately on creation via `AddCallback()`) ✅ verified 2026-04-17 — `class_Board.py:L71` (`pv_b.AddCallback()`)
+- `CH_PV[ch][pv_idx]` — 2D array of per-channel `PV` objects (10 ch for DIG) ✅ verified 2026-04-17 — `class_Board.py:L21`
+  - Channel PVs are **not subscribed at creation** — only subscribed via `SubscribeChannels()` when a channel window opens, and unsubscribed via `UnsubscribeChannels()` when it closes ✅ verified 2026-04-17 — `class_Board.py:L30,L33-45`
   - This keeps CA connections minimal when boards aren't being inspected
-- Board name prefix is stamped onto each PV: `f"{BD_name}:{pv.name}{ch_idx}"` for channels, `f"{BD_name}:{pv.name}"` for board PVs
+- Board name prefix is stamped onto each PV: `f"{BD_name}:{pv.name}{ch_idx}"` for channels, `f"{BD_name}:{pv.name}"` for board PVs ✅ verified 2026-04-17 — `class_Board.py:L29` (channel), `L67,L69` (board)
 
 ---
 
@@ -404,8 +404,39 @@ Key facts:
   - **Data size polling:** every 15 s during a run, `du -sh <data_folder>/<run_name>/` via SSH
   - **Progress mapping:** `START_MSGS`/`STOP_MSGS` dicts map raw script output substrings to friendly status messages (e.g. "tcpReceiverMT" → "Opening receiver (MT)...", "is running" → "DAQ started!")
   - **Threading:** all SSH calls run in daemon threads; GUI updates posted via `self.after(0, ...)`
-- `basic_settings_DGS.sh` — sets all DIG channels to known-good CFD config
+- `basic_settings_DGS.sh` — sets all 44 DIG boards (VME01–12, 2–4 DIGs each, ch 5–9) to a known-good CFD baseline; see details below
+- `basic_settings_TACII.sh` — minimal single-VME (VME10) TACII test bench setup; enables MTRG CS + SYSMON, enables MDIG1, sets `EN_MAN_AUX on`, clears veto
+- `gui/scripts/basic_settings_LED.py` — Python equivalent of basic_settings_DGS.sh for LED mode (currently hardcoded VME66 = test stand; threshold=300) ✅ verified 2026-04-17 — `basic_settings_LED.py:L12` (`THRESHOLD=300`), `L27` (`VME_RANGE = range(66, 67)  # VME66`)
 - Legacy receivers in `legacy/`: `dgsReceiver.cpp` (MBO v6.57) + Ryan's fork
+
+### basic_settings_DGS.sh — DIG Channel Initialization
+
+**Source:** `DGS_tools_pack/ANLDAQ/tcpReceiver/basic_settings_DGS.sh`  
+**Mode:** Configurable at top of script (`mode=CFD` or `mode=LED`). Default: CFD.
+
+Loops over VME01–12 (2 MDIGs per crate; VME06+VME10 have only MDIG1), channels 5–9 per DIG:
+
+| Step | PV | CFD Value | LED Value | Notes |
+|---|---|---|---|---|
+| Reset | `master_logic_enable` | `Reset` | `Reset` | Clear logic before config |
+| Mode | `cfd_mode` | `CFD_Mode` | `LED_Mode` | Selects CFD or LED discriminator |
+| P1 | `p1_window{CH}` | 0.07 µs | 0.07 µs | Pre-trigger window |
+| P2 | `p2_window{CH}` | 0.05 µs | 0.05 µs | Pre-trigger 2 window |
+| M | `m_window{CH}` | 3.5 µs | 2.5 µs | Main integration window |
+| K0 | `k0_window{CH}` | 0.56 µs | 0.5 µs | K0 delay |
+| K | `k_window{CH}` | 0.2 µs | 0.5 µs | K delay (CFD fixed) |
+| D | `d_window{CH}` | 0.06 µs | 0.16 µs | CFD fraction delay |
+| D3 | `d3_window{CH}` | 0.2 µs | — | Baseline tracker offset (CFD only) |
+| CFD fraction | `CFD_fraction{CH}` | 25 | — | CFD fraction % (CFD only) |
+| Threshold | `led_threshold{CH}` | 30 | 300 | LED threshold ADC counts |
+| Polarity | `trigger_polarity{CH}` | `RiseEdge` | `RiseEdge` | |
+| Raw data delay | `raw_data_delay{CH}` | 0.5 µs | 0.5 µs | |
+| Raw data length | `raw_data_length{CH}` | 0.32 µs | 0.32 µs | Minimum trace (no waveform) |
+
+After channel config per DIG: `CS_Ena=Enable`, `veto_enable=0`, FIFO reset→run.  
+Final: `Online_CS_StartStop=Stop`, `Online_CS_SaveData=No Save` (safety — ensures system isn't writing data).
+
+> **CFD values labeled "Mike CFD value"** — these are Mike Carpenter's tuned production parameters. Earlier commented-out values (k=0.16, d=0.1, m=3.5, CFD_fraction=30) were previous defaults. ✅ verified 2026-04-17 — `basic_settings_DGS.sh` source comments
 
 > ⚠️ Wiki says "UDP packets" — incorrect. `SOCK_STREAM` = TCP. See `ANLDAQ_tcpReceiver.md` for details.
 

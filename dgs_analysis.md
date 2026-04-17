@@ -602,4 +602,96 @@ Key improvements with ReadPool (vs without):
 
 ---
 
-*Source: `DGS_tools_pack/dgs_analysis/` + `DGS_tools_pack/gebsort/`. Updated: 2026-04-07.*
+## analyzer_*.cpp — ROOT Analysis Scripts (fastEventConstructor)
+
+_Source: `dgs_analysis/armory/fastEventContructor/` — five ROOT CINT/compiled scripts. Documented 2026-04-17._
+
+These are **standalone ROOT analysis scripts** that work on event-built ROOT TTrees produced by the EventBuilder variants. They are not part of the automated pipeline — run interactively in ROOT or compiled.
+
+### Common Infrastructure
+
+**`analyzer.h`** — shared utilities:
+- `MWIN 350.0` — coincidence window constant (match window, units = 10 ns ticks, so 3.5 µs) ✅ verified 2026-04-17 — `analyzer.h:L16` (`#define MWIN 350.;`)
+- `ZeroCrossing()` — finds zero crossing of 2–3 (x,y) points using linear interpolation (2 pts) or quadratic fit (3 pts); used for CFD timing from trace samples ✅ verified 2026-04-17 — `analyzer.h:L18-50` (3-pt: quadratic Newton form; 2-pt: linear interp)
+
+**`misc.h`** — `LoadChannelMapFromFile()` — loads the GS hole → detector ID mapping from `angtheta.dat` / `map.dat`
+
+### analyzer.cpp — Standard Gamma-Gamma Analysis (347 lines)
+
+Main HPGe coincidence analysis. Reads a ROOT TTree with the standard event-built schema.
+
+**Branches used:** `NumHits`, `detID`, `energy` (long long), `eventTS`, `trigTS`, `CFD_sample_0/1/2`
+
+**Histograms produced:**
+| Histogram | Description |
+|-----------|-------------|
+| `he[110]` | Per-detector energy spectra (110 histograms) |
+| `heID` | Energy vs detector ID (2D, 200 bins × 110 dets) |
+| `heIDEven/Odd` | Energy vs det ID split south/north hemispheres |
+| `hTDiff[110]` | Per-detector time difference spectra |
+| `hMultiHits` | Gamma multiplicity distribution (up to 10) |
+| `hIDvID` | Det ID vs Det ID for multiplicity-2 events |
+| `hEE` | Energy-energy for multiplicity-2 events |
+| `hGG` | Energy-energy for two specific detectors (default: 70 vs 62) |
+| `hGTimeDiff` | Time difference between those two detectors |
+| `hTT1/hTT2` | Timestamp diffs from first hit of events |
+| `hTDiffHitOrder` | Time diff vs hit order for det 62 |
+| `hTDiffEnergy` | Time diff vs energy for det 62 |
+
+**Energy range:** 100–6000 a.u. (raw units, uncalibrated); **time range:** 0–600 ns.
+
+**CFD timing:** For each hit, uses `ZeroCrossing(CFD_sample_0/1/2, tick_offsets)` to compute sub-tick timing. Offset tick positions are derived from `eventTS` bits.
+
+**Hardcoded detector pair:** `detX=70, detY=62` (Gammasphere hole numbers) for the gated γ-γ analysis. ✅ verified 2026-04-17 — `analyzer.cpp:L32-33`
+
+### analyzer_tac.cpp — TAC-II Coincidence Analysis (265 lines)
+
+Analyzes TAC-II timing data in coincidence with HPGe hits. TAC hits are identified by `detID == 999`. ✅ verified 2026-04-17 — `analyzer_tac.cpp:L78`
+
+**Key histograms:**
+| Histogram | Description |
+|-----------|-------------|
+| `htacDiff` | TAC trigTime − det 62 trigTime (10 ns bins, ±10 µs range) |
+| `htacDiffID` | TAC time diff vs detector ID (2D) |
+| `hTrigTime` | Trigger time distribution (0–10 µs) |
+| `heventTStrigTSDiff` | eventTS − trigTS vs detector ID (timing offset map) |
+| `hTACMultiplicity` | TAC hit multiplicity per event |
+| `hTACMultiVsTimeDiff[7]` | TAC time diff to previous hit, per multiplicity level |
+| `heventTimeSpan` | Time span of hits within one coincidence event |
+
+**Event classification:** Each event is counted as one of four categories:
+- `withTACcount`: has both GS and TAC hits
+- `noTACcount`: GS only
+- `onlyTACcount`: TAC only (beam monitor without γ)
+- `noTACandGScount`: neither (should be rare)
+
+**Time units:** 10 ns ticks (20 ns clock → the DIG timestamp clock is 20 ns; trigTS is in those ticks).
+
+### analyzer_trace.cpp — Waveform Trace Analysis (324 lines)
+
+Analyzes waveform trace data stored in the ROOT tree (requires `saveTrace=true` during event building).
+
+**Key branches:** `tracePara[hit][param]`, `traceDetID` — trace parameters and associated detector.
+
+`tracePara` columns (from context):
+- `[0]` = energy (a.u.) from trace
+- `[1]` = rise time or decay parameter
+- `[2]` = some shape parameter (plotted against each other for tail analysis)
+
+**Purpose:** Characterize pulse shape discrimination (PSD) — separates neutrons from gammas, or identifies pile-up. The `TCutG` graphical cuts in `analyzer_script.cpp` are drawn on `tracePara[0][1]` vs `tracePara[0][2]` to select "lower tail" and "high tail" events for a specific detector (`traceDetID == 12107`).
+
+### analyzer_pz_cal.cpp — Pole-Zero Calibration from Traces (155 lines)
+
+Extracts pole-zero correction parameters from waveform traces. Complements `pz_from_parquet.py` (which uses Parquet output). Works on ROOT TTree trace data.
+
+### analyzer_script.cpp — ROOT Script for Trace Shape Analysis (71 lines)
+
+Short ROOT CINT script demonstrating trace parameter analysis:
+- Opens `tac2_021_single.root`
+- Applies graphical cuts (`TCutG`: `lowerTail`, `highTail`) on `tracePara[0][1]` vs `tracePara[0][2]`
+- Plots energy vs trace shape parameters for detector `12107` with/without a 500 a.u. energy cut
+- **Purpose:** Inspect tail shape to separate full-energy peaks from Compton scatter or charge-loss events
+
+---
+
+*Source: `DGS_tools_pack/dgs_analysis/` + `DGS_tools_pack/gebsort/`. Updated: 2026-04-07; analyzer_*.cpp section added 2026-04-17.*

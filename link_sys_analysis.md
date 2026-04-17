@@ -125,13 +125,13 @@ For each RTRG (Router):
 
 **Why:** This is the most critical stage — it solves Problem 2 (clock hand-off ordering) and Problem 3 (timestamp alignment) for the MTRG–RTRG tier. Lock must be confirmed stable *before* flipping the clock, because switching to an unstable clock would cause SERDES to lose lock entirely. The 15-second stability check after the switch is essential: a link that briefly drops and re-locks during this window would cause all downstream timestamp counters to be off.
 
-**3A:** Wait 3 seconds, then check that all active MTRG–RTRG SERDES links are locked (`LOCK_x_RBV == "Off"` means locked — note: "Off" = no lock-loss event, i.e. locked). The 3-second wait gives SERDES time to acquire lock after Stage 2 configuration.
+**3A:** Wait 3 seconds, then check that all active MTRG–RTRG SERDES links are locked (`LOCK_x_RBV == "Off"` means locked — note: "Off" = no lock-loss event, i.e. locked). The 3-second wait gives SERDES time to acquire lock after Stage 2 configuration. ✅ verified 2026-04-17 — `link_sys.py:L359` (`time.sleep(3.0)` before 3A lock check)
 
 **3B:** Wait 2 more seconds, then check that each RTRG's Link L (the SERDES link from MTRG to that RTRG) is also locked.
 
 **3C:** Verify the MTRG link-init state machine reports `ALL_LOCK` — meaning every active link has achieved and held lock.
 
-**3D:** Reset each Router's `LOST_LOCK` flag, wait 5 seconds, then verify no lost-lock events occurred during those 5 seconds.
+**3D:** Reset each Router's `LOST_LOCK` flag, wait 5 seconds, then verify no lost-lock events occurred during those 5 seconds. ✅ verified 2026-04-17 — `link_sys.py:L401` (`time.sleep(5.0)` after `ResetRouterLostLock` before re-check)
 - *Why reset and re-check:* the reset clears transient glitches left over from Stage 2 reconfiguration. Only a clean 5-second window with zero lost-lock events confirms the lock is genuinely stable, not just momentarily recovered.
 
 **3E:** Flip each RTRG's clock source from its local oscillator → **Link L clock** (derived from the MTRG's oscillator).
@@ -148,7 +148,7 @@ For each RTRG (Router):
 **3G:** 15-second stability check:
 - `reg_DiagnosticF` = RTRG lock state machine event counter — counts how many times the lock state machine cycled. Must be 0 (no lock events after IMP_SYNC)
 - `reg_DiagnosticG` = RTRG Link L SERDES chip lock counter — counts SERDES lock acquisitions on Link L. Must be 0
-- *Why 15 seconds:* intermittent lock glitches can take several seconds to appear. A link that looks locked for 2 seconds but drops at second 10 would corrupt all subsequent timestamps. 15 seconds is long enough to catch these.
+- *Why 15 seconds:* intermittent lock glitches can take several seconds to appear. A link that looks locked for 2 seconds but drops at second 10 would corrupt all subsequent timestamps. 15 seconds is long enough to catch these. ✅ verified 2026-04-17 — `link_sys.py:L497` (`time.sleep(15.0)`)
 - **Do not proceed if either counter is non-zero** — it means the link is not stable and timestamps will be unreliable
 
 **What is achieved:** All RTRGs are now running on the MTRG's clock. The MTRG and all RTRGs share a common, stable 48-bit timestamp counter (reset to 0 by IMP_SYNC). The MTRG–RTRG tier is fully synchronized. DIGs are still on their own independent local oscillators — that is resolved in Stage 4.
@@ -320,12 +320,12 @@ rtrg_map = [
 
 Stage 5 is the critical final step that transitions from SYNC patterns to real physics data:
 
-1. **5A:** Clear `sd_sync` on all DIGs → digitizers switch from SYNC to discriminator data
-2. **5B:** Wait 2s, verify all RTRGs show `ALL_LOCKED_RBV = 1` — if any router fails, abort
-3. **Pulse** `LOCK_RETRY` then `LOCK_ACK` on all RTRGs (clears lock retry state)
+1. **5A:** Clear `sd_sync` on all DIGs → digitizers switch from SYNC to discriminator data ✅ verified 2026-04-17 — `link_sys.py:L625` (`SetPVManually(dig_name, "sd_sync", 0)` for all DIGs)
+2. **5B:** Wait 2s, verify all RTRGs show `ALL_LOCKED_RBV = 1` — if any router fails, abort ✅ verified 2026-04-17 — `link_sys.py:L630` (`time.sleep(2.0)` then `ALL_LOCKED_RBV != 1` error check)
+3. **Pulse** `LOCK_RETRY` then `LOCK_ACK` on all RTRGs (clears lock retry state) ✅ verified 2026-04-17 — `link_sys.py:L640-644`
 4. **5C:** Clear `LRUCtl02` on all RTRGs (router Link L SYNC off) → routers send real data to MTRG
-   - Also clear MTRG `LRUCtl02`, `LRUCtl06`, `LRUCtl10` (L/R/U SYNC off)
-5. **5D:** Wait 2s, verify MTRG `LINK_INIT_STATE_RBV == "ACKED"` — if not, abort
+   - Also clear MTRG `LRUCtl02`, `LRUCtl06`, `LRUCtl10` (L/R/U SYNC off) ✅ verified 2026-04-17 — `link_sys.py:L651-658` (per-RTR `LRUCtl02=0`, then MTRG L/R/U all three SYNC bits cleared)
+5. **5D:** Wait 2s, verify MTRG `LINK_INIT_STATE_RBV == "ACKED"` — if not, abort ✅ verified 2026-04-17 — `link_sys.py:L661-665` (`time.sleep(2.0)` then check `ACKED`)
 
 The SYNC clear order matters: DIGs first, then RTRGs, then MTRG LRU SYNCs.
 
