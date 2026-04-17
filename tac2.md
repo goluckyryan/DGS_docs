@@ -107,6 +107,8 @@ Time = (Offset × 4 ns) + (per-phase adjustment) - (0.05 ns × vernier_position)
 | 180° | Offset2 | +1 ns |
 | 270° | Offset3 | +2 ns |
 
+✅ verified 2026-04-16 — TAC.docx §Calculation: "Add 3ns to the Offset 1 value / Add 0ns to the Offset 2 value / Add 1ns to the Offset 3 value / Add 2ns to the Offset 4 value" (1-indexed = 0°/90°/180°/270° respectively)
+
 **Best time = average of all valid phases.**
 
 ### Coarse Counter Rollover
