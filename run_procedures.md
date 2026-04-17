@@ -58,13 +58,13 @@ start_run.sh "run comment here"   # arg1 = optional comment; run number auto-inc
 # Stop run
 stop_run.sh
 
-> ✅ verified 2026-04-14 — `start_run.sh:L49` (`argComment="$1"`); run number comes from `NEXT_RUN` in `expInfo.sh`, not a CLI argument. See `knowledgeBase/ANLDAQ.md` §expInfo.sh for full setup.
-
 # Merge data files from run 123
 gebmerge.sh 123
 # → merged file in Merged/, log in LOG_FILES/
 # Note: run gebmerge on a different machine to avoid disrupting receivers
 ```
+
+> ✅ verified 2026-04-14 — `start_run.sh:L49` (`argComment="$1"`); run number comes from `NEXT_RUN` in `expInfo.sh`, not a CLI argument. See `knowledgeBase/ANLDAQ.md` §expInfo.sh for full setup.
 
 ---
 
@@ -253,4 +253,4 @@ See `knowledgeBase/dgs_analysis.md` for full details on each step.
 ---
 
 *Created: 2026-04-05 from [wiki: Typical DGS Run Procedures](https://wiki.anl.gov/gsdaq/Typical_DGS_run_procedures)*
-*Updated: 2026-04-07 — added Modern Workflow section + Cross-References*
+*Updated: 2026-04-16 — moved verification note outside code fence (formatting fix); RunParquet defaults verified 2026-04-14*
