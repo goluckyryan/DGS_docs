@@ -376,10 +376,10 @@ For the full word-by-word bit layout of all 20 frames, see [deep_fpga_MTRG_MAIN.
 
 ### ADC Interface
 
-- 10 channels, 14-bit resolution, 100 MHz sampling
-- Differential clock output: `ADC_CLK_P/N`
-- Per-channel data ready: `ADC_DRDY_PINS[9:0]`
-- Per-channel overflow: `ADC_OVR[9:0]`
+- 10 channels, 14-bit resolution, 100 MHz sampling ✅ verified 2026-04-17 — `Digitizer.vhd:L57-61` (`ADC_CLK_P/N` comment says "100 MHz ADC clock"; `ADC_DATA_PINS: Array_9_0_slv_13_0` = 10×14-bit)
+- Differential clock output: `ADC_CLK_P/N` ✅ verified 2026-04-17 — `Digitizer.vhd:L57-58`
+- Per-channel data ready: `ADC_DRDY_PINS[9:0]` ✅ verified 2026-04-17 — `Digitizer.vhd:L60`
+- Per-channel overflow: `ADC_OVR[9:0]` ✅ verified 2026-04-17 — `Digitizer.vhd:L61`
 - Data captured in IOBs and re-latched for pipeline alignment
 
 ### External Discriminator Modes (per channel)
