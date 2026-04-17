@@ -141,10 +141,12 @@ Decodes TAC-II TDC packets (magic `0x0000AAAA`). The TAC-II provides fine-timing
 | [14] | `vernierAB` — vernier for TDC channels 0 & 1 (6 bits each + 4-bit valid) |
 | [15] | `vernierCD` — vernier for TDC channels 2 & 3 |
 
+✅ verified 2026-04-17 — `class_TAC.py:L36-50` (`decode()` method: payload indices match exactly; `timestampTrig = (payload[2]<<32)+(payload[3]<<16)+payload[4]`; `vernierAB=payload[14]`, `vernierCD=payload[15]`)
+
 ### Timing resolution
 - Coarse: 4 ns (`fourNanoSecCounter` × 4)
 - Vernier: 0.05 ns steps (6-bit, 0–63 → 0–3.15 ns interpolation)
-- Final `phaseTime[i]` = baseTime + coarse×4 + channel_offset − vernier×0.05
+- Final `phaseTime[i]` = baseTime + coarse×4 + channel_offset − vernier×0.05 (channel_offset = `[0, 1, 2, 3]` ns for channels 0–3 ✅ verified 2026-04-17 — `class_TAC.py:L28` `self.offset = [0, 1, 2, 3]`)
 - `avgPhaseTime` = average over valid channels
 
 `timestampTrig` and `timestampTDC` both converted to ns (×10).
