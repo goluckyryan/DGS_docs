@@ -542,11 +542,11 @@ From `ANLDAQ/EPICS_para.sh`:
 
 | System | Terminal Server IP | Example Port | IOC Data IP(s) |
 |--------|--------------------|--------------|----------------|
-| DUO (tangerine/vme66) | 192.168.203.54 | 2001 | 192.168.203.81 |
-| DXA | 192.168.203.47 | ? | 192.168.203.212, .213 |
-| SlopeBox (vme99) | 192.168.203.139 | ? | — |
-| DGS south | 192.168.203.186 | per crate | .141–.145, .177–.183 |
-| DGS north | 192.168.203.91 | per crate | .141–.145, .177–.183 |
+| DUO (tangerine/vme66) | 192.168.203.54 | 2001 | 192.168.203.81 | ✅ verified 2026-04-17 — `EPICS_para.sh:L18` |
+| DXA | 192.168.203.47 | ? | 192.168.203.212, .213 | ✅ verified 2026-04-17 — `EPICS_para.sh:L27` |
+| SlopeBox (vme99) | 192.168.203.139 | ? | — | ✅ verified 2026-04-17 — `EPICS_para.sh:L38` |
+| DGS south | 192.168.203.186 | per crate | .141–.145, .177–.183 | ✅ verified 2026-04-17 — `EPICS_para.sh:L47` |
+| DGS north | 192.168.203.91 | per crate | .141–.145, .177–.183 | ✅ verified 2026-04-17 — `EPICS_para.sh:L47` |
 
 IOC IPs are for **data stream only** — do not telnet to them for shell access.
 
