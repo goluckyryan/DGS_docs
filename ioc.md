@@ -53,12 +53,12 @@ Old template names (historical, pre-Git migration, from `DGS_SVN/dgs/Documentati
 
 | System | CA Server Port | CA Repeater Port |
 |--------|---------------|------------------|
-| DGS | 5064 | 5065 |
-| DFMA | 5068 | 5069 |
-| Xarray | 5072 | 5073 |
-| SlopeBox | 5074 | 5075 |
-| DUB | 5078 | 5079 |
-| DuoGe | 5080 | 5081 |
+| DGS | 5064 | 5065 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L45-46` |
+| DFMA | 5068 | 5069 | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L5` (comment) |
+| Xarray | 5072 | 5073 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L23-24` |
+| SlopeBox | 5074 | 5075 | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L36-37` |
+| DUB | 5078 | 5079 | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L8` (comment) |
+| DuoGe | 5080 | 5081 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L16-17` |
 
 NTP server: `192.168.203.56` ✅ verified 2026-04-06 — `ioc/boot/cdCommands:L23` | Timezone: CDT (UTC-6, `EPICS_TS_MIN_WEST=360`) ✅ verified 2026-04-06 — `ioc/boot/vme99.cmd:L52`
 
@@ -406,7 +406,7 @@ The VME IOC has **two separate physical connections**:
 - Terminal servers come in 4, 6, or 12 port variants on the onenet network
 - Address = `TERMINAL_SERVER` in `EPICS_para.sh`
 
-**Terminal server port formula** (from `ANLDAQ/gui/commander.py`):
+**Terminal server port formula** (from `ANLDAQ/gui/commander.py`): ✅ verified 2026-04-17 — `ANLDAQ/gui/commander.py:L828` (`port = 2000 + id`) + `L839` (`telnet {terminal_server} {port}`)
 ```
 telnet <TERMINAL_SERVER_IP> <2000 + IOC_id>
 ```
@@ -416,11 +416,11 @@ Where `IOC_id` = index of the IOC in the DAQ list (1-based).
 
 | System | Terminal Server IP | IOC Ethernet IP | Telnet Port |
 |--------|-------------------|-----------------|-------------|
-| DuoGe (DUO) | 192.168.203.54 | 192.168.203.81 (vme66) | 2000 + id |
-| X-Array (DXA) | 192.168.203.47 | 192.168.203.212, .213 | 2000 + id |
-| SlopeBox (test) | 192.168.203.139 (ts99) | vme99 | 2003 (id=3) |
-| DGS crates 1–6 | 192.168.203.186 (gs-ts-south, even GS IDs) | .141–.145, .177–.183 | 2000 + id |
-| DGS crates 7–12 | 192.168.203.91 (gs-ts-north, odd GS IDs) | (same pool) | 2000 + id |
+| DuoGe (DUO) | 192.168.203.54 | 192.168.203.81 (vme66) | 2000 + id | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L18-19` |
+| X-Array (DXA) | 192.168.203.47 | 192.168.203.212, .213 | 2000 + id | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L27-28` |
+| SlopeBox (test) | 192.168.203.139 (ts99) | vme99 | 2003 (id=3) | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L38-39` |
+| DGS crates 1–6 | 192.168.203.186 (gs-ts-south, even GS IDs) | .141–.145, .177–.183 | 2000 + id | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L47` |
+| DGS crates 7–12 | 192.168.203.91 (gs-ts-north, odd GS IDs) | (same pool) | 2000 + id | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L47` |
 
 **Example — connect to DuoGe IOC console:**
 ```sh
