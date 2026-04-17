@@ -91,7 +91,7 @@ All hardcoded `/global/devel/...` paths from con6 were updated to `/home/ryan/DG
 
 | File | Fix | Reason |
 |---|---|---|
-| `Makefile` | Commented out `test` from DIRS | `snc` example programs not needed for MVME5500 target | ⚠️ unverified — `sncseq-2.0.12/` not present in local repo; cannot verify from available sources |
+| `Makefile` | Commented out `test` from DIRS | `snc` example programs not needed for MVME5500 target | ✅ verified 2026-04-17 — `sncseq/sncseq-2.0.12/Makefile:L11` (`#DIRS += test` with comment "test examples disabled - not needed for VxWorks/MVME5500 target") |
 
 ### dgsDrivers
 
