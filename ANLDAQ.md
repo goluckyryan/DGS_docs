@@ -30,12 +30,12 @@ Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS
 |------|-------|----------|
 | `commander.py` | 852 | Main window: run control, board buttons, settings persistence | ✅ verified 2026-04-14 — `wc -l commander.py`=852 |
 | `gui_DIG.py` | 374 | Digitizer board config window (per-channel + per-board PVs) |
-| `gui_MTRG.py` | 1425 | Master trigger board window (largest GUI module) |
-| `gui_RTR.py` | 550 | Router trigger board window (2 tabs: LINK Control, X/Y Map) |
+| `gui_MTRG.py` | 1425 | Master trigger board window (largest GUI module) | ✅ verified 2026-04-17 — `wc -l gui_MTRG.py`=1425 |
+| `gui_RTR.py` | 550 | Router trigger board window (2 tabs: LINK Control, X/Y Map) | ✅ verified 2026-04-17 — `wc -l gui_RTR.py`=550 |
 | `gui_DataTaking.py` | 227 | IOC config dialog + live run status window |
-| `gui_SYS.py` | 427 | System tabs: timestamps, link status, TCP rates, code revision (see GUI section below) |
+| `gui_SYS.py` | 427 | System tabs: timestamps, link status, TCP rates, code revision (see GUI section below) | ✅ verified 2026-04-17 — `wc -l gui_SYS.py`=427 |
 | `gui_Board.py` | — | Generic board PV window (table of all PVs for a board) |
-| `gui_LinkSys.py` | — | Link system window (`link_sys.py` launcher) |
+| `gui_LinkSys.py` | — | Link system window (`link_sys.py` launcher) | ✅ verified 2026-04-17 — `wc -l gui_LinkSys.py`=295 |
 | `gui_scalar.py` | — | Scalar/rate monitor window |
 | `gui_Det.py` | — | Detector view window |
 | `class_Board.py` | 73 | Board abstraction (see below) |
@@ -527,11 +527,11 @@ The trigger IOC (`inLoopTrig.st`) uses the same pattern to control the MTRG/RTRG
 
 The MTRG firmware exposes trigger rate counters and the 48-bit timestamp as **split 16-bit registers** (HIGH + LOW). `dgsSupport.db` reassembles them using `calcout` records with `CALC="(B<<16)+A"` at 1-second scan:
 
-- `VME10:MTRG:TIMESTAMP_RBV` — 32-bit assembled timestamp from `TIMESTAMP_A/B/C_RBV` (0.1 second scan; uses only B and C: `(B<<16)+C`)
-- `VME10:MTRG:TRIG_RATE_COUNTER_1–8_RBV` — accepted trigger rate counters 1–8
-- `VME10:MTRG:RAW_TRIG_RATE_COUNTER_1–8_RBV` — raw (pre-prescale) trigger rate counters 1–8
+- `VME10:MTRG:TIMESTAMP_RBV` — 32-bit assembled timestamp from `TIMESTAMP_A/B/C_RBV` (0.1 second scan; uses only B and C: `(B<<16)+C`) ✅ verified 2026-04-17 — `dgsSupport.db:L82-89` (SCAN=.1 second, CALC="(B<<16)+C", INPB=TIMESTAMP_B, INPC=TIMESTAMP_C; TIMESTAMP_A used as INPA but not in CALC)
+- `VME10:MTRG:TRIG_RATE_COUNTER_1–8_RBV` — accepted trigger rate counters 1–8 ✅ verified 2026-04-17 — `dgsSupport.db:L92-161` (8 calcout records, CALC="(B<<16)+A", SCAN=1 second)
+- `VME10:MTRG:RAW_TRIG_RATE_COUNTER_1–8_RBV` — raw (pre-prescale) trigger rate counters 1–8 ✅ verified 2026-04-17 — `dgsSupport.db:L164-231` (8 more calcout records, same pattern)
 
-All 17 `calcout` records are hardcoded to `VME10` (the MTRG crate in the standard DGS configuration).
+All 17 `calcout` records are hardcoded to `VME10` (the MTRG crate in the standard DGS configuration). ✅ verified 2026-04-17 — `grep -c "record(calcout" dgsSupport.db` = 17
 
 > **Note:** `dgsSupport.db` and `JustGlobals.db` are both loaded by the softIOC at boot. Together they provide the full soft-IOC PV surface that the ANLDAQ GUI and IOC state machines depend on.
 
