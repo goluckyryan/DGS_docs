@@ -143,7 +143,7 @@ _Source: `ANLDAQ/gui/gui_DataTaking.py` (227 lines). Code-verified 2026-04-09._
 Two classes:
 
 **`IOCConfigDialog`** — Modal dialog for editing the IOC connection list before starting a run.
-- Text format: one IOC per line: `IP  Port  DataType` (port defaults to 9001, DataType defaults to 8 if omitted; `#` = comment)
+- Text format: one IOC per line: `IP  Port  DataType` (port defaults to 9001, DataType defaults to 8 if omitted; `#` = comment) ✅ verified 2026-04-16 — `tcpReceiverMT.cpp:L55-56,L63` (`cfg.port=9001`, `cfg.dataType=8`)
 - User edits inline; result passed to `RunStatusWindow` as `configText` string
 
 **`RunStatusWindow`** — QMainWindow that manages a live run from start to stop.
