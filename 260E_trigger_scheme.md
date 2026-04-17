@@ -1,6 +1,24 @@
 # RTRG 0x260E + MTRG Trigger Scheme
 _Firmware: RTRG 0x260E, MTRG (current trunk)_
 _Example: 2-detector DUO (BGO ch-0 → Ge ch-5, BGO ch-1 → Ge ch-6; Y_MAP=A5/A6)_
+_Source: `DGS_tools_pack/FPGA/` — chan_in.vhd, disc_mach.vhd, router_data_path.vhd, router_top (TOP.VHD), mt_input_channel.vhd, eight_mt_channel.vhd, sum_hits_X.vhd, calc_total_sum.vhd, top.vhd_
+_Last updated: 2026-04-17_
+
+---
+
+## Table of Contents
+
+1. [Channel Input (RTRG: chan_in.vhd)](#1-channel-input-rtrg-chan_invhd)
+2. [Discriminator & Clean/Dirty Logic (disc_mach.vhd)](#2-discriminator--cleandirty-logic-rtrg-disc_machvhd)
+3. [RTRG → MTRG Link Format (router_data_path.vhd)](#3-rtrg--mtrg-link-format-router_data_pathvhd)
+4. [RTRG Top-Level (TOP.VHD)](#4-rtrg-top-level-topvhd)
+5. [MTRG Input Channel (mt_input_channel.vhd)](#5-mtrg-input-channel-mt_input_channelvhd)
+6. [Eight MT Channel — Global Sum Construction (eight_mt_channel.vhd)](#6-eight-mt-channel--global-sum-construction-eight_mt_channelvhd)
+7. [Multiplicity Comparison (sum_hits_X.vhd)](#7-multiplicity-comparison-sum_hits_xvhd)
+8. [Total Sum Calculation (calc_total_sum.vhd)](#8-total-sum-calculation-calc_total_sumvhd)
+9. [MTRG Trigger Decision (top.vhd)](#9-mtrg-trigger-decision-topvhd)
+10. [End-to-End Flow (DUO Example)](#10-end-to-end-flow-duo-example)
+11. [Mermaid Flow Diagram](#11-mermaid-flow-diagram)
 
 ---
 
