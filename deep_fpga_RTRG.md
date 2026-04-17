@@ -300,20 +300,27 @@ Each Ge detector channel in the Router is paired with a BGO scintillator channel
 ST_IDLE
   ├─ GE_EDGE only  → ST_OVERLAP_GE_FIRST  (start timer, wait for BGO)
   ├─ BGO_EDGE only → ST_OVERLAP_BGO_FIRST (start timer, wait for Ge)
-  ├─ both edges    → ST_WAIT_DIRTY        (immediately dirty)
+  ├─ both edges    → ST_WAIT_DIRTY        (immediately dirty, skip wait)
   └─ no edge       → ST_IDLE
 
-ST_OVERLAP_GE_FIRST:
-  ├─ timer expires, no BGO → assert CLEAN_EVENT (1 clock) → ST_IDLE
-  └─ BGO_EDGE arrives      → assert DIRTY_EVENT (1 clock) → ST_IDLE
+ST_OVERLAP_GE_FIRST:  (timer counts down each clock)
+  ├─ timer = 0, no BGO   → assert CLEAN_EVENT (1 clock) → ST_IDLE
+  ├─ BGO arrives, timer = 0 → assert DIRTY_EVENT immediately (1 clock) → ST_IDLE
+  ├─ BGO arrives, timer > 0 → ST_WAIT_DIRTY  (count out remaining timer)
+  └─ else               → ST_OVERLAP_GE_FIRST
 
-ST_OVERLAP_BGO_FIRST:
-  ├─ timer expires, no Ge → assert BGO_ONLY_EVENT (1 clock) → ST_IDLE
-  └─ GE_EDGE arrives      → assert DIRTY_EVENT (1 clock) → ST_IDLE
+ST_OVERLAP_BGO_FIRST:  (timer counts down; resets on repeated BGO edges)
+  ├─ timer = 0, no Ge   → assert BGO_ONLY_EVENT (1 clock) → ST_IDLE
+  ├─ GE arrives, timer = 0 → assert DIRTY_EVENT immediately (1 clock) → ST_IDLE
+  ├─ GE arrives, timer > 0 → ST_WAIT_DIRTY  (count out remaining timer)
+  └─ else               → ST_OVERLAP_BGO_FIRST
 
-ST_WAIT_DIRTY:
-  └─ timer expires → assert DIRTY_EVENT (1 clock) → ST_IDLE
+ST_WAIT_DIRTY:  (entered when the second discriminator fires with time still left)
+  ├─ timer = 0 → assert DIRTY_EVENT (1 clock) → ST_IDLE
+  └─ else      → ST_WAIT_DIRTY
 ```
+
+> **Key subtlety** (MBO 20140610): When both discriminators fire and the overlap timer is still running, the machine enters `ST_WAIT_DIRTY` and counts out the *remaining* timer before asserting `DIRTY_EVENT`. If the second discriminator fires right as the timer hits zero (timer = 0 on that same clock), `DIRTY_EVENT` is asserted immediately (avoids the race where an edge arriving exactly at timer = 0 would produce a CLEAN or BGO_ONLY instead of DIRTY). ✅ verified 2026-04-17 — `disc_mach.vhd:L139,L155-161,L185-192,L207-220` (Rtr4704_mod_for_reset production source)
 
 ### Outputs
 
