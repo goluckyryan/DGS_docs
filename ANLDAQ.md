@@ -393,7 +393,17 @@ Key facts:
 - DIG packets: `0xAAAAAAAA` magic; TRIG packets: `0xAAAA0000` (16 words → repacked to 10)
 - Max file size: 2 GB; auto-split. Default buffer: 1M words (4 MB).
 - Run control: `expInfo.sh` → `start_run.sh` / `stop_run.sh` / `sync_exp_data.sh`
-- `run_control_gui.py` — standalone Tkinter GUI for `dgs4` (SSHes to dcs2)
+- `run_control_gui.py` — standalone Tkinter GUI for `dgs4` (SSHes to dcs2) ✅ verified 2026-04-17 — `run_control_gui.py` (352 lines, read in full)
+  - **Runs on:** `dgs4` (uses its Python3 + Tkinter environment at `/home/dgs/.conda/envs/py3tk/`)
+  - **Remote target:** SSHes to `dcsu@dcs2.onenet` using `/home/dgs/.ssh/id_rsa`
+  - **Script dir on dcs2:** `/home/phy/dcsu/ANLDAQ/tcpReceiver/`; reads `expInfo.sh`, invokes `start_run.sh` / `stop_run.sh`
+  - **What it does:** Reads experiment info (name, next run number, exp/data folder) from `expInfo.sh` via SSH; accepts a comment string; starts/stops runs by SSH-streaming `start_run.sh`/`stop_run.sh` (comment passed base64-encoded to avoid shell escaping)
+  - **UI layout:** 10-row Tkinter grid — title/exp label, next run number + refresh button, comment entry, Start/Stop buttons, output console (green-on-black, 6 lines), wall clock + run elapsed timer + data folder size, status label, recent-run log (last 15 lines of `RunTimestamp.txt`)
+  - **State machine:** idle → starting → running → stopping → idle; buttons enabled/disabled per state
+  - **Run timer:** starts when `"is running"` appears in `start_run.sh` output; stops on `stop_run.sh` completion
+  - **Data size polling:** every 15 s during a run, `du -sh <data_folder>/<run_name>/` via SSH
+  - **Progress mapping:** `START_MSGS`/`STOP_MSGS` dicts map raw script output substrings to friendly status messages (e.g. "tcpReceiverMT" → "Opening receiver (MT)...", "is running" → "DAQ started!")
+  - **Threading:** all SSH calls run in daemon threads; GUI updates posted via `self.after(0, ...)`
 - `basic_settings_DGS.sh` — sets all DIG channels to known-good CFD config
 - Legacy receivers in `legacy/`: `dgsReceiver.cpp` (MBO v6.57) + Ryan's fork
 
