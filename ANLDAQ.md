@@ -391,7 +391,7 @@ Key facts:
 - Three binaries: `tcpReceiver` (single-threaded), `tcpReceiverMT` (production multi-threaded), `tcpReceiverUDP` (experimental UDP forwarding)
 - IOC is the **TCP server** on port 9001 (`SOCK_STREAM`); receiver is the TCP client
 - DIG packets: `0xAAAAAAAA` magic; TRIG packets: `0xAAAA0000` (16 words → repacked to 10)
-- Max file size: 2 GB; auto-split. Default buffer: 1M words (4 MB).
+- Max file size: 2 GB; auto-split. Default buffer: 1M words (4 MB). ✅ verified 2026-04-17 — `tcpReceiver/constant.h:L7-8` (`MAX_FILE_SIZE_BYTE = 1024LL*1024*1024*2`; `DEFAULT_DATA_SIZE = 1000000`)
 - Run control: `expInfo.sh` → `start_run.sh` / `stop_run.sh` / `sync_exp_data.sh`
 - `run_control_gui.py` — standalone Tkinter GUI for `dgs4` (SSHes to dcs2) ✅ verified 2026-04-17 — `run_control_gui.py` (352 lines, read in full)
   - **Runs on:** `dgs4` (uses its Python3 + Tkinter environment at `/home/dgs/.conda/envs/py3tk/`)

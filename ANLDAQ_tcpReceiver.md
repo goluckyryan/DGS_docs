@@ -165,7 +165,7 @@ ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
 - Reads experiment info (name, next run number, folder) via `expInfo.sh` on dcs2 at startup + on demand
 - **Start Run**: streams `start_run.sh` output line-by-line via SSH Popen; maps output substrings to friendly status messages (e.g. "Taking PV Snapshot" → "Taking PV snapshot...", "is running" → "DAQ started!")
 - **Stop Run**: similarly streams `stop_run.sh`; includes Parquet sort + elog post status messages
-- Live displays: wall clock, elapsed run timer, data folder size (polled every 10 s via `du -sh` on dcs2), recent run log (tails `RunTimestamp.txt`)
+- Live displays: wall clock, elapsed run timer, data folder size (polled every 15 s via `du -sh` on dcs2), recent run log (tails `RunTimestamp.txt`) ✅ verified 2026-04-17 — `run_control_gui.py:L257` (`self.after(15000, self._auto_refresh)`)
 - State machine: `idle → starting → running → stopping → idle`; buttons enable/disable accordingly
 - ANSI escape codes stripped from SSH output before display
 - Script dir on dcs2: `/home/phy/dcsu/ANLDAQ/tcpReceiver/`
