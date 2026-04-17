@@ -150,13 +150,121 @@ From `TAC.docx` example event:
 
 ---
 
-## TAC-II in GEBSort (gebsort workflow)
+## TAC-II in GEBSort (bin_tac2 decode algorithm)
 
 The TAC-II data is sorted by GEBSort using `bin_tac2` (enabled in `GEBSort.chat`):
 ```
 bin_tac2
 ```
-This processes GEB type 15 packets (after `tcpReceiverMT` repacking) to produce TAC timing spectra and coincidence matrices alongside the Ge energy data.
+
+`bin_tac2` is enabled alongside `bin_dgs` to produce sub-nanosecond trigger timestamps. It reads `DGS_TRIG_EVENT` from the GEB coincidence event and follows J.T. Anderson's TDC decode procedure ("tdc_20250123.ods" spreadsheet).
+
+### DGS_TRIG_EVENT Structure (GEBSort.h)
+
+15 × 16-bit unsigned words cast from the raw GEB payload (0xAAAA word stripped by tcpReceiver):
+
+| Field | Word | Description |
+|-------|------|-------------|
+| `TrigTyp` | G | Trigger type word |
+| `TS_TrigHigh` | H | Trigger timestamp bits [47:32] |
+| `TS_TrigMid` | I | Trigger timestamp bits [31:16] |
+| `TS_TrigLow` | J | Trigger timestamp bits [15:0] |
+| `DetData` | K | Detector/multiplicity data |
+| `XtraData` | L | Extra trigger data |
+| `Stat_Pkg_ID` | M | Status + package ID |
+| `TS_TDCLow` | N | TDC coarse timestamp LSW (0x0008 = TDC not enabled) |
+| `TrigPattern` | O | Trigger pattern word |
+| `Cnt4ns_A` | P | 4 ns counter value, phase A (0°) |
+| `Cnt4ns_B` | Q | 4 ns counter value, phase B (90°) |
+| `Cnt4ns_C` | R | 4 ns counter value, phase C (180°) |
+| `Cnt4ns_D` | S | 4 ns counter value, phase D (270°) |
+| `Val_A_B` | T | Valid flags + 6-bit verniers for A and B |
+| `C_D` | U | 6-bit verniers for C and D |
+
+**Val_A_B / C_D bit layout:**
+- Bits [15:12]: valid flags for D/C/B/A (1 = valid)
+- Bits [11:6]: vernier P0 (chain A)
+- Bits [5:0]: vernier P1 (chain B)
+- Same layout for C_D: bits [11:6]=P2, [5:0]=P3
+
+### bin_tac2 Decode Steps (bin_tac2.c)
+
+✅ verified 2026-04-17 — `gebsort/bin_tac2.c:L200-533`
+
+**Step 1 — Trigger timestamp (48-bit, 10 ns units):**
+```
+TRIG_TS = 10 * (TS_TrigHigh×2^32 + TS_TrigMid×2^16 + TS_TrigLow)
+```
+
+**Step 2 — TDC coarse timestamp:**
+```
+TDC_COARSE_TS = 10 * (TS_TrigHigh×2^32 + TS_TrigMid×2^16 + TS_TDCLow)
+```
+If `TDC_COARSE_TS < previous` (rollover at 65536 counts = 655360 ns), add 655360.
+
+**Step 3 — Modular coarse timestamp (MOD_TDC_COARSE_TS):**
+```
+MOD_TDC_COARSE_TS = TDC_COARSE_TS mod 262144
+```
+(262144 ns = 4 ns × 65536 = 16-bit 4 ns counter range)
+
+**Step 4 — Per-phase validity check:**
+Flags from `Val_A_B[15:12]` and `C_D[15:12]`. If unchanged from previous event, all 4 chains are marked invalid (-2).
+
+**Step 5 — Per-phase 4 ns timestamps:**
+```
+TDC_TS4A = MOD_TDC_COARSE_TS + 4 × Cnt4ns_A   (if valid)
+TDC_TS4B = MOD_TDC_COARSE_TS + 4 × Cnt4ns_B
+TDC_TS4C = MOD_TDC_COARSE_TS + 4 × Cnt4ns_C
+TDC_TS4D = MOD_TDC_COARSE_TS + 4 × Cnt4ns_D
+```
+
+**Step 6 — Extract vernier positions (6-bit, 0–63):**
+```
+TDC_VERNIER_A = 64 - (Val_A_B[11:6])   // chain A (0°)
+TDC_VERNIER_B = 64 - (Val_A_B[5:0])    // chain B (90°)
+TDC_VERNIER_C = 64 - (C_D[11:6])       // chain C (180°)
+TDC_VERNIER_D = 64 - (C_D[5:0])        // chain D (270°)
+```
+
+**Step 7 — Determine VERNIER_PATTERN (phase ordering):**
+Pattern (1–4) indicates which quadrant phase fires last (D>C>B>A=3, C>B>A>D=4, B>A>D>C=1, A>D>C>B=2). Currently forced to pattern 1 if >1 (per discussion with JTA 3/10/25 — still being validated experimentally).
+
+**Step 8 — Vernier in nanoseconds:**
+```
+TDC_VERNIER_A_ns = 0.050 × TDC_VERNIER_A   (50 ps per tap)
+... (same for B, C, D)
+```
+
+**Step 9 — Net timestamp per phase:**
+```
+TDC_NET_TS_A = TDC_TS4A - TDC_VERNIER_A_ns
+TDC_NET_TS_B = TDC_TS4B - TDC_VERNIER_B_ns + 1
+TDC_NET_TS_C = TDC_TS4C - TDC_VERNIER_C_ns + 2
+TDC_NET_TS_D = TDC_TS4D - TDC_VERNIER_D_ns + 3
+```
+(+0/+1/+2/+3 ns phase offsets per quadrant)
+
+**Step 10 — Average valid chains → `dgs_tac2`:**
+If ≥ 2 valid chains, compute mean and set `dgs_tac2_valid = 1`. Otherwise `dgs_tac2 = -999999999` and `dgs_tac2_valid = 0`.
+
+**Final output:**
+```
+dgs_tac2 = average_net_TS - TRIG_TS
+dgs_trig_ts = TRIG_TS
+```
+Result is relative timing of the NIM input signal w.r.t. the trigger timestamp. Output spectrum: `tac2dev` (4096 bins, ±2048 ns).
+
+### When bin_tac2 is Not Valid
+- `TS_TDCLow == 0x0008` → TDC not enabled in this run
+- All 4 chains repeat from previous event → likely no new NIM hit
+- `VERNIER_PATTERN < 0` → invalid (monotonicity test fails for all 4 orderings)
+- Only 1 valid chain → insufficient for averaging
+
+### Output Variables (exported to bin_dgs)
+- `dgs_tac2` (double) — net TAC timing offset in ns, or -999999999 if invalid
+- `dgs_tac2_valid` (int) — 1 = valid, 0 = invalid
+- `dgs_trig_ts` (double) — TRIG_TS in ns (48-bit, 10 ns tick base)
 
 ---
 

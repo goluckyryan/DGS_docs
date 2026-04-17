@@ -181,6 +181,50 @@ GEBSORT/GEBSort_nogeb \
 
 ---
 
+## Utility Programs — Internal Details
+
+### SZ_basic_PZ
+
+_Source: `gebsort/SZ_basic_PZ.c`_ ✅ verified 2026-04-17 — `SZ_basic_PZ.c:L20-56`
+
+Simple standalone program that computes the **baseline pole-zero coefficient** for all 110 GS detectors:
+
+```bash
+SZ_basic_PZ decay_constant MM fudge_factor
+# e.g.: SZ_basic_PZ 3251.342285 330 1.003
+```
+
+Output: 110 lines of `gsid  pz_value`, one per GS hole.
+
+**Formula:** `pz = fudge_factor × exp(-MM / decay_constant)`
+- `decay_constant` (1/λ) in 10 ns units — the preamplifier RC decay constant
+- `MM` — trapezoid M window in samples (10 ns units)
+- `fudge_factor` — small empirical correction (e.g. 1.003)
+
+This gives a **single uniform PZ value** for all detectors as a starting point. The `fwhm_onepeak` tool then refines per-crystal values by minimizing peak width.
+
+### SZ_factor
+
+_Source: `gebsort/SZ_factor.c`_ ✅ verified 2026-04-17 — `SZ_factor.c:L1-142`
+
+Extracts the **per-crystal SZ energy extrapolation factor** from a 2D ROOT histogram:
+
+```bash
+SZ_factor rootfile 2DspectrumName outputFile
+# e.g.: GEBSORT/SZ_factor test.root factor dgs_factor.dat
+```
+
+**How it works:**
+1. Opens the ROOT file and finds the named 2D histogram (x = GS detector ID, y = factor value)
+2. For each detector (x-bin), computes the **weighted mean** of all y-bins with >5 counts
+3. Writes `gsid  mean_factor` to `outputFile`
+
+**Input spectrum `factor`** is produced by `bin_dgs` during sorting: it plots the ratio of the SZ energy to the simple energy, showing the systematic correction needed per detector.
+
+Output: `dgs_factor.dat` — one line per crystal, read by GEBSort at runtime to scale SZ_2 energies.
+
+---
+
 ## GEBMerge
 
 Merges multiple single-crate GEB data files into one timestamp-sorted stream:
