@@ -418,22 +418,20 @@ All arithmetic is registered, one stage per clock, for a total of **3 clock cycl
 
 Maximum value: 8 RTRGs × 80 max hits/RTRG = 640 → fits in 10 bits; 11 bits allocated for margin.
 
-### 8.2 Known Y_TOTAL Bug
+### 8.2 Y_TOTAL Signal Widths
 
-> **Important:** In the current trunk code, `YSUBTOTAL5` and `YSUBTOTAL6` (stage-2 intermediate signals for the Y plane) are declared as `std_logic_vector(1 downto 0)` — only **2 bits wide** — instead of 11 bits. This truncates the Y-plane intermediate results, making `Y_TOTAL` **unreliable** for Y sums above 3. The X path (`XSUBTOTAL5/6`) is correctly declared at 11 bits and is unaffected.
+✅ verified 2026-04-17 — `calc_total_sum.vhd` (20180507 trunk, L35-39): Both `XSUBTOTAL5/6` and `YSUBTOTAL5/6` are correctly declared as `std_logic_vector(15 downto 0)`. The Y path is not truncated. An earlier claim in this document that `YSUBTOTAL5/6` were only 2 bits wide was **incorrect** — no such bug is present in any available firmware tag (20140318, 20140918, 20180507 all verified).
 
-This bug means that for the DUO example's Y-plane trigger to work correctly, either:
-- The Y sum must stay small enough that the truncation doesn't corrupt it (sum ≤ 3), or
-- The firmware must be patched to widen `YSUBTOTAL5/6` to 11 bits.
+All stage-2 intermediate signals (XSUBTOTAL1–6, YSUBTOTAL1–6) are 16 bits wide, providing ample headroom for summing up to 8 RTRGs × 80 hits/RTRG = 640 max, which fits in 10 bits.
 
 ### 8.3 DUO Example — calc_total_sum
 
 Only one RTRG populated (link A); the other seven contribute zero:
 - Stage 1: `XSUBTOTAL1 = 0+0 = 0`, `YSUBTOTAL1 = 2+0 = 2`; all others zero.
-- Stage 2: `XSUBTOTAL5 = 0`, `YSUBTOTAL5 = 2` (2-bit truncation: value 2 = `0b10` — survives since 2 < 4).
+- Stage 2: `XSUBTOTAL5 = 0`, `YSUBTOTAL5 = 2` (16-bit intermediate — no truncation).
 - Stage 3: `X_TOTAL = 0`, `Y_TOTAL = 2`.
 
-For the DUO (max sum = 2), the Y truncation bug happens not to corrupt the result. For larger systems, it would.
+All intermediate widths are 16 bits (see section 8.2), so the result is exact for any sum up to 640.
 
 ---
 
@@ -458,7 +456,7 @@ The MTRG supports 8 simultaneous trigger algorithm slots:
 
 **Key architecture note**: TRIG_LOGIC3 (Y-plane trigger) is literally a second instantiation of `sum_hits_X.vhd`, with `GLOBAL_Y_TOTAL` wired to its `SUM_OF_X` port and `SUM_OF_Y_THRESH` to its `SUM_OF_X_THRESH`. There is no separate `sum_hits_Y.vhd`.
 
-The threshold comparison mode is controlled by `SUM_OF_X_THRESH[15]` (`COMPARE_MODE_CTL`): `0` = strictly greater than (`>`); `1` = exactly equal (`==`).
+✅ verified 2026-04-17 — `sum_hits_X.vhd` (20180507 trunk, L80): The threshold comparison uses **strictly greater than (`>`)** only — `if (SUM_OF_X > SUM_OF_X_THRESH)`. There is no `COMPARE_MODE_CTL` bit or `==` mode in this file. An earlier claim that `SUM_OF_X_THRESH[15]` selects between `>` and `==` comparison was **incorrect** — the threshold is treated as a full 16-bit unsigned value with no mode-selection bit.
 
 ### 9.2 Veto Logic
 
