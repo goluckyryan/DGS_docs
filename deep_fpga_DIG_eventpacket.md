@@ -62,11 +62,11 @@ Note: `MPX_FIELD[23:0]` in Word 11 is the multiplexed field — when `CP` (Word 
 | PacketLen[10:0] | W1[26:16] | Total packet length in 32-bit words (filled at readout) |
 | UserDef[11:0] | W1[15:4] | User tag from `reg_user_package_data` |
 | CH_ID[3:0] | W1[3:0] | Channel number (0–9) |
-| HDR_LEN[5:0] | W3[31:26] | Header length constant = 28 ✅ verified 2026-04-16 — `Event_Header_FIFO.vhd` DGS build: `constant cHEADER_LENGTH := 28` (36-bit FIFO words; 14 VME words × 2 per FIFO word) |
+| HDR_LEN[5:0] | W3[31:26] | Header length constant = 28 ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L90` (20230809 current tag, rev 0x4CD8): `cHEADER_LENGTH := 28` (36-bit FIFO words; 14 VME words × 2 per FIFO word). `cREPORTED_HEADER_SIZE = 26` (= 28 − 2, per GRETINA convention). |
 | EVT_TYPE[2:0] | W3[25:23] | Event type (filled at readout) |
 | TM | W3[21] | `TRIG_TS_MODE`: 0 = use arrival TS; 1 = use trigger-mux TS |
 | PM | W3[20] | `PEQ_BYPASS`: 1 = pending event queue bypassed |
-| HEADER_TYPE[3:0] | W3[19:16] | Format: `0100` = LED; `0101` = CFD |
+| HEADER_TYPE[3:0] | W3[19:16] | Format: `0111` (7) = LED; `1000` (8) = CFD ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L101-102` (current 20230809 tag, rev 0x4CD8): `cHEADER_TYPE_LED = to_unsigned(7,4)`, `cHEADER_TYPE_CFD = to_unsigned(8,4)`. Prior firmware DGS_TAG_20180607_TWEAK used 5/6 (LED/CFD); values incremented again in Aug 2021 build. |
 | SAMPLED_BASELINE[23:0] | W6[23:0] | Baseline estimate latched at event time (ADC counts × M) |
 | TRIG_MON_DET_DATA[15:0] | W7[31:16] | Detector trigger monitor data from Frame 2 |
 | TRIG_MON_XTRA_DATA[15:0] | W7[15:0] | Extra trigger monitor data from Frame 2 |
