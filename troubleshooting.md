@@ -78,10 +78,15 @@ Key issues documented:
 
 **Symptom:** `TotalBuffers_Lost` climbing, data gaps in output files.
 
-**Check:**
-- `DigitizerFull[board]` / `DigitizerAlmostFull[board]` flags in inLoop
-- Throttle line from digitizer to Router (FIFO half-full flag)
-- `SendDataRate` in MiniSender stats
+**Check (actual EPICS PV names — ✅ verified 2026-04-17 — `ioc/db/daqCrate.template`):**
+- `DAQC$(CRATE)_OL_TotalBufsLost` — total buffers lost in outLoop (was mislabeled `TotalBuffers_Lost` in earlier notes)
+- `DAQC$(CRATE)_CV_OutLoop{0-6}` — data lost per-board (7 boards per crate)
+- `DAQC$(CRATE)_OL_DataRate{0-6}` — kBytes/sec processed per board in outLoop
+- `DAQC$(CRATE)_CV_SendRate` — KB/sec total output rate from MiniSender
+- `DAQC$(CRATE)_OL_NumFreeBuffers` / `DAQC$(CRATE)_OL_NumSendBuffers` — buffer pool status
+- Throttle line from digitizer to Router (FIFO half-full flag via TTCL LVDS2 line)
+
+> ⚠️ `DigitizerFull`, `DigitizerAlmostFull`, `SendDataRate` are **not real PV names** — use the DAQC PVs above.
 
 **Cause:** Trigger rate too high, FIFO filling faster than TCP readout can drain it.
 
