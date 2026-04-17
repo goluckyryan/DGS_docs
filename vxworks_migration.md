@@ -85,20 +85,20 @@ All hardcoded `/global/devel/...` paths from con6 were updated to `/home/ryan/DG
 |---|---|---|
 | `asyn/asynDriver/asynDriver.h:215` | `__VAR_ARGS__` → `__VA_ARGS__` | Typo in variadic macro; fatal error with GCC 13 in C99/C17 mode | ✅ verified 2026-04-14 — fix applied, `__VA_ARGS__` present at L215
 | `asyn/asynDriver/asynDriver.h:229` | `__VAR_ARGS__` → `__VA_ARGS__` | Same typo in `asynPrintIO` macro | ✅ verified 2026-04-14 — fix applied, `__VA_ARGS__` present at L229
-| `asyn/Makefile` | Disabled vxi11 sources and test/example app DIRS | vxi11 requires `rpc/rpc.h` (ONC RPC) not present in Ubuntu 24 glibc; test apps not needed for MVME5500 target |
+| `asyn/Makefile` | Disabled vxi11 sources and test/example app DIRS | vxi11 requires `rpc/rpc.h` (ONC RPC) not present in Ubuntu 24 glibc; test apps not needed for MVME5500 target | ✅ verified 2026-04-17 — `asyn4-17/asyn/Makefile:L124-126` (vxi11 SRC_DIRS commented out with reason); test DIRs commented in top-level Makefile |
 
 ### sncseq-2.0.12
 
 | File | Fix | Reason |
 |---|---|---|
-| `Makefile` | Commented out `test` from DIRS | `snc` example programs not needed for MVME5500 target |
+| `Makefile` | Commented out `test` from DIRS | `snc` example programs not needed for MVME5500 target | ⚠️ unverified — `sncseq-2.0.12/` not present in local repo; cannot verify from available sources |
 
 ### dgsDrivers
 
 | File | Fix | Reason |
 |---|---|---|
-| `dgsDriverApp/Makefile` | Commented out `Db` from DIRS | `Db/` directory had no Makefile; `.dbd` already handled by `src/` |
-| `dgsDriverApp/src/Makefile` | Commented out `DBEXPAND = msi` | `msi` not part of EPICS 3.14.12.1 base; default `dbExpand` is equivalent |
+| `dgsDriverApp/Makefile` | Commented out `Db` from DIRS | `Db/` directory had no Makefile; `.dbd` already handled by `src/` | ✅ verified 2026-04-17 — `dgsDriverApp/Makefile:L8` (`#DIRS := $(DIRS) $(filter-out $(DIRS), Db)` with comment) |
+| `dgsDriverApp/src/Makefile` | Commented out `DBEXPAND = msi` | `msi` not part of EPICS 3.14.12.1 base; default `dbExpand` is equivalent | ✅ verified 2026-04-17 — `dgsDriverApp/src/Makefile:L22` (`#DBEXPAND = msi` with reason comment) |
 
 ### Symlink created
 
