@@ -490,7 +490,7 @@ Words N+2..end: TDC vernier words          ← NUM_TDC_WORDS words from TDC_DATA
 ```
 X"000" & PULL_COUNT
 ```
-⚠️ verified 2026-04-08 — `trig_mon_collect.vhd:L281-295` (20220705 tag): no ALLOWED_TDC_LATENCY countdown; SKIP_TDC_DATA sourced from `MON7_FILL_CTL_REG(15)` per `top.vhd:L4698`. Original ~960 ns estimate was incorrect.
+✅ verified 2026-04-08 — `trig_mon_collect.vhd:L281-295` (20220705 tag): no ALLOWED_TDC_LATENCY countdown; SKIP_TDC_DATA sourced from `MON7_FILL_CTL_REG(15)` per `top.vhd:L4698`. Original ~960 ns estimate was incorrect.
 This is detectable in software — `class_TDC.h` checks for the `0x1006/1005/1004/1003` counter pattern as one specific trash-data sentinel.
 
 **Timeout window:** 0x60 = 96 clock cycles @ 100 MHz = **960 ns** (updated 2025-07-22 from 0x40 = 640 ns). ✅ verified 2026-04-14 — `MTRG/MAIN_FPGA/trunk/Source/trig_mon_collect.vhd:L271` (`ALLOWED_TDC_LATENCY <= X"60"; -- changed from X"40" 20250722`). Note: Vivado trunk does NOT have this countdown — it polls indefinitely; only ISE (Virtex-4) trunk has `ALLOWED_TDC_LATENCY`.
