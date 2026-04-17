@@ -317,6 +317,66 @@ EPICS CA port is set via `EPICS_env.sh`: **5064/5065** for array use, **5074/507
 
 ---
 
+## Commissioning Workflow — Adding / Removing Detectors
+
+The `collectorboxpi/` root contains two top-level scripts that manage the detector add/remove lifecycle:
+
+### `Add_Remove_Detectors.sh` (must run as root)
+
+Full sequence executed:
+1. `systemctl stop softIOC.service` — stop the EPICS IOC
+2. `cd /shared/EPICS/Pre_EPICS_Collector`
+3. `./ALL_power_OFF` — cut power to all SBXs on all stripes
+4. `sleep 5` — allow power to fully discharge
+5. `./Scan_DVI_Power` — scan 48V power state per DVI cable; exit code 0 = all OK, exit 148 (= C exit 404 mod 256) = cables not usable
+6. `./Scan_DVI_Comms` — scan DVI communications; reads SBID from pickoff address; generates `SCAN_OUTPUT_3_COMM_<BOX>.txt`
+7. `./GenerateCmdFile.py` — re-generate `st_20x.cmd` and `softIOC_<N>_settings.req` from scan output
+8. `systemctl start softIOC.service` — restart IOC with new configuration
+
+Note: `Scan_Collector_FPGAs` is optional (commented out) — use when Stripe FPGA reachability is in question.
+
+### `Pre_EPICS_Collector/` — Commissioning Utilities
+
+Standalone C programs that run on the Raspberry Pi **before EPICS is active**. They communicate directly with Stripe and Control FPGAs via BCM2835 SPI. Must run as root.
+
+**Normal 4-step commissioning sequence:**
+1. `ALL_power_OFF` — cut all SBX power
+2. `Scan_Collector_FPGAs` → `SCAN_OUTPUT_1_COLL_<BOX>.txt`
+3. `Scan_DVI_Power` → `SCAN_OUTPUT_2_POWER_<BOX>.txt`
+4. `Scan_DVI_Comms` → `SCAN_OUTPUT_3_COMM_<BOX>.txt` ← this feeds `GenerateCmdFile.py`
+
+**Full program inventory (15 executables):**
+
+| Executable | Purpose |
+|---|---|
+| `ALL_power_OFF` | Turns off all power to all SBXs on all stripes |
+| `Dump_EEPROMs` | Reads and dumps preamp EEPROM contents to screen |
+| `Dump_Preamp_EEPROM` | Reads preamp and dongle EEPROM data for a specific cable |
+| `Scan_Collector_FPGAs` | Tests communication with all Stripe FPGAs; generates SCAN_OUTPUT_1 |
+| `Scan_DVI` | Scans DVI power with per-stripe enable; reads Slope Box ID and Dongle ID |
+| `Scan_DVI_Comms` | Scans DVI comms; reads SBID from pickoff address; generates SCAN_OUTPUT_3 |
+| `Scan_DVI_Comms_No_Reg_Writes` | Same as above but without writing to FPGA registers |
+| `Scan_DVI_Grounding` | Scans DVI grounding / ground fault status |
+| `Scan_DVI_Power` | Scans 48V power state per DVI cable; generates SCAN_OUTPUT_2 |
+| `Scan_DVI_Power_with_SBID` | Same as above + reads Slope Box IDs |
+| `Test_Port_Comms` | Interactive: select channel, enable power, do SPI I/O — for debugging |
+| `TurnOnAllConnected` | Turns on power to all connected cables from a turn-on data file |
+| `Write_to_DPRAM` | Reads a data file and writes it to the DPRAM of a specified SBX |
+| `Write_to_EEPROM` | Reads address/data file and writes to 24AA002 EEPROM (byte or page mode) |
+| `spi_with_b_mbo_debug` | Low-level SPI debug utility for verifying raw SPI transfers |
+| `SPI_rw` | Interactive SPI read/write for testing arbitrary register access |
+
+**SPI architecture (brief):**
+- Uses **SPI1** (Aux SPI), not SPI0; enabled via `dtoverlay=spi1-1cs` in `/boot/config.txt`
+- 24-bit transactions: bit 23 = R/W, bits 22:16 = 7-bit register address, bits 15:0 = 16-bit data
+- **5-bit DEVSEL bus** on GPIO 13/23/24/25/26 (binary device-select multiplexer, 0–31 devices)
+- Banked addressing for FPGAs with >127 registers: bank# written to addr 127, then real address
+- SpreadsheetSrc: FPGA register maps auto-generated from PSG spreadsheets (StrpFPGA, CtrlFPGA)
+
+✅ verified 2026-04-17 — `collectorboxpi/Pre_EPICS_Collector/README.md` + `Add_Remove_Detectors.sh`
+
+---
+
 ## Connections to Other Subsystems
 
 - **ioc/** — shares the same IOC concept (VxWorks IOC for hardware boards; this is the Pi soft IOC for collector boxes)
