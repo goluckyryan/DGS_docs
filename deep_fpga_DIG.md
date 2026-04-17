@@ -386,9 +386,9 @@ For the full word-by-word bit layout of all 20 frames, see [deep_fpga_MTRG_MAIN.
 
 Two registers work together to configure external discriminator behaviour. Both are 32-bit registers packed with per-channel fields.
 
-#### `reg_external_disc_src` — Address `0x008`
+#### `reg_external_disc_src` — Address `0x008` ✅ verified 2026-04-17 — `Digitizer.vhd:L1904` (`reg_external_disc_src => ... -- Address = 0x008`)
 
-Selects **what** the external discriminator source is for each channel. 3 bits per channel, packed as channel N = bits `[(N×3+2):(N×3)]`.
+Selects **what** the external discriminator source is for each channel. 3 bits per channel, packed as channel N = bits `[(N×3+2):(N×3)]`. ✅ verified 2026-04-17 — `Digitizer.vhd:L968` (`reg_bit_slices(i) <= reg_external_disc_src((i*3)+2 downto (i*3))`)
 
 | 3-bit value | Source |
 |-------------|--------|
@@ -403,9 +403,9 @@ Selects **what** the external discriminator source is for each channel. 3 bits p
 
 Bit packing example: to set channel 0 = mode 6 and channel 1 = mode 1, write `0x008` = `0b...001_110` = `0x0E`.
 
-#### `reg_external_disc_mode` — Address `0x420`
+#### `reg_external_disc_mode` — Address `0x420` ✅ verified 2026-04-17 — `Digitizer.vhd:L1930` (`reg_external_disc_mode => ... -- Address = 0x420`)
 
-Selects **how** each channel uses its external discriminator source. 2 bits per channel, packed as channel N = bits `[(N×2+1):(N×2)]`.
+Selects **how** each channel uses its external discriminator source. 2 bits per channel, packed as channel N = bits `[(N×2+1):(N×2)]`. ✅ verified 2026-04-17 — `Digitizer.vhd:L1191` (`EXTERNAL_DISC_MODE => reg_external_disc_mode( ((i*2)+1) downto (i*2) )`)
 
 | 2-bit value | Behaviour |
 |-------------|-----------|
@@ -414,7 +414,7 @@ Selects **how** each channel uses its external discriminator source. 2 bits per 
 | `10` | AND — channel fires only if internal AND external both fire |
 | `11` | External only — channel fires on external discriminator alone; pileup timing check bypassed |
 
-Bits [29:27] of `reg_external_disc_mode` additionally select which timestamp edge flag is used when `reg_external_disc_src` = 3 (timestamp mode).
+Bits [29:27] of `reg_external_disc_mode` additionally select which timestamp edge flag is used when `reg_external_disc_src` = 3 (timestamp mode). ✅ verified 2026-04-17 — `Digitizer.vhd:L1001` (`external_disc_flag(i) <= ts_edge_flags(conv_integer(reg_external_disc_mode(29 downto 27)))`)
 
 ### Event Packet Format
 
