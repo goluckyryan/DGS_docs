@@ -359,6 +359,10 @@ _Source: `ioc/db/MTrigUser.template` (70,386 lines) — explored 2026-04-08_
 4. Detects whether an `_RBV` readback exists for each PV
 5. Outputs `All_PV.json`: a list of `[PV_name, {"Type": "IN"|"OUT", "RBV": "Exist"|"None"}]`
 
+**Skip list** (files excluded from PV scan):
+- `db/asynDebug.template` — debug records not needed in GUI
+- `db/dgsGlobals_DGS_VME99.db` — test stand globals (added 2026-02-26, commit 184570b) ✅ verified 2026-04-17 — `ioc/findAllPV.py` diff
+
 **Output:** `ioc/All_PV.json` — 13,887 entries (as of 2026-04-06)
 
 **When to regenerate:** after changing IOC boot scripts, adding/removing DB templates, or modifying PV names
@@ -368,6 +372,8 @@ cd ioc && python3 findAllPV.py
 ```
 
 > **Note:** This satisfies the ANLDAQ GUI's PV discovery need. The open QUEUE task ("Auto-generate EPICS DB + PV list from FPGA register map") aims to go further upstream — generating the `.template` DB files themselves from the FPGA register map, so `findAllPV.py` can then derive `All_PV.json` automatically.
+
+**Boot-time PV dump:** As of 2026-02-26 (commit 4eb1eb0), `vme66.cmd` and `vme99.cmd` both end with `dbl > "vme66_db.txt"` / `dbl > "vme99_db.txt"` — VxWorks `dbl` command dumps all loaded PV names to a text file on the IOC at startup. Useful for offline PV discovery without a running CA gateway. `bootFiles.txt` reverted to point at `boot/vme66.cmd` (from `vme99.cmd`) as the primary startup script reference. ✅ verified 2026-04-17 — `ioc/boot/vme66.cmd` + `ioc/boot/vme99.cmd` diff commit 4eb1eb0
 
 ---
 
