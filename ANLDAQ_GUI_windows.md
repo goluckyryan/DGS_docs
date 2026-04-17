@@ -226,8 +226,6 @@ _Source: `ANLDAQ/gui/gui_LinkSys.py` (295 lines, verified 2026-04-10)_
 
 ---
 
----
-
 ## GUI: Digitizer Board Window (`gui_DIG.py`)
 
 `DIGWindow` (374 lines) — opened by clicking a DIG board button in DGS Commander. Shows all status and controls for a single digitizer board in a single-level grid layout (no tabs).
