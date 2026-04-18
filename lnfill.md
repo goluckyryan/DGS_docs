@@ -51,10 +51,10 @@ Automated control system for filling germanium detector **dewars** with liquid n
 | `DetValve.py` | Valve control |
 | `TankMan.py` | **Tank manifold manager** — controls LN supply tanks. Two tank manifolds: TMan1 (feeds manifolds A+B, tanks T1/T2/T3) and TMan2 (feeds manifolds C+D, tanks T4/T5/T6). T1→feeds A, T2→feeds B, T3=spare; T4→feeds C, T5→feeds D, T6=spare. ✅ verified 2026-04-12 — `TankMan.py:L19` Each manifold has 1 supply vent valve + 3 × (feed valve + vent valve) per tank. `FillTanks()`: (1) open+cool supply vent (waits for `Cold` sensor or timeout=500s); (2) opens up to **2 tanks simultaneously** (feed+vent per tank), waits until sensor goes Cold or timeout (default 3000s each); T3/T6 (spare) opened if T1/T2 or T4/T5 finish early (`i<2 and Topen[2]==None` check) ✅ verified 2026-04-12 — `TankMan.py:L164-175`; (3) closes all. `CloseAllValves()` called on init and in `LNFill_Stop.py`. |
 | `LNValve.py` | **Valve abstraction base class** — wraps a single EPICS-controlled solenoid valve with sensor monitoring. 7 valve types: `SPLY` (supply vent), `TNKF`/`TNKV` (tank feed/vent), `MANF`/`MANS`/`MANV` (manifold feed/spare/vent), `DET` (detector). PV naming pattern: `LNS{n}` (supply), `LNT{n}` (tank), `LNM{n}` (manifold), with suffixes `_VV:EN` (valve enable), `_FV:VM` (valve state), `_SM:SUB.D/.E` (fill time sub-record), `_TM:BT/.AT` (sensor before/after). Default max open times: SPLY=300s, TNKF/TNKV=3600s, MANF/MANS=2500s, MANV=500s, DET=600s. Default min open times: SPLY=100s, TNKF/TNKV=300s, MANF/MANS/MANV=50s, DET=50s. ✅ verified 2026-04-13 — `LNValve.py:L41-42` (`mxotdef` + `mnotdef` dicts) Key methods: `Open()`, `Close()`, `GetStatSens()` (returns "Warm"/"Cold"/"Fault"), `GetState()`, `SetPVOpenTime()`, `getOpenTime()`. Uses `pv_lock` (from `pvlock.py`) + `get_pv()` (from `pv_cache.py`) for thread-safe CA access. |
-| `pvlock.py` | Shared `threading.Lock()` (`pv_lock`) for serializing EPICS PV access across modules |
-| `pv_cache.py` | Thread-safe PV object cache (double-checked locking pattern); `get_pv(name)` returns a reused `epics.PV` instance, creating it once per name to avoid redundant CA connections |
+| `pvlock.py` | Shared `threading.Lock()` (`pv_lock`) for serializing EPICS PV access across modules ✅ verified 2026-04-17 — `pvlock.py:L4` (`pv_lock = threading.Lock()`) |
+| `pv_cache.py` | Thread-safe PV object cache (double-checked locking pattern); `get_pv(name)` returns a reused `epics.PV` instance, creating it once per name to avoid redundant CA connections ✅ verified 2026-04-17 — `pv_cache.py:L9-16` (first check outside lock, then acquire lock, then check again inside = double-checked locking) |
 | `LNFill_Stop.py` | Emergency stop: kills running `LNFill_App.py` processes (SIGKILL), then closes all manifold + tank valves via `DetMan.CloseAllValves()` + `TankMan.CloseAllValves()`, writes log + error file |
-| `LNFill_closeValves.py` | Closes all 4 manifold detector valves (manifolds 1–4) without killing `LNFill_App.py` — safer than Stop for mid-run valve reset; runs from `/home/dgs/lnFill/` with aarch64 EPICS libs hard-coded |
+| `LNFill_closeValves.py` | Closes all 4 manifold detector valves (manifolds 1–4) without killing `LNFill_App.py` — safer than Stop for mid-run valve reset; runs from `/home/dgs/lnFill/` with aarch64 EPICS libs hard-coded ✅ verified 2026-04-17 — `LNFill_closeValves.py:L6-8,11` (`PYEPICS_LIBCA=/usr/lib/aarch64-linux-gnu/libca.so`; `BASE_DIR = "/home/dgs/lnFill"`) |
 | `LNFill_check.sh` | Fill status check |
 | `WriteDiscordMessage.py` | Sends Discord notifications |
 | `gefilltime2.dat` | **Per-detector LN2 fill time bounds** — 113 lines, format: `GS_ID, min_time_sec, max_time_sec`. Covers GS 1–110 + detectors 201 (DUO?) and 501. Loaded at startup by `LNFill_App.py:L333-344` into `geminfilltime[]` / `gemaxfilltime[]` arrays (default 151s min / 575s max if file absent ✅ verified 2026-04-12 — `LNFill_App.py:L30-31`). Example: GS 1–109 mostly 139–419s; GS 108=100–419s; GS 110=120–419s. Values set from 2020-03-28 fill session (per file header). Passed to each `DetMan` via `setDetMinFillTimes()` / `setDetMaxFillTimes()`. **Vacuum health indicator:** fill time trending shorter = vacuum degrading = detector warming faster = possible vacuum leak. See QUEUE.md LN2 fill time monitoring task. |
@@ -76,16 +76,45 @@ Automated control system for filling germanium detector **dewars** with liquid n
 | T/A/B/C/D | Selective | Fill selected manifolds or specific tank |
 
 **Flow summary:**
-1. Check for existing LNFill_App.py instance (abort or kill old one)
-2. Decode fill type → build target dewar list
-3. Check fill status = Ready (abort if not)
-4. Spawn one thread per manifold (1–4), fill up to 4 dewars each concurrently
-5. Wait for all manifold threads to finish
-6. Close all manifold valves
-7. If filling tanks: spawn tank fill threads, wait, close tank valves
-8. Write fill statistics to log
-9. If mode=M: wait 15 min for temps to stabilize
-10. Push fill data to InfluxDB + send Discord notification
+1. Check for existing LNFill_App.py instance (abort or kill old one) — see priority rules below
+2. Abort if less than 30 min to next scheduled fill (for non-F modes) — reads `LN_TTNF:XC` PV ✅ verified 2026-04-17 — `LNFill_App.py:L195-219`
+3. Check fill status = Ready (abort if `LN_MODE:XC` ≠ `Ready`) ✅ verified 2026-04-17 — `LNFill_App.py:L221-229`
+4. For M-mode: run `CheckTemps()` first; if no warm detectors, exit without killing any other instance ✅ verified 2026-04-17 — `LNFill_App.py:L238-244`
+5. Decode fill type → build target dewar list
+6. Spawn one thread per manifold (1–4), fill up to 4 dewars each concurrently
+7. Wait for all manifold threads to finish
+8. Close all manifold valves
+9. If filling tanks: spawn tank fill threads, wait, close tank valves
+10. Write fill statistics to log
+11. If mode=M: wait 15 min for temps to stabilize (so M-mode cron doesn't re-trigger too quickly) ✅ verified 2026-04-17 — `LNFill_App.py:L531-532`
+12. Push fill data to InfluxDB + send Discord notification
+
+**Instance priority / kill logic (`kill_filtered_instances()`):** ✅ verified 2026-04-17 — `LNFill_App.py:L57-142`
+
+When a new `LNFill_App.py` starts, it scans all running instances and applies these rules:
+
+| New fill type | Existing instance arg | Action |
+|---------------|-----------------------|--------|
+| F | any non-F | Kill old; close valves (safety) |
+| F | F | Abort new (another full fill already running) |
+| T | F or T | Abort new |
+| T | anything else | Kill old; close valves |
+| M | F, T, or M | Abort new |
+| M | anything else | Kill old; close valves |
+| L/A/B/C/D | anything | Abort new |
+
+The `closeValves` flag is set when killing an existing instance that may have had valves open — `DetMan.CloseAllValves()` is called before the new fill begins.
+
+**`CheckTemps()` — M-mode warm detector detection:** ✅ verified 2026-04-17 — `LNFill_App.py:L625-695`
+
+Reads `MOD{NNN}_DV_TEMP`, `MOD{NNN}_DV_TEMP.HIGH`, and `MOD{NNN}_DV_EN` for GS 1–110. Limits:
+- `hardLimit = 0.0` K above HIGH alarm → **fill immediately**
+- `softLimit = 3.0` K below HIGH alarm → **watch (templist)** — added to fill list only if ≥1 detector already in hard-limit list
+- `maxLimit = 100.0` K — upper guard against sensor spikes / warm/unconnected detectors
+
+During M-fill startup, `CheckTemps()` runs *before* the instance kill check — so if no detector is warm, the new M instance exits without disturbing any existing fill.
+
+**`makePVlist()` — PV enumeration:** Generates all 168 manifold control PVs (`LNH{1-4}-{01-28}` × 6 suffixes: `_SM:SUB.E/D`, `_FV:EN`, `_FV:VM`, `_TM:BT`, `_TM:AT`) plus 220 detector PVs (`MOD{001-110}_DV_TEMP` + `MOD{001-110}_DV_EN`). Used for prefetching/caching PV connections at startup. ✅ verified 2026-04-17 — `LNFill_App.py:L549-562`
 
 ---
 
