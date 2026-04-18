@@ -8,7 +8,7 @@
 | PI | Chiara |
 | Status | **Active / Ongoing** |
 | Elog Logbook | `2008_Chiara` |
-| GEB_ID | 14 |
+| GEB_ID | 14 ✅ verified 2026-04-17 — `start_run.sh:L35` (`GEB_ID=14`) |
 | Next Run # | >122 (as of 2026-04-14; latest run dir is `exp2008_122` on vol5) |
 
 ---
@@ -42,7 +42,7 @@ Run subfolders: `exp2008_001`, `exp2008_002`, ... (runs 1–122 present as of 20
 
 ## TCP Receiver Config (`config.txt`)
 
-12 VME IOC crates, all on port 9001, DataType 14:
+12 VME IOC crates, all on port 9001, DataType 14: ✅ verified 2026-04-17 — `start_run.sh:L12` (IP list) + `L158` (`192.168.203.$ip 9001 $GEB_ID`)
 
 | IP | VME Crate |
 |----|-----------|
@@ -83,6 +83,8 @@ Run subfolders: `exp2008_001`, `exp2008_002`, ... (runs 1–122 present as of 20
 | raw_data_delay | 0.5 µs |
 | raw_data_length | 0.32 µs (trace) |
 
+✅ verified 2026-04-18 — `ANLDAQ/tcpReceiver/basic_settings_DGS.sh:L44-60` (CFD block: mode=CFD, ch 5–9, active digList=MDIG1+MDIG2 except VME06/10)
+
 ---
 
 ## Trigger Settings (`basic_settings.sh`)
@@ -108,19 +110,23 @@ Run subfolders: `exp2008_001`, `exp2008_002`, ... (runs 1–122 present as of 20
 | raw_data_length | 4.0 µs |
 | trigger_mux_select | IntAcptAll |
 
+✅ verified 2026-04-18 — `ANLDAQ/tcpReceiver/basic_settings.sh:L1,L10-31` (trigger=SumX, VME99, EN_SUM_X, SYSMON, etc.); `L51-67` (VME99 MDIG1 CFD ch7 params)
+
 ---
 
 ## DCS2 Storage Overview
 
+*(Last checked: 2026-04-18)*
+
 | Filesystem | Size | Used | Avail | Use% | Mount |
 |-----------|------|------|-------|------|-------|
-| `/dev/nvme0n1` | 1.8T | 1.5T | 262G | 85% | `/mnt/data0` ← **local run data** |
-| `fs2.onenet:/mnt/vol5/atlasdata/dgs` | 264T | 102T | 162T | 39% | `/dgsdata/fs2/vol5` ← **NFS for exp2008_Chiara** |
+| `/dev/nvme0n1p1` | 3.6T | 23G | 3.4T | **1%** | `/mnt/data0` ← **local run data** ✅ healthy |
+| `fs2.onenet:/mnt/vol5/atlasdata/dgs` | 263T | 117T | 147T | 45% | `/dgsdata/fs2/vol5` ← **NFS for exp2008_Chiara** |
 | `fs2.onenet:/mnt/vol3/atlasdata/dgs` | 219T | 178T | 41T | 82% | `/dgsdata/fs2/vol3` |
 | `fs2.onenet:/mnt/vol2/atlasdata/dgs` | 165T | 159T | 6.5T | **97%** | `/dgsdata/fs2/vol2` ⚠️ nearly full |
 | `fs2.onenet:/mnt/vol4/atlasdata/dgs` | 227T | 178T | 50T | 79% | `/dgsdata/fs2/vol4` |
 
-**Why the symlink:** `/mnt/data0` (local NVMe) is 85% full — only 262 GB left. The experiment data is pointed to NFS vol5 (264T, 39% used, 162T free) which has plenty of headroom. The symlink `~/ExpData/exp2008_Chiara → /dgsdata/fs2/vol5/exp2008_Chiara` keeps it accessible as if local while actually writing to NFS.
+**Why the symlink:** The experiment data is pointed to NFS vol5 (263T, 45% used, 147T free) which has plenty of headroom. The symlink `~/ExpData/exp2008_Chiara → /dgsdata/fs2/vol5/exp2008_Chiara` keeps it accessible as if local while actually writing to NFS. data0 (local NVMe) is at 1% — previous cleanup runs were very effective.
 
 ⚠️ **vol2 is at 97% — nearly full.** Not used for this experiment but worth watching.
 

@@ -120,9 +120,9 @@ Loaded by `InitializeCoefficients()` at IOC init. Used by `CollectorCalc` PVs.
 | 15 | SideFET current | I = -[11/(5×32768)] × count (mA) ✅ verified 2026-04-16 — CollectorSupport.c:L742 (slope stored as negative) |
 | 16,17 | Side B/A offset voltage | V = [2249/(31125×131072)] × count ✅ verified 2026-04-16 — CollectorSupport.c:L745,L749 |
 | 18,19 | U7 gain 1X/4X offset | passthrough (slope=1.0, offset=0) ✅ verified 2026-04-16 — CollectorSupport.c:L752-756 |
-| 20 | Enclosure temp | T = (175/65535)×count − 45 (°C) |
-| 21 | Enclosure humidity | H = (100/65535)×count (%) |
-| 22 | PCB temp | T = count/256 (°C) |
+| 20 | Enclosure temp | T = (175/65535)×count − 45 (°C) ✅ verified 2026-04-17 — CollectorSupport.c:L763-765 (slope=[0]=175/65535, offset=[1]=−45.0) |
+| 21 | Enclosure humidity | H = (100/65535)×count (%) ✅ verified 2026-04-17 — CollectorSupport.c:L767-768 |
+| 22 | PCB temp | T = count/256 (°C) ✅ verified 2026-04-17 — CollectorSupport.c:L770-772 (coeff[22][0]=1.0/256.0) |
 | 23–26 | Fan RPM | RPM = 675000/(count×N), N=1,2,4,8 ✅ verified 2026-04-07 — CollectorSupport.c:L778-787 (MAX6653 datasheet p.12) |
 | 27 | Slope box DAC | DAC = volts × (4096/5000) ✅ verified 2026-04-16 — CollectorSupport.c:L800 |
 | 28 | °C → Kelvin | K = C + 273 (slope=1, offset=273) ✅ verified 2026-04-16 — CollectorSupport.c:L807-809 (added 20230309, previously unused) |

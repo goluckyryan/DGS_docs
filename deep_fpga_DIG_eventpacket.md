@@ -58,22 +58,22 @@ Note: `MPX_FIELD[23:0]` in Word 11 is the multiplexed field — when `CP` (Word 
 
 | Field | Location | Description |
 |-------|----------|-------------|
-| GeoAddr[4:0] | W1[31:27] | Board geographic address (VME slot ID) |
-| PacketLen[10:0] | W1[26:16] | Total packet length in 32-bit words (filled at readout) |
-| UserDef[11:0] | W1[15:4] | User tag from `reg_user_package_data` |
-| CH_ID[3:0] | W1[3:0] | Channel number (0–9) |
+| GeoAddr[4:0] | W1[31:27] | Board geographic address (VME slot ID) ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L314` (`header(1)(31 downto 27) <= geo_addr`) |
+| PacketLen[10:0] | W1[26:16] | Total packet length in 32-bit words (filled at readout) ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L315` (`header(1)(26 downto 16) <= "00000000000"` — replaced by `PACKET_LENGTH` at readout time) |
+| UserDef[11:0] | W1[15:4] | User tag from `reg_user_package_data` ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L316` (`header(1)(15 downto 4) <= user_package_data`, port: `user_package_data: in std_logic_vector(11 downto 0)`) |
+| CH_ID[3:0] | W1[3:0] | Channel number (0–9) ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L317` (`header(1)(3 downto 0) <= std_logic_vector(to_unsigned(channel_id, 4))`) |
 | HDR_LEN[5:0] | W3[31:26] | Header length constant = 28 ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L90` (20230809 current tag, rev 0x4CD8): `cHEADER_LENGTH := 28` (36-bit FIFO words; 14 VME words × 2 per FIFO word). `cREPORTED_HEADER_SIZE = 26` (= 28 − 2, per GRETINA convention). |
 | EVT_TYPE[2:0] | W3[25:23] | Event type (filled at readout) |
 | TM | W3[21] | `TRIG_TS_MODE`: 0 = use arrival TS; 1 = use trigger-mux TS |
 | PM | W3[20] | `PEQ_BYPASS`: 1 = pending event queue bypassed |
 | HEADER_TYPE[3:0] | W3[19:16] | Format: `0111` (7) = LED; `1000` (8) = CFD ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L101-102` (current 20230809 tag, rev 0x4CD8): `cHEADER_TYPE_LED = to_unsigned(7,4)`, `cHEADER_TYPE_CFD = to_unsigned(8,4)`. Prior firmware DGS_TAG_20180607_TWEAK used 5/6 (LED/CFD); values incremented again in Aug 2021 build. |
-| SAMPLED_BASELINE[23:0] | W6[23:0] | Baseline estimate latched at event time (ADC counts × M) |
+| SAMPLED_BASELINE[23:0] | W6[23:0] | Baseline estimate latched at event time (ADC counts × M) ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L355` (`header(6)(23 downto 0) <= event_data.sampled_baseline(23 downto 0)`) |
 | TRIG_MON_DET_DATA[15:0] | W7[31:16] | Detector trigger monitor data from Frame 2 |
 | TRIG_MON_XTRA_DATA[15:0] | W7[15:0] | Extra trigger monitor data from Frame 2 |
-| PRE_RISE_SUM[23:0] | W8[23:0] | Pre-peak energy integral (M samples) — see Energies |
-| TS_OF_PEAK[15:0] | W9[31:16] | Lower 16 bits of 48-bit timestamp at pulse peak |
-| TS_OF_TRIGGER[15:0] | W10[31:16] | Lower 16 bits of 48-bit timestamp when trigger arrived |
-| TS_OF_COARSE[9:0] | W13[23:14] | Coarse discriminator timestamp (10-bit) |
+| PRE_RISE_SUM[23:0] | W8[23:0] | Pre-peak energy integral (M samples) — see Energies ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L361` (`header(8)(23 downto 0) <= event_data.pre_rise_energy(23 downto 0)`); upper byte W8[31:24] = POST_RISE_SUM[7:0] |
+| TS_OF_PEAK[15:0] | W9[31:16] | Lower 16 bits of 48-bit timestamp at pulse peak ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L363` (`header(9)(31 downto 16) <= event_data.ts_of_peak`) |
+| TS_OF_TRIGGER[15:0] | W10[31:16] | Lower 16 bits of 48-bit timestamp when trigger arrived ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L366` (`header(10)(31 downto 16) <= X"0000"` — replaced by trigger timestamp at readout; TRIG_TS_MODE bit selects arrival vs trigger-mux TS) |
+| TS_OF_COARSE[9:0] | W13[23:14] | Coarse discriminator timestamp (10-bit) ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L378` (`header(13)(23 downto 14) <= event_data.TS_OF_COARSE`); extension bits [11:10] in W4[13:12] via `TS_OF_COARSE_XTND` (added 2023-08-07, replaced GENERAL_ERROR/SYNC_ERROR) |
 | PU_CNT[3:0] | W6[27:24] | Number of simultaneous pileup events |
 
 **Status flag bits (Word 4):**

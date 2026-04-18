@@ -61,11 +61,11 @@ Slot 7: MTRG
 
 ### VME Crate Structure
 
-- Each VME crate contains **3 individual VME backplanes**, each acting as an independent VME system
+- Each VME crate contains **3 individual VME backplanes**, each acting as an independent VME system ✅ verified 2026-04-18 — [wiki.anl.gov/gsdaq/CrateAndBoardMapping](https://wiki.anl.gov/gsdaq/CrateAndBoardMapping): "Each of these crates is actually three separate 7-slot backplanes with a common power supply"; VME01+VME02+VME03 = one physical crate (top of right-side relay rack)
 - Each VME system hosts **4 digitizers** → up to 12 DIGs per crate, 40 channels per VME system, 120 ch per crate
 - One of the 12 VME systems per crate is reserved for the Router Trigger (RTRG) + associated electronics
 - Each VME backplane also has **one IOC board (MVME5500)**
-- **VME Fiber Expander** board provides fully optical interface between MTRG (System Trigger) and RTRGs — replaced original short copper cables ✅ wiki `/gsdaq/VME_Crates` 2026-04-17
+- **VME Fiber Expander** board (PCB #3174, ANL part `21pc032`, Rev A, Sept 2021) provides fully optical interface between MTRG (System Trigger) and RTRGs — replaced original copper/Cat5 Trigger Paddle Cards; installed July 2022. Requires DC balance enabled (`EN_RTR_DCBAL`, `LinkL_DCbal`) and cable pre-emphasis **disabled** (`PEHLRU=PEEFG=PEABCD=0`). ✅ verified 2026-04-17 — `knowledgeBase/DGS_SVN.md` (PCB #3174), `knowledgeBase/link_sys_analysis.md:1I`, `knowledgeBase/trig_setup_scripts.md` (fiber expander notes)
 - Prior to digital upgrade (before 2023): VXI crates used (larger, housed in a separate electronics "shack" room); VXI system dismantled post-upgrade
 
 ### VME Backplane
@@ -104,8 +104,8 @@ Each RTRG manages a "sector" of 8 DIGs = 80 channels = one VME crate.
 ### Digitizer Hardware Origin
 
 - DGS digitizer boards are **GRETINA-origin hardware** (designed by LBNL; firmware completely new for ANL experiments) ✅ wiki `/gsdaq/Digitizers` 2026-04-17
-- ADC samples: **signed 14-bit @ 100 MHz (10 ns period)**
-- Experiments using this hardware/firmware family: DGS, DFMA (Digital FMA), HELIOS, X-Array (since 2018)
+- ADC samples: **signed 14-bit @ 100 MHz (10 ns period)** ✅ verified 2026-04-17 — `jta_channel.vhd:L39,L41` (20230809 tag: `CLK: in std_logic — 100MHz system clock`; `RAW_ADC_DATA: in std_logic_vector(13 downto 0) — 14 bits 2's comp data from ADC`)
+- Experiments using this hardware/firmware family: DGS, DFMA (Digital FMA), X-Array, DuoGe (DUO) — HELIOS used DGS digitizers only for preamp characterization testing (2016 SVN data, not a full firmware user) ✅ verified 2026-04-17 — `DGS_SVN.md`: `DFMA_20220711`/`DXA_20220720`/`DUB_20211101` tags confirm DFMA/DXA/DUO as firmware users; HELIOS limited to `HELIOS_Preamp_data` (one alpha-source test run, 2016); "since 2018" X-Array claim dropped — earliest verifiable X-Array experiment tag is July 2022 (`DXA_20220720`); DFMA naming appears in CSS OPI screens as early as 2013 (`how_to_python.txt`)
 - **Center/Sum DIGs** (MDIG/BUS_LEFT): connected to RTRG — participate in trigger and veto logic
 - **Side/Pattern DIGs** (SDIG/BUS_RIGHT): receive clock+trigger via front-bus cable from neighbor; one-way link — cannot participate in trigger or veto
 - As of 2023: **Slope Box Extension (SBX) replaced old pickoff cards** — provides programmable time constants and replaces original power/control/monitoring system
@@ -171,7 +171,7 @@ All systems share the **same physical network (onenet, 192.168.203.x)** but are 
 | Detector channels | 20 | up to 640 |
 | Slope boxes | 2 | 110 |
 | Collector boxes | — | 4 |
-| Raspberry Pis | 1 | 4 (+ pi5-dgs, now retired from admin role) |
+| Raspberry Pis | 1 | 4 (collector box Pis: pi0–pi3) |
 | IOC boards (MVME5500) | 1 | 12 |
 
 ---
@@ -214,4 +214,4 @@ Gammasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
 
 ---
 
-*Source: DGS_tools_pack code exploration, link_sys_analysis.md, nfs_layout.md. Created: 2026-04-05. Updated: 2026-04-06.*
+*Source: DGS_tools_pack code exploration, link_sys_analysis.md, nfs_layout.md. Created: 2026-04-05. Updated: 2026-04-17 (table cleanup, wiki-only citation flagged).*

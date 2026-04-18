@@ -95,7 +95,7 @@ A standalone VHDL testbench (`ISE 13.4` project) that simulates two MTRG boards 
 | `MstrTrig_pkg.vhd` | Component declaration for `trigger_top` (the MTRG Main FPGA entity) with `BUILD_TYPE` generic |
 | `bus_pkg.vhd` | Bus signal record definitions for test bench |
 | `bus_trans.vhd` | Bus transaction helpers (stimulate/check VME transactions) |
-| `crate_def_tb.vhd` | Top-level testbench: instantiates two `trigger_top` entities (LOCAL_MASTER + REMOTE_MASTER) as `BUILD_TYPE=4` (DGS Master Trigger) |
+| `crate_def_tb.vhd` | Top-level testbench: instantiates two `trigger_top` entities (LOCAL_MASTER + REMOTE_MASTER) as `BUILD_TYPE=4` (DGS Master Trigger) ✅ verified 2026-04-18 — `crate_def_tb.vhd:L36` (`BUILD_TYPE => 4`), `L42` (comment: `4-DGS Master Trigger`), `L19-20` (LOCAL_MASTER + REMOTE_MASTER ports) |
 | `regio_tb.vhd` | Register I/O testbench: verifies register reads/writes |
 | `top_tb1.VHD` | Alternate top-level testbench |
 | `MyRIAD_pkg.vhd` | Copy of MyRIAD package (for cross-system simulation) |
@@ -106,7 +106,7 @@ Open in ISE 13.4 (`Work13_4/Work13_4.xise`), select the desired testbench as the
 
 ### Significance
 
-This simulation shares the same `trigger_top` component and `BUILD_TYPE` encoding as the production MTRG firmware (`BUILD_TYPE=4` for DGS Master Trigger). It was used during development to validate the SERDES link initialization protocol and command routing logic without requiring physical hardware.
+This simulation shares the same `trigger_top` component and `BUILD_TYPE` encoding as the production MTRG firmware (`BUILD_TYPE=4` for DGS Master Trigger) ✅ verified 2026-04-18 — `crate_def_tb.vhd:L36,L42`. It was used during development to validate the SERDES link initialization protocol and command routing logic without requiring physical hardware.
 
 ## Cross-References
 

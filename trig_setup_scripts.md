@@ -96,9 +96,9 @@ Links G, H, R, U are unused (`X`) in this config. Link L of each RTRG connects b
 
 ---
 
-## Stage 3 — Link Lock Verification (MTRG + RTRGs)
+## Stage 3 — Link Lock Verification + RTRG Clock Hand-Off
 
-**Goal:** Verify all active links are locked before proceeding.
+**Goal:** Verify all active MTRG–RTRG links are locked, flip RTRGs to MTRG-derived clock, issue first IMP_SYNC.
 
 ### Step-by-step:
 - Wait 3 seconds for EPICS PV refresh.
@@ -106,14 +106,16 @@ Links G, H, R, U are unused (`X`) in this config. Link L of each RTRG connects b
 - **3B:** Check `ALL_LOCKED_RBV` on each RTRG's link L (must be 1). Fail if not.
 - **3C+:** Additional link-level checks on each RTRG active link using firmware's more stringent lock-state machine.
 - On failure: script exits with error code 1.
+- **Clock switch:** Flip each RTRG clock source from local OSC to link clock (`ClkSrc=1`). This synchronizes all RTRG timing to the MTRG. ✅ verified 2026-04-17 — `trig_setup_Stage3.sh:L232`
+- **IMP_SYNC:** Assert `IMP_SYNC=1` on MTRG (left asserted, not cleared) — broadcasts ISYNC bit in Frame 1, resetting all MTRG and RTRG timestamp counters simultaneously to zero. DIGs are not yet on a common clock, so their counters are not meaningfully aligned here. ✅ verified 2026-04-17 — `trig_setup_Stage3.sh:L316`
 
 **Note:** EPICS scans lock state ~1 Hz. Stage 3 is a "good enough" pre-check; more stringent firmware checks follow in later stages.
 
 ---
 
-## Stage 4 — DIG Initialization + Router Link Lock Verification
+## Stage 4 — DIG Initialization + Router Link Lock Verification + DIG Clock Hand-Off
 
-**Goal:** Initialize all DIGs to drive SYNC toward their RTRG, verify RTRG locks.
+**Goal:** Initialize all DIGs to drive SYNC toward their RTRG, verify RTRG locks, flip DIGs to RTRG-derived clock, issue second IMP_SYNC.
 
 ### Step-by-step:
 - **4A:** For each active DIG (`LIST_OF_DIGITIZERS`):
@@ -128,8 +130,10 @@ Links G, H, R, U are unused (`X`) in this config. Link L of each RTRG connects b
 - **4B:** Pulse `RESET_LINK_INIT` on all RTRGs (so RTRGs can re-establish lock with DIGs now driving SYNC).
 - Wait 2 seconds.
 - **4C+:** Verify all RTRG active links (A–H) are locked (`caget ${RTR}:LOCK_{link}_RBV`). Fail if any unlocked active link found.
+- **Clock switch:** Flip each DIG to the desired clock source (`clk_select=DIG_CLOCK_SEL`, typically 0=link clock). All DIGs now derive their timing from the RTRG → MTRG chain. ✅ verified 2026-04-17 — `trig_setup_Stage4.sh:L174-176`
+- **Second IMP_SYNC:** Assert then immediately clear `IMP_SYNC` (set=1 then set=0). This resets all DIG timestamp counters simultaneously with all RTRG and MTRG counters — completing full three-tier timestamp alignment. ✅ verified 2026-04-17 — `trig_setup_Stage4.sh:L240-241`
 
-**End state:** All DIGs driving SYNC → RTRGs; all links DIG→RTRG→MTRG locked.
+**End state:** All DIGs driving SYNC → RTRGs; all links DIG→RTRG→MTRG locked; all boards on MTRG-derived clock with aligned timestamps.
 
 ---
 
@@ -155,10 +159,10 @@ Links G, H, R, U are unused (`X`) in this config. Link L of each RTRG connects b
 
 - **EPICS whole-register vs breakout PV gotcha:** Writing to a whole-register PV (e.g., `VME10:MTRG:reg_INPUT_LINK_MASK`) updates `reg_INPUT_LINK_MASK_RBV` but does **not** update the associated breakout PVs (`ILM_A`–`ILM_H`). Conversely, writing to a breakout PV updates the hardware register and `reg_INPUT_LINK_MASK_RBV`, but does **not** update the `reg_INPUT_LINK_MASK` process variable. Because the GUI control windows use breakout PVs exclusively, all scripts must also use **breakout PVs only** (not whole-register writes) to keep the GUI synchronized with hardware state. ✅ verified 2026-04-17 — `Serdes_Linkup.sh:L7–29` (full explanation in header comment)
 
-- **Double-write pattern:** EPICS can lose track of hardware state. Many PVs are written to the *wrong* value first, then the *correct* value, to force the driver to re-assert the desired state (seen extensively in Stage 2).
+- **Double-write pattern:** EPICS can lose track of hardware state. Many PVs are written to the *wrong* value first, then the *correct* value, to force the driver to re-assert the desired state (seen extensively in Stage 2). ✅ verified 2026-04-17 — `trig_setup_Stage2.sh:L62-71` (comment: "EPICS often forgets the state of things... set things twice — once to what you don't want, then again to what you do want")
 - **Fiber expander (2022+):** DC balance must be enabled on MTRG (`EN_RTR_DCBAL`) and each RTRG (`LinkL_DCbal`). Cable pre-emphasis (`PEHLRU/PEEFG/PEABCD`) must be 0 when using fiber.
-- **Clock synchronization:** All boards start on local clock. After link lock is confirmed, the system can optionally switch to MTRG-distributed clock (not shown in basic 5-stage init).
-- **Author:** JTA (J. T. Anderson, likely) — initials appear in comments for 2022–2024 additions.
+- **Clock synchronization:** All boards start on local clock. Stage 3 flips all RTRGs to the MTRG-derived link clock (`ClkSrc=1`) after verifying MTRG–RTRG lock, then issues `IMP_SYNC` to align timestamps. Stage 4 flips all DIGs to the RTRG-derived clock (`clk_select=DIG_CLOCK_SEL`) and issues a second `IMP_SYNC` (set+clear) so DIG timestamps also align. This two-shot IMP_SYNC ensures all three tiers (MTRG/RTRG/DIG) share a common time zero. ✅ verified 2026-04-17 — `trig_setup_Stage3.sh:L232,L316`, `trig_setup_Stage4.sh:L174-176,L240-241`
+- **Author:** JTA — initials appear in comments for 2022–2024 additions (e.g., "addition 20220711 JTA turn ON the DC balance logic"). ✅ verified 2026-04-17 — `trig_setup_Stage2.sh:L86`
 - **`Serdes_Linkup.sh`:** Sequential wrapper that invokes Stages 1–5 in order. Sets `SCRIPT_DIR` to `${ANLDAQ_DIR}/gui/scripts/new_scripts` (legacy path — `new_scripts/` subdir does not exist in the current repo; stage scripts live directly in `scripts/`). ✅ verified 2026-04-17 — `Serdes_Linkup.sh:L3` (SCRIPT_DIR assignment), `L48/57/67/78/87` (stage invocations)
   - ⚠️ After completion, **Link L F1 propagation is removed** — cross-system clock/triggering must be reconstituted manually after this script finishes (noted in end-of-script echo block: `Serdes_Linkup.sh:L106–111`)
   - Also documents the EPICS **whole-register vs breakout PV gotcha** (see Key Design Notes below)
@@ -178,3 +182,13 @@ Links G, H, R, U are unused (`X`) in this config. Link L of each RTRG connects b
 | `EN_LINK_R` | MSTR / Link R | Master-Master remote trigger |
 | `EN_MYRIAD_LINK_U` | MYRIAD / Link U | Remote trigger (configured as Remote, not MYRIAD: `LINK_U_IS_TRIGGER_TYPE=1`) |
 | `COINC_TRIG_MASK_A1`–`B7` | Coincidence mask bits | Which link groups participate in coincidence |
+
+---
+
+## Cross-References
+
+- `knowledgeBase/link_sys_analysis.md` — Python counterpart: `link_sys.py` (same 5-stage sequence, full timing/clock analysis, IMP_SYNC two-shot sync, EPICS CA call chain, error-check mode)
+- `knowledgeBase/ANLDAQ.md` — ANLDAQ GUI: SerdesLinkup button that invokes `link_sys.py`; `Serdes_Linkup.sh` wrapper
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: registers driven by Stage 1
+- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: registers driven by Stages 2–4
+- `knowledgeBase/troubleshooting.md` — Router lock loss, SYNC bit gotcha (Stage 5 clears SYNC)

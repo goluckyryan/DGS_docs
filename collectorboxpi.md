@@ -179,6 +179,102 @@ Autosave saves listed PVs every 30 seconds to `/home/dgs/autosave/softIOC_<N>_se
 
 ---
 
+## softioc_postscript.sh — Post-Init Hardware Commissioning
+_Source: `collectorboxpi/softioc_postscript.sh` — 673-line Bash script_
+
+Runs automatically after IOC init completes (launched by `startSoftIOC.sh`). Performs a 6-phase hardware commissioning sequence over EPICS CA using `caget`/`caput`. Logs to `~/softioc_<N>_postScript_log.txt`. All `caget`/`caput` calls use a 150 ms timeout (`-w 0.150 -t`).
+
+**Input:** `$LIST_OF_VME_GS_NUMBERS` (exported by `collectorBox.sh` as space-separated string; converted internally to Bash array)
+
+### Phase 1 — Relay & SPI Enable (loop over 6×5 stripe/port grid)
+For each stripe (1–6) × port (1–5) position (= 30 slots total):
+- **Placeholder (`NUM=000`):** immediately disables relay + tristates SPI/clock lines → skips caget
+- **Live slot:** does `caget VME_GS<NUM>_to_True_GS` to resolve true GS number
+  - If `TRUE_GS=000` or `SBX_Present=0`: disables relay + tristates → skips
+  - Otherwise: enables relay (`GS<COLL>_prly_s<S>_<P> on`), activates SPI + clock lines, closes earth relay (`crly_earth_s<S>`), enables clock+sync
+- Waits 10 s after all relays are on for power to settle
+
+### Phase 2 — I2C & Preamp Enable (loop over detector list)
+For each connected detector with SBX present:
+- `GS<NNN>_ResetAllI2CMach = run` — reset I2C state machines
+- `GS<NNN>_ResetAllScanMachines = run` — reset all scan machines
+- `GS<NNN>_PreampI2C_OE_CTL = I2C_enbl` — enable I2C output
+- `GS<NNN>_PreampI2C_FIFO_RESET = run` — flush I2C FIFO
+- `GS<NNN>_PA_QI_Mode = I2C` — set preamp to I2C mode
+- `MOD<NNN>_DV_EN = 1` — enable DVI channel
+- `GS<NNN>_Slopebox_Scan_control = read/write` — arm slopebox scanner
+- Waits 2 s for PVs to settle
+
+### Phase 3 — BGO HV Interlock
+For each connected detector with SBX present:
+- Reads `GS<NNN>_SlopeBoxBGOInterlock`:
+  - `"Interlock OPEN"` → `BGO_HV_CTRL = "BGO HV Off"`
+  - `"Interlock Closed"` → `BGO_HV_CTRL = "BGO HV ON"`, sets all 14 BGO HV channels (0–13) to **200 V baseline**
+  - Any other value → error; forces `"BGO HV Off"`
+
+### Phase 4 — HPGe HV Interlock & Ramp
+For each connected detector with SBX present:
+- Sets ramp parameters: `GE_HV_STEP_SIZE=10`, `MANUAL_GE_HV_DEMAND=0`, `GE_HV_HYSTERESIS=5`
+- Reads `GS<NNN>_SlopeBoxTempHigh`:
+  - `"Temp HIGH"` → `GE_HV_CTRL = "Ge HV Off"` (interlock open)
+  - `"Temp OK"` → `GE_HV_CTRL = "Ge HV ON"`, reads operating HV from `MOD<NNN>_DS_GEHV`, writes it to `GE_HV_DEMAND_VOLTS` (ramp starts)
+  - Any other value → error; `GE_HV_DEMAND_VOLTS = 0` (safe ramp-down)
+
+### Phase 5 — PT100 Temperature Calibration
+For each detector with `GS<NNN>_Dig_Channel != -1`:
+
+Reads both temperature sensors (PT100 via `MOD<NNN>_DV_TEMP`, PT500 via `GS<NNN>_Calc_PT500_Temp`) and applies a linear gain+offset correction to PT100 so it tracks PT500 (the ground truth).
+
+**Skip conditions (CAL_SKIP=1):**
+- PT500 > −175°C (detector too warm)
+- PT100 PREC field = 2 (PT100 failed; PT500 is fallback sensor)
+- PT500 between −243°C and −190°C (impossibly cold non-zero = bypassed sensor)
+
+**Calibration formula** (all temps in °C; converted to K internally):
+```
+C_offset = 29.6945, C_error = 4.0
+gain  = (T_PT500 + 273.15 - C_offset) / (T_PT100 + 273.15 - C_offset - C_error)
+const = 273.15 x gain - (C_offset + C_error) x gain + C_offset
+EPICS CALC field: "A * gain + const"
+```
+- **Validity check:** gain must be in [0.8, 1.25]; if out of range, waits 10 s and retries once
+- On second failure → CAL_SKIP=1 (uncalibrated fallback)
+
+**High-temperature alarm threshold:**
+- Normal: `.HIGH = T_PT500 (K) + 6 K`; clamped to max 98 K
+- Fallback: `.HIGH` based on whichever sensor is still valid; clamped to 100 K
+- Fallback CALC: `"A + 273.15"` (raw PT100 degC to K, no gain)
+
+### Phase 6 — Health Check & Error Report
+For each detector, reads ~40 PVs and checks ranges:
+
+| Check | Error condition |
+|-------|-----------------|
+| PT100 temp | >400 K (cable fault), >100 K (warm), <50 K (DVI fault) |
+| PT500 temp | >105°C (fault), >−160°C (warm), bypassed warning |
+| Slope Box ID | non-numeric, =255 (DVI fault), >128, <1 |
+| Power board status | =0 (I2C comm error) or not 255 |
+| 24V rail | outside [23, 24] V |
+| 5V rail | outside [4, 5] V |
+| +12V rail | outside [11, 12] V |
+| −12V rail | outside [−12, −11] V |
+
+**I2C comm error thresholds** (configured at top of script):
+- `I2C_COMM_ERROR_TRIGGER_THRESHOLD = 5` — errors below this are suppressed (noise)
+- `I2C_COMM_ERROR_MUTE_THRESHOLD = 7` — errors above this are fully muted (avoid log spam)
+- **DVI comm error thresholds:** trigger=0, mute=3
+
+**Summary output:**
+```
+GS XXX is OK           <- no errors or warnings
+GS XXX -> Errors:N Warnings:M
+Number of Detector: N -> Errors:E Warnings:W
+N Connected GSs  / M Connected SBXs / K Interlocked BGO / J Interlocked HPGe
+```
+✅ verified 2026-04-18 — `collectorboxpi/softioc_postscript.sh` (full read, all 673 lines)
+
+---
+
 ## Networking / PXE Boot
 
 - **DHCP server:** Einstor (192.168.203.1) — ANL-managed, no DGS control

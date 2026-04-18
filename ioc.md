@@ -51,8 +51,8 @@ Old template names (historical, pre-Git migration, from `DGS_SVN/dgs/Documentati
 
 ## EPICS CA Port Map (from cdCommands)
 
-| System | CA Server Port | CA Repeater Port |
-|--------|---------------|------------------|
+| System | CA Server Port | CA Repeater Port | Notes |
+|--------|---------------|------------------|-------|
 | DGS | 5064 | 5065 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L45-46` |
 | DFMA | 5068 | 5069 | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L5` (comment) |
 | Xarray | 5072 | 5073 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L23-24` |
@@ -103,6 +103,29 @@ DGS production boards are type **0xC** (master DIG) and **0xD** (slave DIG). Typ
 1. `ProgramFlash(board#, 0, "file.bin")` — writes firmware to flash
 2. `ConfigureFlash(board#, 0)` — loads flash into FPGA
 3. Run `ConfigureFlash` again for all boards to confirm
+
+**Reconfigure all DIG FPGAs at once (DGS convenience PV):**
+- `GLBL:DIG:config_main_fpga` — write 1 to reconfigure ALL digitizer FPGAs in DGS simultaneously
+- Per-crate: `VME01:DIG1:config_main_fpga` (write 1) — reconfigures a single board
+- Trigger crate: requires a **power cycle** (no remote reconfig PV)
+- Source: [wiki Updating Firmware in Digitizers and Triggers](https://wiki.anl.gov/gsdaq/Updating_Firmware_in_Digitizers_and_Triggers) ✅ visited 2026-04-18
+
+**Current DGS firmware flash procedure (2024):**
+- Documented in `Flash_Maintenance_Instructions_20240222.odt` (linked from wiki)
+- URL: https://wiki.anl.gov/wiki_gsdaq/images/d/d7/Flash_Maintenance_Instructions_20240222.odt
+- Supersedes the old Java `fpgasender.jar` approach (still works for DFMA/DUB/DXA legacy systems)
+
+**Old Java-based flash procedure (legacy DFMA/DUB/DXA):**
+- Log into `dgs` account on `dgs1`; firmware `.bin` in `/Digitizer/MAIN_FPGA/Work11_DGS`
+- 4 flavors: `MSTR_digitizer`, `SLAVE_digitizer`, `trigger_top`, `router_top`
+- Run: `java -classpath jca-2.3.5.jar:caj-1.1.9.jar:fpgasender.jar plotControl`
+- API: `epics.sendFpga(firmware, retfile, crateNum, boardNum, erase, program, verify)`
+- Example DGS master dig crate 1 board 0: `epics.sendFpga(digware, fn1, 1, 0, 1,1,0)` (erase+program, no verify)
+- Trigger crate (crate 0 board 0): `epics.sendFpga(mastware, fn1, 0, 0, 1,1,1)`
+- Routers (crate 0 boards 1–3): `epics.sendFpga(routware, fn1, 0, 1, 1,1,1)` etc.
+- ⚠️ Wrong bin filename = "yellow fever" (board hangs); double-check filenames before flashing
+- `asynRecords.txt` defines active crates — edit if PVs are missing during setup
+- Source: wiki + `DGS_SVN/dgs/how_to_fw.txt`
 
 ---
 
@@ -182,6 +205,23 @@ Located in `boot/`:
 - vme99: two MDIG boards both use `MDigRegisters/User` (master-type DB); vme66: MDIG1=master, MDIG2=slave (`SDigRegisters/User`)
 - Both: `asynDebug.template` line present but commented out
 - Regular VME01–12 (Gammasphere) boot scripts live on NFS at `/global/ioc/boot/` — not in this git repo
+- **PV dump on startup:** Both `vme66.cmd` and `vme99.cmd` now end with `dbl > "vme<NN>_db.txt"` — dumps the full PV list to a text file at IOC startup ✅ verified 2026-04-17 — `ioc` commit `4eb1eb0`
+- **`bootFiles.txt`** currently points to `boot/vme66.cmd` (changed from `vme99.cmd`) ✅ verified 2026-04-17 — `ioc` commit `4eb1eb0`
+
+---
+
+## FTP Server Setup (IOC Host)
+
+The IOC boot host (e.g., `tangerine`) needs an FTP server so VxWorks IOCs can fetch boot files. Recommended: **vsftpd** (very-secure FTP server). For Ubuntu 24:
+
+```sh
+sudo apt install vsftpd
+# Edit /etc/vsftpd.conf: set write_enable=YES
+sudo systemctl restart vsftpd.service
+sudo systemctl enable vsftpd.service
+```
+
+FTP credentials are stored separately (see `boot/` README — password not displayed in README.md). ✅ verified 2026-04-17 — `ioc` commit `155a3b6` (README.md update)
 
 ---
 

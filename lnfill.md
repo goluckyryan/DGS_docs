@@ -41,11 +41,11 @@ Automated control system for filling germanium detector **dewars** with liquid n
 | File | Role |
 |------|------|
 | `LNFill_App.py` | Main fill control app — manages all 4 manifolds concurrently |
-| `LNFill_cron.sh` | Scheduled full-system fill (7am + 7pm daily) ✅ verified 2026-04-06 — `lnfill/README.md:L105,L110` (`00 07,19 * * *`) |
+| `LNFill_cron.sh` | Scheduled full-system fill (6am + 6pm daily) ✅ verified 2026-04-18 — live pi5-lnFill crontab (`00 06,18 * * *`); README.md was stale (said 07,19) |
 | `LNFill_Auto_EFill_cron.sh` | Auto emergency fill — runs every 15 min, fills warm detectors ✅ verified 2026-04-06 — `lnfill/README.md:L106,L111` (`*/15 * * * *`) |
 | `SaveTemp.sh` | Records temperatures every 10 min; pushes to InfluxDB on DCS2 ✅ verified 2026-04-07 — README.md:L107,L112 |
 | `LNFill_ping_cron.sh` | Health check: pings all hosts, reports to InfluxDB + Discord (runs on DCS2, every 12 min) ✅ verified 2026-04-07 — `lnfill/README.md:L116,L122` (`*/12 * * * *` on `dcsu@DCS2.onenet`) |
-| `LNFill_pi5_check.sh` | Checks LNFill_App.py is running at 7:15 and 19:15 (runs on DCS2) ✅ verified 2026-04-06 — `lnfill/README.md:L131` (`15 7,19 * * *`) |
+| `LNFill_pi5_check.sh` | Checks LNFill_App.py is running at 6:15 and 18:15 (runs on DCS2) ✅ verified 2026-04-18 — live DCS2 crontab (`15 6,18 * * *`); README.md was stale (said 7,19) |
 | `EPICS_para.sh` | Sets EPICS environment variables |
 | `DetMan.py` | Detector manager |
 | `DetValve.py` | Valve control |
@@ -74,6 +74,11 @@ Automated control system for filling germanium detector **dewars** with liquid n
 | M | Monitor fill | Check temperatures, build warm detector list, fill warm ones |
 | L | List fill | Fill specific detectors by GS ID list |
 | T/A/B/C/D | Selective | Fill selected manifolds or specific tank |
+
+**Pre-fill setup (in `LNFill_cron.sh` and `LNFill_Auto_EFill_cron.sh`):**
+- Both cron scripts explicitly **disable `LNH1-20_FV:EN`** via `caput` before calling `LNFill_App.py`. This is a hardcoded valve disable applied before every fill (both scheduled and emergency). `LNH1-20` maps to manifold 1, position 20 (GS detector 20, fill bounds 139–419 s per `gefilltime2.dat`). Reason not documented in code — likely a known-bad valve or stuck hose. ✅ verified 2026-04-18 — `LNFill_cron.sh:L14`, `LNFill_Auto_EFill_cron.sh:L13`
+- `LNFill_cron.sh` also: runs `setTNF.sh` (set next fill time), `clean.sh` (delete empty logs + core.* files), and launches `AddPress.sh` in background before calling `LNFill_App.py F`. After fill ends, it calls `source LNFill_check.sh` (not a subshell — runs in same process) to check fill duration. If the output log file is empty at the end, posts anomaly alert to Discord: `'{outfile} is empty at the end of the LNFill_cron.sh. Something wrong with the fill.'` ✅ verified 2026-04-18 — `LNFill_cron.sh:L13-48`
+- `LNFill_Auto_EFill_cron.sh` (M-mode) is simpler: disable LNH1-20, run `LNFill_App.py M`, post the fill log file to Discord webhook if it exists. No check script, no AddPress. ✅ verified 2026-04-18 — `LNFill_Auto_EFill_cron.sh:L13-20`
 
 **Flow summary:**
 1. Check for existing LNFill_App.py instance (abort or kill old one) — see priority rules below
@@ -108,9 +113,9 @@ The `closeValves` flag is set when killing an existing instance that may have ha
 **`CheckTemps()` — M-mode warm detector detection:** ✅ verified 2026-04-17 — `LNFill_App.py:L625-695`
 
 Reads `MOD{NNN}_DV_TEMP`, `MOD{NNN}_DV_TEMP.HIGH`, and `MOD{NNN}_DV_EN` for GS 1–110. Limits:
-- `hardLimit = 0.0` K above HIGH alarm → **fill immediately**
-- `softLimit = 3.0` K below HIGH alarm → **watch (templist)** — added to fill list only if ≥1 detector already in hard-limit list
-- `maxLimit = 100.0` K — upper guard against sensor spikes / warm/unconnected detectors
+- `hardLimit = 0.0` K above HIGH alarm → **fill immediately** ✅ verified 2026-04-18 — `LNFill_App.py:L244`
+- `softLimit = 3.0` K below HIGH alarm → **watch (templist)** — added to fill list only if ≥1 detector already in hard-limit list ✅ verified 2026-04-18 — `LNFill_App.py:L245`
+- `maxLimit = 100.0` K — upper guard against sensor spikes / warm/unconnected detectors ✅ verified 2026-04-18 — `LNFill_App.py:L246`
 
 During M-fill startup, `CheckTemps()` runs *before* the instance kill check — so if no detector is warm, the new M instance exits without disturbing any existing fill.
 
@@ -123,7 +128,7 @@ During M-fill startup, `CheckTemps()` runs *before* the instance kill check — 
 ### On pi5 (`/home/dgs/lnFill/`)
 
 ```sh
-00 07,19 * * *   LNFill_cron.sh                  # Full fill at 7am + 7pm
+00 06,18 * * *   LNFill_cron.sh                  # Full fill at 6am + 6pm CDT ✅ verified 2026-04-18 — live pi5-lnFill crontab
 */15 * * * *     LNFill_Auto_EFill_cron.sh        # Emergency fill every 15 min
 */10 * * * *     SaveTemp.sh                      # Record temps every 10 min
 ```
@@ -135,7 +140,7 @@ During M-fill startup, `CheckTemps()` runs *before* the instance kill check — 
 15 6,18 * * *    LNFill_pi5_check.sh              # Check LNFill_App.py is running @ 1:15am/pm CDT (ACTIVE)
 ```
 
-> **Note (2026-04-16):** `LNFill_cron.sh`, `LNFill_Auto_EFill_cron.sh`, and `SaveTemp.sh` are **commented out** in the DCS2 crontab. They are NOT actively running from DCS2 as of this date. The LNFill_cron.sh and Auto_EFill scripts likely run from **pi5** directly; SaveTemp.sh may also run on pi5. ✅ verified 2026-04-16 — `dcsu@DCS2` crontab
+> **Note (2026-04-17):** `LNFill_cron.sh`, `LNFill_Auto_EFill_cron.sh`, and `SaveTemp.sh` are **commented out** in the DCS2 crontab. They run from **pi5-lnFill** (192.168.203.58) directly. ✅ verified 2026-04-18 — `pi5-lnFill` crontab (via `DCS2.onenet` SSH hop): `LNFill_cron.sh` runs at 00 06,18 daily (old 16:44 entry commented out), `LNFill_Auto_EFill_cron.sh` runs every 15 min, `SaveTemp.sh` runs every 10 min — all in `/home/dgs/lnFill/`.
 
 ---
 
@@ -355,7 +360,53 @@ set_hilo_lim 107 78
 - If a detector starts warming < 1 hour before next scheduled fill → leave it alone and wait; manual fill at that point risks undertime problems
 
 ---
-*Source: `DGS_tools_pack/lnfill/` (git repo on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05. Operations section added from [wiki: LN System](https://wiki.anl.gov/gsdaq/LN_system): 2026-04-06.*
+
+## DetMan.py — FillManifold() Internals
+
+_Source: `lnfill/DetMan.py` — verified 2026-04-18_
+
+`DetMan` manages one detector manifold (ManID 1–4). Instantiated by `LNFill_App.py` with one thread per manifold.
+
+### Constructor
+- Creates `LNValve` objects: `MFeed` (main feed), `MSpare` (spare feed), `MVent` (vent) — max open times from `timeout_valves[3]` arg (defaults: 3000s/3000s/400s)
+- Creates `DetValve` objects for all 28 detector positions (`detMan[1..28]`)
+- Calls `CloseAllValves()` on init (safety: ensures all valves closed before any fill)
+
+**ManID > 4 — Spare-Feed Swap (ManD workaround):** ✅ verified 2026-04-18 — `DetMan.py:L65-72`
+- If `ManID` arg is 5–8 (i.e., `ManID > 4`), the constructor remaps `ManID = ManID - 4` and **swaps MFeed/MSpare roles**: `MANS` (spare) becomes MFeed and `MANF` (main) becomes MSpare.
+- This is a documented "temporary modification for Man D" — allows manifold D to use the spare line as its primary feed.
+- Manifolds 5–8 do NOT exist in the normal GS configuration; this is only used in special test/workaround scenarios.
+
+### FillManifold() — 4-Phase Fill Loop
+
+`FillManifold(fill_list)` runs continuously until all detectors are filled (or timeout). `fill_list[0]` is `'A'` (all enabled) or `'L'` (list of GS IDs).
+
+**Max fill time guard:** `max_fill_time = ((ndet-1)/4 + 2) * 500` seconds — scales with number of detectors. If exceeded, aborts and closes MFeed. ✅ verified 2026-04-18 — `DetMan.py:L219`
+
+**4 phases (state machine in `while filling` loop):**
+
+| Phase | Condition | Action |
+|-------|-----------|--------|
+| 1 — Vent | `vent_open=True` | Wait for MVent sensor to go Cold OR max open time. If Cold → close vent, move to phase 2. If `getOpenTime() > vent_fail_time` (600s) before Cold → abort with error ("Vent Line displaced at HUB"). |
+| 2 — Init | `init_det=True` (once) | Pop up to 4 detectors from `Man` list, open each valve, set LED cold time sentinel. |
+| 3 — Fill | `nfil > 0` | Poll all 4 fill slots every 3s. For each: if past `minOpenTime` AND (sensor Cold OR past `maxOpenTime`) → close valve, record fill status, open next detector from `Man`. |
+| 4 — Done | `nfil == 0` | All detectors filled — close MFeed, set `filling=False`. |
+
+**Fill status classification (set per detector at close):** ✅ verified 2026-04-18 — `DetMan.py:L278-285`
+- `OVERTIME` — valve open time exceeded `maxOpenTime` (detector may not be full; vacuum/hose issue)
+- `EXTENDED` — fill time within 5s above `minOpenTime` (borderline fast fill)
+- `NORMAL` — filled normally between min and max times
+
+**LED Cold Time:** At open, each detector's `LEDColdTime` is set to `maxOpenTime` (sentinel = "not yet cold"). First time sensor goes Cold, `setLEDColdTime(openTime)` records when LN first reached the sensor. Logged in fill log as the last column. Useful for detecting hose leaks (LED goes cold early = LN leaking out before reaching full dewar). ✅ verified 2026-04-18 — `DetMan.py:L258-260`
+
+**Fill log output format (per detector):**
+```
+DET: A-12   35342   247  19.2K  16.6K  Cold   Cold    NORMAL   247
+```
+Columns: hose-slot, GSID, fill_time_s, temp_before, temp_after, sensor_before, sensor_after, status, LED_cold_time_s ✅ verified 2026-04-13 — `DetMan.py:L338-351`
+
+---
+*Source: `DGS_tools_pack/lnfill/` (git repo on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05. Operations section added from [wiki: LN System](https://wiki.anl.gov/gsdaq/LN_system): 2026-04-06. DetMan.py FillManifold section added: 2026-04-18.*
 
 ## Cross-References
 

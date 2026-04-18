@@ -38,15 +38,15 @@ Generic trigger infrastructure ports (passed through to `trig_algo_support`):
 
 ## Key Logic / State Machine
 
-### TOTALPROC — 2-state machine
+### TOTALPROC — 2-state machine ✅ verified 2026-04-18 — `VIVADO_MAIN_FPGA/trunk/Source/sum_hits_X.vhd:L65–88`
 **WAIT_TRIG** (armed, waiting):  
-- If `SUM_OF_X > SUM_OF_X_THRESH`: set `TRIGGER_OCCURRED='1'`, go to WAIT_FALL  
+- If `SUM_OF_X > SUM_OF_X_THRESH`: set `TRIGGER_OCCURRED='1'`, go to WAIT_FALL ✅ verified — `sum_hits_X.vhd:L68–71`
 - Else: `TRIGGER_OCCURRED='0'`, stay  
 
 **WAIT_FALL** (counting one trigger, waiting to re-arm):  
 - `TRIGGER_OCCURRED='0'` (one-tick pulse has been issued)  
 - If `SUM_OF_X > SUM_OF_X_THRESH`: stay in WAIT_FALL  
-- Else: return to WAIT_TRIG (re-arm)  
+- Else: return to WAIT_TRIG (re-arm) ✅ verified — `sum_hits_X.vhd:L72–80`
 
 This produces exactly one `TRIGGER_OCCURRED` pulse per threshold-crossing event, regardless of how long the sum stays above threshold.
 
@@ -62,9 +62,10 @@ A generic sub-component shared by all MTRG trigger algorithms. Receives `TRIGGER
 - Trigger monitoring shadow FIFO (separate read port for diagnostic readout)
 
 ## Key Constants / Parameters
-- Comparison: `>` (strictly greater than), not `>=`
-- Threshold width: 16-bit (SUM_OF_X_THRESH), accommodates sums from many Routers
-- Holdoff added 2025-10-22; prescale was present earlier
+- Comparison: `>` (strictly greater than), not `>=` ✅ verified 2026-04-18 — `sum_hits_X.vhd:L68,77` (code uses `>`; **note:** file header comment says "equal to or greater than" — misleading, the actual VHDL is strictly greater than)
+- Threshold width: 16-bit (SUM_OF_X_THRESH) ✅ verified 2026-04-18 — `sum_hits_X.vhd:L34` (`std_logic_vector(15 downto 0)`)
+- Holdoff added 2025-10-22 ✅ verified 2026-04-18 — `MAIN_FPGA/trunk/Source/sum_hits_X.vhd:L40–43` (comment: "additions 20251022"); **not** in VIVADO trunk yet
+- Prescale present in both ISE and VIVADO trunks ✅ verified 2026-04-18 — `VIVADO_MAIN_FPGA/trunk/Source/sum_hits_X.vhd:L40`
 
 ## Connections to Other Modules
 - **Receives from**: `calc_total_sum.vhd` (SUM_OF_X = total X-plane sum across all Routers); VME registers (threshold, enable, prescale, holdoff, type code)

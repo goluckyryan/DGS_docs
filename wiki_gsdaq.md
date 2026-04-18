@@ -41,7 +41,7 @@
 ### On-Site Experts
 - [Building the Entire System](https://wiki.anl.gov/gsdaq/Building_the_Entire_System)
 - [Linking Systems Together](https://wiki.anl.gov/gsdaq/Linking_Systems_Together)
-- [Updating Firmware in Digitizers and Triggers](https://wiki.anl.gov/gsdaq/Updating_Firmware_in_Digitizers_and_Triggers)
+- [Updating Firmware in Digitizers and Triggers](https://wiki.anl.gov/gsdaq/Updating_Firmware_in_Digitizers_and_Triggers) ✅ visited 2026-04-18 → added to `ioc.md`: GLBL:DIG:config_main_fpga PV, 2024 ODT flash procedure reference, full old Java fpgasender API docs
 - [IOC Code Design](https://wiki.anl.gov/gsdaq/IOC_Code_Design)
 
 ---
@@ -167,7 +167,7 @@
 
 ## Visited Pages Log
 
-All known wiki pages have been visited as of 2026-04-07. Summary:
+All known wiki pages have been visited as of 2026-04-17. Summary:
 
 | Page | Visited | Outcome |
 |------|---------|--------|
@@ -183,7 +183,6 @@ All known wiki pages have been visited as of 2026-04-07. Summary:
 | `/gsdaq/IOC_Code_Design` | 2026-04-06 | IOC architecture — firing rates >1 MHz supported, VME bandwidth limit |
 | `/gsdaq/The_Slope_Box` | 2026-04-05 | → `sbx.md` |
 | `/gsdaq/The_Slope_Box_Extension` | 2026-04-05 | → `sbx.md` |
-
 | `/gsdaq/VME_Crates` | 2026-04-17 | Crate structure (3 backplanes, 4 DIGs each, fiber expander, VXI history) → `hardware_architecture.md` § VME Crate Structure |
 | `/gsdaq/Digitizers` | 2026-04-17 | GRETINA-origin HW; 14-bit @ 100 MHz; Center/Sum vs Side/Pattern DIG roles; SBX replaced old pickoff 2023 → `hardware_architecture.md` § Digitizer Hardware Origin |
 

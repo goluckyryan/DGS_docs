@@ -180,7 +180,7 @@ The SBX is controlled via the **Collector Box Raspberry Pi** soft IOC (one Pi pe
 - Source: `collectorboxpi/CollectorBox_RevA/CollectorApp/src/spi.h`, `initTrace.c`
 
 ### Small Systems (DUO, DXA)
-- Each SBX has its **own dedicated Raspberry Pi** (sbxh3 @ .164, sbxcc @ .158 for DuoGe)
+- Each SBX has its **own dedicated Raspberry Pi** (sbxh3 @ .164, sbxcc @ .158 for DuoGe) ✅ verified 2026-04-17 — `snapshot_pv/EPICS_env.sh:L28` (`192.168.203.164 192.168.203.158` comment: "sbxh3/sbxcc"); Pi confirmed by `DGS_SVN/dgs/SlopeBoxInterface/RaspberryPi/` EPICS device support and `PickoffSupport.c:L35`
 - Same SPI + GPIO principle, but Pi talks directly to SBX/Pickoff hardware — **no Collector Box**
 - Software is an **older version**, not present in `DGS_tools_pack` — pending exploration of sbxh3/sbxcc when online
 - Source: `DGS_SVN/dgs/SlopeBoxExtension/RaspberryPi/` (SBXa, SBXc3, SBXL, SBXw variants)

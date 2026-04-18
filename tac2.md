@@ -58,7 +58,7 @@ Three cooperating state machines coordinate data capture:
 2. **TRIG_MON_COLLECT** — watches trigger algorithms; when selected algorithm fires, asserts `WANT_NEXT_TDC` and collects trigger message
 3. **TDC_AUTOSAMPLE** — collects TDC data from all four FIFO READERs after `WANT_NEXT_TDC`
 
-A variable delay elapses between `WANT_NEXT_TDC` and when `TDC_AUTOSAMPLE` finishes collection. The **pipeline delay is 350 ns** — any chain with differential > 350 ns vs TDCtsLo is stale and invalid.
+A variable delay elapses between `WANT_NEXT_TDC` and when `TDC_AUTOSAMPLE` finishes collection. The **pipeline delay is 350 ns** — any chain with differential > 350 ns vs TDCtsLo is stale and invalid. ✅ verified 2026-04-17 — TAC.docx (DGS_System_Documentation/Firmware/Master_Trigger/TAC.docx): "The total pipeline delay is 350ns, so any differential greater than that, or a negative number, is an old TDC measurement and should not be used." (The 68 ns figure in `tdc_chain_cont.vhd` refers only to the data compressor stage; the 350 ns total includes all pipeline stages from NIM input to TDC_AUTOSAMPLE completion.)
 
 ---
 
@@ -228,7 +228,7 @@ TDC_VERNIER_D = 64 - (C_D[5:0])        // chain D (270°)
 ```
 
 **Step 7 — Determine VERNIER_PATTERN (phase ordering):**
-Pattern (1–4) indicates which quadrant phase fires last (D>C>B>A=3, C>B>A>D=4, B>A>D>C=1, A>D>C>B=2). Currently forced to pattern 1 if >1 (per discussion with JTA 3/10/25 — still being validated experimentally).
+Pattern (1–4) indicates which quadrant phase fires last (D>C>B>A=3, C>B>A>D=4, B>A>D>C=1, A>D>C>B=2). Currently forced to pattern 1 if >1 (per discussion with JTA 3/10/25 — still being validated experimentally). ✅ verified 2026-04-17 — `gebsort/bin_tac2.c:L420-422` (`if (VERNIER_PATTERN>1) { VERNIER_PATTERN=1; }` with comment "this may not be correct")
 
 **Step 8 — Vernier in nanoseconds:**
 ```

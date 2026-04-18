@@ -6,6 +6,40 @@ Explored via SSH as `dcsu@DCS2.onenet`. All mounts are read-only (ro) except vol
 
 ---
 
+## Table of Contents
+
+- [Path Structure](#path-structure--important)
+- [Mount Summary](#mount-summary)
+- [vol5 — Current Experiment Data (rw)](#dgsdata-fs2vol5--current-experiment-data-rw)
+  - [exp2008_Chiara — Active Experiment](#vol5exp2008_chiara--active-experiment-structure)
+  - [vol5/mpc/ pyepics/pv_dashboard.py](#vol5mpcpyepicspv_dashboardpy)
+- [vol3 — Older Experiments (ro)](#dgsdata-fs2vol3--older-experiments-ro)
+  - [vol3/ln2con/ — LN2 Control VxWorks Boot Trees](#vol3ln2con--ln2-control-vxworks-boot-trees)
+- [vol2 — Development & Calibration (ro)](#dgsdata-fs2vol2--development--calibration-ro-nearly-full-at-97)
+  - [vol2/global_32/ioc/py_scripts/](#vol2global_32iocpy_scripts)
+  - [trace_throttle.py — DIG↔RTR Connectivity Mapper](#trace_throttlepy--digrtr-connectivity-mapper)
+- [vol4 — Analysis & Experiments 2022–2025 (ro)](#dgsdata-fs2vol4--analysis--experiments-20222025-ro)
+- [fs1/vol2 — Legacy / Migrated (ro)](#dgsdata-fs1vol2--legacy--migrated-ro)
+- [piserver — PXE Boot Server](#piserver--pxe-boot-server-for-collector-box-pis-rw)
+- [global_32/ — 32-bit Global Dev Environment](#dgsdata-fs2vol2global_32--32-bit-global-development-environment)
+  - [devel6/ — Active VxWorks Build Tree](#devel6--active-vxworks-ioc-build-tree)
+  - [edmroot/ — EDM Screens](#edmroot--edm-screen-files)
+  - [openclaw_framework/ — Mike Carpenter's LLM Experiment](#openclaw_framework--ai-agent-framework-experiment-)
+- [lnfill IOC — Hardware Findings](#lnfill-ioc--hardware-findings-2026-04-05)
+- [Detailed Findings](#detailed-findings--subsections)
+  - [trace_throttle2.py](#trace_throttle2py--updated-connectivity-mapper)
+  - [vol2/dgscalib/](#vol2dgscalib--calibration-data-partial)
+  - [vol4/dgs_testing/](#vol4dgs_testing--dgs-testing-area-sep-2025)
+  - [vol4/mbo/ — Michael Oberling's Workspace](#vol4mbo--michael-oberlings-workspace-dec-2025)
+  - [vol3/sbx2022tuning/](#vol3sbx2022tuning--slope-box-tuning-data-2022)
+  - [fs1/vol2 legacy lnfill scripts](#fs1vol2global_sl7devsystemsgslnfill--legacy-lnfill-scripts-archived)
+  - [EDM lncntrl screens](#vol2global_32edmrootlncntrlscreens--ln-control-edm-screens)
+  - [fs1/vol2/global_sl7/](#fs1vol2--legacy-sl7-build-environment)
+  - [vol5 survey (Rogers, Ackermann, Hoff)](#fs2vol5--selected-experiment-directories-survey)
+- [Cross-References](#cross-references)
+
+---
+
 ## Path Structure — Important
 
 The NFS server (`fs2.onenet`, `fs1.onenet`) exports only the **`dgs` subdirectory** of each volume. The full server-side path is:
@@ -42,7 +76,7 @@ fs2.onenet:/mnt/vol5/atlasdata/dgs/exp2008_Chiara/
 | `/dgsdata/fs2/vol2/` | `fs2.onenet:/mnt/vol2/atlasdata/dgs/` | 165T | 159T | 6.5T | ro |
 | `/dgsdata/fs2/vol3/` | `fs2.onenet:/mnt/vol3/atlasdata/dgs/` | 219T | 178T | 41T | ro |
 | `/dgsdata/fs2/vol4/` | `fs2.onenet:/mnt/vol4/atlasdata/dgs/` | 227T | 178T | 50T | ro |
-| `/dgsdata/fs2/vol5/` | `fs2.onenet:/mnt/vol5/atlasdata/dgs/` | 264T | 104T | 160T | **rw** |
+| `/dgsdata/fs2/vol5/` | `fs2.onenet:/mnt/vol5/atlasdata/dgs/` | 263T | 117T | 147T | **rw** | *(updated 2026-04-18 — exp2008_Chiara still writing)* |
 | `/dgsdata/fs1/vol2/` | `fs1.onenet:/mnt/vol2/atlasdata/dgs/` | 40T | 17T | 23T | ro |
 | `/piserver/` | `fs2.onenet:/mnt/vol1/fs2/nfs/piserver/` | 17T | ~0 | 17T | **rw** |
 
@@ -50,7 +84,7 @@ DCS2 local storage: `/` on NVMe1 (915G, 45% used), `/mnt/data0` on NVMe0 (1.8T, 
 
 > ⚠️ **Scope:** We only see the `knowledgeBase/` subtree. Other data (e.g. `musics/`, other experiment groups) may exist under `atlasdata/` on the server but are not mounted on DCS2 and not accessible from here.
 
-*Source: `ssh dcsu@DCS2.onenet "cat /proc/mounts | grep nfs"` and `df -h` — 2026-04-05*
+*Source: `ssh dcsu@DCS2.onenet "cat /proc/mounts | grep nfs"` and `df -h` — 2026-04-05* ✅ verified 2026-04-18 — `/proc/mounts` on DCS2: all 6 NFS mounts confirmed (server paths, ro/rw flags, NFSv4.1)
 
 ---
 
@@ -342,8 +376,6 @@ NFS root for PXE-booted Raspberry Pi collector boxes.
 
 ---
 
----
-
 ## /dgsdata/fs2/vol2/global_32/ — 32-bit Global Development Environment
 *Source: `ssh dcsu@DCS2.onenet "ls -la /dgsdata/fs2/vol2/global_32/"` — 2026-04-05*
 
@@ -625,10 +657,10 @@ A working test area used for Sep 2025 DGS testing. Contains:
 
 ---
 
-### vol4/mbo/ — Mike Carpenter's Workspace (Dec 2025) ✅ 2026-04-13
+### vol4/mbo/ — Michael Oberling's Workspace (Dec 2025) ✅ 2026-04-13
 *Source: `ssh dcsu@DCS2.onenet "ls -la /dgsdata/fs2/vol4/mbo/"` — 2026-04-13*
 
-Active workspace for Mike Carpenter (PI). Contains custom GEB merge/sort utilities and trigger timing studies.
+Active workspace for Michael Oberling (hardware/systems tech lead; `mbo` = his initials). Contains custom GEB merge/sort utilities and trigger timing studies.
 
 **Custom C/C++ merge tools:**
 
@@ -687,8 +719,6 @@ typedef struct {
 | `ROOT_FILES/` | ROOT output histograms/trees from SBX tuning |
 
 > **Context:** Used for Slope Box characterization in 2022. `gtreceiver/` suggests this predates or overlaps with the migration from GRETINA-based tools. `GEBSort/` is the event sorter/builder used to process raw data. ROOT_FILES contains analysis output. See `knowledgeBase/sbx.md` for SBX hardware documentation.
-
----
 
 ---
 

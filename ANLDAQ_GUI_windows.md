@@ -81,14 +81,29 @@ _Source: `gui_scalar.py` commit `0f3f2df` 2026-04-06 (code-verified)_
 
 _Source: `ANLDAQ/gui/gui_RTR.py` (code-read 2026-04-12)_
 
-**Top-level panel (always visible):**
+**Top-level panel (always visible):** Three side-by-side sections:
+
+**Board Status (left):**
 - `reg_MISC_STAT_REG` — RTRG miscellaneous status register (full bit field display)
-- Code Revision, Code Date, Timestamp A/B/C (hex display)
-- Clock Source toggle (local / external)
-- LED Controls: `LEDControl` combo + `LED4`/`LED5`/`LED6` toggle buttons
-- `SM_LOST_LOCK_RESET` pulse button (resets the lost-lock state machine)
+- Code Revision, Code Date, Timestamp A/B/C (hex), Clock Source toggle
+- LED Controls: `LEDControl` combo + `LED10`/`LED11`/`LED12` toggle buttons ✅ verified 2026-04-17 — `gui_RTR.py:L369-386`
+- `SM_LOST_LOCK_RESET` pulse button
 - Multiplicity readbacks (per-link discriminator bit counts)
 - Rate counters: `DISC_RATE_COUNTER_HIGH/LOW`, `TRIG_RATE_COUNTER_HIGH/LOW`
+
+**Diagnostic Counters (middle):**
+- 8 counters from `reg_Diagnostic*` PVs (sorted): Type0–4 Trig, Rtr Lock Count, Link L S/D Lock, Throttle Count
+- `DIAG_THROTTLE_TYPE` combo — selects which throttle type the counter tracks
+- `CLEAR_DIAG_COUNTERS` button ✅ verified 2026-04-17 — `gui_RTR.py:L388-420`
+
+**Other Controls (right):**
+- `NIMSrc1` / `NIMSrc2` — NIM output 1/2 source selector combos
+- `NIM_THROTTLE_SELECT` — throttle source for NIM output
+- `ENBL_DISCBIT_DELAY` toggle — enable discriminator bit delay
+- `OVERLAP_DELAY` [20 ns units] — discriminator overlap delay
+- `ASSERTION_DELAY` [20 ns units] — assertion delay
+- `ENABLE_VETO` toggle — enable veto mode
+- `THROTTLE_FILTER_TIME`, `THROTTLE_TIME_RANGE`, `THROTTLE_WIDTH` (min throttle width to MTRG trigger in 20 ns units) ✅ verified 2026-04-17 — `gui_RTR.py:L440-492`
 
 | Tab | Class | Contents |
 |-----|-------|----------|
@@ -99,6 +114,7 @@ _Source: `ANLDAQ/gui/gui_RTR.py` (code-read 2026-04-12)_
 - ILM, LOCK, XLM, YLM buttons use **inverted color** (active=red, inactive=green) to show masked/locked states intuitively
 - `make_pattern_list()` from `aux.py` builds regex patterns to auto-match PVs; no hardcoded PV lists for SERDES grid
 - RTR window is smaller/simpler than MTRG (550 vs 1425 lines) — no wheel RAM or CPLD tabs
+- Only the active tab updates PVs; tab switch forces a full refresh (`UpdatePVs(True)`)
 
 ---
 
@@ -128,7 +144,7 @@ _Source: `ANLDAQ/gui/gui_SYS.py` (code-read 2026-04-09)_
 | Class | Tab Name | Contents |
 |-------|----------|----------|
 | `sysTimestampReadOutTab` | **Timestamps** | MTRG + per-RTR + per-DIG timestamp readbacks (hex); Imp Sync toggle; STARTING_TIMESTAMP HI/MID/LOW writeable fields; scrollable |
-| `sysLinktab` | **Link Status** | Per-link lock status for all MTRG A–H/L/R/U links and per-RTR channel links; SERDES lock indicator grid |
+| `sysLinktab` | **Link Status** | Three sub-panels: (1) **Link Status** — `reg_MISC_STAT`/`reg_MISC_STAT_REG` full bit-field display for MTRG + each RTR; (2) **Link Lock Status** — per-link lock indicator grid (LOCK_A … LOCK_U) for MTRG + each RTR, inverted color (locked=green); (3) **Input Link Mask** — per-link ILM_A … ILM_U grid for MTRG + each RTR (inverted: masked=red); (4) **Link L Control** — MTRG: LOCK_RETRY/LOCK_ACK/RESET_LINK_INIT/LINK_L/R/U_STRINGENT; per-RTR: LOCK_RETRY/LOCK_ACK/RESET_LINK_INIT/STRINGENT_LOCK/SM_LOST_LOCK_RESET ✅ verified 2026-04-17 — `gui_SYS.py:L175-305` |
 | `sysTCPTab` | **TCP Transfer** | Per-IOC DAQ stats: `CV_BuffersAvail`, `CV_NumSendBuffers`, `CV_SendRate` (live readback from EPICS DAQ PVs) |
 | `sysCodeRevisionTab` | **Code Revision** | All boards in one scrollable table: MTRG (`reg_CODE_REVISION`/`reg_CODE_DATE`), each RTR (`Code_Revision`/`CODE_DATE`), each DIG (`regin_code_revision`/`code_date`) — all displayed in hex |
 | `globalSettingTab` | **Global Settings** | System-wide register controls (threshold multipliers, global enables, etc.) |

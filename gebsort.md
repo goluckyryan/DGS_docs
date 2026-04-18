@@ -99,14 +99,14 @@ bin_mode2                  # GRETINA mode2 data
 
 ### DGS-Specific Parameters
 ```
-dgs_algo    2              # Energy algorithm: 0=simple, 1=SZ_1, 2=SZ_2
+dgs_algo    1              # Energy algorithm: 0=simple, 1=SZ_1, 2=SZ_2 ✅ verified 2026-04-17 — `GEBSort.chat:L218` (value=1, SZ_1). Note: `2` (SZ_2) requires additional dgs_factor + t1/t2 params.
 dgs_MM      350            # Trapezoid M window (samples) — example value from README.bin_dgs:L11 (commented out); **current GEBSort.chat uses 200** ✅ verified 2026-04-10 — `GEBSort.chat:L219` (dgs_MM=200). Use `find_MK` to determine optimal value for each experiment.
 dgs_KK      141            # Trapezoid K window (samples) ✅ verified 2026-04-08 — README.bin_dgs:L12; current GEBSort.chat also uses 141 ✅ verified 2026-04-10 — `GEBSort.chat:L220`
 dgs_PZ      dgs_pz.cal    # Pole-zero calibration file
 dgs_ecal    dgs_ehi.cal   # Energy gain/offset calibration file
 dgs_factor  dgs_factor.dat # SZ energy factor file
-dgs_SZ_t1   50             # SZ_2 transition time 1 (samples)
-dgs_SZ_t2   20             # SZ_2 transition time 2 (samples)
+dgs_SZ_t1   50             # SZ_2 transition time 1 (samples) ✅ verified 2026-04-17 — `GEBSort.chat:L221`
+dgs_SZ_t2   20             # SZ_2 transition time 2 (samples) ✅ verified 2026-04-17 — `GEBSort.chat:L222`
 ```
 
 ---

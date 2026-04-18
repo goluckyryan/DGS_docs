@@ -59,26 +59,26 @@ The **Trigger Timing and Control Link (TTCL)** carries timestamps, trigger messa
 - **SERDES:** National Semiconductor DS92LV18 ✅ verified 2026-04-12 — DGS_SVN BOM (U24–U31,U35–U37: DS92LV18TVV)
 - **Physical interface (cable driver/receiver):** National Semiconductor DS90LV004 ✅ verified 2026-04-12 — DGS_SVN BOM (U20–U22: DS90LV004TVS)
 
-### 3.1.1 Timing
+### 3.2 Timing
 
-- **Clock:** 50.000 MHz parallel word input clock → **1 Gbps** serial bit stream (×20)
+- **Clock:** 50.000 MHz parallel word input clock → **1 Gbps** serial bit stream (×20) ✅ verified 2026-04-18 — SERDES chip is DS92LV18TVV (National Semiconductor, rated 1 Gbps LVDS), verified from DGS_SVN BOM (connectors.md:L41); 50 MHz × 20-bit parallel word = 1000 Mbps confirms the 1 Gbps figure
 - Clock edge transitions buried in the serial data in the two "extra" bits between word boundaries allow the SERDES receiver to regenerate a matched clock
 - PLL capture range: ±5% frequency variation (if drift is slow vs. clock period)
 - **Master Trigger must have a stable, low-drift clock source**
 
-### 3.1.2 Jitter Budget
+### 3.3 Jitter Budget
 
 - In large systems (DGS/DFMA), accumulated jitter across many TTCL "hops" can cause data errors
 - Recommendation: **total accumulated jitter < 250 ps** at the far end
 - Per-board jitter budget: **< 50 ps** (requires careful power supply filtering on each board's clock mux)
 
-### 3.2 LVDS Signal Levels
+### 3.4 LVDS Signal Levels
 
 - 100 Ω odd-mode characteristic impedance; 100 Ω terminating resistor across conductor pair
 - Typical LVDS current: 5 mA → ~500 mV differential at receiver
 - Shielded cables or pre-emphasizing drivers required for cable lengths > 10 m
 
-### 3.3 PCB Layout
+### 3.5 PCB Layout
 
 - Differential traces must be very well length-matched
 - Vias, package pins, and even connector pin length mismatches all matter at 1 Gbps
@@ -241,7 +241,7 @@ Each command frame = 5 × 18-bit words:
 | 0x50–0x57 | Trigger Decision Frame (local/GITMO algos: 0x50=algo1, 0x51=algo2, 0x52=algo3, 0x53=algo4, 0x54=algo5, 0x56=GITMO) | ✅ verified 2026-04-17 — `VIVADO_MAIN_FPGA/trunk/Source/top.vhd:L2240–2435`; `last_manual_top.vhd:L2341–2536`
 | 0x60–0x6F | Re-propagated trigger from Link L (remote algo type in low nibble) | ✅ verified 2026-04-17 — `remote_trig_support.vhd:L388`
 | 0x70–0x7F | Re-propagated trigger from Link R/U (delay mode) | ✅ verified 2026-04-17 — `remote_trig_support.vhd:L411`
-| 0x81 | Imperative Sync (force reload of timestamps) |
+| 0x81 | Imperative Sync (force reload of timestamps). Two variants: `0x81FF` = with timestamp rollover; `0x8100` = no rollover. ✅ verified 2026-04-17 — `DIG/MAIN_FPGA/BuildBranches/DGS_TAG_20180607_TWEAK/DGS/Source/SERDES_RX_Mach.vhd:L582-586` |
 | 0x90–0x97 | Auxiliary Detector command (reserved) |
 | 0x98–0x9F | Main Detector Miscellaneous command (reserved) |
 | 0xAA | Null — do nothing |
@@ -518,7 +518,7 @@ Pulse Delay units: 100s of ns (time from end of pulse n to beginning of pulse n+
 **Format:**
 | Word | Content |
 |------|---------|
-| 1 | Any value ≠ 0xAA (command active) | 0x00 |
+| 1 | Any value ≠ 0xAA (command active) | |
 | 2 | Timestamp[15:0] |
 | 3 | Capture Length |
 | 4 | FIFO Capture Delay |

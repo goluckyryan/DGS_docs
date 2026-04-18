@@ -33,7 +33,7 @@
 | Device | Part | Package | Speed | Tool | Role |
 |--------|------|---------|-------|------|------|
 | Main FPGA | xc3s5000 (Spartan-3) | fg900 | -5 | ISE 14.7 | Signal processing, trigger interface, event readout ✅ verified 2026-04-06 — `DIG/MAIN_FPGA/BuildBranches/DGS/Source/LEFT_RIGHT.ucf:L9` |
-| VME FPGA | xc3s400 (Spartan-3) | fg320 | -5 | ISE 13.4 | VME slave, main FPGA configuration |
+| VME FPGA | xc3s400 (Spartan-3) | fg320 | -5 | ISE 14.7 | VME slave, main FPGA configuration ✅ verified 2026-04-17 — `DIG/VME_FPGA_ANL/Work11/vme_A32_D32.xise:L2` (`ise_version="14.7"`) + `Digitizer_VME.prm:L1` (PROMGEN O.87xd = ISE 14.x series) |
 
 ## Memory Resources
 

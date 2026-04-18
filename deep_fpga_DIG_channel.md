@@ -44,7 +44,7 @@ ADC_DATA[13:0]  (14-bit, 100 MHz)
         FILTERED_SIGNAL − BASELINE_VALUE  →  discriminator inputs
 ```
 
-**Triple filter:** Each stage is a (1-2-1) moving average. Three cascaded stages produce an effective kernel of [1,8,28,56,70,56,28,8,1] / 256, reducing high-frequency noise without significantly broadening the pulse.
+**Triple filter:** Each stage is a (1-2-1) moving average. Three cascaded stages produce an effective kernel of [1,8,28,56,70,56,28,8,1] / 256, reducing high-frequency noise without significantly broadening the pulse. ✅ verified 2026-04-18 — `FPGA/DIG/Sims/Filter/Source/triple_filter.vhd` header comments confirm the Pascal's triangle derivation (1-2-1 cycled 4 times → normalization factor 256); `single_filter.vhd` implements the kernel directly using a 9-sample pipeline + two MULT18X18 blocks (coefficients 28 and 70 visible at lines `B=>"000000000000011100"` and `B=>"000000000001000110"`). Note: `triple_filter` applies 3 parallel `single_filter` instances to three different input taps (X_M, X_M_K, X_M_K_D), not a serial cascade; each output is one filtered tap for the discriminator.
 
 **Baseline tracker** (`baseline_tracker.vhd`): Estimates the DC baseline by accumulating a running difference `X(n) − X(n−T)` over a 1024-sample (10.24 µs) window. ✅ verified 2026-04-10 — jta_channel.vhd:L1393 ("Accumulate 1024 samples") + L1924 ("10.24 usec prior to the pre-rise sum") It holds off updates for a programmable time after every discriminator fire (`reg_baseline_delay`) to avoid pulling the baseline onto the pulse tail.
 

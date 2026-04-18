@@ -148,49 +148,57 @@ Word  Bits    Field                Notes
 ```
 Bit   Field                    Notes
 ────────────────────────────────────────────────────────────────
- 4    EARLY_PRE_RISE_SELECT    Early pre-rise window select
- 5    WRITE_FLAGS              Write flags from firmware config
- 6    VETO_FLAG                Event was vetoed by BGO shield
- 7    TIMESTAMP_MATCH_FLAG     CFD only: timestamp match
- 8    EXTERNAL_DISC_FLAG       External discriminator fired
- 9    PEAK_VALID_FLAG          Peak detection valid
-10    OFFSET_FLAG              Offset correction applied
-11    CFD_VALID_FLAG           CFD only: CFD interpolation valid
-14    PILEUP_ONLY_FLAG         Event is pileup-only
-15    PILEUP_FLAG              Pileup detected
+ 4    PU_TIME_ERROR_FLAG       Pileup timing error flag ✅ verified 2026-04-18 — Event_Header_FIFO.vhd:L306,L395 (DGS_TAG_20180607_TWEAK)
+ 5    WRITE_FLAGS              ADC trace format: 0 = 14-bit+flag bits, 1 = 16-bit no flags (stored as NOT write_flags) ✅ verified 2026-04-18 — Event_Header_FIFO.vhd:L305,L394
+ 6    VETO_FLAG                Event was vetoed by BGO shield (replaced at readout)
+ 7    TIMESTAMP_MATCH_FLAG     CFD only: timestamp match (tsm_flag); LED = 0 ✅ verified 2026-04-18 — Event_Header_FIFO.vhd:L392 (CFD) L303 (LED=0)
+ 8    EXTERNAL_DISC_FLAG       External discriminator fired ✅ verified 2026-04-18 — Event_Header_FIFO.vhd:L302,L391
+ 9    PEAK_VALID_FLAG          Peak detection valid ✅ verified 2026-04-18 — Event_Header_FIFO.vhd:L301,L390
+10    OFFSET_FLAG              Offset correction applied (replaced at readout)
+11    CFD_VALID_FLAG           CFD only: CFD interpolation valid ✅ verified 2026-04-18 — Event_Header_FIFO.vhd:L388 (CFD); LED = 0 per L299
+12    SYNC_ERROR_FLAG          Sync error flag ✅ verified 2026-04-18 — Event_Header_FIFO.vhd:L298 (LED) L387 (CFD)
+13    GENERAL_ERROR_FLAG       Replaced by GENERAL_ERROR_FLAG at readout (stored as 0 in header FIFO) ✅ verified 2026-04-18 — Event_Header_FIFO.vhd:L297 (comment "Replaced by GENERAL_ERROR_FLAG at time of readout")
+14    PILEUP_WAVEFORM_ONLY     Pileup: waveform-only mode (pileup_waveform_only) ✅ verified 2026-04-18 — Event_Header_FIFO.vhd:L296,L385
+15    PILEUP_FLAG              Pileup detected ✅ verified 2026-04-18 — Event_Header_FIFO.vhd:L295,L384
 ```
+
+> **Correction note (2026-04-18):** Bits 4 and 5 were previously mislabeled as `EARLY_PRE_RISE_SELECT` and `WRITE_FLAGS (firmware config)`. VHDL source confirms bit 4 = `pu_time_error_flag`, bit 5 = `NOT write_flags` (ADC trace mode). Bits 12 and 13 were previously missing.
 
 ### Words 5–13 — Energy, Timing, Multiplex
 
 ```
 Word  Bits    Field                       Notes
 ────────────────────────────────────────────────────────────────────────────
-  5   29:16   CFD_SAMPLE_0                CFD only: interpolation sample 0
-  6   23:0    SAMPLED_BASELINE            Baseline at trigger time ✅ verified 2026-04-09 — `jta_channel.vhd:L1796` (PEHQ bits 347:324 = SAMPLED_BASELINE = RUNNING_T1_SUM latched at trigger)
-  6   27:24   PILEUP_COUNT                Pileup count (LED) or bits[1:0] (CFD)
-  7   15:0    TRIG_MON_XTRA_DATA          LED only: trigger monitor extra
-  7   13:0    CFD_SAMPLE_1                CFD only: interpolation sample 1
-  7   29:16   CFD_SAMPLE_2                CFD only: interpolation sample 2
-  8   23:0    PRE_RISE_ENERGY             Energy before rise (trapezoidal filter)
-  8   31:24   POST_RISE_ENERGY[7:0]       Lower 8 bits of post-rise energy
-  9   15:0    POST_RISE_ENERGY[23:8]      Upper 16 bits of post-rise energy
-  9   31:16   PEAK_TIMESTAMP              16-bit peak timestamp (ns within event)
- 10   13:0    P2_SUM[13:0]                P2 sum lower bits
- 10   14      P2_MODE                     P2 mode flag
- 10   15      CAPTURE_PARST_TS            Capture PARST timestamp
- 10   31:16   TS_OF_TRIGGER               16-bit timestamp of trigger relative to event
- 11   23:0    MULTIPLEX_DATA              Multiplex data field
- 11   31:24   LAST_POST_RISE_M_SUM[7:0]   Last post-rise M sum lower 8 bits
- 12   23:0    EARLY_PRE_RISE_ENERGY       Early pre-rise energy sum
- 12   31:24   LAST_POST_RISE_M_SUM[15:8]  Last post-rise M sum upper 8 bits
- 13    9:0    P2_SUM[23:14]               P2 sum upper bits
- 13   10      SECOND_THRESH_DISC_FLAG     Second threshold discriminator flag
- 13   11      PARST_TSM                   PARST timestamp match
- 13   12      PREVIOUS_CFD_VALID          Previous CFD valid (CFD mode only)
- 13   13      COARSE_FIRED                Coarse discriminator fired
- 13   23:14   TS_OF_COARSE                10-bit coarse discriminator timestamp
- 13   31:24   LAST_POST_RISE_M_SUM[23:16] Last post-rise M sum upper 8 bits
+  5   29:16   CFD_SAMPLE_0                CFD only: interpolation sample 0 ✅ verified 2026-04-18 — class_DIG.h:L80,L690
+  6   23:0    SAMPLED_BASELINE            Baseline at trigger time ✅ verified 2026-04-09 — `jta_channel.vhd:L1796` (PEHQ bits 347:324 = SAMPLED_BASELINE = RUNNING_T1_SUM latched at trigger); also class_DIG.h:L699
+  6   27:24   PILEUP_COUNT                Pileup count in LED mode; bits[3:2] from Word 7(31:30) and [1:0] from Word 7(15:14) in CFD mode ✅ verified 2026-04-18 — class_DIG.h:L658 (LED), L694 (CFD)
+  7   15:0    TRIG_MON_XTRA_DATA          LED only: trigger monitor extra ✅ verified 2026-04-18 — class_DIG.h:L661 (`Raw_Header[7] & 0x0000FFFF`)
+  7   13:0    CFD_SAMPLE_1                CFD only: interpolation sample 1 ✅ verified 2026-04-18 — class_DIG.h:L81,L686
+  7   29:16   CFD_SAMPLE_2                CFD only: interpolation sample 2 ✅ verified 2026-04-18 — class_DIG.h:L82,L688
+  8   23:0    PRE_RISE_ENERGY             Energy before rise (trapezoidal filter) ✅ verified 2026-04-18 — class_DIG.h:L702 (`Raw_Header[8] & 0x00FFFFFF`)
+  8   31:24   POST_RISE_ENERGY[7:0]       Lower 8 bits of post-rise energy ✅ verified 2026-04-18 — class_DIG.h:L700 (`(Raw_Header[8] & 0xFF000000) >> 24`)
+  9   15:0    POST_RISE_ENERGY[23:8]      Upper 16 bits of post-rise energy ✅ verified 2026-04-18 — class_DIG.h:L701 (`(Raw_Header[9] & 0x0000FFFF) << 8`)
+  9   31:16   PEAK_TIMESTAMP              16-bit peak timestamp (ns within event) ✅ verified 2026-04-18 — class_DIG.h:L705 (`(Raw_Header[9] & 0xFFFF0000) >> 16`)
+ 10   13:0    P2_SUM[13:0]                P2 sum lower bits ✅ verified 2026-04-18 — class_DIG.h:L717 (`Raw_Header[10] & 0x00003FFF`)
+ 10   14      P2_MODE                     P2 mode flag ✅ verified 2026-04-18 — class_DIG.h:L714 (`ExtractBit(Raw_Header[10], 14)`)
+ 10   15      CAPTURE_PARST_TS            Capture PARST timestamp ✅ verified 2026-04-18 — class_DIG.h:L715 (`ExtractBit(Raw_Header[10], 15)`)
+ 10   31:16   TS_OF_TRIGGER               16-bit timestamp of trigger relative to event ✅ verified 2026-04-18 — class_DIG.h:L707 (`(Raw_Header[10] & 0xFFFF0000) >> 16`)
+ 11   23:0    MULTIPLEX_DATA              Multiplex data field ✅ verified 2026-04-18 — class_DIG.h:L724 (`Raw_Header[11] & 0x00FFFFFF`)
+ 11   31:24   LAST_POST_RISE_M_SUM[23:16] M sum bits 23:16 ✅ verified 2026-04-18 — class_DIG.h:L719 (`(Raw_Header[11] & 0xFF000000) >> 8` → bits 23:16)
+ 12   23:0    EARLY_PRE_RISE_ENERGY       Early pre-rise energy sum ✅ verified 2026-04-18 — class_DIG.h:L727 (`Raw_Header[12] & 0x00FFFFFF`)
+ 12   31:24   LAST_POST_RISE_M_SUM[15:8]  M sum bits 15:8 ✅ verified 2026-04-18 — class_DIG.h:L720 (`(Raw_Header[12] & 0xFF000000) >> 16` → bits 15:8)
+ 13    9:0    P2_SUM[23:14]               P2 sum upper bits ✅ verified 2026-04-18 — class_DIG.h:L716 (`(Raw_Header[13] & 0x000003FF) << 14`)
+ 13   10      SECOND_THRESH_DISC_FLAG     Second threshold discriminator flag ✅ verified 2026-04-18 — class_DIG.h:L729 (`ExtractBit(Raw_Header[13], 10)`)
+ 13   11      PARST_TSM                   PARST timestamp match ✅ verified 2026-04-18 — class_DIG.h:L730 (`ExtractBit(Raw_Header[13], 11)`)
+ 13   12      PREVIOUS_CFD_VALID          Previous CFD valid (CFD mode only) ✅ verified 2026-04-18 — class_DIG.h:L734 (`ExtractBit(Raw_Header[13], 12)`)
+ 13   13      COARSE_FIRED                Coarse discriminator fired ✅ verified 2026-04-18 — class_DIG.h:L732 (`ExtractBit(Raw_Header[13], 13)`)
+ 13   23:14   TS_OF_COARSE                10-bit coarse timestamp (low 8 bits); combines with Word 4 bits 13:12 (high 2 bits) ✅ verified 2026-04-18 — class_DIG.h:L733 (`((Raw_Header[4] & 0x00003000) >> 2) + ((Raw_Header[13] & 0x00FFC000) >> 14)`)
+ 13   31:24   LAST_POST_RISE_M_SUM[7:0]   M sum bits 7:0 ✅ verified 2026-04-18 — class_DIG.h:L721 (`(Raw_Header[13] & 0xFF000000) >> 24` → bits 7:0)
 ```
+
+> **Note (LAST_POST_RISE_M_SUM bit ordering):** Bits 23:16 come from Word 11, bits 15:8 from Word 12, bits 7:0 from Word 13. The doc table was previously ordered incorrectly; corrected 2026-04-18. ✅ verified — class_DIG.h:L719-L721
+> **Note (TS_OF_COARSE):** The full 10-bit value uses Word 13 bits 23:14 (8 bits, low) **plus** Word 4 bits 13:12 (2 bits, high). Not purely in Word 13. ✅ verified — class_DIG.h:L733
+> **Note (EARLY_PRE_RISE_SELECT vs PU_TIME_ERROR_FLAG):** `class_DIG.h:L38,L632` labels bit 4 of Word 4 as `EARLY_PRE_RISE_SELECT`, but `Event_Header_FIFO.vhd:L306` (FPGA source, verified 2026-04-18) names it `pu_time_error_flag`. The FPGA is authoritative; `class_DIG.h` uses an older name. Both refer to the same bit.
 
 ### Words 14+ — Waveform Trace (optional, types 2/4/6)
 
@@ -346,24 +354,20 @@ fastEventConstructor / parquet_pysort (post-run)
 
 ---
 
-## References
+## References & Cross-References
 
+**Primary sources:**
 - `dgs_analysis/armory/fastEventContructor/class_DIG.h` — DIG payload decoder
 - `dgs_analysis/armory/fastEventContructor/class_Hit.h` — GEBHeader + HIT class
 - `dgs_analysis/armory/fastEventContructor/class_TDC.h` — TAC-II TDC decoder
-- `knowledgeBase/DIG_firmware_expert.md` — DIG firmware readout modes and packet structure
-- `knowledgeBase/dgs_analysis.md` — fastEventConstructor and parquet_pysort documentation
-- `knowledgeBase/ANLDAQ.md` — tcpReceiverMT and IOC sender documentation
-- `knowledgeBase/guceiver.md` — Guceiver live GUI: also decodes DIG and TAC-II packets from the same TCP stream
 
----
-*Created: 2026-04-06. Source: class_DIG.h + class_Hit.h + class_TDC.h*
-
-## Cross-References
-
+**Related knowledge base files:**
 - `knowledgeBase/ANLDAQ.md` — tcpReceiverMT and IOC sender; how GEB data is produced and transmitted
 - `knowledgeBase/guceiver.md` — Guceiver live GUI; decodes DIG and TAC-II packets from TCP stream
 - `knowledgeBase/dgs_analysis.md` — fastEventConstructor and parquet_pysort; consume GEB binary data
-- `knowledgeBase/DIG_firmware_expert.md` — Full DIG event header field definitions (expert reference)
+- `knowledgeBase/DIG_firmware_expert.md` — Full DIG event header field definitions + readout modes (expert reference)
 - `knowledgeBase/ttcl.md` — TTCL spec; timestamp generation that populates GEB timestamp field
 - `knowledgeBase/gebsort.md` — GEBSort event builder; reads GEB format, builds coincidence events
+
+---
+*Created: 2026-04-06. Source: class_DIG.h + class_Hit.h + class_TDC.h. Last updated: 2026-04-17 (merged duplicate References/Cross-References sections).*

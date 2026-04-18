@@ -25,7 +25,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 |------|-------------|
 | [ANLDAQ.md](ANLDAQ.md) | DAQ GUI (PyQt6) overview: EPICS CA config, VxWorks data pipeline (inLoop/outLoop/MiniSender), softIOC (JustGlobals.db, dgsSupport.db), class_PV/Board, findAllPV, commander.py |
 | [ANLDAQ_tcpReceiver.md](ANLDAQ_tcpReceiver.md) | tcpReceiver deep-dive: 3 binaries, TCP protocol proof, data flow, GEB header, class_DIG.h/class_TDC.h decoders, run control scripts, legacy receivers, packet consistency table |
-| [ANLDAQ_GUI_windows.md](ANLDAQ_GUI_windows.md) | GUI window reference: gui_MTRG (5 tabs), gui_Det (collector box map), gui_scalar, gui_RTR, gui_RAM, gui_SYS, gui_LinkSys |
+| [ANLDAQ_GUI_windows.md](ANLDAQ_GUI_windows.md) | GUI window reference: gui_MTRG (5 tabs), gui_Det (collector box map), gui_scalar, gui_RTR, gui_Board (generic PV table), gui_CH (per-channel 5-tab), gui_RAM, gui_SYS, gui_LinkSys, gui_DataTaking |
 | [trig_setup_scripts.md](trig_setup_scripts.md) | 5-stage trigger setup scripts (trig_setup_Stage1–5.sh): full step-by-step MTRG→RTRG→DIG link initialization, SYSTEM_DEFINES.sh GS topology (4 RTRGs, 44 DIGs, MTRG in VME10), DC balance/fiber notes, algorithm reference |
 | [guceiver.md](guceiver.md) | Guceiver: live diagnostic GUI (waveform, spectrum, TAC-II, raw data) — connects to IOC TCP:9001 |
 | [dgs_analysis.md](dgs_analysis.md) | Post-experiment analysis pipeline: EventBuilder variants (Q, PQ — k-way merge, parallel, double-buffered), parquet_pysort, gray_apps summary, parquetCLI, gain_from_parquet.py, pz_from_parquet.py, RunParquet, ProcessRUN, GEB data format |
@@ -34,7 +34,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [data_structures.md](data_structures.md) | Binary data structures: GEBHeader, DIG event payload (all 13 words, all HEADER_TYPE modes), TAC-II TDC, UniqueID convention, full event flow |
 | [run_procedures.md](run_procedures.md) | Typical DGS run procedures: directory setup, GEBSort, PZ/energy calibration workflow |
 | [pole_zero.md](pole_zero.md) | Pole-zero correction: physics, PZ coefficient, pz_from_parquet.py workflow, GrayCAL method, PQDecode.chat config |
-| [troubleshooting.md](troubleshooting.md) | DGS troubleshooting: IOC connectivity, SYNC bit gotcha, FIFO issues, timestamp sync errors |
+| [troubleshooting.md](troubleshooting.md) | DGS troubleshooting: IOC connectivity, SYNC bit gotcha, FIFO/PV name corrections, timestamp sync errors, BGO channel suppression by preamp-reset blanking |
 | [expMemory_2008_Chiara.md](expMemory_2008_Chiara.md) | Experiment log: exp2008_Chiara (active); run data locations, cleanup log, monitoring |
 
 ### FPGA Firmware
@@ -47,7 +47,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [deep_fpga_DIG_eventpacket.md](deep_fpga_DIG_eventpacket.md) | DIG event packet format: LED/CFD header layout, split field reconstruction, pole-zero correction, waveform samples, integration timelines (split from deep_fpga_DIG.md) |
 | [DIG_firmware_expert.md](DIG_firmware_expert.md) | DIG firmware expert guide: all modes, trigger_mux_select (IntAcptAll/ExtTTL/ExtTTCL/Diag), aux I/O |
 | [deep_fpga_RTRG.md](deep_fpga_RTRG.md) | RTRG firmware: Virtex-4, multiplicity aggregation, throttle, VME register map |
-| [260E_trigger_scheme.md](260E_trigger_scheme.md) | RTRG 0x260E trigger scheme deep-dive: `chan_in.vhd` (serial reception, 18-bit SERDES word, 640 ns DPRAM delay alignment, X/Y plane maps), `router_data_path.vhd` (multiplicity aggregation, Link-L output), hit classification, full signal flow with timing |
+| [260E_trigger_scheme.md](260E_trigger_scheme.md) | RTRG 0x260E + MTRG trigger scheme deep-dive: `chan_in.vhd` (serial reception, 18-bit SERDES word, 640 ns DPRAM delay alignment, X/Y plane maps), `disc_mach.vhd` (clean/dirty/BGO-only classification), `router_data_path.vhd` (Link-L multiplicity aggregation), MTRG `mt_input_channel.vhd`, `eight_mt_channel.vhd`, `sum_hits_X.vhd`, `calc_total_sum.vhd`, `top.vhd` trigger decision; full end-to-end timing with DUO example and Mermaid diagram |
 | [deep_fpga_MTRG.md](deep_fpga_MTRG.md) | MTRG overview: 3 devices (Main FPGA, VME FPGA, CPLD) |
 | [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) | MTRG Main FPGA: trigger algorithms, 20-frame command structure, TAC-II TDC, VME map, RF→NIM IN 2 |
 | [tac2.md](tac2.md) | TAC-II TDC in MTRG: vernier interpolation (~30–50 ps), 250 MHz 4-phase clock, 64-tap delay lines, data collection state machines, 350 ns pipeline delay |

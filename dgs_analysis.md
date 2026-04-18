@@ -37,11 +37,20 @@ git clone --recursive git@gitlab.phy.anl.gov:dgs-tools-pack/dgs_analysis.git
 
 | Variant | Key Feature | Use Case |
 |---------|-------------|----------|
-| `EventBuilder` | Original; priority queue, parallel file scan, no intermediate files | General use |
-| `EventBuilder_S` | Pre-scan pass for timestamp ranges; single-threaded k-way merge | When timestamp bounds needed |
+| `EventBuilder` | Original; priority queue, parallel file scan; compile-time switch between ROOT and **flat Parquet** output via `OUTPUT_TYPE` macro (`ParquetOutput.h`) | Legacy / general use |
+| `EventBuilder_S` | Parallel scan pre-pass + single-threaded k-way merge + **optional multithreaded GSL sigmoid trace fitting** | When trace shape analysis (PSD) needed; also used as reference for PQ verification |
 | `EventBuilder_Q` | Async double-buffered k-way merge; batch pre-decoding; pipelined ROOT writers | Fast I/O, large datasets |
 | `EventBuilder_PQ` | Parallel k-way merge with sector partitioning; N parallel threads | Maximum throughput, multi-core |
 | `EventBuilder_X` | Same engine as PQ, **Parquet output** (no ROOT dependency) | **Primary pipeline** — used by `ProcessRUN` |
+
+**EventBuilder_S details:**
+- **Parallel scan pre-pass**: all input files are scanned in parallel threads (one thread per file) via `BinaryReader::Scan(true)`; reports hit counts, file sizes, and global timestamp range (earliest + latest) ✅ verified 2026-04-17 — `EventBuilder_S.cpp:L342-360`
+- **Single-threaded k-way merge**: priority queue over all groups (files grouped by DigID); initial batch loaded from each group, then merge loop reads next hits as needed
+- **Trace analysis option** (`nWorkers` arg): when `nWorkers > 0`, each event's waveform traces are fit to a **logistic sigmoid model**: `Yi = A / (1 + exp(-(t - T0) / riseTime)) + B` using the GNU Scientific Library (GSL) nonlinear least-squares (`gsl_multifit_nlinear_trust`). 4 parameters per trace: A (amplitude), T0 (timing offset), riseTime (pulse rise time), B (baseline). Up to 100 iterations, convergence at `1e-5`. Chi² residual also stored. ✅ verified 2026-04-17 — `EventBuilder_S.cpp:L202-263`
+- **Multithreaded trace fitting**: when `nWorkers > 1`, events with traces are dispatched to a worker thread pool via a condition-variable queue (`dataQueue`); an ordered output map (`outputMap` keyed by evID) ensures in-order ROOT tree writes. When `nWorkers == 1`, trace fitting runs single-threaded inline.
+- **ROOT output**: same branch layout as EventBuilder_Q (evID, NumHits, id, detID, pre/post_rise_energy, eventTS, trigTS); trace branches (`traceCount`, `traceDetID`, `traceLen`, `trace[][]`) added when `saveTrace=1`; `tracePara[traceCount][4]` and `traceChi2[traceCount]` added when `nWorkers > 0` ✅ verified 2026-04-17 — `EventBuilder_S.cpp:L403-420`
+- **Usage**: `./EventBuilder_S [outfile] [timeWindow] [useTrigTS] [saveTrace] [nWorkers] [file1] [file2] ...` — note `nWorkers` is the 5th arg (vs `nWorkers` in Q), but semantics differ: in S it controls trace analysis thread count
+- **Benchmark**: 659.7s for 17.4 GB / 228M hits (TAC2_054, 30 workers) — much slower than PQ (32.2s). EventBuilder_S output verified to match PQ: 26,656,402 events ✅ verified 2026-04-12 — `README.md`
 
 **EventBuilder_Q optimizations:**
 - Batch pre-decoding (not per-hit)
@@ -65,6 +74,28 @@ make EventBuilder_PQ
 # Usage
 ./EventBuilder_Q [outfile] [timeWindow] [useTrigTS] [saveTrace] [nWorkers] [file1] [file2] ...
 ```
+
+**Original `EventBuilder` — `ParquetOutput.h` flat Parquet schema:**
+The original `EventBuilder.cpp` includes `ParquetOutput.h` and has a compile-time switch `#define OUTPUT_TYPE 1` (0=ROOT, 1=Parquet). When Parquet output is selected, it uses a **flat schema** (one row per hit, not nested lists), implemented via the `BatchBuilder` class in `ParquetOutput.h`. Flat schema columns: ✅ verified 2026-04-18 — `ParquetOutput.h:L50-64, EventBuilder.cpp:L11,39`
+
+| Column | Arrow Type | Description |
+|--------|-----------|-------------|
+| `event_id` | uint64 | Sequential event ID |
+| `NumHits` | uint32 | Hits in this event (repeated per hit row) |
+| `id` | uint16 | Raw digitizer ID (boardID×10 + channelID) |
+| `detID` | uint16 | Mapped detector ID |
+| `pre_rise_energy` | uint32 | Trapezoidal sum S1 |
+| `post_rise_energy` | uint32 | Trapezoidal sum S2 |
+| `energy` | int64 | Computed energy (S2 − S1, integer) |
+| `eventTS` | uint64 | Event timestamp (10 ns ticks) |
+| `trigTS` | uint64 | Trigger timestamp (10 ns ticks) |
+| `deltaT` | float64 | Time difference (computed) |
+| `vdc` | float64 | Velocity/Doppler correction factor |
+| `hitBGO` | bool | True if BGO hit |
+
+> **Note:** This flat schema differs from `EventBuilder_X`'s nested list schema (which uses `list<uint16>` per column, `e_raw` as float32 with PZ correction, and writes to `/dev/shm` before merge). The original `EventBuilder` Parquet is simpler and row-oriented. `EventBuilder_X` is preferred for production runs (via `ProcessRUN`).
+
+SNAPPY compression, PLAIN encoding. Author: Scott Carmichael (2026-02-24).
 
 ### parquet_pysort — Python/C++ Parquet Pipeline
 
@@ -126,7 +157,7 @@ g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
 
 **Threading details:**
 - `decode.py`: `ThreadPoolExecutor`, one worker per tid; GE/BGO files submitted as sub-tasks for overlapping I/O. Requires **Python 3.14.3t (free-threaded / no-GIL)** for true parallelism. ✅ verified 2026-04-14 — `parquet_pysort/CLAUDE.md:L63` ("Python 3.14.3t (free-threaded) — No-GIL build"); `README.md:L145` ("Python 3.12+ — free-threaded build (3.14t) recommended")
-- `event_builder.py`: Reads all input into one Arrow table, splits into N chunks, calls C++ `build_events()` per chunk in parallel. Column renames (`header_ts→gs_ts`, etc.) are zero-copy Arrow references — no `.to_pylist()`.
+- `event_builder.py`: Reads all input into one Arrow table, splits into N chunks, calls C++ `build_events()` per chunk in parallel. Column renames (`header_ts→gs_ts`, etc.) are zero-copy Arrow references — no `.to_pylist()`. Optional `--sort-by gs_ecal|gs_edc` sorts output before writing (default: no sort). ✅ verified 2026-04-18 — `parquet_pysort/CLAUDE.md` event_builder description.
 - `decode.py --write-threads N`: Output split into `_000.parquet`, `_001.parquet`, … — feed multiple files to `event_builder.py`.
 
 **Algo notes:**
@@ -135,7 +166,7 @@ g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
 - Algo 2 (SZ_2, high-rate): Uses `pz4 = PZ^((MM+KK)/MM)`. Two regimes based on `dtev` vs `dgs_SZ_t1`/`dgs_SZ_t2`: `≥ t2` computes baseline from `sampled_baseline` (FPGA-sampled, 24-bit, `MSAMPLE=1024` = 10.24 µs window) using PZ decay formula; `< t2` extrapolates from pre-learned `baselast`/`sum1last` factor. Energy formula same as SZ_1 but uses `pz4`. Requires `base > 10.0`.
 - `dtev`: computed from firmware `last_disc_timestamp` (time since last discriminator trigger), with wrap-around correction. Matches `lastdisc_dt_ticks()` in `bin_dgs.c`.
 - `sum2` field extraction in `jta.c` is header-type-dependent: types 0/1/3/5 use `>> 28` (4-bit); types 4/6/7/8 use `>> 24` (8-bit).
-- `pileup_count` extraction in `jta.c` has a known bit-shift bug (`(word5 & 0x00FFC000) >> 24`) that always produces 0; replicated as-is for compatibility.
+- `pileup_count` extraction in `jta.c` has a known bit-shift bug (`(word5 & 0x00FFC000) >> 24`) that always produces 0; replicated as-is for compatibility. ✅ verified 2026-04-18 — `gebsort/jta.c:L553` (bug confirmed: 10-bit field at bits 14–23, shifted right 24 → always 0); `dgs_analysis/armory/parquet_pysort/dgs_decode_lib.cpp:L174` (comment explicitly says "replicates jta.c >> 24 exactly")
 
 **GEBSort reference:** `GEBSort.cxx:GEBGetEv()` — coincidence grouping: `while ((TS - curTS) < dTS)`. Default `dTS=500` (= 5 µs at 10 ns/tick). ✅ verified 2026-04-09 — `GEBSort.cxx:L2502` (`Pars.dTS = 500`). `jta.c:DGSEvDecompose_v3()` parses payloads (big-endian swap, 48-bit timestamp from words 1+2, `trigger_timestamp` only in header types 7/8).
 
@@ -673,12 +704,13 @@ Analyzes waveform trace data stored in the ROOT tree (requires `saveTrace=true` 
 
 **Key branches:** `tracePara[hit][param]`, `traceDetID` — trace parameters and associated detector.
 
-`tracePara` columns (from context):
-- `[0]` = energy (a.u.) from trace
-- `[1]` = rise time or decay parameter
-- `[2]` = some shape parameter (plotted against each other for tail analysis)
+`tracePara` columns (GSL fit params, 4 values per hit) — ✅ verified 2026-04-17 — `EventBuilder_X.cpp:L25` + `analyzer_trace.cpp:L113-115`:
+- `[0]` = A — amplitude (proportional to energy)
+- `[1]` = T0 — timing offset from reference
+- `[2]` = riseTime — pulse rise time
+- `[3]` = B — baseline
 
-**Purpose:** Characterize pulse shape discrimination (PSD) — separates neutrons from gammas, or identifies pile-up. The `TCutG` graphical cuts in `analyzer_script.cpp` are drawn on `tracePara[0][1]` vs `tracePara[0][2]` to select "lower tail" and "high tail" events for a specific detector (`traceDetID == 12107`).
+**Purpose:** Characterize pulse shape discrimination (PSD) — separates neutrons from gammas, or identifies pile-up. The `TCutG` graphical cuts in `analyzer_script.cpp` are drawn on `tracePara[0][1]` (T0) vs `tracePara[0][2]` (riseTime) to select "lower tail" and "high tail" events for a specific detector (`traceDetID == 12107`).
 
 ### analyzer_pz_cal.cpp — Pole-Zero Calibration from Traces (155 lines)
 

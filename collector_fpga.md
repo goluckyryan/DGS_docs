@@ -36,9 +36,7 @@ The collector box hosts **6 slots (S1–S6)**, each carrying DIGitizer boards.
 
 | Addr | Name | Function |
 |------|------|----------|
-| 0 | `ctl_bank_readback` | Read-only register bank readback |
-| 1 | `ctl_pulsed_control` | Pulsed resets (startup ROM reset, master reset, serial reset, FIFO reset, etc.) |
-| 0 | `ctl_bank_readback` / `ctl_pulsed_control` | Bank readback / pulsed control |
+| 0 | `ctl_bank_readback` (R) / `ctl_pulsed_control` (W) | Read: register bank readback; Write: pulsed resets (startup ROM reset, master reset, serial reset, FIFO reset, etc.) |
 | 1 | `FPGA_CTL_REG` | Main FPGA control register |
 | 2 | `ctl_ila_control` | ILA (Integrated Logic Analyzer) control |
 | 3 | `ctl_mask` | Alarm mask |
@@ -111,6 +109,84 @@ Example pulsed control PVs (all `bo` records):
 - `GS${DetNbr}_ctl_master_reset`
 - `GS${DetNbr}_ctl_serial_reset`
 - `GS${DetNbr}_ctl_reset_cmd_fifo`
+
+### Per-Slot CtrlFPGA Register Addresses (Exact)
+_Source: `collector_FPGA/CollectorBox_CtrlFPGA/TEMP.c`, `GAIN.c`, `OFFSET.c`, `REF.c`, `IMON.c`, `VMON.c`, `GF_I.c`_
+_Explored: 2026-04-18_
+
+The following tables give exact FPGA register addresses used by the ADC scanner for each slot.
+Note: Slots are addressed in the order S1, S3, S5, S2, S4, S6 (odd slots first).
+
+**ADC Temperature (`ADC_TEMP_ADDR`):**
+| Slot | Addr |
+|------|------|
+| S1 | 147 |
+| S3 | 168 |
+| S5 | 189 |
+| S2 | 210 |
+| S4 | 231 |
+| S6 | 252 |
+
+**ADC Gain (`ADC_GAIN_ADDR`):**
+| Slot | Addr |
+|------|------|
+| S1 | 148 |
+| S3 | 169 |
+| S5 | 190 |
+| S2 | 211 |
+| S4 | 232 |
+| S6 | 253 |
+
+**ADC Offset (`ADC_OFFSET_ADDR`):**
+| Slot | Addr |
+|------|------|
+| S1 | 145 |
+| S3 | 166 |
+| S5 | 187 |
+| S2 | 208 |
+| S4 | 229 |
+| S6 | 250 |
+
+**ADC Reference (`ADC_REF_ADDR`):**
+| Slot | Addr |
+|------|------|
+| S1 | 149 |
+| S3 | 170 |
+| S5 | 191 |
+| S2 | 212 |
+| S4 | 233 |
+| S6 | 254 |
+
+**48V Current Monitor per DVI (`FPGA_IMON_ADDR`, indexed 1–30, 5 DVIs × 6 slots):**
+| Index | Signal | Addr |
+|-------|--------|------|
+| 1–5 | S1_DVI1–DVI5_48V_I | 134–138 |
+| 11–15 | S3_DVI1–DVI5_48V_I | 155–159 |
+| 21–25 | S5_DVI1–DVI5_48V_I | 176–180 |
+| 10–6 | S2_DVI1–DVI5_48V_I | 197–201 (reversed: DVI1=197, DVI5=201) |
+| 15–11 | S4_DVI5–DVI1_48V_I | 218–222 (reversed) |
+| 30–26 | S6_DVI5–DVI1_48V_I | 239–243 (reversed) |
+
+**Voltage Monitors (`FPGA_VOLTAGE_ADDR`, 12V/2.5V/3.3V per slot + BGO rails):**
+| Slot / Rail | 12V addr | 25V addr | 33V addr |
+|-------------|----------|----------|----------|
+| S1 | 141 | 142 | 143 |
+| S3 | 162 | 163 | 164 |
+| S5 | 183 | 184 | 185 |
+| S2 | 204 | 205 | 206 |
+| S4 | 225 | 226 | 227 |
+| S6 | 246 | 247 | 248 |
+| BGO_FPGA | 249 | 245 | 244 |
+
+**Ground Fault Current per DVI (`FPGA_GNDFAULT_I_ADDR`, 5 per slot):**
+| Slots | DVI1–DVI5 Addr Range |
+|-------|---------------------|
+| S1 | 129–133 |
+| S3 | 150–154 |
+| S5 | 171–175 |
+| S2 | 192–196 |
+| S4 | 213–217 |
+| S6 | 234–238 |
 
 ---
 

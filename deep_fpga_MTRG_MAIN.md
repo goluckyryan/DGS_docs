@@ -32,7 +32,7 @@
 | Part | xc4vlx80 |
 | Package | ff1148 |
 | Speed Grade | -11 |
-| Tool | Xilinx ISE 13.4 |
+| Tool | Xilinx ISE 14.7 ✅ verified 2026-04-17 — `Work13_4.xise:L2` (`ise_version="14.7"`) — folder name `Work13_4` is a label, not the ISE version |
 | Project File | `Firmware/MAIN_FPGA/trunk/Work13_4/Work13_4.xise` |
 | Top Entity | `trigger_top` |
 | Bitfile | `Firmware/MAIN_FPGA/trunk/Work13_4/trigger_top.bit` |
@@ -525,7 +525,7 @@ EPICS PV: `VME$(CRATE):$(BOARD):reg_MISC_STAT_RBV` (16-bit read-only)
 |-----|------|-----------|-------------|
 | 0 | 0x0001 | `xNIM_IN1_RBV` | **=1 when NIM input 1 is high (signal present).** Reflects the raw instantaneous logic level of the NIM IN1 front-panel input. |
 | 1 | 0x0002 | `DLYD_TDC_IN_NIM_IN2_RBV` | **=1 when NIM input 2 is high (signal present).** Same as bit 0 but for NIM IN2. Formerly named `xNIM_IN2`; repurposed as the delayed TDC trigger input in later firmware. |
-| 2 | 0x0004 | `TIMESTAMP_ROLLOVER_RBV` | **=1 when the 48-bit timestamp counter has rolled over** (wrapped from max back to 0). Normally 0 during a run; a 1 here indicates the run has been going long enough to overflow the counter (≈3.3×10¹³ clock ticks at 100 MHz ≈ 388 days). |
+| 2 | 0x0004 | `TIMESTAMP_ROLLOVER_RBV` | **=1 when the 48-bit timestamp counter has rolled over** (wrapped from max back to 0). Normally 0 during a run; a 1 here indicates the run has been going long enough to overflow the counter. The 48-bit counter increments by 2 every mclk (50 MHz) cycle → effective 10 ns tick → rollover at 2^48 × 10 ns ≈ **32.6 days**. ✅ verified 2026-04-18 — `timestamp.vhd:L124` (`xTIMESTAMP <= xTIMESTAMP + 2` at 50 MHz mclk) |
 | 3 | 0x0008 | `FRAME_12_PENDING_RBV` | **=1 when a Frame 12 command is queued but not yet sent.** Frame 12 is the internal trigger command sent to RTRGs (routers replace it with Null for digitizers). A stuck high value here may indicate the TTCL command pipeline is stalled. ✅ verified 2026-04-13 — `mstr_mach.vhd:L62-63` (FRAME_12_REQ_FLAG/FRAME_12_SENT_FLAG ports) |
 | 4 | 0x0010 | `FRAME_14_PENDING_RBV` | **=1 when a Frame 14 command is queued but not yet sent.** Frame 14 targets Digitizer Tester boards and MγRIAD. Normally pulses briefly; stuck high = pipeline stall. ✅ verified 2026-04-13 — `mstr_mach.vhd:L71-72` (FRAME_14_REQ_FLAG/FRAME_14_SENT_FLAG ports) |
 | 5 | 0x0020 | `FRAME_16_PENDING_RBV` | **=1 when a Frame 16 synchronous capture command is queued but not yet sent.** Frame 16 is the DGS system-wide synchronous capture command (e.g. snapshot of scalers/counters). |

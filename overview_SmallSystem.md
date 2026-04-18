@@ -85,8 +85,8 @@
 
 | System | CA Server | CA Repeater |
 |--------|-----------|-------------|
-| DuoGe (DUO) | 5080 | 5081 |
-| DUB | 5078 | 5079 |
+| DuoGe (DUO) | 5080 | 5081 | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L16-17` |
+| DUB | 5078 | 5079 | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L8` (comment) |
 
 ### DUB System Computers
 

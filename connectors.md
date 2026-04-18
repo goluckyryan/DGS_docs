@@ -1,6 +1,6 @@
 # DGS Connector Pinouts
 
-_Created: 2026-04-05. Last updated: 2026-04-06._
+_Created: 2026-04-05. Last updated: 2026-04-18._
 
 ---
 
@@ -143,7 +143,7 @@ On the **Router Trigger** (not the digitizer itself), the TTCL + Data links use 
 
 Each row = one digitizer connection. Signals are LVDS differential pairs.
 
-> 🔌 **MTRG/RTRG connector pinouts** are in a separate file: `connectors.md`
+> 🔌 **MTRG/RTRG connector pinouts** continue below in this file (Sections 1–6 of the trigger module section).
 
 ---
 
@@ -324,11 +324,11 @@ Two differential ECL output signals provided alongside the Auxiliary I/O connect
 
 | Document | Path | Sections Used |
 |----------|------|---------------|
-| Trigger user manual | `/home/ryan/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Modules/Trigger user manual 20140901.pdf` | §1.5 (General I/O), §2 (Module Photo, Connector Descriptions), §2.1 (SERDES connector), §2.1.1 (Link L), §2.2 (Master-to-Router cabling) |
-| Master Trigger Registers | `/home/ryan/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Firmware/Master_Trigger/GRETINA Master Trigger/Master Trigger Registers Master Document.pdf` | AUX_IO_CTL_REGISTER (0x0818), AUX_INPUT_SELECT (0x0820), Table 5 (NIM OUT encoding), MISC_STAT (0x0128) |
-| DGS trigger firmware user guide | `/home/ryan/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Modules/DGS trigger system firmware user guide.pdf` | §1.3 (NIM I/O), §1.3.1 (Rev D NIM upgrade) |
-| CPLD sum logic | `/home/ryan/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Firmware/Master_Trigger/CPLD_sum_logic.pdf` | CPLD fast strobe logic |
-| MTrigUser.template (EPICS) | `/home/ryan/DGS_tools_pack/ANLDAQ/ioc/db/MTrigUser.template` | NIM PV definitions: EN_NIM_AUX, ENBL_NIM_VETO, EN_NIM1_DELAY, EN_NIM2_DELAY, NIMSrc1/2, NIM1/2_SubSelect |
+| Trigger user manual | `/home/dgsspark/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Modules/Trigger user manual 20140901.pdf` | §1.5 (General I/O), §2 (Module Photo, Connector Descriptions), §2.1 (SERDES connector), §2.1.1 (Link L), §2.2 (Master-to-Router cabling) |
+| Master Trigger Registers | `/home/dgsspark/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Firmware/Master_Trigger/GRETINA Master Trigger/Master Trigger Registers Master Document.pdf` | AUX_IO_CTL_REGISTER (0x0818), AUX_INPUT_SELECT (0x0820), Table 5 (NIM OUT encoding), MISC_STAT (0x0128) |
+| DGS trigger firmware user guide | `/home/dgsspark/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Modules/DGS trigger system firmware user guide.pdf` | §1.3 (NIM I/O), §1.3.1 (Rev D NIM upgrade) |
+| CPLD sum logic | `/home/dgsspark/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Firmware/Master_Trigger/CPLD_sum_logic.pdf` | CPLD fast strobe logic |
+| MTrigUser.template (EPICS) | `/home/dgsspark/DGS_tools_pack/ANLDAQ/ioc/db/MTrigUser.template` | NIM PV definitions: EN_NIM_AUX, ENBL_NIM_VETO, EN_NIM1_DELAY, EN_NIM2_DELAY, NIMSrc1/2, NIM1/2_SubSelect |
 
 **Related memory docs:**
 - `deep_fpga_MTRG_MAIN.md` — MTRG main FPGA firmware (TAC-II TDC uses NIM_IN2)

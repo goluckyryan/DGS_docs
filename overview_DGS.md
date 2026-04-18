@@ -96,9 +96,9 @@ DGS is a full software+firmware+hardware stack:
 
 | Board | Chip | Count | Role |
 |-------|------|-------|------|
-| DIG (MDIG/SDIG) | Spartan-3 XC3S5000 + XC3S400 (VME) | up to 64 | 10-ch digitizer |
-| RTRG | Virtex-4 XC4VLX80 + XC3S400 (VME) | up to 8 | Router trigger |
-| MTRG | XC4VLX80 or KU060 + XC3S400 (VME) + XC95144XL (CPLD) | 1 | Master trigger |
+| DIG (MDIG/SDIG) | Spartan-3 XC3S5000 + XC3S400 (VME) ✅ verified 2026-04-18 — `FPGA/README.md:L71,73` + ChipScope project files (`DIG_20140908.cpj:L4` `deviceName1=XC3S5000`) | up to 64 | 10-ch digitizer |
+| RTRG | Virtex-4 XC4VLX80 + XC3S400 (VME) ✅ verified 2026-04-18 — `FPGA/README.md:L70,73` | up to 8 | Router trigger |
+| MTRG | XC4VLX80 or KU060 + XC3S400 (VME) + XC95144XL (CPLD) ✅ verified 2026-04-18 — `FPGA/README.md:L69` (ISE: XC4VLX80; Vivado: KU060=XCK060) | 1 | Master trigger |
 | MVME5500 | PowerPC MPC7455 (G4/AltiVec) ✅ verified 2026-04-06 — VxWorks sym table `sp7455_*` BSP symbols in SVN archive (DGS_SVN vxWorks.sym) | 12 | IOC computer (one per VME crate) |
 
 ### Per-Detector Hardware
@@ -172,7 +172,7 @@ DGS is a full software+firmware+hardware stack:
 
 | Repo / Folder | What It Does | Key Tech |
 |---------------|-------------|----------|
-| `FPGA/` | FPGA firmware source (DIG/RTRG/MTRG) | VHDL, ISE 13.4/14.7, Vivado 2018.3 |
+| `FPGA/` | FPGA firmware source (DIG/RTRG/MTRG) | VHDL, ISE 14.7, Vivado 2018.3 |
 | `ioc/` | EPICS IOC config + firmware binaries | EPICS db/dbd, VxWorks boot scripts, Git LFS |
 | `vxworks/` | Cross-compiler + IOC build environment | VxWorks 5.5, EPICS 3.14, asyn, sncseq |
 | `ANLDAQ/` | DAQ GUI + data receiver | PyQt6, pyEPICS, C++ TCP receiver |

@@ -32,10 +32,10 @@
 | Field | Value |
 |-------|-------|
 | Family | Virtex-4 |
-| Part | xc4vlx80 |
-| Package | ff1148 |
-| Speed Grade | -11 |
-| Tool | Xilinx ISE 13.4 |
+| Part | xc4vlx80 | ✅ verified 2026-04-18 — `FPGA/Firmware_Tags/Router/Release_Dec_2014/.../Work13_4.xise` (`Device=xc4vlx80`) |
+| Package | ff1148 | ✅ verified 2026-04-18 — same file (`Package=ff1148`) |
+| Speed Grade | -11 | ✅ verified 2026-04-18 — same file (`Speed Grade=-11`) |
+| Tool | Xilinx ISE 14.7 ✅ verified 2026-04-17 — `Work13_4.xise:L15` (`ise_version="14.7"`) + `router_top.par:L1` (`Release 14.7 par P.20131013`) — folder name `Work13_4` is a label, not the ISE version |
 | Project File | `Firmware/DGS_Version/Rtr4704_mod_for_reset/MAIN_FPGA_4704_mod/Work13_4/Work13_4.xise` |
 | Top Entity | `router_top` |
 | Bitfile | `Firmware/DGS_Version/Rtr4704_mod_for_reset/MAIN_FPGA_4704_mod/Work13_4/router_top.bit` |
@@ -209,17 +209,24 @@ The Router **extracts** the per-channel veto mask (`VETO[9:0]`) from bits [9:0] 
 
 | Address | Register | Description |
 |---------|----------|-------------|
-| 0x000 | INPUT_LINK_MASK | Mask active digitizer links |
-| 0x004 | LED_REG | LED control |
-| 0x008–0x010 | SKEW_CTL_A/B/C | Clock skew control (3 buffer chips) |
-| 0x014 | MISC_CLK_CTL | Clock mux selection |
-| 0x018 | AUX_IO_CTL | Auxiliary I/O mode |
-| 0x01C | AUX_IO_DATA | Software AUX I/O data |
-| 0x028–0x034 | SERDES_TPOWER/RPOWER | SERDES power controls |
-| 0x03C | LINK_LRU_CTL | DEN/REN/SYNC for Links L, R, U |
-| 0x040 | MISC_CTL1 | Global control (reset, veto enable, etc.) |
-| 0x044 | MISC_CTL2 | Secondary control |
-| 0x058–0x094 | X/Y_PLANE_MAP[1–8] | Discriminator type mapping per channel |
+| 0x000 | INPUT_LINK_MASK | Mask active digitizer links (power-up: 0x0000) ✅ verified 2026-04-18 — `TOP.VHD:L2230` |
+| 0x004 | LED_REG | LED control (power-up: 0x0000) ✅ verified 2026-04-18 — `TOP.VHD:L2231` |
+| 0x008 | SKEW_CTL_A | Clock skew control — U50 buffer chip, 8 outputs (power-up: 0x0000) ✅ verified 2026-04-18 — `TOP.VHD:L2232,L1074-1084` |
+| 0x00C | SKEW_CTL_B | Clock skew control — U53 buffer chip (power-up: 0x0000) ✅ verified 2026-04-18 — `TOP.VHD:L2233` |
+| 0x010 | SKEW_CTL_C | Clock skew control — third buffer chip (power-up: 0x0000) ✅ verified 2026-04-18 — `TOP.VHD:L2234` |
+| 0x014 | MISC_CLK_CTL | Clock mux selection (power-up: 0xB800; bit 15=1 enables Link-L clock fallback when locked) ✅ verified 2026-04-18 — `TOP.VHD:L2235,L880` |
+| 0x018 | AUX_IO_CTL | Auxiliary I/O mode (power-up: 0x0000) ✅ verified 2026-04-18 — `TOP.VHD:L2236` |
+| 0x01C | AUX_IO_DATA | Software AUX I/O data (power-up: 0x0000) ✅ verified 2026-04-18 — `TOP.VHD:L2237` |
+| 0x028 | SERDES_TPOWER | SERDES TX power-down control (bits 10:0 → Links A–H,L,R,U) ✅ verified 2026-04-18 — `TOP.VHD:L2240,L952-962` |
+| 0x02C | SERDES_RPOWER | SERDES RX power-down control (bits 10:0 → Links A–H,L,R,U) ✅ verified 2026-04-18 — `TOP.VHD:L2241,L964-974` |
+| 0x030 | SERDES_LOCAL_LE | SERDES LOCAL_LE pin control per link ✅ verified 2026-04-18 — `TOP.VHD:L2242` |
+| 0x034 | SERDES_LINE_LE | SERDES LINE_LE pin control per link ✅ verified 2026-04-18 — `TOP.VHD:L2243` |
+| 0x03C | LINK_LRU_CTL | DEN/REN/SYNC for Links L, R, U — bits: DEN_L[0], REN_L[1], SYNC_L[2], DEN_R[4], REN_R[5], SYNC_R[6], DEN_U[8], REN_U[9], SYNC_U[10] ✅ verified 2026-04-18 — `TOP.VHD:L2245,L895-932` |
+| 0x040 | MISC_CTL1 | Global control (reset, veto enable, etc.) ✅ verified 2026-04-18 — `TOP.VHD:L2246` |
+| 0x044 | MISC_CTL2 | Secondary control ✅ verified 2026-04-18 — `TOP.VHD:L2247` |
+| 0x050 | FORCE_SYNC | Manual override of sync to SERDES links (added 2012-02-28) ✅ verified 2026-04-18 — `TOP.VHD:L2251` |
+| 0x058–0x074 | X_PLANE_MAP[1–8] | X-plane discriminator type mapping per DIG channel (8 regs × 16 bits) ✅ verified 2026-04-18 — `TOP.VHD:L2253-2260` |
+| 0x078–0x094 | Y_PLANE_MAP[1–8] | Y-plane discriminator type mapping per DIG channel (8 regs × 16 bits) ✅ verified 2026-04-18 — `TOP.VHD:L2261-2268` |
 | 0x098 | ANY_THROTTLE_WIDTH | Throttle pulse width | ✅ verified 2026-04-09 — `TOP.VHD:L2270` (`REG_098 => ANY_THROTTLE_WIDTH_REG`) |
 | 0x09C | THROTTLE_LIMIT_TIME | Min assertion time for throttle | ✅ verified 2026-04-09 — `TOP.VHD:L2271` (`REG_09C => THROTTLE_LIMIT_TIME_REG`; added 2016-03-02 for `throttle_limiters`) |
 | 0x0C8 | TSCATTER_DELAY | Ge/BGO timing for dirty hits — bits[14:8]=ASSERTION_DELAY (7-bit, how long CLEAN/DIRTY pulses are stretched), bits[6:0]=OVERLAP_DELAY (7-bit Compton scatter coincidence window) ✅ verified 2026-04-15 — `knowledgeBase/vhdl/RTRG_chan_in.md` §Key Constants (sourced from `chan_in.vhd` TSCATTER_DELAY_REG port usage) |

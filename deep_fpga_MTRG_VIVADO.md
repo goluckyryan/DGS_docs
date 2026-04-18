@@ -95,6 +95,29 @@ VIVADO_MAIN_FPGA/trunk/
 
 ✅ verified 2026-04-12 — both bitfiles confirmed present at `FPGA/MTRG/Firmware/VIVADO_MAIN_FPGA/trunk/Work13_4/` (trigger_top.bit + GRET_L_trigger_top.bit)
 
+## Vivado-Only Source Files
+
+Two source files exist in the Vivado version that are **not** in the ISE active build:
+
+### `matrix_trig.vhd` — Unfinished Matrix Trigger Prototype
+- **Description:** Prototype for a generalized matrix trigger algorithm that would fire if any pair of 7 trigger inputs overlapped within a configurable time window.
+- **7 inputs:** man/aux, sumX, sumY, CPLD, link L, link R, link U
+- **Intended mechanism:** All 21 pairs (7 choose 2) fed into `overlap_machine` components; OR of all pair overlaps → trigger. Uses `trig_algo_support` wrapper with trigger type code `0x56`.
+- **Status: Stub/unfinished.** The behavioral body instantiates `trig_algo_support` but never declares `SIMPLE_TRIGGER` as a local signal or instantiates any `overlap_machine`. The file compiles but does nothing useful. `overlap_machine` is declared as a component but has no implementation in any source file.
+- **Not instantiated** in `top.vhd` — present in the project source list but never connected.
+- **ISE counterpart:** `MAIN_FPGA/trunk/Source/UnusedOrDeprecated/matrix_trig.vhd` (same file, same state).
+✅ verified 2026-04-17 — `VIVADO_MAIN_FPGA/trunk/Source/matrix_trig.vhd` + `top.vhd` (no instantiation of matrix_trig found)
+
+### `EVENT_FIFO.vhd` — Event-Counting FIFO Wrapper
+- **Author:** John Anderson. Originally from the FLIC project; reused in MTRG for **Monitor FIFO 7 building** (since 2015-10-02).
+- **Underlying core:** `FIFO_INDEP_FWFT_18W1024D_AF_AE_PROGFULLPORT_PROGEPORT` — 18-bit wide, 1024 deep, FWFT, independent read/write clocks, with almost-full/empty and programmable threshold flags.
+- **Data width:** 18 bits: [17]=event boundary tag, [16]=ILA trigger tag, [15:0]=payload data.
+- **Event boundary tag (bit 17):** Set on the second-to-last word of each event written. Allows event-level framing across clock domain crossings.
+- **ILA tag (bit 16):** Armed via a Pulsed Control register bit; fires when incoming data matches `ILA_TAG_MATCH_VAL_REG`. Propagated unchanged through all processing stages — used to trigger Chipscope ILA across the full event pipeline.
+- **Event counter:** 8-bit counter tracks number of full events in FIFO. `EVENT_END` (write clock) increments; `EVENT_READ` (read clock, on first word of event) decrements. Three clock-domain modes via `COUNTER_MODE` generic: 0=same clock, 1=read faster, 2=write faster.
+- **Outputs:** `EVENT_AVAILABLE` (nonzero count), `EVENTS_IN_FIFO` (8-bit count), overflow/underflow flags.
+✅ verified 2026-04-17 — `VIVADO_MAIN_FPGA/trunk/Source/EVENT_FIFO.vhd` (368 lines)
+
 ## Cross-References
 
 - `knowledgeBase/deep_fpga_MTRG.md` — MTRG overview: all 3 devices (Main FPGA, VME FPGA, CPLD)

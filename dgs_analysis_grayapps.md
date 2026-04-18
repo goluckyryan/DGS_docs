@@ -169,7 +169,7 @@ Key methods:
 - `get_cal_centroids()` — returns per-gamma-line dict of `{energy_str: ([ids], [cal_en], [cal_en_res])}`; only for matched/calibrated detectors
 - `gen_rand_factors(num)` — test utility: generates random gain factors per ID (uniform center 0.5–1.5, σ=0.01)
 
-Author: Scott Carmichael (2025-12-11). Used by `BatchfitDialog` GUI (Tools → BatchFit).
+Author: Scott Carmichael (2025-12-11 ✅ verified 2026-04-17 — `BatchFit.py` header comment). Used by `BatchfitDialog` GUI (Tools → BatchFit).
 
 _Source: `dgs_analysis/armory/gray_apps/` — explored 2026-04-06; radware_eff + isotope data explored 2026-04-08; spectrum_types + spedata explored 2026-04-11; BatchFit explored 2026-04-13_
 
@@ -220,7 +220,7 @@ _Source: `gray_apps/src/GrayCAL/gui/main_window.py` (1,331 lines ✅ verified 20
 
 **Key detail:** Dialog reads the current spectrum directly from parent `MainWindow`; validates it's a 2D histogram before allowing run. Stores last `DetResult` in `self._last_result` for save.
 
-_Source: `gray_apps/src/GrayCAL/gui/polezero_dialog.py` (494 lines, explored 2026-04-12)_
+_Source: `gray_apps/src/GrayCAL/gui/polezero_dialog.py` (494 lines ✅ verified 2026-04-17 — `wc -l`, explored 2026-04-12)_
 
 ---
 

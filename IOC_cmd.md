@@ -126,13 +126,13 @@ Read and dump a trigger module FIFO to console. **Destructive**.
 |-----|-------|---------|
 | `board` | cardno | Board index |
 | `numlongwords` | N>0 | Read exactly N words |
-| | `0` | Auto: MON FIFO 7 → use latched depth (reg 0x01AC); others → 256 words |
+| | `0` | Auto: MON FIFO 7 → use latched depth (reg 0x01AC); others → 256 words ✅ verified 2026-04-17 — `readTrigFIFO.c:L653-657` |
 | | negative | Use MAX (`MAX_TRIG_RAW_XFER_SIZE`) |
 | `mode` | `1` / `0` | DMA / word-by-word (same as dbgReadDigFifo) |
-| `FIFO_IDX` | 0–7 | MON FIFOs 1–8 at byte offsets 0x0160–0x017C |
-| | 8–15 | CHAN FIFOs 1–8 at byte offsets 0x0180–0x019C |
+| `FIFO_IDX` | 0–7 | MON FIFOs 1–8; offsets: 0x0160/0x0164/0x0168/0x016C/0x0170/0x0174/**0x5000**/0x017C (FIFO 7 moved to 0x5000 by JTA 2025-05-28) ✅ verified 2026-04-17 — `readTrigFIFO.c:L79-89` |
+| | 8–15 | CHAN FIFOs 1–8 at byte offsets 0x0180–0x019C ✅ verified 2026-04-17 — `readTrigFIFO.c:L90-97` |
 
-MON FIFO 7 (`FIFO_IDX=6`, byte offset `0x0178`) is the primary trigger timestamp/TDC FIFO used by DAQ.
+MON FIFO 7 (`FIFO_IDX=6`, byte offset **`0x5000`** — moved from `0x0178` by JTA 2025-05-28) is the primary trigger timestamp/TDC FIFO used by DAQ. ✅ verified 2026-04-17 — `readTrigFIFO.c:L86-88`
 
 Example — dump MON FIFO 7 of MTRG (cardno 0), auto-length, word-by-word:
 ```
@@ -416,7 +416,7 @@ These are native VxWorks shell commands available on any MVME5500 IOC, independe
 | `checkStack` | *none* | Show stack "headroom" for all tasks | Yes |
 | `version` | *none* | Print VxWorks kernel version string | Yes |
 | `devReport` | *none* | List all installed device drivers | Yes |
-| `taskDelay` | `ticks` | Sleep current task for N clock ticks (60 ticks/s on MVME5500). Blocks the shell — use sparingly | Care |
+| `taskDelay` | `ticks` | Sleep current task for N clock ticks (60 ticks/s on MVME5500). Blocks the shell — use sparingly ✅ verified 2026-04-18 — `DGS_SVN/dgs/SlopeBoxInterface/.../motor-R6-10-1/documentation/Problems.html` ("sysClkRate = 60 Hz, unless changed by sysClkRateSet()"); DGS boot scripts `vme*.cmd` do not call `sysClkRateSet` → default 60 ticks/s | Care |
 | `sp` | `func, arg1, ...` | Spawn a new task — **use with caution** | No |
 | `taskDelete` | `taskId` | Kill a task immediately | No |
 
@@ -518,7 +518,7 @@ These are built-in but must **never** be run without authorization:
 `asynSetTraceMask` — changes logging verbosity
 `epicsEnvSet` — modifies runtime environment
 `epicsThreadSleep` — blocks the shell task
-`taskDelay` — blocks the VxWorks shell task for N ticks (60 ticks/s); holds the shell until done
+`taskDelay` — blocks the VxWorks shell task for N ticks (60 ticks/s ✅ verified 2026-04-18 — default VxWorks rate, DGS boot scripts do not override); holds the shell until done
 `copy`, `rename`, `mkdir` — file system writes on NFS; check path before running
 
 ### Never Without Authorization (destructive / irreversible)

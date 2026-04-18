@@ -24,6 +24,7 @@ Open the terminal window for the miscreant IOC from DGS Commander.
 ```
 0x3ff73940 (tBoot): miiPhyInit check cable connection
 ```
+*(The address `0x3ff73940` is runtime-specific; `miiPhyInit check cable connection` is the canonical VxWorks MII Ethernet PHY init failure message.)* ✅ verified 2026-04-17 — DGS_SVN VxWorks network driver source (miiPhyInit() in mottsecEnd.c/miiLib.c)
 
 **Cause:** Broken or disconnected Ethernet cable between IOC and network switch.
 
@@ -45,7 +46,7 @@ Open the terminal window for the miscreant IOC from DGS Commander.
 - SYNC bit still set in `LRUCtl02` PV of the Router (the Link L SYNC control) — data not actually being sent to Master
 - Cable length mismatch (jitter budget exceeded)
 
-**Check:** Use Router channel FIFOs to verify real discriminator data (bits 9:0) is arriving.
+**Check:** Use Router channel FIFOs to verify real discriminator data (bits 9:0) is arriving. ✅ verified 2026-04-17 — `260E_trigger_scheme.md:L38,42` (`DELAYED_DATA[9:0]`: bits[9:5] = Ge ch discriminators, bits[4:0] = BGO sum discriminators; as recovered by `chan_in` DCBAL_IN sub-block)
 
 *(Source: [wiki: Triggers and Digitizers](https://wiki.anl.gov/gsdaq/Triggers_and_digitizers) — see `wiki_gsdaq.md`)*
 
@@ -100,7 +101,7 @@ Key issues documented:
 
 **Check:**
 - SERDES lock status on all links
-- Clock jitter budget — total accumulated jitter must be < 250 ps
+- Clock jitter budget — total accumulated jitter must be < 250 ps ✅ verified 2026-04-17 — `ttcl.md:L72` (from `20160418 trig command link.pdf`: "Recommendation: total accumulated jitter < 250 ps at the far end")
 - Link L clock recovery on Routers
 
 *(Source: `ttcl.md`, `DIG_firmware_expert.md`)*
@@ -134,6 +135,13 @@ Key issues documented:
 | `VMExx:MTRG:MISC_STAT` | NIM IN 1/2 state + misc status bits |
 | `GS${N}_SBX_Present` | Is SBX connected for this detector? |
 | `GS${N}_SlopeBoxGe_HV_On` | Is Ge HV on for this detector? |
+| `DAQC$(CRATE)_OL_TotalBufsLost` | Total outLoop buffers lost (data loss counter) |
+| `DAQC$(CRATE)_CV_OutLoop{0-6}` | Per-board data lost in outLoop |
+| `DAQC$(CRATE)_OL_DataRate{0-6}` | Per-board output rate (kB/s) |
+| `DAQC$(CRATE)_CV_SendRate` | Total MiniSender output rate (kB/s) |
+| `DAQC$(CRATE)_OL_NumFreeBuffers` | Free buffer pool entries (watch for depletion) |
+| `MOD###_DIG_PREAMP_RESET_DELAY` | PRK holdoff delay per channel (8-bit x 512 x 10 ns) |
+| `MOD###_DIG_HIHILOLO_CNT` | Preamp reset event counter per channel |
 
 ---
 

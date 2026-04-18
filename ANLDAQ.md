@@ -26,26 +26,27 @@ Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS
 
 ### GUI Modules
 
-| File | Lines | Function |
-|------|-------|----------|
-| `commander.py` | 852 | Main window: run control, board buttons, settings persistence | ✅ verified 2026-04-14 — `wc -l commander.py`=852 |
-| `gui_DIG.py` | 374 | Digitizer board config window (per-channel + per-board PVs) | ✅ verified 2026-04-17 — `wc -l gui_DIG.py`=374 |
-| `gui_MTRG.py` | 1425 | Master trigger board window (largest GUI module) | ✅ verified 2026-04-17 — `wc -l gui_MTRG.py`=1425 |
-| `gui_RTR.py` | 550 | Router trigger board window (2 tabs: LINK Control, X/Y Map) | ✅ verified 2026-04-17 — `wc -l gui_RTR.py`=550 |
-| `gui_DataTaking.py` | 227 | IOC config dialog + live run status window | ✅ verified 2026-04-17 — `wc -l gui_DataTaking.py`=227 |
-| `gui_SYS.py` | 427 | System tabs: timestamps, link status, TCP rates, code revision (see GUI section below) | ✅ verified 2026-04-17 — `wc -l gui_SYS.py`=427 |
-| `gui_Board.py` | — | Generic board PV window (table of all PVs for a board) |
-| `gui_LinkSys.py` | — | Link system window (`link_sys.py` launcher) | ✅ verified 2026-04-17 — `wc -l gui_LinkSys.py`=295 |
-| `gui_scalar.py` | — | Scalar/rate monitor window |
-| `gui_Det.py` | — | Detector view window |
-| `class_Board.py` | 73 | Board abstraction (see below) | ✅ verified 2026-04-17 — `wc -l class_Board.py`=73 |
-| `class_PV.py` | — | EPICS PV abstraction (see below) |
-| `class_PVWidgets.py` | — | PV-bound Qt widgets (see below) |
-| `custom_QClasses.py` | — | Custom Qt base classes (see below) |
-| `json2pv.py` | — | Parses `All_PV.json` → PV objects (see below) |
-| `aux.py` | 7 | Minimal helpers |
-| `Guceiver/` | — | Live waveform/spectrum monitor (matplotlib) |
-| `scripts/` | — | Shell/Python scripts launchable from GUI combo box |
+| File | Lines | Function | Verified |
+|------|-------|----------|----------|
+| `commander.py` | 852 | Main window: run control, board buttons, settings persistence | ✅ 2026-04-14 |
+| `gui_DIG.py` | 374 | Digitizer board config window (per-channel + per-board PVs) | ✅ 2026-04-17 |
+| `gui_MTRG.py` | 1425 | Master trigger board window (largest GUI module) | ✅ 2026-04-17 |
+| `gui_RTR.py` | 550 | Router trigger board window (2 tabs: LINK Control, X/Y Map) | ✅ 2026-04-17 |
+| `gui_DataTaking.py` | 227 | IOC config dialog + live run status window | ✅ 2026-04-17 |
+| `gui_SYS.py` | 427 | System tabs: timestamps, link status, TCP rates, code revision (see GUI section below) | ✅ 2026-04-17 |
+| `gui_Board.py` | 432 | Generic board PV window (table of all PVs for a board) | ✅ 2026-04-18 |
+| `gui_CH.py` | 402 | Per-channel detail window for DIG boards (5 tabs; opened from DIGWindow) | ✅ 2026-04-18 |
+| `gui_LinkSys.py` | 295 | Link system window (`link_sys.py` launcher) | ✅ 2026-04-17 |
+| `gui_scalar.py` | 164 | Scalar/rate monitor window (threshold, disc count, ahit count per channel) | ✅ 2026-04-18 |
+| `gui_Det.py` | 324 | Detector view window | ✅ 2026-04-18 |
+| `class_Board.py` | 73 | Board abstraction (see below) | ✅ 2026-04-17 |
+| `class_PV.py` | 111 | EPICS PV abstraction (see below) | ✅ 2026-04-18 |
+| `class_PVWidgets.py` | 393 | PV-bound Qt widgets (see below) | ✅ 2026-04-17 |
+| `custom_QClasses.py` | 200 | Custom Qt base classes (see below) | ✅ 2026-04-18 |
+| `json2pv.py` | 281 | Parses `All_PV.json` → PV objects (see below) | ✅ 2026-04-18 |
+| `aux.py` | 7 | Minimal helpers | — |
+| `Guceiver/` | — | Live waveform/spectrum monitor (matplotlib) | — |
+| `scripts/` | — | Shell/Python scripts launchable from GUI combo box | — |
 
 ---
 
@@ -160,14 +161,14 @@ Start sequence:
 2. Writes `ioc_config.txt` from the dialog's `configText`
 3. Auto-compiles `tcpReceiverMT` via `make tcpReceiverMT` in `tcpReceiver/` — skips if already up to date
 4. Spawns `tcpReceiverMT configFile filePrefix` as a subprocess (`subprocess.Popen`, line-buffered stdout)
-5. `QTimer` fires every 200 ms to read stdout via `select.select` (non-blocking)
+5. `QTimer` fires every 200 ms to read stdout via `select.select` (non-blocking) ✅ verified 2026-04-18 — `gui_DataTaking.py:L109-111,L156-158` (`timer.start(200)`, `select.select(...,0)`)
 6. ANSI color codes stripped (`re.sub(r'\033\[[0-9;]*m', '', line)`) before display
 7. Parses `====== X.XXX Mbytes | ...` lines to update live total-size label
 
 Stop sequence:
 1. User clicks **Stop Run** → prompts for a stop comment (`QInputDialog.getText`)
 2. Calls `parent.StopAcquisition(comment)` (stops EPICS acquisition, lets IOC flush data)
-3. Waits **5 seconds** (`QTimer.singleShot(5000, ...)`) then sends **SIGTERM** to `tcpReceiverMT`
+3. Waits **5 seconds** (`QTimer.singleShot(5000, ...)`) then sends **SIGTERM** to `tcpReceiverMT` ✅ verified 2026-04-18 — `gui_DataTaking.py:L209,L215-216`
 4. Process exit codes: 0 = finished cleanly, `-SIGTERM` = stopped by user, other = error
 
 Button color scheme: running=green, stopped=orange, finished=blue, error=red.
@@ -183,6 +184,68 @@ Button color scheme: running=green, stopped=orange, finished=blue, error=red.
 | `GTwoStateButton` | `QPushButton` | Toggles between two text/color states; `setState(bool)` + `stateChanged` signal; supports inverted color logic |
 | `GFlagDisplay` | `QWidget` | Label + disabled colored square; green=True, grey=False; tooltip shows pass/fail message |
 | `GArrow` | `QWidget` | Custom-painted directional arrow with configurable length, color, angle |
+
+---
+
+### `gui_scalar.py` — Scalar / Rate Monitor Window
+
+_Source: `ANLDAQ/gui/gui_scalar.py` (164 lines). Code-read 2026-04-18._ ✅ verified 2026-04-18
+
+`ScalarWindow` — opened via the "Scalar" button in DGS Commander. Displays per-channel scalar counters for **all DIG boards simultaneously**.
+
+**Per-channel columns** (3 per channel, rows 0–9):
+
+| Column | PV name suffix | Description |
+|--------|---------------|-------------|
+| Threshold | `led_threshold` | Leading-edge discriminator threshold |
+| Trigger | `disc_count` | Discriminator trigger count (raw trigger rate) |
+| Ahit | `ahit_count` | Accepted-hit count (triggers passed to trigger chain) |
+
+**Layout algorithm** (`CalcLayout`): ✅ verified 2026-04-18 — `gui_scalar.py:L12-15,75-87`
+- Single row if total width ≤ 1500 px (BOX_W=230, GAP=6, PAD=20)
+- Wraps to multiple rows if single row too wide but height ≤ 1000 px
+- Square-pack with scroll (`QScrollArea`, window capped at 1500×1500) for very large systems
+
+**PV subscription:** channel PVs are looked up from the `Board.CH_PV[ch]` list already subscribed when the `ScalarWindow` is opened (triggered by `commander.py` calling `bd.SubscribeChannels()` for all DIG boards before opening this window). ✅ verified 2026-04-18 — `commander.py:L697`: `for bd in DIG_List: bd.SubscribeChannels()` before `ScalarWindow(...)`
+
+**Timer:** 500 ms refresh via `QTimer`; paused on `closeEvent`, restarted on `showEvent`. ✅ verified 2026-04-18 — `gui_scalar.py:L67-69,146,149`
+
+**Note on `closeEvent`:** contains a branch on `self._system == "DGS"` that is unreachable — `_system` is never set on the instance. In practice the `else` branch always runs (`board.UnsubscribeChannels()` for each DIG board). This is a latent bug (no visible effect since the else path is correct for DGS). ✅ verified 2026-04-18 — `gui_scalar.py:L147-157`
+
+---
+
+### `class_PVWidgets.py` — PV-Bound Qt Widgets
+
+_Source: `ANLDAQ/gui/class_PVWidgets.py` (393 lines, code-read 2026-04-17)_ ✅ verified 2026-04-17
+
+Provides a set of **PV-aware Qt widgets** — each wraps a `PV` object, reads its current value via `UpdatePV()`, and writes back via `SetPV()` on user interaction. All widgets follow the same pattern: on update tick, check `pv.isUpdated` flag; if set, pull `pv.value` and refresh the widget; clear the flag.
+
+| Class | Base | Description |
+|---|---|---|
+| `RLineEdit` | `GLineEdit` | Text field bound to a PV. Displays value as decimal, hex, or binary (`hexBinDec` param). Special cases: CFD_fraction → `{:.3f}` format; `win_comp_min/max` → divide by 100 if `abs(val) > 10`. Read-only PVs shown in darkgray. `returnPressed` → `SetPV()` |
+| `RTwoStateButton` | `GTwoStateButton` | Toggle button bound to a PV. Label text comes from `pv.States[0/1]`. Click toggles state and calls `caput(int(state))`. Read-only PVs are disabled. |
+| `RSetButton` | `RTwoStateButton` | Momentary "set" button — writes 1 then 0 immediately (pulse). Used for one-shot actions. Always shows fixed label text. |
+| `RComboBox` | `QComboBox` | Dropdown bound to a PV. Populated from `pv.States`. `currentIndexChanged` → `caput(index)`. Emits `whenIndexZero(bool)` signal when value is 0 (used for conditional UI enable/disable). |
+| `RMapTwoStateButton` | `QWidget` | Grid of `RTwoStateButton` cells (rows × cols) bound to a flat `pvList`. Optional row/col labels (A–H for cols, 0-N for rows). Each cell is 20×20 px. Used for MTRG RAM maps (VETO_RAM, TRIG_RAM, SWEEP_RAM). `UpdatePV(forced=True)` iterates all cells. |
+| `RMapLineEdit` | `QWidget` | Grid of `RLineEdit` cells (rows × cols) bound to a flat `pvList`. Similar layout to `RMapTwoStateButton`. Each cell is 40×20 px. Used for displaying register arrays across boards/channels. |
+| `RRegisterDisplay` | `QWidget` | 16-bit register decoder. Reads one PV and displays each bit as a small colored square. Two modes: `isRTR=True` (RTR status bits) vs `isRTR=False` (MTRG status bits). Bit labels differ: MTRG has "Trig Veto"; RTR has "CPLD 1/2/4/8", "R Lock", "Fast Str". Read-only (no write). Used in the MTRG top panel for `MISC_STAT` display. |
+
+**Naming convention:** `R`-prefix = register-bound widget (reads/writes a PV). `G`-prefix (in `custom_QClasses.py`) = generic widget (no PV binding).
+
+**`RRegisterDisplay` bit layout** (bit 0 = LSB):
+
+| Bit | MTRG label | RTR label |
+|-----|-----------|----------|
+| 0 | NIM in B | NIM in B |
+| 1 | NIM in A | NIM in A |
+| 2 | TS roll | R Lock |
+| 3 | Fast Str | Fast Str |
+| 4–7 | rsvd | CPLD 1/2/4/8 |
+| 8–11 | L init State 1/2/4/8 | L init State 1/2/4/8 |
+| 12 | Trig Veto | 0 |
+| 13 | 0 | 0 |
+| 14 | All Lock | All Lock |
+| 15 | Lock Err | Lock Err |
 
 ---
 
@@ -206,6 +269,26 @@ Run control:
 - Start: `caput Online_CS_StartStop Start` + `caput Online_CS_SaveData Save` → spawns `tcpReceiverMT` ✅ verified 2026-04-08 — `start_run.sh:L212-213,L163-164`
 - Stop: `caput Online_CS_StartStop Stop` → wait → `kill_IOC.sh` ✅ verified 2026-04-08 — `start_run.sh:L220`
 - Run ID auto-increments; saved to `settings.json`
+- **2-second delay** after run start before `StartAcquisition()` is called — gives `RunStatusWindow` / `tcpReceiverMT` time to connect ✅ verified 2026-04-17 — `commander.py:L452`: `QTimer.singleShot(2000, self.StartAcquisition)`
+- **Run timestamp CSV** — appended to `<expFolder>/RunTimestamp.csv` on each start/stop; format: `Timestamp, RunID, Event, Comment` ✅ verified 2026-04-17 — `commander.py:L381-394`
+
+**Duration Timer** (combo box: Infinity / 1 min / 5 min / 30 min / 1 hr / 2 hr / 1 hr repeat / 2 hr repeat): ✅ verified 2026-04-17 — `commander.py:L456-517`
+- `Infinity` — no timer; run continues until manually stopped
+- Fixed durations (`1 min`…`2 hr`) — `QTimer.singleShot` fires → auto-stops run, then does nothing (button stays disabled until `RunStatusWindow` is closed by user)
+- Repeat durations (`1 hr repeat`, `2 hr repeat`) — on timer expiry: stops run → waits 8 s → closes `RunStatusWindow` → immediately starts next run with auto-generated comment
+
+**SoftIOC auto-spawn** — at startup `CheckACQCanStart()` tries `caget Online_CS_StartStop` up to 3×; if unreachable, spawns the softIOC in a `gnome-terminal` window: ✅ verified 2026-04-17 — `commander.py:L751-798`
+- Checks `ps ax` for an existing `SoftIOC` process first (skip if already running)
+- Spawns: `<ANLDAQ_DIR>/EPICS/softIOC/iocBoot/iocdgsSoftIOC/dgsSoftIoc.cmd`
+
+**Terminal server (telnet to IOC)** — "Open Terminal" combo → `IOC-N` → opens `gnome-terminal` running: ✅ verified 2026-04-17 — `commander.py:L808-843`
+- `telnet <TERMINAL_SERVER> <2000+N>` (e.g. IOC-1 → port 2001)
+- For DGS system: IOC-1 to IOC-6 use first terminal server IP; IOC-7+ use second IP (two terminal servers for 12 VME crates)
+- SlopeBox always uses IOC-3 / port 2003
+
+**Script runner** — "Select Script" combo → reads `scripts/enableScriptList.txt` (one filename per line, `#` for comments) → runs selected script via `QProcess`: ✅ verified 2026-04-17 — `commander.py:L718-740`
+- `.py` files → `python3 <script>`; others → `bash <script>`
+- stdout/stderr piped to console; script working dir = `scripts/`
 
 ---
 
@@ -449,8 +532,10 @@ Final: `Online_CS_StartStop=Stop`, `Online_CS_SaveData=No Save` (safety — ensu
 Windows covered:
 - **`gui_MTRG.py`** (`MTRGWindow`, 1,425 lines) — 5 tabs: Trigger/Veto, Wheel RAM, LINK Control, CPLD map, Other
 - **`gui_Det.py`** (`DetWindow`) — 110 detectors by collector box group (NE/SE/NW/SW); DV Monitor + HV tabs
-- **`gui_scalar.py`** (`ScalarWindow`) — all DIG boards; per-channel threshold, disc count, accepted hit count
+- **`gui_scalar.py`** (`ScalarWindow`, 164 lines) — all DIG boards; per-channel threshold (`led_threshold`), disc count (`disc_count`), accepted hit count (`ahit_count`); auto-layout with scroll for large systems ✅ verified 2026-04-18 — `gui_scalar.py` full read
 - **`gui_RTR.py`** (`RTRWindow`, 550 lines) — 2 tabs: LINK Control (SERDES grid), X/Y Map
+- **`gui_CH.py`** (`CHWindow`, 402 lines) — per-channel detail window opened from `DIGWindow`; 5 tabs: Channel (single-ch detail), Window Settings, General Settings, Ext. Discr., Status (all multi-channel scrollable grids with "All" broadcast row) ✅ verified 2026-04-18 — full code-read
+- **`gui_Board.py`** (`BoardWindow`, 432 lines) — generic board PV window: table of all PVs for a board; opened from commander for DIG/RTRG/MTRG ✅ verified 2026-04-18 — full code-read
 - **`gui_RAM.py`** (`RAMWindow`, 34 lines) — 32×32 grid for VETO/TRIG/SWEEP RAM visualization
 - **`gui_SYS.py`** (427 lines) — Timestamps, Link Status, TCP Transfer, Code Revision, Global Settings tabs
 - **`gui_LinkSys.py`** (295 lines) — wrapper for `link_sys.py`; MTRG+RTR link map GUI, 5-stage runner
@@ -579,9 +664,12 @@ All 17 `calcout` records are hardcoded to `VME10` (the MTRG crate in the standar
 
 ## See Also
 
+- `knowledgeBase/ANLDAQ_tcpReceiver.md` — `tcpReceiverMT` deep-dive: 3 binaries, TCP protocol, GEB header, class_DIG.h/class_TDC.h decoders, run control scripts (split from this file)
+- `knowledgeBase/ANLDAQ_GUI_windows.md` — GUI window reference: gui_MTRG (5 tabs), gui_Det, gui_scalar, gui_RTR, gui_Board (generic PV table), gui_CH (per-channel 5-tab), gui_RAM, gui_SYS, gui_LinkSys, gui_DataTaking (split from this file)
 - `knowledgeBase/ioc.md` — EPICS IOC boot scripts, DB files, PV definitions
 - `knowledgeBase/vxworks.md` — VxWorks build pipeline (produces the firmware ANLDAQ talks to)
 - `knowledgeBase/fpga.md` — DIG/RTRG/MTRG firmware overview
+- `knowledgeBase/trig_setup_scripts.md` — 5-stage trigger setup scripts (trig_setup_Stage1–5.sh); system bring-up from cold
 - `knowledgeBase/dgs_analysis.md` — Downstream analysis (fastEventConstructor, parquet_pysort) consuming `tcpReceiverMT` output
 - `knowledgeBase/snapshot_pv.md` — PV snapshot utility (`dumpPVs.py` / `putPVs.py`) invoked by `start_run.sh`
 - `knowledgeBase/ttcl.md` — TTCL trigger timing (feeds the MTRG TAC-II data decoded in `class_TDC.h`)

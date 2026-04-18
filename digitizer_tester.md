@@ -10,8 +10,8 @@
 
 - Generates arbitrary test waveforms via dual **16-bit DACs** (AD9747, up to 200 MHz) ✅ verified 2026-04-07 — `DAC_SPI.vhd:L1` (AD9747); `Dig_Tester_pkg.vhd` (clock_freq_sel: 00=50MHz, 01=100MHz, 11=200MHz)
 - Drives waveforms to up to 10 output channels via an **analog switch matrix** (8×10 ADG2108 chips; each channel independently selectable from: Digital discriminator, AUX0, AUX1, DAC0+, DAC0−, DAC1+, DAC1−) ✅ verified 2026-04-11 — `Analog_Switch_MUX.vhd:L3-4` ("8x10 ADG2108") + L283-297 (per-channel source select encoding)
-- Connects to TTCL (DGS/GRETINA trigger system) via **RJ45** — can sync to master timestamp or run asynchronously
-- Provides 2 **NIM outputs** for triggering/synchronization
+- Connects to TTCL (DGS/GRETINA trigger system) via **RJ45** — can sync to master timestamp or run asynchronously ✅ verified 2026-04-17 — `Dig_Tester.ucf:L196` ("RJ45 Trigger Connector Pins"); `SERDES_RX_Mach.vhd:L35,L43` (SERDES sync timestamp, TRIG_FLAG; async commands via GRETINA frame)
+- Provides 2 **NIM outputs** for triggering/synchronization ✅ verified 2026-04-17 — `Dig_Tester.vhd:L62` (`NIM_OUT: out std_logic_vector(1 downto 0)`)
 - VME register interface for waveform programming and control
 
 ---
@@ -24,7 +24,7 @@
 - ⚠️ Code note: "previous comments say wavx_cs_trigx outputs don't route at 200 MHz" — re-enabled 2019-08-14 for noise logic checking. ✅ verified 2026-04-08 — `Dig_Tester.vhd:L450-451` (comment + re-enable note)
 - Waveform memory is 18-bit wide internally; output truncated to 16-bit for DAC (`Waveform_Reader.vhd: dac_data_out(15:0)`) ✅ verified 2026-04-07 — `Waveform_Reader.vhd:L4-5`
 - SPI clock max 40 MHz per AD9747 datasheet ✅ verified 2026-04-07 — `DAC_SPI.vhd` comment
-- Clock sources selectable: external, 50 MHz local oscillator, or SYS_CLK × 20/7
+- Clock sources selectable: external (SERDES RCLK), 50 MHz local oscillator, or SYS_CLK × 20/7 ✅ verified 2026-04-17 — `Clock_Manager.vhd:L42` (`clock_source: 0b00=external clock, 0b01=50MHz local osc, 0b11=SYS_CLK x 20/7`); SYS_CLK is 16 MHz VME SYSCLK (quadrupled internally before ×20/7 multiply)
 - DAC outputs driven via SPI interface from FPGA (`DAC_SPI.vhd`)
 
 ### Analog Switch Matrix (`Analog_Switch_MUX.vhd`)
@@ -79,14 +79,6 @@
 
 ---
 
-## Related Files
-- `connectors.md` — RJ45 pinout (same connector as digitizer)
-- `connectors.md` — trigger module links the Digitizer Tester connects to
-- `DIG_firmware_expert.md` — digitizer firmware being tested
-- `DGS_SVN.md` — `Digitizer_Tester/` in SVN tree
-
----
-
 *Created: 2026-04-05 (from SVN Digitizer_Tester VHDL source)*
 
 ## Cross-References
@@ -94,4 +86,6 @@
 - `knowledgeBase/DGS_SVN.md` — `Digitizer_Tester/` entry in the SVN archive index
 - `knowledgeBase/fpga.md` — FPGA firmware overview; Digitizer Tester injects test signals into the trigger chain
 - `knowledgeBase/ttcl.md` — TTCL spec; the Digitizer Tester generates compatible discriminator bit patterns
+- `knowledgeBase/connectors.md` — RJ45 pinout (same connector as digitizer); MTRG/RTRG 125-pin SERDES links the Tester connects to
+- `knowledgeBase/DIG_firmware_expert.md` — digitizer firmware being tested
 - `knowledgeBase/troubleshooting.md` — Using the Digitizer Tester for system diagnostics

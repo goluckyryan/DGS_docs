@@ -371,10 +371,19 @@ Pulses `SM_LOST_LOCK_RESET` (0→1→0, 500ms between steps) on a specific Route
 When `perform_error_checks=False`, Stages 3, 4, 5 skip all `ALL_LOCKED_RBV` and `LINK_INIT_STATE_RBV` checks and return True unconditionally. Useful for forced re-init when lock state is known good.
 
 ---
+
+## Shell Script Counterpart (trig_setup_Stage*.sh)
+
+The GUI's 5-stage Python sequence (`link_sys.py`) maps directly to 5 bash scripts (`trig_setup_Stage{1-5}.sh`) that perform the same EPICS PV writes in the same order. The scripts add sub-step granularity (1A–1I, 2A–2B, 4A–4C, 5A–5D) and contain key design comments (EPICS double-write pattern, fiber DC balance notes, author JTA).
+
+Full shell script documentation: **`knowledgeBase/trig_setup_scripts.md`** (added 2026-04-17)
+
+---
 *Source: `DGS_tools_pack/ANLDAQ/gui/link_sys.py` (669 lines) — Python LinkSys class. Verified 2026-04-10 against source. Created: 2026-04-05.*
 
 ## Cross-References
 
+- `knowledgeBase/trig_setup_scripts.md` — Full shell script counterpart: SYSTEM_DEFINES.sh GS topology, per-stage sub-step tables (1A–5D), key design notes (DC balance, fiber, EPICS double-write, JTA authorship)
 - `knowledgeBase/ANLDAQ.md` — ANLDAQ GUI: trigger setup scripts (5-stage shell), SerdesLinkup button that calls this Python class
 - `knowledgeBase/fpga.md` — FPGA firmware overview: SERDES link role in 3-tier hierarchy
 - `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: SERDES link registers driven by Stage 1

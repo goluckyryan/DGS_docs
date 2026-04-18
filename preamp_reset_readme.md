@@ -1,6 +1,7 @@
 # Preamp Reset Handling in the DGS Digitizer FPGA
 
-**Audience:** Undergraduates joining the DGS group  
+**Source:** `FPGA/DIG/PREAMP_RESET.md` (Ryan Tang, 2026-04-17)  
+**Audience:** Undergraduates / anyone new to the DGS system  
 **Scope:** `thresh_disc.vhd`, `jta_channel.vhd`, `Digitizer.vhd`, `SERDES_RX_Mach.vhd`
 
 ---
@@ -28,7 +29,7 @@ ADC value < 2047    → LO   (too low)       → ADC_VAL_WARN(2)
 ADC value > 14336   → HI   (too high)      → ADC_VAL_WARN(1)
 ADC value > 16128   → HIHI (way too high)  → ADC_VAL_WARN(0)
 ```
-✅ verified 2026-04-08 — `thresh_disc.vhd:L323-326` (MAIN_FPGA_TAGS/20230809, comments confirm all four threshold values)
+✅ verified 2026-04-17 — thresh_disc.vhd:L922-925 (20230809 tag); comments on L323-326 give exact binary values
 
 A normal gamma-ray pulse never swings that far. A preamp reset does.
 
@@ -39,7 +40,9 @@ A normal gamma-ray pulse never swings that far. A preamp reset does.
 
 When the edge is detected → `RESET_FLAG` pulses high for one clock cycle.
 
-> This block is only compiled in when the generic `ENABLE_HILO_DET = TRUE`. The coarse BGO channels (channels 0–4, instantiated without that generic) skip it entirely — they don't need it. ✅ verified 2026-04-08 — `thresh_disc.vhd:L328` (`PA_RST_DET_BLK: if (ENABLE_HILO_DET = TRUE) generate`)
+> This block is only compiled in when the generic `ENABLE_HILO_DET = TRUE`. The coarse BGO channels (channels 0–4, instantiated without that generic) skip it entirely — they don't need it.
+> ✅ verified 2026-04-17 — jta_channel.vhd:L683 (`ENABLE_HILO_DET => FALSE` for BGO, L1102 `ENABLE_HILO_DET => TRUE` for Ge, 20230809 tag)
+> ⚠️ Note: `ENABLE_HILO_DET` / `ADC_VAL_WARN` / `PA_RST_DET_BLK` are only present in 20230809 firmware — **not** in the currently deployed 20211118 (DIG rev 0x4CD8). The deployed firmware uses an older preamp reset scheme without these signals.
 
 ---
 
@@ -71,6 +74,7 @@ PREAMP_RESET_DELAY[7:0] × 512 clock cycles
 At 100 MHz (10 ns/cycle):  
 `PREAMP_RESET_DELAY = 1` → 5.12 µs blanking  
 `PREAMP_RESET_DELAY = 10` → 51.2 µs blanking  
+✅ verified 2026-04-17 — thresh_disc.vhd:L634 comment "PREAMP_RESET_DELAY * 512 counts"; L661 `DISCBIT_HOLDOFF_COUNT <= PREAMP_RESET_DELAY & "000000000"` (shift left 9 = ×512) in 20230809 tag; same counter structure confirmed in 20211118 tag.
 
 This register lives at `reg_led_threshold[i](23:16)` in `Digitizer.vhd`. The blanking can be disabled entirely with `PREAMP_RESET_DELAY_EN = 0` (register bit `reg_channel_control(i)(3)`).
 
@@ -84,7 +88,6 @@ In `Digitizer.vhd` (Front Bus Left configuration):
 ```vhdl
 external_disc_flag(i) <= not(CHANNEL_KILLED(i+5));
 ```
-✅ verified 2026-04-08 — `Digitizer.vhd:L1117` (20230809 tag; comment: "use CHANNEL_KILLED of Ge channel (5:9) as gate for BGO channel (0:4)")
 
 Channels 0–4 are BGO scintillators. Channels 5–9 are the paired Ge detectors. When Ge channel `i+5` is in reset-kill mode, BGO channel `i` is also suppressed. This prevents the BGO from triggering on the electromagnetic noise that often accompanies a preamp reset.
 
@@ -127,7 +130,6 @@ In `Digitizer.vhd`:
 ```vhdl
 LOAD_DELAYS_COMBO <= front_end_reset_flag OR reg_channel_pulsed_control(0);
 ```
-✅ verified 2026-04-08 — `Digitizer.vhd:L1158,L1189` (DIG/MAIN_FPGA/BuildBranches/DGS/Source)
 
 `LOAD_DELAYS_COMBO` is passed to each channel as `LOAD_vals` — it reloads all programmable delay values from registers. Think of it as a soft reset that re-arms the delay chain without touching the ADC or the SERDES link.
 
@@ -160,15 +162,15 @@ WAIT_EDGE (normal operation resumes)
 
 | Register | Bit(s) | Function |
 |----------|--------|----------|
-| `reg_led_threshold[ch](23:16)` | 8 bits | Blanking duration after reset (× 512 cycles at 100 MHz) | ✅ verified 2026-04-08 — `Digitizer.vhd:L1193`
-| `reg_channel_control[ch](3)` | 1 bit | Enable/disable blanking (`PREAMP_RESET_DELAY_EN`) | ✅ verified 2026-04-08 — `Digitizer.vhd:L1194`
-| `reg_d3_window[ch](7)` | 1 bit | `CAPTURE_PARST_TS`: 1 = store reset timestamp in MPX_FIELD; 0 = store early pre-rise sum | ✅ verified 2026-04-08 — `Digitizer.vhd:L1168` (20230809 tag)
+| `reg_led_threshold[ch](23:16)` | 8 bits | Blanking duration after reset (× 512 cycles at 100 MHz) |
+| `reg_channel_control[ch](3)` | 1 bit | Enable/disable blanking (`PREAMP_RESET_DELAY_EN`) |
+| `reg_d3_window[ch](7)` | 1 bit | `CAPTURE_PARST_TS`: 1 = store reset timestamp in MPX_FIELD; 0 = store early pre-rise sum |
 
 ---
 
-## 9. Key Files
+## 9. Key Source Files
 
-| File | What it does for preamp reset |
+| File | Role in preamp reset |
 |------|-------------------------------|
 | `thresh_disc.vhd` | Detects reset via ADC_VAL_WARN; runs PREAMP_DELAY kill state |
 | `jta_channel.vhd` | Passes PREAMP_RESET_DELAY registers; latches PARST timestamp into PEHQ |
@@ -177,15 +179,5 @@ WAIT_EDGE (normal operation resumes)
 
 ---
 
-## 10. Cross-References
-
-- `knowledgeBase/DIG_firmware_expert.md` — Full DIG firmware reference; covers all modes, discriminator config, pileup, readout
-- `knowledgeBase/deep_fpga_DIG.md` — Lower-level FPGA architecture: ADC pipeline, FIFO, SERDES, pole-zero
-- `knowledgeBase/data_structures.md` — DIG event packet format: `PARST_TSM` bit (Word 13, bit 12), `MPX_FIELD` (Word 11)
-- `knowledgeBase/ttcl.md` — Frame 15 (Async Command frame) definition — source of `FRONT_END_RESET` command
-- `knowledgeBase/VME_registers.md` — VME register addresses: `reg_led_threshold` (0x0080+ch×4), `reg_channel_control` (0x0040+ch×4), `reg_d3_window` (0x0240+ch×4)
-- `knowledgeBase/pole_zero.md` — Pole-zero correction context: why baseline stability after a reset matters
-- `workspace/QUEUE.md` — `Python script to set preamp reset PVs` task (pending)
-
----
-*Source: `DGS_tools_pack/FPGA/` preamp reset documentation + `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05. Cross-refs added: 2026-04-09.*
+*Added to knowledge base: 2026-04-17 from FPGA/DIG/PREAMP_RESET.md*  
+*Verified 2026-04-17: ADC thresholds, PA_RST_DET_BLK, ENABLE_HILO_DET confirmed in 20230809 firmware tag (thresh_disc.vhd, jta_channel.vhd). PREAMP_DELAY state machine and CHANNEL_KILLED confirmed in both 20211118 and 20230809 tags. Key note: ADC_VAL_WARN-based detection is a 20230809 addition — currently deployed firmware (20211118, rev 0x4CD8) uses older preamp reset logic without these signals.*

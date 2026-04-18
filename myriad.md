@@ -23,8 +23,8 @@ Connected to **link U** of the Master Trigger. ✅ verified 2026-04-07 — `top.
 ## Front Panel Connectors
 
 ### RJ45 — TTCL Link
-- **Not Ethernet** — Cat5e cable to DGS/GRETINA trigger module only
-- Carries TTCL (Trigger Timing and Control Link) — same protocol as digitizer RJ45
+- **Not Ethernet** — Cat5e cable to DGS/GRETINA trigger module only ✅ verified 2026-04-17 — `MyRIAD User Manaual.pdf` p.2
+- Carries TTCL (Trigger Timing and Control Link) — same protocol as digitizer RJ45 ✅ verified 2026-04-17 — `MyRIAD User Manaual.pdf` p.2: "SerDes interface compatible with Trigger Timing and Control Link specification" + "The RJ-45 connector is NOT ETHERNET. This connector uses Cat5e cable"
 - LEDs on connector indicate SERDES link lock state
 
 #### MγRIAD → MTRG SERDES Data Frame Format
@@ -113,8 +113,8 @@ S7  S8  S9
 In DGS, MγRIAD is connected to **link U** of the MTRG: ✅ verified 2026-04-07 — `MTRG/top.vhd:L3562`
 - Receives TTCL timestamps → propagates to auxiliary VME DAQs
 - Sends auxiliary detector trigger messages back to MTRG
-- Local NIM input 0 = aux detector trigger (e.g. ancillary detector, tape station)
-- Local NIM input 1 = coincidence gate signal
+- Local NIM input 0 = aux detector trigger (e.g. ancillary detector, tape station) ✅ verified 2026-04-17 — `MyRIAD.vhd:L393,L1057-1058` (`AUX_DETECTOR_TRIG` driven by `NIM_IN_PIPE(0)` rising edge)
+- Local NIM input 1 = coincidence gate signal ✅ verified 2026-04-17 — `MyRIAD.vhd:L1692` (ILA comment: "coincidence logic 2nd NIM input"; L1464: `NIM_IN_PIPE(1)` rising edge → TRIG_COINC_STATE)
 
 Coincidence timer is programmable via register — window defines valid auxiliary trigger window relative to NIM In 0.
 
@@ -218,11 +218,11 @@ A TDC block (`tdc_unit2`) exists in `Source/` but is **commented out** in `MyRIA
 
 ### FIFO Architecture
 Dual external FIFOs (A and B) hold trigger records for VME readout:
-- **FIFO A** → VME data bits [15:0] (lower word)
-- **FIFO B** → VME data bits [31:16] (upper word)
-- 18-bit write port: bits[15:0] = data, bit16 = FIFOFLAG0/2 (control), bit17 = FIFOFLAG1/3 (control)
-- Clock: 100 MHz write; VME-synchronous read
-- Reset via `PULSED_CTRL[5]` (self-clearing pulsed control register bit)
+- **FIFO A** → VME data bits [15:0] (lower word) ✅ verified 2026-04-17 — `MyRIAD.vhd:L37` ("Bits (15:0) of FIFO 'A' drive directly out VME data bits 15:0")
+- **FIFO B** → VME data bits [31:16] (upper word) ✅ verified 2026-04-17 — `MyRIAD.vhd:L73` ("Bits (15:0) of FIFO 'B' drive directly out VME data bits 31:16")
+- 18-bit write port: bits[15:0] = data, bit16 = FIFOFLAG0/2 (control), bit17 = FIFOFLAG1/3 (control) ✅ verified 2026-04-17 — `MyRIAD.vhd:L36,L72` (header comments)
+- Clock: 100 MHz write; VME-synchronous read ✅ verified 2026-04-17 — `MyRIAD.vhd:L466,L1536` (FIFODATA_IOB process clocked on CLOCK_100MHZ)
+- Reset via `PULSED_CTRL[5]` (self-clearing pulsed control register bit) ✅ verified 2026-04-17 — `MyRIAD.vhd:L1625` (comment: "hit PULSED_CTRL(5)"), L1817/1839 (MRS driven by `not PULSED_CTRL(5)`)
 
 ### Git Location
 `DGS_tools_pack/FPGA/others/MyRIAD/MAIN_FPGA/Source/` (ISE project, Spartan-3)
@@ -252,7 +252,31 @@ _Source: `DGS_tools_pack/FPGA/others/MyRIAD/MAIN_FPGA/Source/MyRIAD_pkg.vhd` —
 
 ---
 
-*Created: 2026-04-05 (from SVN MyRIAD Abridged User Notes PDF). FPGA firmware section added 2026-04-08. Firmware revision verified from source 2026-04-12.*
+## GITMO_TOP.vhd — Legacy Module in Same FPGA Repo
+
+`FPGA/others/MyRIAD/MAIN_FPGA/Source/GITMO_TOP.vhd` (795 lines) is a **separate legacy module** stored in the same repo, not the current MγRIAD firmware. It is **not built or deployed** on the current DGS/Gammasphere setup.
+
+**GITMO = Gammasphere Interface to Trigger MOdule** — author: John Anderson (ANL).
+
+**Purpose:** Collect clock and trigger information from the **Gammasphere Master Trigger crate** (VXI-bus based), pack into a data stream, and transmit over SERDES to control the Digital Gammasphere (DGS) Master Trigger. This was the bridge between the legacy analog Gammasphere trigger hardware and the digital DGS system during the transition period.
+
+**Key hardware interfaces:**
+- `TRIG0_FROM_VXI_pin` — 'early' trigger from Gammasphere VXI backplane
+- `VXI_RDY_BSY_IN_T_pin` — VXI Ready/Busy bus signal
+- `TTLTRIG_pin` — TTL trigger inputs (2 bits)
+- `NIM_IN_pin`, `ECL_IN_pin` — NIM/ECL front panel inputs
+- `FERA_*` — FERA ADC control interface (same as MγRIAD)
+- SERDES I/O to/from DGS MTRG (same DS92LV18 chip as MγRIAD)
+
+**Clocks:** 10 MHz VXI clock → DCM → 50 MHz logic clock; ICS502 PLL generates SERDES TCLK.
+
+**Architecture:** `mstr_mach` sub-component (data generator) collects NIM/ECL/VXI trigger inputs and formats a SERDES command stream → `COMMAND_OUT` → sent to DGS MTRG Link L.
+
+> **Relationship to current system:** The MTRG's `GITMO_TRIGGER.vhd` algorithm (Link L input) and `GITMO_RCV_MACH.vhd` receiver were originally designed to receive data from this GITMO_TOP module. Current DGS uses Link L for remote-master or GRETINA interconnects, not the physical GITMO hardware. The GITMO_TOP.vhd is preserved as historical reference. ✅ verified 2026-04-17 — `GITMO_TOP.vhd` header comment + port declarations
+
+---
+
+*Created: 2026-04-05 (from SVN MyRIAD Abridged User Notes PDF). FPGA firmware section added 2026-04-08. Firmware revision verified from source 2026-04-12. GITMO_TOP section added 2026-04-17.*
 
 ## Cross-References
 

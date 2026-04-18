@@ -29,7 +29,7 @@ The hardware contains three programmable devices:
 ```
 MTRG/
 ├── Firmware/
-│   ├── MAIN_FPGA/trunk/          # ISE 13.4 project (production)
+│   ├── MAIN_FPGA/trunk/          # ISE 14.7 project (production) — folder named Work13_4 but ISE version is 14.7
 │   ├── VIVADO_MAIN_FPGA/trunk/   # Vivado 2018.3 project
 │   ├── VME_FPGA/A32D32_VME_FPGA/ # Spartan-3 VME controller
 │   ├── DGS_CPLD/                 # XC9500XL CPLD

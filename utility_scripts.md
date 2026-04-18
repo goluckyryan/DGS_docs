@@ -76,10 +76,10 @@ Stored average BGO tuning values per hemisphere.
 
 A cron job that ran hourly checking `/mnt/data0` free space on DCS2. Previously hosted on pi5-dgs.
 
-- **Threshold:** 300 GB free
+- **Threshold:** 300 GB free ⚠️ unverified — no script found in ANLDAQ, lnfill repos, DCS2 crontab (dcsu), or spark-ca9f crontab (2026-04-18 verified). Threshold likely from old pi5-dgs crontab no longer in version control. Ask Ryan to confirm.
 - **Action:** Discord alert to #dgsclaw if below threshold
 - **Current status (2026-04-05 09:00 CDT):** 396 GB free (78% used) — runs are accumulating
-- **Migration status (checked 2026-04-17):** No crontab active on spark-ca9f (DGX Spark, current General DGS host). This cron job has **not** been migrated — ask Ryan if it should be set up on spark-ca9f.
+- **Migration status (checked 2026-04-18):** No crontab active on spark-ca9f (DGX Spark, current General DGS host) and not on DCS2. This cron job has **not** been migrated and appears to have no surviving source — ask Ryan if it should be set up on spark-ca9f.
 
 ---
 
@@ -123,7 +123,84 @@ Legacy EPICS database files (`resm1.db` – `resm6.db`) from the pre-upgrade VXI
 
 ---
 
-*Source: `DGS_tools_pack/DGS_SVN/dgs/NS_scripts/`. Created: 2026-04-05. Updated: 2026-04-17 (cron migration status check).*
+## ANLDAQ GUI Helper Scripts (`ANLDAQ/gui/scripts/`)
+
+Two scripts listed in `enableScriptList.txt` are selectable from the ANLDAQ GUI scripts combo box:
+
+### `basic_settings_LED.py` — Apply Default LED Mode to All DIGs
+
+Sets all digitizer channels to **LED (Leading-Edge Discriminator) mode** with hardcoded baseline settings. Intended as a quick "reset to known-good teststand defaults" before a run.
+
+**Source:** `ANLDAQ/gui/scripts/basic_settings_LED.py` (78 lines) ✅ verified 2026-04-17 — file read directly
+
+**Targets:** VME66, MDIG1+MDIG2, CH 5–9 (test stand config — **not** the full Gammasphere 440-ch setup)
+
+**Key settings applied:**
+
+| Parameter | Value | Meaning |
+|---|---|---|
+| `cfd_mode` | `LED_Mode` | Leading-edge discriminator (no CFD) |
+| `led_threshold{ch}` | 300 | Fixed LED threshold |
+| `trigger_polarity{ch}` | `RiseEdge` | Rising-edge trigger |
+| `raw_data_delay{ch}` | 0.5 µs | Pre-trigger delay |
+| `raw_data_length{ch}` | 0.32 µs | Waveform capture window |
+| `p1_window{ch}` | 0.07 µs | Peaking time window 1 |
+| `p2_window{ch}` | 0.05 µs | Peaking time window 2 |
+| `m_window{ch}` | 2.5 µs | Main gate window |
+| `k0_window{ch}` | 0.5 µs | Pre-gate k0 |
+| `k_window{ch}` | 0.5 µs | Gate k |
+| `d_window{ch}` | 0.16 µs | Delay window |
+| `CS_Ena` | `Enable` | Enable coincidence sorting |
+| `veto_enable` | 0 | Disable veto |
+| `trigger_mux_select` | `IntAcptAll` | Accept all internal triggers |
+| `Online_CS_StartStop` | `Stop` | Ensure run is stopped |
+| `Online_CS_SaveData` | `No Save` | No data saved (safe default) |
+
+**Operation:**
+1. For each board: `master_logic_enable=Reset` → set all parameters → `master_fifo_reset=reset→run`
+2. After all boards: set `Online_CS_StartStop=Stop` and `Online_CS_SaveData=No Save`
+3. Uses `epics.caput(pv, val, wait=True, timeout=5.0)` — synchronous, waits for IOC acknowledgement
+
+**Exception list for DIG count per VME:** VME06 and VME10 have only MDIG1 (not MDIG2) — matches the Gammasphere crate layout (2 shorter crates). All other VMEs default to MDIG1+MDIG2.
+
+---
+
+### `terminals` — Terminal Server / SoftIOC Spawner
+
+A bash helper script that opens `gnome-terminal` windows connecting to VME IOC consoles or spawning the softIOC. Called by `commander.py` when the user selects "Open Terminal" in the GUI.
+
+**Source:** `ANLDAQ/gui/scripts/terminals` (55 lines, no `.sh` extension) ✅ verified 2026-04-17 — file read directly
+
+**Usage:** `terminals <arg>`
+
+| Arg | Effect |
+|---|---|
+| `S` | Spawn a new SoftIOC in a gnome-terminal (checks if already running first via `ps ax \| grep SoftIOC`) |
+| `1`–`N` | Open a gnome-terminal → `telnet $TERMINAL_SERVER $((2000 + N))` (e.g., `1` → port 2001) |
+
+**Environment variables required:**
+- `$TERMINAL_SERVER` — hostname/IP of the terminal server (set in `EPICS_para.sh`; for DGS: 192.168.203.186 / .91)
+- `$ANLDAQ_DIR` — path to ANLDAQ repo root
+- `$EPICS_HOST_ARCH` — EPICS architecture string (e.g. `linux-x86_64`)
+
+**SoftIOC path:** `$ANLDAQ_DIR/EPICS/softIOC/iocBoot/iocdgsSoftIOC/dgsSoftIoc.cmd`
+
+**Note:** This script runs the gnome-terminal windows locally (on the machine running the ANLDAQ GUI), not remotely. Telnet provides a serial console to the VxWorks IOC boot prompt over the terminal server's serial port.
+
+---
+
+### `enableScriptList.txt` — Enabled Script Registry
+
+Two-line file listing the scripts that appear in the ANLDAQ GUI's "Enable Script" combo box:
+```
+basic_settings_LED.py
+Serdes_Linkup.sh
+```
+`Serdes_Linkup.sh` is documented in `trig_setup_scripts.md`. The GUI reads this file to populate the dropdown; only listed scripts are selectable. ✅ verified 2026-04-17 — `enableScriptList.txt` read directly
+
+---
+
+*Source: `DGS_tools_pack/DGS_SVN/dgs/NS_scripts/`. Created: 2026-04-05. Updated: 2026-04-17 (cron migration status check). Updated: 2026-04-17 (added ANLDAQ GUI helper scripts: basic_settings_LED.py, terminals, enableScriptList.txt).*
 
 ## Cross-References
 

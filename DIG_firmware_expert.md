@@ -456,7 +456,6 @@ Selects the digitizer's trigger acceptance source. Four modes:
 |-------|------|-------------|
 | 0 | `IntAcptAll` | **Internal Accept All** — PEQ bypassed; every discriminator hit is immediately accepted as an event. Used for LED/pulser calibration runs. No TTCL trigger decision needed. |
 | 1 | `ExtTTL` | **External TTL** — accept trigger from a TTL signal injected via the Auxiliary Input Interface on the digitizer front panel. Timestamp = local timestamp at signal application. |
-
 | 2 | `ExtTTCL` | **External TTCL** — normal physics-run mode. Digitizer operates in triggered mode: each hit enters the PEQ and waits for an accept/reject decision from the Master Trigger delivered over the TTCL link (MTRG → RTRG → DIG). Hits outside the acceptance time window are discarded. |
 | 3 | `Diag` | **Diagnostic** — auto-trigger on lower 16-bit timestamp rollover (0xFFFF → 0x0000). Used for synchronization diagnostics. |
 
@@ -597,8 +596,10 @@ _Document complete. PDF: 72 pages, SVN rev #6185, Sept 2021. Written to file: 20
 
 ## See Also
 
-- `knowledgeBase/deep_fpga_DIG.md` — Full VHDL-level DIG firmware deep-dive
+- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware architecture overview: target devices, memory, source file list, build branches
+- `knowledgeBase/deep_fpga_DIG_channel.md` — Per-channel signal processing VHDL deep-dive: LED/CFD discriminator, delay chain, pileup logic
+- `knowledgeBase/deep_fpga_DIG_eventpacket.md` — DIG event packet format: LED/CFD header layout, field reconstruction, waveform samples
 - `knowledgeBase/preamp_reset_readme.md` — Detailed preamp reset (PRK) explanation: detection logic, blanking, BGO gate, PARST timestamp
-- `knowledgeBase/data_structures.md` — Complete DIG event packet format (all header types)
-- `knowledgeBase/connectors.md` — DIG connector pinouts
+- `knowledgeBase/data_structures.md` — Complete DIG event packet format (all header types, GEB header, TAC-II)
+- `knowledgeBase/connectors.md` — DIG connector pinouts (36-pin Aux I/O, RJ45, front bus)
 

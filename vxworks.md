@@ -27,8 +27,16 @@
 - [VxWorks API Reference Docs](#vxworks-api-reference-docs)
 - [DMA Buffer Architecture — VME Readout Internals](#dma-buffer-architecture--vme-readout-internals)
 - [Trigger FIFO Readout — readTrigFIFO.c](#trigger-fifo-readout--readtrigfifoc)
+  - [FIFO Index Map](#fifo-index-map)
+  - [FIFO Status Register](#fifo-status-register)
+  - [CheckAndReadTrigger() Logic](#checkandreadtrigger-logic-in-inloopsupportc)
+  - [transferTrigFifoData() Flow](#transfertrigfifodata-flow)
+  - [Key Size Constants](#key-size-constants-from-dgs_defsh)
+  - [Type-F Headers](#type-f-headers)
+  - [Digitizer Type F Headers](#digitizer-type-f-headers-digitizertypefheader-in-readdigfifoc)
 - [Connections to Other Subsystems](#connections-to-other-subsystems)
 - [Quick Notes](#quick-notes)
+- [Port 9010 On-Demand FIFO Grabber (Planned)](#port-9010-on-demand-fifo-grabber-planned--not-yet-implemented)
 - [Cross-References](#cross-references)
 
 ---
@@ -94,7 +102,7 @@ These are not compiled — they are **header files** (`.h`) that the compiler re
 
 ---
 
-### `epics/base-3.14.12.1/` — EPICS base framework
+### `epics/base-3.14.12.1/` — EPICS base framework ✅ verified 2026-04-18 — `vxworks/epics/base-3.14.12.1/` directory exists
 
 EPICS (Experimental Physics and Industrial Control System) is the control system framework used across most physics labs worldwide. It provides:
 
@@ -106,7 +114,7 @@ Building EPICS base is the first step — everything else depends on it.
 
 ---
 
-### `synApps/asyn4-17/` — Hardware driver abstraction (asyn)
+### `synApps/asyn4-17/` — Hardware driver abstraction (asyn) ✅ verified 2026-04-18 — `vxworks/synApps/asyn4-17/` directory exists
 
 asyn is a standard EPICS add-on that provides a clean interface between EPICS database records and hardware drivers. Instead of each driver implementing its own threading, locking, and EPICS integration from scratch, drivers implement a standard "port driver" interface and asyn handles the rest.
 
@@ -116,7 +124,7 @@ Produces `libasyn.a` for the VxWorks target.
 
 ---
 
-### `sncseq/sncseq-2.0.12/` — State machine compiler and runtime
+### `sncseq/sncseq-2.0.12/` — State machine compiler and runtime ✅ verified 2026-04-18 — `vxworks/sncseq/sncseq-2.0.12/` directory exists
 
 The State Notation Compiler (snc/seq) lets you write control logic as **state machines** in a high-level language (`.st` files), then compiles them to C code that runs as tasks on VxWorks.
 
@@ -513,6 +521,35 @@ Controlled by compile-time `#ifdef` flags: `INLOOP_GENERATE_EMPTY_TYPEF`, `INLOO
 
 ✅ verified 2026-04-16 — `readTrigFIFO.c:L380-545` (TriggerTypeFHeader switch cases) + `inLoopSupport.c:L725-782` (CheckAndReadTrigger)
 
+### Digitizer Type F Headers (`DigitizerTypeFHeader()` in `readDigFIFO.c`)
+
+The **digitizer** side has a parallel mechanism: `DigitizerTypeFHeader()` generates synthetic 4-word GEB-format packets when a digitizer FIFO is empty, at end-of-run, or has overflowed/underflowed. Same 4-word format as trigger Type F:
+
+| Word | Content |
+|------|---------|
+| 0 | `0xAAAAAAAA` (GEB sync word) |
+| 1 | `GeoAddr[31:27] / PacketLen[26:16] / UserPkgData[15:4] / ChannelID[3:0]` |
+| 2 | LED Timestamp[31:0] (latched via pulsed control at reg `0x40C`, bit 15; read from `0x484`) |
+| 3 | `HeaderLen[31:26] / EventType[25:23] / HeaderType[19:16] / TS[47:32]` (TS from `0x488`) |
+
+**Mode values (digitizer-specific):**
+- `mode=0` (FIFO empty / update): ChannelID = `0xE` (Empty); EventType = 0 (informational); HeaderType = `0xF`
+- `mode=1` (end-of-run / end-of-data): ChannelID = `0xD` (Done); EventType = 0; HeaderType = `0xF`
+- `mode=2` (FIFO overflow): ChannelID = `0xF` (FIFO Error); EventType = 1 (overflow); HeaderType = `0xF`; word3 = `0x0C200000 + ...`
+- `mode=3` (FIFO underflow): ChannelID = `0xF` (FIFO Error); EventType = 2 (underflow); HeaderType = `0xF`; word3 = `0x0D000000 + ...`
+
+**Key difference vs. trigger:** Timestamp latch uses a **different register** (`0x40C` bit 15, self-clearing) and timestamp is read from `0x484` (LS) / `0x488` (MS), vs. trigger which uses `0x8E0` bit 4.
+
+**UserPkgData** (bits [15:4] of word 1): taken from `daqBoards[BoardNumber].DigUsrPkgData` (low 12 bits). This is board-specific user package data read from the digitizer.
+
+**`PacketLen`** is always 3 (the 3 words after word 0). **`HeaderLen`** is always 3 (same).
+
+Controlled by compile-time flags: `INLOOP_GENERATE_EMPTY_TYPEF`, `INLOOP_GENERATE_EOD_TYPEF`, `INLOOP_GENERATE_ERROR_TYPEF`. If a flag is absent, the buffer is simply returned to the free queue (no data pushed).
+
+A helper function `PushTypeFToQueue()` sets `rawBuf->board`, `rawBuf->len = 16`, and calls `putWrittenBuf()`. It increments `FBufferCount` (defined in `inLoopSupport.c`) on each push.
+
+✅ verified 2026-04-17 — `readDigFIFO.c:L228-534` (DigitizerTypeFHeader full switch cases + word-by-word comments)
+
 ---
 
 ## Connections to Other Subsystems
@@ -533,6 +570,104 @@ Controlled by compile-time `#ifdef` flags: `INLOOP_GENERATE_EMPTY_TYPEF`, `INLOO
 - Cross-compiler is NOT in git — must download from JLab before building
 - `migration.md` documents how this was ported from Solaris/con6 to Ubuntu
 - Each VME crate loads the same `gretDet.munch` but uses a different boot script with crate-specific parameters
+
+---
+
+## Port 9010 On-Demand FIFO Grabber (Planned / Not Yet Implemented)
+
+_Source: `vxworks/On-Demand-FIFO-Grabber-Plan.md` — design plan only; `fifoGrabber.c` does not exist yet as of 2026-04-18_
+
+A planned standalone TCP diagnostic service that allows raw FIFO data to be grabbed from a specific digitizer board **without starting the full DAQ pipeline**. Currently, FIFO data is only accessible via the full chain: `Online_CS_StartStop` PV → inLoop polling → QSend queue → MiniSender (port 9001) → receiver.
+
+### Purpose
+- Diagnostics and board testing without requiring a full receiver
+- Direct DMA reads of digitizer FIFO content on-demand
+- Scripted spot-checks of raw data integrity
+
+### Architecture
+
+```
+Client (Python)
+    │
+    │  TCP port 9010
+    ▼
+FifoGrabberTask (new VxWorks C task, fifoGrabber.c)
+    ├── CMD_START_BOARD → ClearDigMstrLogicEnable() → ClearDigFIFO() → SetDigMstrLogicEnable()
+    └── CMD_GRAB_FIFO  → read FIFOStatusReg depth → sysVmeDmaV2LCopy() → integrity check → send
+```
+
+**No interference with MiniSender or inLoop** — separate port, separate task, no queue access.
+
+### Wire Protocol (binary, big-endian / network byte order)
+
+**Request (16 bytes):**
+```c
+struct FG_Req {
+    uint32_t cmd;    // 1=PING, 2=START_BOARD, 3=GRAB_FIFO, 4=STOP_BOARD
+    uint32_t board;  // board number 0–6
+    uint32_t param1; // GRAB_FIFO: max words; START_BOARD: 0
+    uint32_t param2; // GRAB_FIFO: 0=digitizer FIFO, 1–15=trigger FIFO index
+};
+```
+
+**Response (16 bytes + optional payload):**
+```c
+struct FG_Resp {
+    uint32_t status; // 0=OK, 1=ERR_BOARD, 2=NO_DATA, 3=BAD_INTEGRITY
+    uint32_t len;    // bytes of raw payload to follow (0 if no payload)
+    uint32_t param1; // actual bytes DMA'd
+    uint32_t param2; // FIFO depth at time of read
+};
+// followed by `len` bytes of raw FIFO data
+```
+
+### Key Implementation Details (planned)
+
+| Item | Detail |
+|------|--------|
+| **File** | `dgsDrivers/dgsDriverApp/src/fifoGrabber.c` (+ `.h`) |
+| **Task priority** | 150 — below inLoop (190) so inLoop wins; above most background tasks |
+| **Socket options** | TCP_NODELAY, SO_RCVBUF/SNDBUF=65536 (matching `SendReceiveSupport.c`) |
+| **Connection model** | One client at a time; stateless — connection closed after each request |
+| **Init call** | `FifoGrabberInit(9010)` from VxWorks shell after `iocInit` |
+| **Build change** | Add `devDGSDriverSupport_SRCS += fifoGrabber.c` to `dgsDrivers/dgsDriverApp/src/Makefile` |
+| **Integrity check** | `buf[0] == 0xAAAAAAAA` (digitizer FIFO start word) |
+| **DMA chunking** | Loop at `DMA_CHUNK_SIZE_IN_BYTES=0x10000` (same as `readDigFIFO.c`) |
+
+### Existing Functions Reused (no changes)
+
+| Function | File | Purpose |
+|----------|------|---------|
+| `ClearDigMstrLogicEnable()` | `inLoopSupport.c:272` | Disable digitizer |
+| `ClearDigFIFO()` | `inLoopSupport.c:325` | Clear FIFO (bit 27 pulse) |
+| `SetDigMstrLogicEnable()` | `inLoopSupport.c:294` | Arm digitizer + init pipeline |
+| `InitializeDigPipeline()` | `inLoopSupport.c:314` | Load delays (called by above) |
+| `sysVmeDmaV2LCopy()` | MV5500 BSP | DMA VME→local copy |
+| `daqBoards[]` | `inLoopSupport.c` global | Board base addresses + FIFO pointers |
+| `FIFOStatusReg[]` | `inLoopSupport.c` global | FIFO depth register pointers |
+
+### Python Client (planned: `grab_fifo.py`)
+
+```python
+import socket, struct
+FG_PORT = 9010
+CMD_PING, CMD_START, CMD_GRAB, CMD_STOP = 1, 2, 3, 4
+
+def grab_fifo(ioc_ip, board, max_words=65536):
+    with socket.create_connection((ioc_ip, FG_PORT), timeout=5) as s:
+        s.sendall(struct.pack('!4I', CMD_GRAB, board, max_words, 0))
+        status, length, actual, depth = struct.unpack('!4I', s.recv(16))
+        payload = b''
+        while len(payload) < length:
+            payload += s.recv(length - len(payload))
+    return status, payload  # raw 32-bit words
+```
+
+### Status
+
+> ⚠️ **Not implemented** — design plan only. `fifoGrabber.c` and `fifoGrabber.h` have not been created. No changes to the VxWorks build have been made. Plan documented in `vxworks/On-Demand-FIFO-Grabber-Plan.md`.
+
+---
 
 ## Cross-References
 

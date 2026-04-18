@@ -68,6 +68,7 @@ IOCReceiver::WriteData()
     │
     ├─ 0xAAAA0000 → TRIG packet
     │     16 words raw → repack into 10-word DIG-like payload
+    │     SOE overwritten to 0xAAAAAAAA (DIG format!)
     │     write to file: board=99, ch=A (0xA)
     │
     └─ ch_id special codes:
@@ -103,6 +104,15 @@ Decodes the full DIG event packet header (words 0–13 + trace):
 - **Header type 7** = LED mode (software convention; FPGA hardware uses type 4)
 - **Header type 8** = CFD mode (software convention; FPGA hardware uses type 5)
 - Fields: `EVENT_TIMESTAMP`, `PRE/POST_RISE_ENERGY`, `SAMPLED_BASELINE`, `PEAK_TIMESTAMP`, `PILEUP_FLAG`, CFD samples (0/1/2), vernier timestamps, trace waveform
+
+### `IOCReceiver` — Extensibility (Virtual Hooks)
+
+`IOCReceiver` provides three virtual hooks for subclasses (used by `tcpReceiverUDP`):
+- `OnRecord(processedData, processedLen, rawData, rawLen)` — called after every successfully written event (DIG or TRIG). For DIG: `processedData` = GEB header + DIG payload; `rawData` = original TCP word (including `0xAAAAAAAA` SOE). For TRIG: `processedData` = repacked 10-word payload; `rawData` = original 16 raw TRIG words.
+- `OnRunStart()` — called after TCP connection is established, before the data loop begins.
+- `OnRunEnd()` — called after `TypeD_RunIsDone` or `stopRequested`, before files are closed.
+
+`tcpReceiverUDP` overrides `OnRecord()` to push each event into its per-IOC `UDPSender` ring buffer for live forwarding to an online sort process. ✅ verified 2026-04-17 — `receiver.h:L234-238` (virtual hooks), `tcpReceiverUDP.cpp` (override)
 
 ### `class_TDC.h` — TAC-II Hit Decoder
 
