@@ -518,7 +518,7 @@ Pulse Delay units: 100s of ns (time from end of pulse n to beginning of pulse n+
 **Format:**
 | Word | Content |
 |------|---------|
-| 1 | Any value ≠ 0xAA (command active) | |
+| 1 | Any value ≠ 0xAA (command active) |
 | 2 | Timestamp[15:0] |
 | 3 | Capture Length |
 | 4 | FIFO Capture Delay |
@@ -584,7 +584,7 @@ Pulse Delay units: 100s of ns (time from end of pulse n to beginning of pulse n+
 ---
 
 *Documented from: 20160418 trig command link.pdf, v2.1*
-*Written to memory: 2026-04-05*
+*Written to memory: 2026-04-05 | Last reviewed: 2026-04-19*
 
 ## Cross-References
 

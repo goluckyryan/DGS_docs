@@ -4,6 +4,36 @@ _72 pages. Intended for users working directly with firmware parameters._
 
 ---
 
+## Table of Contents
+- [Overview](#overview)
+- [Memory Structures in Xilinx FPGAs](#memory-structures-in-xilinx-fpgas)
+- [Channel Initialization](#channel-initialization)
+- [Discriminator Operation](#discriminator-operation)
+- [Constant-Fraction Discriminator (CFD) Mode](#constant-fraction-discriminator-cfd-mode)
+- [Pileup Logic](#pileup-logic)
+- [Pileup Handling and Event Formation](#pileup-handling-and-event-formation)
+- [External Discriminator Modes](#external-discriminator-modes)
+- [Timing Marks](#timing-marks)
+- [Energy Summation](#energy-summation)
+- [Data Readout](#data-readout)
+- [Trigger Window Calculation](#trigger-window-calculation)
+- [Data Format](#data-format)
+- [Energy Summation Logic — Operational Details](#energy-summation-logic--operational-details)
+- [Discriminator Filter Details](#discriminator-filter-details)
+- [CFD Mode — Detailed Settings](#cfd-mode--detailed-settings)
+- [Trigger Delay Buffer](#trigger-delay-buffer)
+- [Waveform Readout — Details](#waveform-readout--details)
+- [Readout Modes (8 Combinations)](#readout-modes-8-combinations)
+- [Trigger Interface](#trigger-interface)
+- [Master and Slave Digitizers](#master-and-slave-digitizers)
+- [Slave Digitizer Operational Modes](#slave-digitizer-operational-modes)
+- [On-Board DAC Diagnostics](#on-board-dac-diagnostics)
+- [Auxiliary Input Interface (ExtTTL Injection Point)](#auxiliary-input-interface-extttl-injection-point)
+- [Glossary](#glossary)
+- [See Also](#see-also)
+
+---
+
 ## Overview
 
 The 10-channel DIG firmware runs as a continuously operating data pipeline. Each channel is based on multiple delay buffers of varying width. Many timing functions derive from these delay settings.
@@ -154,7 +184,7 @@ Per-channel selection of external discriminator source, then second selection:
 - '0' (disabled)
 - Channel 9 signal (master) or ch9 of master digitizer (slave)
 - Front panel RS-485 input (AUX_DIN[10], MSbit of 11-bit Aux I/O) — only works when bit 10 is configured as input
-- Timestamp bit (periodic signals at 0.745 Hz / 6.0 Hz / 23.8 Hz / 95.4 Hz / 1.5 kHz / 48.8 kHz / 195.3 kHz)
+- Timestamp bit (periodic signals at 0.745 Hz / 6.0 Hz / 23.8 Hz / 95.4 Hz / 1.5 kHz / 48.8 kHz / 195.3 kHz) ✅ verified 2026-04-18 — `Timestamp_Generator.vhd:L238-244` (TEST RATE 0–6 comments match exactly)
 - VME command (pulsed control register; no system-wide sync, diagnostic use)
 - Trigger command (Frame 15 of 20-frame cycle, with channel selection mask; system-wide sync)
 - Preamp Reset Kill signal of adjacent channel (ch. n+5, master only)
@@ -481,10 +511,10 @@ Compile-time build option: SLAVE_MODE. Front bus ribbon cable connects master to
 
 **Front bus signals:**
 - Differential clock (direction set by hardware jumpers, not firmware): Slave uses master's switched 50 MHz clock (from trigger SERDES link)
-- 18 bits master→slave:
-  - Bits 15:0 = direct copy of trigger SERDES data (DC-balanced, clock guard removed) → fed to Slave's SERDES receive state machine
-  - Bit 16 = copy of channel 0 discriminator bit from master (external discriminator source)
-  - Bit 17 = master reset signal replicated to slave
+- 18 bits master→slave (`FBUS_MDATA[17:0]`):
+  - Bits 15:0 = direct copy of trigger SERDES data (DC-balanced, clock guard removed) → fed to Slave's SERDES receive state machine ✅ verified 2026-04-19 — `Front_Bus.vhd:L129,L135` (FBUS_MDATA[15:0] ↔ fbus_serdes_data)
+  - Bit 16 = copy of **channel 9** discriminator bit from master (external discriminator source for slave channels) — note: was channel 0 before 2014-12-02, changed to channel 9 ✅ verified 2026-04-19 — `Digitizer.vhd:L1387` (`fbus_disc_flag_in => diag_disc_flag(9)` with comment "changed from zero to nine 20141202"); `Front_Bus.vhd:L136`
+  - Bit 17 = master reset signal replicated to slave ✅ verified 2026-04-19 — `Front_Bus.vhd:L77,L81` (`FBUS_MDATA(17) <= fbus_reset_in` on master; `fbus_reset_out <= FBUS_MDATA(17)` on slave)
   - Note: Slave P1/P2 delay buffers must be set a few clocks larger than master to compensate for cable delay
 - 3 bits slave→master:
   - Slave external FIFO status (master includes this in its Throttle Request to trigger)
@@ -515,7 +545,7 @@ Router trigger monitors Ge Center + BGO Sum discriminator bit pairs from Master.
 **Router multiplicity reporting options**: Raw, clean-only, or lone-BGO multiplicity to MTRG X or Y sums → enables filtered triggers (e.g. clean Ge multiplicity > threshold).
 
 ### 3. Pseudo-GRETINA Mode
-Slave completely slaved to one channel of Master (ch 0). Master ch 0 discriminator bit sent on front bus bit 17. All Slave channels set to External Only mode, external source = front bus bit 17. All channels in both Master (ch 1–9 also set to External Only → ch 0) and Slave capture an event every time Master ch 0 fires — identical to GRETINA operation. Same trigger accept messages, same timing windows. Delay chain parameters (m, k, d, d3) must match exactly in all channels of both boards.
+Slave completely slaved to one channel of Master (ch 9 in current firmware; historically ch 0 before 2014-12-02). Master ch 9 discriminator bit transmitted on **front bus bit 16** (`FBUS_MDATA[16]`). All Slave channels set to External Only mode (external disc source = `fbus_disc_flag`, i.e. `reg_bit_slices = "001"`). All channels in both Master (ch 0–8 also set to External Only → ch 9 via diag_disc_flag) and Slave capture an event every time Master ch 9 fires — identical to GRETINA operation. Same trigger accept messages, same timing windows. Delay chain parameters (m, k, d, d3) must match exactly in all channels of both boards. ✅ verified 2026-04-19 — `Front_Bus.vhd:L77,L136` (FBUS_MDATA[17]=reset, [16]=disc_flag); `Digitizer.vhd:L1387` (disc_flag_in = diag_disc_flag(9)); `Digitizer.vhd:L896` comment "GRETINA master mode"
 
 ---
 
@@ -602,4 +632,8 @@ _Document complete. PDF: 72 pages, SVN rev #6185, Sept 2021. Written to file: 20
 - `knowledgeBase/preamp_reset_readme.md` — Detailed preamp reset (PRK) explanation: detection logic, blanking, BGO gate, PARST timestamp
 - `knowledgeBase/data_structures.md` — Complete DIG event packet format (all header types, GEB header, TAC-II)
 - `knowledgeBase/connectors.md` — DIG connector pinouts (36-pin Aux I/O, RJ45, front bus)
+
+---
+
+*Created: 2026-04-05 | Last reviewed: 2026-04-19*
 

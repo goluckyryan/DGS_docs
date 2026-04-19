@@ -116,11 +116,6 @@ Legacy EPICS database files (`resm1.db` – `resm6.db`) from the pre-upgrade VXI
 
 ---
 
-## Related Files
-- `collectorbox_PVs.md` — full PV list including `GS{N}_SBX_Present`, BGO HV PVs
-- `expMemory_2008_Chiara.md` — current experiment data locations
-- `gammasphere_geometry.md` — GS hole numbering
-
 ---
 
 ## ANLDAQ GUI Helper Scripts (`ANLDAQ/gui/scripts/`)
@@ -209,3 +204,5 @@ Serdes_Linkup.sh
 - `knowledgeBase/snapshot_pv.md` — Modern Python/pyepics PV snapshot utilities (supersedes these legacy scripts)
 - `knowledgeBase/gammasphere_geometry.md` — GS hole → GS_ID numbering used by BGO tuning scripts
 - `knowledgeBase/sbx.md` — Slope box hardware; BGO HV channels addressed by slopebox_scripts
+- `knowledgeBase/trig_setup_scripts.md` — `Serdes_Linkup.sh` script (listed in `enableScriptList.txt`; documented there)
+- `knowledgeBase/expMemory_2008_Chiara.md` — current experiment data locations

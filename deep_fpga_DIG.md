@@ -81,11 +81,11 @@ New bitstreams can be written remotely over VME.
 
 | Property | Value |
 |----------|-------|
-| Bus width | 16-bit data, 24-bit address (up to 16 MB) |
-| Chip enables | 3 lines (`CE[2:0]`) — supports up to 3 flash devices |
-| Control | `WE_N`, `OE_N`, `VPEN` (program voltage enable), `RESET` |
-| VHDL interface | `external_bus_controller.vhd`, `configuration_controller.vhd` |
-| Config bus to main FPGA | `FPGA_cclk_out`, `FPGA_serial_din`, `FPGA_program_out`, `FPGA_done_in` |
+| Bus width | 16-bit data, 24-bit address (up to 16 MB) | ✅ verified 2026-04-19 — `external_bus_controller.vhd:L48-50` (`external_address: out std_logic_vector(23 downto 0)`; `external_data_in/out: std_logic_vector(15 downto 0)`) |
+| Chip enables | 3 lines (`CE[2:0]`) — supports up to 3 flash devices | ✅ verified 2026-04-19 — `external_bus_controller.vhd:L56` (`flash_CE: out std_logic_vector(2 downto 0)`) |
+| Control | `WE_N`, `OE_N`, `VPEN` (program voltage enable), `RESET` | ✅ verified 2026-04-19 — `external_bus_controller.vhd:L53-55` (`flash_WE`, `flash_OE`, `flash_reset`); `register_block.vhd:L46` (`flash_vpen_out: out std_logic`) |
+| VHDL interface | `external_bus_controller.vhd`, `configuration_controller.vhd` | ✅ verified 2026-04-19 — both files present in `FPGA/DIG/VME_FPGA_ANL/Source/` |
+| Config bus to main FPGA | `FPGA_cclk_out`, `FPGA_serial_din`, `FPGA_program_out`, `FPGA_done_in` | ✅ verified 2026-04-19 — `A32_D32_VME_pinlock.ucf:L226-230` (all 4 signals assigned to physical pins R1/R2/T1/T2); `top_tb.vhd:L59-62` (entity port declarations) |
 
 **Memory architecture overview:**
 
@@ -199,12 +199,13 @@ All branches target `xc3s5000-fg900-5`.
 | `thresh_disc.vhd` | Leading-edge threshold discriminator |
 | `cfd_disc.vhd` | Constant Fraction Discriminator |
 | `coarse_disc_count.vhd` | Coarse discriminator with count |
+| `coarse_thresh_disc.vhd` | **Simplified coarse threshold discriminator** (`thresh_disc_mach`). Stripped-down version of `thresh_disc.vhd` (2023-07-24 JTA) for use as coarse trigger only. Accepts 15-bit THRESH_DISC_PROMPT/DELAYED inputs, subtracts them, applies `DISCRIMINATOR_THRESHOLD` comparison with polarity control (pos/neg/both). State machine: `IDLE → INITIAL_FALSE_EDGE → WAIT_EDGE → PULSE → WAIT_DELAY`. Includes 9-bit holdoff counter (5.12 µs max). Outputs `DISC_FLAG_OUT`, `DISC_POLARITY`, `DISCBIT_HOLDOFF_RELEASE`, `DISC_MONITOR_OUT[13:0]`. `LOCAL_THROTTLE` (M. Oberling, 2014) suppresses discriminator during excessive decimation readout. ✅ verified 2026-04-18 — `coarse_thresh_disc.vhd:L3-8` (simplified 2023-07-24), `L30-57` (entity ports), `L87-88` (9-bit holdoff, 5.12 µs), `L120-155` (edge detection + threshold comparison) |
 | `baseline_tracker.vhd` | Running baseline estimation |
 | `pileup_processor.vhd` | Pileup detection and rejection logic |
 | `triple_filter.vhd` | Triple moving-average filter |
 | `single_filter.vhd` | Single-stage moving-average filter |
 | `decimator.vhd` | Waveform decimation for readout |
-| `filtered_subtraction.vhd` | Filtered baseline subtraction |
+| `filtered_subtraction.vhd` | **Gaussian-filtered difference for LED/CFD discriminator.** Implements a 4-stage cascaded 1-2-1 FIR filter (Pascal's triangle) on the sample-pair difference `X(n) - X(n-d)` (LED mode) or `X(n) - X(n-k)` (CFD mode). Four cascaded stages give a 1-8-28-56-70-56-28-8-1 coefficient set (normalization factor 256). Each stage uses a divide-by-4 bit shift to keep output at 17 bits. Controlled by `CFD_MODE` generic. Output is `FINAL_DIFFERENCE[16:0]`. ✅ verified 2026-04-18 — `filtered_subtraction.vhd:L12-52` (filter math derivation), `L83-143` (RTL: SUB_D/SUB_K + FILTER1 + FILTER_BLOCK generate loop) |
 | `pehq.vhd` | Pending Event History Queue |
 
 ### Cross-Channel & Readout
@@ -380,7 +381,7 @@ For the full word-by-word bit layout of all 20 frames, see [deep_fpga_MTRG_MAIN.
 - Differential clock output: `ADC_CLK_P/N` ✅ verified 2026-04-17 — `Digitizer.vhd:L57-58`
 - Per-channel data ready: `ADC_DRDY_PINS[9:0]` ✅ verified 2026-04-17 — `Digitizer.vhd:L60`
 - Per-channel overflow: `ADC_OVR[9:0]` ✅ verified 2026-04-17 — `Digitizer.vhd:L61`
-- Data captured in IOBs and re-latched for pipeline alignment
+- Data captured in IOBs and re-latched for pipeline alignment ✅ verified 2026-04-18 — `Digitizer.vhd:L463-474` (`attribute iob of adc_data_iobl_0..9 : signal is "TRUE"`; also `attribute keep` to prevent SRL inference per comment "needed for IOB constraint")
 
 ### External Discriminator Modes (per channel)
 

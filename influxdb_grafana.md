@@ -111,7 +111,7 @@ GS5_GE_HV_DEMAND_VOLTS value=3000.0 1743890400000000000
 ### 1. Detector Temperatures (`HPGeTemp` database)
 
 **Script:** `/home/phy/dcsu/lnFill/SaveTemp.sh` → `templog/StoreDetTemps.py`
-**Triggered by:** cron job on DCS2 (runs periodically)
+**Triggered by:** cron job on **pi5-lnFill** (192.168.203.58), every 10 min (`*/10 * * * *`) ✅ verified 2026-04-18 — live pi5-lnFill crontab; SaveTemp.sh runs from `/home/dgs/lnFill/` on pi5-lnFill, not DCS2
 **Data written:**
 - `Temperature,gsid=NNN,en=0/1 value=<temp_C>` for each of 110 GS holes ✅ verified 2026-04-09 — `StoreDetTemps.py:L51` (`influx_entry = "Temperature,gsid="+str(i).zfill(3)+",en="...`)
 - `pi_Temp value=<temp_C>` — Raspberry Pi board temperature ✅ verified 2026-04-09 — `StoreDetTemps.py:L41`

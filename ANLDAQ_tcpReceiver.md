@@ -100,10 +100,11 @@ This is the format consumed by downstream analysis (fastEventConstructor / parqu
 
 ### `class_DIG.h` — DIG Hit Decoder
 
-Decodes the full DIG event packet header (words 0–13 + trace):
-- **Header type 7** = LED mode (software convention; FPGA hardware uses type 4)
-- **Header type 8** = CFD mode (software convention; FPGA hardware uses type 5)
+Decodes the full DIG event packet header (words 0–13 + optional trace words):
+- **Header type 7** = LED mode — value comes directly from FPGA (Word 3 bits 19:16); types 7 & 8 adopted in Aug 2021, replacing prior types 5 & 6 (which replaced 3 & 4, which replaced 1 & 2 pre-May 2015) ✅ verified 2026-04-19 — `tcpReceiver/Aux/class_DIG.h:L248`, `knowledgeBase/DIG_firmware_expert.md:L289`
+- **Header type 8** = CFD mode — same FPGA-assigned value; both extracted from raw hardware packet, not software-remapped
 - Fields: `EVENT_TIMESTAMP`, `PRE/POST_RISE_ENERGY`, `SAMPLED_BASELINE`, `PEAK_TIMESTAMP`, `PILEUP_FLAG`, CFD samples (0/1/2), vernier timestamps, trace waveform
+- **Trace/waveform extraction** (added commit 570092e): `DecodeHeader_7_8(raw, dataLen)` accepts optional `dataLen > 14` to extract waveform samples from words 14+. Each 32-bit word encodes two 14-bit unsigned samples: bits 13:0 = even sample, bits 29:16 = odd sample. Stored in `std::vector<unsigned short> trace`. `PrintTrace()` dumps all samples with index, decimal, and hex. ✅ verified 2026-04-18 — `tcpReceiver/Aux/class_DIG.h:L89-90,L225-232,L359-363` (commit 570092e)
 
 ### `IOCReceiver` — Extensibility (Virtual Hooks)
 
@@ -220,11 +221,11 @@ Lightweight alternative to `start_run.sh` / `stop_run.sh` for quick tests withou
 
 **`udp_testing/` — UDP experimental infrastructure** (not production-used):
 - `udpReceiver.cpp` — C++ UDP receiver variant for testing UDP-based data delivery
-- `iocSimulator.py` — Python script that simulates an IOC's TCP server (port 9001) for receiver testing without live VME hardware
-- `test_udp.sh` — shell script to exercise the UDP receiver pipeline
+- `iocSimulator.py` — Python script simulating a real IOC TCP server (port 9001) for receiver testing without live VME hardware. Generates **real DIG LED (HEADER_TYPE=7) packets** with proper bit-packed fields matching `class_DIG.h` decoding (commit 570092e, 2026-03-24). Wire format: `0xAAAAAAAA` marker + packet_length_in_words data words in network byte order. Usage: `python3 iocSimulator.py [port] [num_batches] [num_trace_words]` (defaults: 9001, 100, 4). Supports optional trace/waveform appended after word 13: configurable number of trace words; each word encodes **two 14-bit unsigned ADC samples** (bits 13:0 = sample N, bits 29:16 = sample N+1). ✅ verified 2026-04-18 — `tcpReceiver/udp_testing/iocSimulator.py` (commit 570092e)
+- `test_udp.sh` — shell script to exercise the UDP receiver pipeline (hexdump + ROOT decode step + trace word count arg added in commit 570092e)
 - These files support development/testing of `tcpReceiverUDP.cpp` (the multi-threaded variant that forwards data via UDP to an online analysis process in addition to writing to disk)
 
-_Source: `ANLDAQ/tcpReceiver/legacy/` + `udp_testing/` (code-read 2026-04-13)_
+_Source: `ANLDAQ/tcpReceiver/legacy/` + `udp_testing/` (code-read 2026-04-13; iocSimulator/trace updated 2026-04-18)_
 
 ### Packet Consistency: Receiver vs FPGA Firmware
 

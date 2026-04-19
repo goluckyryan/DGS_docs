@@ -78,20 +78,25 @@ Programs the main FPGA after power-on or on demand:
 
 ### Inter-FPGA Communication
 
-A 10-bit bidirectional bus connects the VME FPGA to the main FPGA:
-- Configuration command exchange
-- Status signal routing
-- Direction control per signal group
+A 10-bit bidirectional bus (`FPGA2FPGA[9:0]`) connects the VME FPGA (Spartan-3) to the main FPGA (Virtex-4). ✅ verified 2026-04-19 — `TOP.VHD:L112` (`FPGA2FPGA : inout std_logic_vector(9 downto 0)`)
+
+Signal direction split (fixed in firmware): ✅ verified 2026-04-19 — `TOP.VHD:L529-548`
+- **Bits 0–3:** VME FPGA → Main FPGA (outputs from Spartan-3)
+  - Bit 0: LED control (`fpga_ctrl_reg(8)`) — drives an LED on GRETINA Master Trigger
+  - Bit 1: Router reset (active-high: `NOT fpga_ctrl_reg(9)`) — holds a GRETINA Router in reset
+  - Bit 2: `fpga_ctrl_reg(10)`
+  - Bit 3: `fpga_we` — FPGA write-enable signal
+- **Bits 4–9:** Main FPGA → VME FPGA (inputs to Spartan-3); driven as `"000000"` in current firmware (reserved for future status readback)
 
 ## Clock Domains
 
 | Clock | Frequency | Used For |
 |-------|-----------|----------|
-| Main clock | 50 MHz | VME interface logic |
-| Derived | 25 MHz | Flash access timing |
-| Derived | 100 MHz | High-speed logic |
+| Main clock | 50 MHz | VME interface logic | ✅ verified 2026-04-19 — `TOP.VHD:L142,L622,L644` (`CLK_50MHZ` from DCM CLK0 output; input is MASTER_CLOCK oscillator) |
+| Derived | 25 MHz | Flash access / FPGA configuration clock (CCLK) | ✅ verified 2026-04-19 — `TOP.VHD:L304,L628,L647` (CLKDV_DIVIDE=2.0 → 25 MHz; `CLK_25MHZ` → `global_cclk` BUFG → `fpga_cclk`) |
+| Derived | 100 MHz | High-speed logic (ChipScope ILA) | ✅ verified 2026-04-19 — `TOP.VHD:L645` (`CLK_100MHZ` from DCM CLK2X output) |
 
-All derived from a single oscillator via DCM.
+All three clocks derived from the single MASTER_CLOCK oscillator (pin P10, 50 MHz) via one DCM (`vme_clk_dcm`). ✅ verified 2026-04-19 — `TOP.VHD:L618-647`
 
 ## Bitfile History
 

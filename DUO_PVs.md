@@ -3,6 +3,8 @@
 Generated from: `boot/vme66.cmd` | EPICS CA port: 5080/5081 | IOC: 192.168.203.81
 Total PVs: 6901
 
+> **⚠️ Note on PV counts:** The counts here (1145 MDIG, 611 RTR1, 3942 MTRG) reflect an earlier firmware/template version. Current templates (as of 2026-04-19) define: MDIG/SDIG=1743 PVs, RTRG=1080, MTRG=7711. ✅ verified 2026-04-19 — `record` counts from MDigUser+MDigRegisters+VME templates, RTrigUser+RTrigRegisters, MTrigUser+MTrigRegisters. This PV list was generated from the live DUO IOC at the time of the initial knowledge base import (2026-04-14) and may lag behind the current template additions.
+
 ## Board Summary
 
 - **MDIG1**: 1145 PVs

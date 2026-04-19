@@ -188,53 +188,55 @@ All addresses are per-channel. Channel 0 uses the base address shown; channels 1
 
 | Register | Ch 0 Address | Bits | Description |
 |----------|-------------|------|-------------|
-| `reg_channel_control` | `0x040` | `CFD_MODE` bit | `0` = LED, `1` = CFD |
-| `reg_led_threshold` | `0x080` | `[13:0]` | Threshold in ADC counts (both LED and CFD pre-gate) |
-| `reg_cfd_fraction` | `0x0C0` | `[12:0]` | CFD fraction encoded as N/8192 (e.g. `0x0C00` ≈ 75%) |
-| `reg_external_disc_mode` | `0x420` | 2 bits/ch | `00`=normal, `01`=OR with external, `10`=AND, `11`=external only |
+| `reg_channel_control` | `0x040` | `CFD_MODE` bit | `0` = LED, `1` = CFD ✅ verified 2026-04-10 — `asynDigParams.c:L459` (`setAddress(reg_channel_control0,0x0040)`) |
+| `reg_led_threshold` | `0x080` | `[13:0]` | Threshold in ADC counts (both LED and CFD pre-gate) ✅ verified 2026-04-10 — `asynDigParams.c:L469` (`setAddress(reg_led_threshold0,0x0080)`) |
+| `reg_cfd_fraction` | `0x0C0` | `[12:0]` | CFD fraction encoded as N/8192 (e.g. `0x0C00` ≈ 75%) ✅ verified 2026-04-16 — `asynDigParams.c:L479` (`setAddress(reg_CFD_fraction0,0x00C0)`) |
+| `reg_external_disc_mode` | `0x420` | 2 bits/ch | `00`=normal, `01`=OR with external, `10`=AND, `11`=external only ✅ verified 2026-04-19 — `Registers.vhd:L234` (`X"420"`, `reg_external_disc_mode`) |
 
 **Delay chain:**
 
 | Register | Ch 0 Address | Bits | Description |
 |----------|-------------|------|-------------|
-| `reg_p1_window` | `0x300` | `[3:0]` | P1 delay (cycles) |
-| `reg_p2_window` | `0x404` | `[9:0]` | P2 delay and tail-sum window (cycles) |
-| `reg_m_window` | `0x200` | `[9:0]` | M delay = pre-event buffer depth (cycles) |
-| `reg_k_window` | `0x1C0` | `[13:0]` | K0+K combined delay (cycles) |
-| `reg_d_window` | `0x180` | `[6:0]` | D delay — sets CFD fraction delay (cycles) |
-| `reg_d3_window` | `0x240` | `[6:0]` | D3 delay — baseline tracker input offset (cycles) |
+| `reg_p1_window` | `0x300` | `[3:0]` | P1 delay (cycles) ✅ verified 2026-04-19 — `Registers.vhd:L216` (`X"300"`, `reg_p1_window(0)`) |
+| `reg_p2_window` | `0x404` | `[9:0]` | P2 delay and tail-sum window (cycles, global to board) ✅ verified 2026-04-19 — `Registers.vhd:L227` (`X"404"`, `reg_p2_window`) |
+| `reg_m_window` | `0x200` | `[9:0]` | M delay = pre-event buffer depth (cycles) ✅ verified 2026-04-10 — `asynDigParams.c:L529` (`setAddress(reg_m_window0,0x0200)`) |
+| `reg_k_window` | `0x1C0` | `[13:0]` | K0+K combined delay (cycles) ✅ verified 2026-04-11 — `asynDigParams.c:L519` (`setAddress(reg_k_window0,0x01C0)`) |
+| `reg_d_window` | `0x180` | `[6:0]` | D delay — sets CFD fraction delay (cycles) ✅ verified 2026-04-16 — `asynDigParams.c:L509` (`setAddress(reg_d_window0,0x0180)`) |
+| `reg_d3_window` | `0x240` | `[6:0]` | D3 delay — baseline tracker input offset (cycles) ✅ verified 2026-04-06 — `Registers.vhd:L186` (`to_std_logic_vector(23,32)`) |
 
 **Baseline tracking:**
 
 | Register | Ch 0 Address | Bits | Description |
 |----------|-------------|------|-------------|
-| `reg_baseline_start` | `0x2C0` | `[13:0]` | Initial baseline value (ADC counts) |
-| `reg_baseline_delay` | `0x418` | `[7:0]` | Holdoff after disc fire before resuming tracking (× 10.24 µs) |
-| `reg_baseline_delay` | `0x418` | `[10:8]` | Baseline update step size (tracking speed) |
+| `reg_baseline_start` | `0x2C0` | `[13:0]` | Initial baseline value (ADC counts; default = 1000) ✅ verified 2026-04-19 — `Registers.vhd:L206` (`X"2C0"`, `to_std_logic_vector(1000,32)`) |
+| `reg_baseline_delay` | `0x418` | `[7:0]` | Holdoff after disc fire before resuming tracking (× 10.24 µs) ✅ verified 2026-04-19 — `Registers.vhd:L232` (`X"418"`, `reg_baseline_delay`) |
+| `reg_baseline_delay` | `0x418` | `[10:8]` | Baseline update step size (tracking speed) ✅ verified 2026-04-19 — `Registers.vhd:L232` (comment: "bits 10:8 are speed, bits 7:0 are delay") |
 
 **Holdoff and peak finding:**
 
 | Register | Address | Bits | Description |
 |----------|---------|------|-------------|
-| `reg_holdoff_control` | `0x414` | `[8:0]` | Retrigger holdoff duration (cycles × 10 ns) |
-| `reg_holdoff_control` | `0x414` | `[11:9]` | Peak sensitivity (controls peak-finding rate) |
-| `reg_disc_width` | `0x280` | `[7:0]` | Discriminator output pulse width (cycles) |
+| `reg_holdoff_control` | `0x414` | `[8:0]` | Retrigger holdoff duration (cycles × 10 ns; default 150 cycles = 1.5 µs) ✅ verified 2026-04-19 — `Registers.vhd:L231` (`X"414"`, default `2198` = 0x896 → ho[8:0]=150, pksens[11:9]=4) |
+| `reg_holdoff_control` | `0x414` | `[11:9]` | Peak sensitivity (controls peak-finding rate; default 4) ✅ verified 2026-04-19 — `Registers.vhd:L231` (comment: "pksens(11:9)=4, ho(8:0)=150") |
+| `reg_disc_width` | `0x280` | `[7:0]` | Discriminator output pulse width (cycles) ✅ verified 2026-04-19 — `Registers.vhd:L196` (`X"280"`, `reg_disc_width(0)`) |
 
 **Waveform capture:**
 
 | Register | Ch 0 Address | Bits | Description |
 |----------|-------------|------|-------------|
-| `reg_raw_data_length` | `0x100` | `[9:0]` | Number of waveform samples to capture |
-| `reg_raw_data_window` | `0x140` | `[10:0]` | Capture window relative to discriminator fire (samples) |
+| `reg_raw_data_delay` | `0x100` | `[9:0]` | Pipeline delay before raw data capture (pre-trigger samples) ✅ verified 2026-04-19 — `asynDigParams.c:L489` (`setAddress(reg_raw_data_delay0,0x0100)`) |
+| `reg_raw_data_length` | `0x140` | `[9:0]` | Number of waveform samples to capture ✅ verified 2026-04-19 — `asynDigParams.c:L499` (`setAddress(reg_raw_data_length0,0x0140)`) |
+
+> ⚠️ Note: The VHDL source (`DGS_TAG_20180607_TWEAK/Registers.vhd:L136,L146`) labels `0x100` as `reg_raw_data_length` and `0x140` as `reg_raw_data_window`. The asyn driver (`asynDigParams.c`) is the ground truth: `0x100` = `reg_raw_data_delay`, `0x140` = `reg_raw_data_length`. `reg_raw_data_window` does not exist in the current IOC driver.
 
 **Diagnostic counters (read-only):**
 
 | Register | Ch 0 Address | Description |
 |----------|-------------|-------------|
-| `reg_disc_count` | `0x7C0` | Total discriminator fires |
-| `reg_accepted_event_count` | `0x740` | Events accepted by trigger |
-| `reg_dropped_event_count` | `0x700` | Events dropped (FIFO full or vetoed) |
-| `reg_ahit_count` | `0x780` | Accepted-hit pulses from pileup processor |
+| `reg_disc_count` | `0x7C0` | Total discriminator fires ✅ verified 2026-04-19 — `Registers.vhd:L287` |
+| `reg_accepted_event_count` | `0x740` | Events accepted by trigger ✅ verified 2026-04-19 — `Registers.vhd:L267` |
+| `reg_dropped_event_count` | `0x700` | Events dropped (FIFO full or vetoed) ✅ verified 2026-04-19 — `Registers.vhd:L257` |
+| `reg_ahit_count` | `0x780` | Accepted-hit pulses from pileup processor ✅ verified 2026-04-19 — `Registers.vhd:L277` |
 
 ---
 
@@ -293,8 +295,8 @@ Default at reset: `sysclk_sel0=1, sysclk_sel1=0` → OSC (local oscillator). ✅
 **EPICS PV:** `VME$(CRATE):$(BOARD):clk_select` (mbbo, `MDigUserVME.template` / `SDigUserVME.template`)
 
 **Usage in `link_sys.py`:**
-- Stage 4A: `clk_select=1` (OSC) — initialize DIGs on independent local clock first
-- Stage 4E: `clk_select=0` (S/D) — switch DIGs to Router-derived link clock for full timestamp sync
+- Stage 4A: `clk_select=1` (OSC) — initialize DIGs on independent local clock first ✅ verified 2026-04-18 — `ANLDAQ/gui/link_sys.py:L526` (`self.SetPVManually(dig_name, "clk_select", 1)`)
+- Stage 4E: `clk_select=dig_clk_sel` (user-configured, normally 0=S/D) — switch DIGs to Router-derived link clock for full timestamp sync ✅ verified 2026-04-18 — `ANLDAQ/gui/link_sys.py:L581` (`self.SetPVManually(dig_name, "clk_select", dig_clk_sel)`)
 
 ## Main FPGA Bitfiles
 

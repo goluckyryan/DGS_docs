@@ -292,6 +292,7 @@ If `DCBAL_BYPASS='1'` (diagnostic mode), the data passes through without decodin
 ```
 MULTIPLICITY[3:0] <= UNBAL_ROUTER_DATA[15:12]  (when not masked)
 ```
+✅ verified 2026-04-18 — `mt_input_channel.vhd:L183` (MTRG/MAIN_FPGA/20120424): `MULTIPLICITY <= UNBAL_ROUTER_DATA(15 downto 12) when (CHANNEL_MASK = '0') else "0000"`
 
 This extracts the top 4 bits of the recovered Link-L word. In the current RTRG 0x260E format, bit [15] = throttle, bits [14:12] = top 3 bits of the 7-bit Y-plane sum. The `MULTIPLICITY` output therefore reflects a partial Y-count (the upper 3 bits, i.e., the value divided by 16 in 7-bit terms) — useful for rapid multiplicity prescreening without needing the full 7-bit sum.
 
@@ -430,11 +431,13 @@ All arithmetic is registered, one stage per clock, for a total of **3 clock cycl
 
 | Stage | Operation | Output width |
 |---|---|---|
-| **SUMPROC1** | Pair-wise add: RTR(1)+RTR(2), RTR(3)+RTR(4), RTR(5)+RTR(6), RTR(7)+RTR(8) | 4× 11-bit subtotals per plane |
-| **SUMPROC2** | Add pairs of stage-1 results: SUBTOTAL1+2, SUBTOTAL3+4 | 2× 11-bit subtotals per plane |
-| **SUMPROC3** | Final add: SUBTOTAL5+SUBTOTAL6 | 11-bit X_TOTAL and Y_TOTAL |
+| **SUMPROC1** | Pair-wise add: RTR(1)+RTR(2), RTR(3)+RTR(4), RTR(5)+RTR(6), RTR(7)+RTR(8) | 4× 16-bit subtotals per plane |
+| **SUMPROC2** | Add pairs of stage-1 results: SUBTOTAL1+2, SUBTOTAL3+4 | 2× 16-bit subtotals per plane |
+| **SUMPROC3** | Final add: SUBTOTAL5+SUBTOTAL6 | 16-bit X_TOTAL and Y_TOTAL |
 
-Maximum value: 8 RTRGs × 80 max hits/RTRG = 640 → fits in 10 bits; 11 bits allocated for margin.
+Maximum value: 8 RTRGs × 80 max hits/RTRG = 640 → fits in 10 bits; 16 bits allocated (wider than needed, matches `std_logic_vector(15 downto 0)` port definition). ✅ verified 2026-04-18 — `calc_total_sum.vhd:L22-23,L82-90,L104-105,L120-121` (20180507 tag; all subtotals and X/Y_TOTAL are 16-bit; SUMPROC1/2/3 each registered on CLK edge = 3-cycle pipeline confirmed)
+
+> **Correction (2026-04-18):** Previously documented as 11-bit; VHDL source shows 16-bit throughout.
 
 ### 8.2 Y_TOTAL Signal Widths
 

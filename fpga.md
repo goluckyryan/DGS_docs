@@ -143,8 +143,8 @@ Each **2 µs cycle** consists of 20 frames (100 ns per frame). Each frame carrie
 | 13 | Reserved |
 | 14 | Remote trigger / Router-specific command |
 | 15 | Async command (VME-injected, e.g. calibration, front-end reset) |
-| 16 | Synchronous capture command |
-| 17 | Auxiliary detector command |
+| 16 | Synchronous capture command ✅ verified 2026-04-19 — `top.vhd:L582` ("Frame 16 (synchronous front end) commands") |
+| 17 | Auxiliary detector command ✅ verified 2026-04-19 — `top.vhd:L597` ("Frame 17 (Auxiliary Detector) commands") |
 | 18–20 | End-of-cycle / spare |
 
 For the detailed word-by-word breakdown of each frame:
@@ -248,7 +248,7 @@ The **MTRG** receives multiplicity streams from up to 8 RTRGs simultaneously. It
 - **Energy sum** — summed energy across channels
 - And others configured via VME registers
 
-The **TDC** (Time-to-Digital Converter) uses a 4-phase vernier chain (0°/90°/180°/270° at 250 MHz) to timestamp the trigger with **~30 ps resolution** (~50 ps per vernier tap, 4 ns coarse period subdivided by 4 phases × 64-bit vernier chain), much finer than the 20 ns SERDES clock.
+The **TDC** (Time-to-Digital Converter) uses a 4-phase vernier chain (0°/90°/180°/270° at 250 MHz) to timestamp the trigger with **~30 ps resolution** (~50 ps per vernier tap, 4 ns coarse period subdivided by 4 phases × 64-bit vernier chain), much finer than the 20 ns SERDES clock. ✅ verified 2026-04-18 — `tdc_chain_cont.vhd:L29-32` (4-phase 250 MHz ports); `tdc_unit_cont.vhd:L30,L35` (250 MHz clock, 64-bit `TDC_VERNIER_OUT`); `jta_vernier_pos_finder.vhd:L43` (`TDC_POS` 6-bit output → 64 positions over 4 ns = ~62.5 ps/tap; ~30 ps resolution from 4-phase combination)
 
 At the end of each 2 µs cycle, the **master state machine** (`mstr_mach`) collects available algorithm results and writes them into the outgoing command frames:
 ```

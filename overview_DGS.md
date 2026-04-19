@@ -41,10 +41,10 @@ DGS is a full software+firmware+hardware stack:
                            │ DVI-I cable (signals + power + comms)
                            ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│  COLLECTOR BOX — CollectorBox_RevA  (4 boxes × 28 detectors)     │
+│  COLLECTOR BOX — CollectorBox_RevA  (4 boxes, 25–30 dets each)    │
 │  Aggregates SBX signals; routes to VME crate digitizers          │
 │  Controlled by Raspberry Pi soft IOC (collectorboxpi/)           │
-│  EPICS PVs: HV, temp, BGO, FET bias, fan speed (1431 PVs/det)   │
+│  EPICS PVs: HV, temp, BGO, FET bias, fan speed (815 PVs/det) ✅ verified 2026-04-18 — st_201.cmd: 8 DBs per det (Pickoff.db:448 + Pickoff_reg.db:264 + DetSpec.db:2 + HV_STEP.db:9 + PickoffDiagCtl.db:40 + PowerBoardCalcChain.db:10 + PreampCalcChain.db:16 + SlopeBox.db:26 = 815)   │
 └──────────────────────────┬───────────────────────────────────────┘
                            │ differential analog → VME
                            ▼
@@ -122,8 +122,8 @@ DGS is a full software+firmware+hardware stack:
 | dgs2 | .123 | Rocky 8.7 | Main DAQ (4TB SSD) |
 | dgs4 | .125 | SL 7.9 | — |
 | dgs6 | .184 | Rocky 8.7 | — |
-| gs-ts-south | .186 | — | Terminal server south (even GS IDs) |
-| gs-ts-north | .91 | — | Terminal server north (odd GS IDs) |
+| gs-ts-south | .186 | — | Terminal server south (even GS IDs) | ✅ verified 2026-04-19 — `ANLDAQ/EPICS_para.sh:L47`
+| gs-ts-north | .91 | — | Terminal server north (odd GS IDs) | ✅ verified 2026-04-19 — `ANLDAQ/EPICS_para.sh:L47`
 | gs-csw | .26 | — | Collector box south-west |
 | gs-cse | .42 | — | Collector box south-east |
 | gs-cne | .88 | — | Collector box north-east |
@@ -137,8 +137,8 @@ DGS is a full software+firmware+hardware stack:
 | piserver1 | .154 | Ubuntu 20.04 | Pi PXE server |
 | gs-pdu-north | .224 | — | Power strip north |
 | gs-pdu-south | .225 | — | Power strip south |
-| fs2.onenet | .71 | — | NFS/tftp server for collector Pis |
-| Einstor | .1 | — | DHCP server (ANL-managed) |
+| fs2.onenet | .71 | — | NFS/tftp server for collector Pis | ✅ verified 2026-04-19 — `collectorboxpi/README.md:L287` (`nfsroot=192.168.203.71:/mnt/vol1/fs2/nfs/piserver/...`)
+| Einstor | .1 | — | DHCP server (ANL-managed) | ✅ verified 2026-04-19 — `collectorboxpi/README.md:L255` (`Einstor, 192.168.203.1`)
 
 ### Test Stand / Dev
 
@@ -195,12 +195,12 @@ DGS is a full software+firmware+hardware stack:
 
 ## Firmware Versions (Current / Active)
 
-| Board | Date | Revision | Config |
-|-------|------|----------|--------|
-| MTRG | 0x1022 | 0x04A8 | TAC2 + Trigger Hold-Off | ✅ verified 2026-04-08 — `ioc/README.md:L26` |
-| RTRG | 0x0414 | 0x260E | Old but working | ✅ verified 2026-04-08 — `ioc/README.md:L27` |
-| MDIG | 20250704 | 0x4CD8 | — | ✅ verified 2026-04-08 — `ioc/README.md:L28` |
-| SDIG | 20250704 | 0x4CD8 | — | ✅ verified 2026-04-08 — `ioc/README.md:L29` |
+| Board | Date | Revision | Config | Source |
+|-------|------|----------|--------|--------|
+| MTRG | 0x1022 | 0x04A8 | TAC2 + Trigger Hold-Off | ✅ `ioc/README.md:L26` (2026-04-08) |
+| RTRG | 0x0414 | 0x260E | Old but working | ✅ `ioc/README.md:L27` (2026-04-08) |
+| MDIG | 20250704 | 0x4CD8 | — | ✅ `ioc/README.md:L28` (2026-04-08) |
+| SDIG | 20250704 | 0x4CD8 | — | ✅ `ioc/README.md:L29` (2026-04-08) |
 
 ---
 
@@ -210,7 +210,7 @@ DGS is a full software+firmware+hardware stack:
 - 4 manifolds × 28 valves = 112 solenoid valves ✅ verified 2026-04-16 — `lnfill.md` Physical System (`DetValve.py:L25` + `DetMan.py:L134`)
 - Fill detection: LED resistance change when LN reaches sensor
 - Controlled by `LNFill_App.py` on pi5 (192.168.203.58) ✅ verified 2026-04-16 — `lnfill.md` Computers table (`LNFill_ping_cron.sh:L19`)
-- Scheduled: 7am + 7pm daily; 15-min emergency fills for warm detectors ✅ verified 2026-04-16 — `lnfill.md` Cron Jobs (`lnfill/README.md:L105,L110`: `00 07,19 * * *`; `*/15 * * * *`)
+- Scheduled: 6am + 6pm daily; 15-min emergency fills for warm detectors ✅ verified 2026-04-18 — live pi5-lnFill crontab (`00 06,18 * * *`); README.md was stale (said 07,19)
 - Monitored via InfluxDB/Grafana on DCS2; alerts via Discord
 - Full details: `lnfill.md`
 

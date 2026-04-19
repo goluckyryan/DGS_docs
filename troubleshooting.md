@@ -133,8 +133,8 @@ Key issues documented:
 | `VMExx:MDIG1:trigger_mux_select_RBV` | Current trigger mode (ExtTTCL/IntAcptAll/etc) |
 | `VME99:MTRG:EN_NIM1_DELAY` | NIM In 1 delay enabled? |
 | `VMExx:MTRG:MISC_STAT` | NIM IN 1/2 state + misc status bits |
-| `GS${N}_SBX_Present` | Is SBX connected for this detector? |
-| `GS${N}_SlopeBoxGe_HV_On` | Is Ge HV on for this detector? |
+| `GS$(N)_SBX_Present` | Is SBX connected for this detector? |
+| `GS$(N)_SlopeBoxGe_HV_On` | Is Ge HV on for this detector? |
 | `DAQC$(CRATE)_OL_TotalBufsLost` | Total outLoop buffers lost (data loss counter) |
 | `DAQC$(CRATE)_CV_OutLoop{0-6}` | Per-board data lost in outLoop |
 | `DAQC$(CRATE)_OL_DataRate{0-6}` | Per-board output rate (kB/s) |

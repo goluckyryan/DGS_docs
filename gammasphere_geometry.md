@@ -2,7 +2,7 @@
 
 **Source:** `DGS_tools_pack/dgs_analysis/armory/parquet_pysort/angtheta.dat`
 
-Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 rings** at fixed polar angles θ from the beam axis. GS numbers are fixed — they identify the physical position in the array, not the crystal installed there.
+Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 rings** at fixed polar angles θ from the beam axis. GS numbers are fixed — they identify the physical position in the array, not the crystal installed there. ✅ verified 2026-04-18 — `dgs_analysis/armory/parquet_pysort/angtheta.dat` (110 lines, 17 unique θ values: 17.3°–162.7°)
 
 ✅ verified 2026-04-07 — `angtheta.dat`: 110 lines, 17 unique θ values, line N = GS hole N. Ring 1 (17.3°) = GS001–004,006 ✓; Ring 9 (90.0°) = GS049,051,053–058,060,062 ✓; all ring counts and angles match.
 
@@ -14,11 +14,11 @@ Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 
 |------|---------|-------------|----------|
 | 1 | 17.3° | 5 | GS001, GS002, GS003, GS004, GS006 | ✅ verified 2026-04-14 — `angtheta.dat` lines 1–6
 | 2 | 31.7° | 5 | GS005, GS007, GS008, GS009, GS010 | ✅ verified 2026-04-14 — `angtheta.dat` lines 5,7–10
-| 3 | 37.4° | 5 | GS011, GS012, GS013, GS014, GS016 |
+| 3 | 37.4° | 5 | GS011, GS012, GS013, GS014, GS016 | ✅ verified 2026-04-18 — `angtheta.dat` lines 11,12,13,14,16 all = 37.4
 | 4 | 50.1° | 10 | GS015, GS017, GS018, GS019, GS020, GS021, GS022, GS023, GS024, GS026 |
-| 5 | 58.3° | 5 | GS025, GS027, GS028, GS030, GS032 |
+| 5 | 58.3° | 5 | GS025, GS027, GS028, GS030, GS032 | ✅ verified 2026-04-18 — `angtheta.dat` lines 25,27,28,30,32 all = 58.3
 | 6 | 69.8° | 10 | GS029, GS031, GS033, GS034, GS035, GS036, GS037, GS038, GS040, GS042 | ✅ verified 2026-04-14 — `angtheta.dat` lines 29,31,33–38,40,42 all = 69.8
-| 7 | 79.2° | 5 | GS039, GS041, GS044, GS046, GS048 |
+| 7 | 79.2° | 5 | GS039, GS041, GS044, GS046, GS048 | ✅ verified 2026-04-18 — `angtheta.dat` lines 39,41,44,46,48 all = 79.2
 | 8 | 80.7° | 5 | GS043, GS045, GS047, GS050, GS052 | ✅ verified 2026-04-14 — `angtheta.dat` lines 43,45,47,50,52 all = 80.7
 | 9 | 90.0° | 10 | GS049, GS051, GS053, GS054, GS055, GS056, GS057, GS058, GS060, GS062 |
 | 10 | 99.3° | 5 | GS059, GS061, GS064, GS066, GS068 |
@@ -30,7 +30,7 @@ Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 
 | 16 | 148.3° | 5 | GS101, GS102, GS103, GS104, GS106 |
 | 17 | 162.7° | 5 | GS105, GS107, GS108, GS109, GS110 |
 
-**Total: 110 detectors, 17 rings**
+**Total: 110 detectors, 17 rings** ✅ verified 2026-04-18 — `angtheta.dat` (110 entries, 17 distinct polar angles)
 
 ---
 

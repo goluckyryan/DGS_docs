@@ -277,7 +277,7 @@ Interactive REPL for exploring `_dgs.parquet` (hit-level) or `_events.parquet` (
 |---------|-------------|
 | `plot1D [CS] <col\|expr> [bw [xmin xmax]] [G(<gate>)]` | 1D histogram |
 | `plot2D [col1 col2] [bw]` | 2D histogram (default: sum1 vs sum2) |
-| `plotGG [CS] <col> [bw [xmin xmax]] [G(<gate>)]` | Gamma-gamma coincidence 2D (event-level only) |
+| `plotGG [CS] <col> [bw [xmin xmax]] [G(<gate>)]` | Gamma-gamma coincidence 2D (event-level only) — builds all pairwise hit combinations per event into a symmetric 2D matrix ✅ verified 2026-04-18 — `dgs_analysis/working/README.md:L76-78` |
 | `plot <name> [name ...]` | Display stored histogram(s) |
 | `overlay <name> [name ...]` | Overlay multiple 1D histograms |
 
@@ -376,8 +376,16 @@ Note `e_raw/350` — divides raw sum by trapezoid gap (350 samples) to get per-s
 
 **Pipe via stdin:** `./working/parquetCLI data.parquet < commands.txt`
 
+#### Scripting — `if`/`endif` condition syntax
+`if <cond>` / `endif` conditions in custom scripts support:
+- `exists <name>` — true if a stored object named `<name>` exists
+- `not exists <name>`
+- `{VAR} == value`, `{VAR} != value`, `{VAR} > value`, etc.
+✅ verified 2026-04-18 — `dgs_analysis/working/README.md:L214-217`
+
 #### Interactive features
 - Tab completion (commands, columns, filenames)
+- **Argument hints** — press Tab at the start of each argument to see what's expected ✅ verified 2026-04-18 — `dgs_analysis/working/README.md:L229`
 - Persistent history (`parquetCLI.history`)
 - Rectangle zoom: left-drag to zoom, right-click to reset
 
@@ -630,100 +638,25 @@ Key improvements with ReadPool (vs without):
 | GEB binary data format + GEBHeader struct | `knowledgeBase/data_structures.md` |
 | Gammasphere geometry (GS hole → θ/φ, map.dat context) | `knowledgeBase/gammasphere_geometry.md` |
 | DIG firmware readout modes (source of raw GEB payloads) | `knowledgeBase/DIG_firmware_expert.md` |
+| ROOT analysis scripts (analyzer_*.cpp, Cali_e, checkTACFile, findMapping/findGS) | `knowledgeBase/dgs_analysis_root_scripts.md` |
+| gray_apps toolkit (GrayCAL, GrayMAN, grayfit) | `knowledgeBase/dgs_analysis_grayapps.md` |
 
 ---
 
-## analyzer_*.cpp — ROOT Analysis Scripts (fastEventConstructor)
+## analyzer_*.cpp — ROOT Analysis Scripts
 
-_Source: `dgs_analysis/armory/fastEventContructor/` — five ROOT CINT/compiled scripts. Documented 2026-04-17._
+> **Split to separate file** (2026-04-18) — see [`dgs_analysis_root_scripts.md`](dgs_analysis_root_scripts.md) for full documentation of:
+> - `analyzer.cpp` — standard γ-γ coincidence analysis
+> - `analyzer_tac.cpp` — TAC-II coincidence analysis
+> - `analyzer_trace.cpp` — waveform trace / PSD analysis
+> - `analyzer_pz_cal.cpp` — pole-zero calibration from traces
+> - `analyzer_script.cpp` — trace shape ROOT script
+> - `Cali_e.C` — interactive energy calibration (110 detectors)
+> - `checkTACFile.cpp` — TAC-II binary file validator
+> - `findMapping.sh` / `findGS.sh` — GS channel map tools
 
-These are **standalone ROOT analysis scripts** that work on event-built ROOT TTrees produced by the EventBuilder variants. They are not part of the automated pipeline — run interactively in ROOT or compiled.
+<!--  original section removed 2026-04-18; see dgs_analysis_root_scripts.md  -->
 
-### Common Infrastructure
+<!-- BEGIN REMOVED SECTION (kept as tombstone marker) -->
 
-**`analyzer.h`** — shared utilities:
-- `MWIN 350.0` — coincidence window constant (match window, units = 10 ns ticks, so 3.5 µs) ✅ verified 2026-04-17 — `analyzer.h:L16` (`#define MWIN 350.;`)
-- `ZeroCrossing()` — finds zero crossing of 2–3 (x,y) points using linear interpolation (2 pts) or quadratic fit (3 pts); used for CFD timing from trace samples ✅ verified 2026-04-17 — `analyzer.h:L18-50` (3-pt: quadratic Newton form; 2-pt: linear interp)
-
-**`misc.h`** — `LoadChannelMapFromFile()` — loads the GS hole → detector ID mapping from `angtheta.dat` / `map.dat`
-
-### analyzer.cpp — Standard Gamma-Gamma Analysis (347 lines)
-
-Main HPGe coincidence analysis. Reads a ROOT TTree with the standard event-built schema.
-
-**Branches used:** `NumHits`, `detID`, `energy` (long long), `eventTS`, `trigTS`, `CFD_sample_0/1/2`
-
-**Histograms produced:**
-| Histogram | Description |
-|-----------|-------------|
-| `he[110]` | Per-detector energy spectra (110 histograms) |
-| `heID` | Energy vs detector ID (2D, 200 bins × 110 dets) |
-| `heIDEven/Odd` | Energy vs det ID split south/north hemispheres |
-| `hTDiff[110]` | Per-detector time difference spectra |
-| `hMultiHits` | Gamma multiplicity distribution (up to 10) |
-| `hIDvID` | Det ID vs Det ID for multiplicity-2 events |
-| `hEE` | Energy-energy for multiplicity-2 events |
-| `hGG` | Energy-energy for two specific detectors (default: 70 vs 62) |
-| `hGTimeDiff` | Time difference between those two detectors |
-| `hTT1/hTT2` | Timestamp diffs from first hit of events |
-| `hTDiffHitOrder` | Time diff vs hit order for det 62 |
-| `hTDiffEnergy` | Time diff vs energy for det 62 |
-
-**Energy range:** 100–6000 a.u. (raw units, uncalibrated); **time range:** 0–600 ns.
-
-**CFD timing:** For each hit, uses `ZeroCrossing(CFD_sample_0/1/2, tick_offsets)` to compute sub-tick timing. Offset tick positions are derived from `eventTS` bits.
-
-**Hardcoded detector pair:** `detX=70, detY=62` (Gammasphere hole numbers) for the gated γ-γ analysis. ✅ verified 2026-04-17 — `analyzer.cpp:L32-33`
-
-### analyzer_tac.cpp — TAC-II Coincidence Analysis (265 lines)
-
-Analyzes TAC-II timing data in coincidence with HPGe hits. TAC hits are identified by `detID == 999`. ✅ verified 2026-04-17 — `analyzer_tac.cpp:L78`
-
-**Key histograms:**
-| Histogram | Description |
-|-----------|-------------|
-| `htacDiff` | TAC trigTime − det 62 trigTime (10 ns bins, ±10 µs range) |
-| `htacDiffID` | TAC time diff vs detector ID (2D) |
-| `hTrigTime` | Trigger time distribution (0–10 µs) |
-| `heventTStrigTSDiff` | eventTS − trigTS vs detector ID (timing offset map) |
-| `hTACMultiplicity` | TAC hit multiplicity per event |
-| `hTACMultiVsTimeDiff[7]` | TAC time diff to previous hit, per multiplicity level |
-| `heventTimeSpan` | Time span of hits within one coincidence event |
-
-**Event classification:** Each event is counted as one of four categories:
-- `withTACcount`: has both GS and TAC hits
-- `noTACcount`: GS only
-- `onlyTACcount`: TAC only (beam monitor without γ)
-- `noTACandGScount`: neither (should be rare)
-
-**Time units:** 10 ns ticks (20 ns clock → the DIG timestamp clock is 20 ns; trigTS is in those ticks).
-
-### analyzer_trace.cpp — Waveform Trace Analysis (324 lines)
-
-Analyzes waveform trace data stored in the ROOT tree (requires `saveTrace=true` during event building).
-
-**Key branches:** `tracePara[hit][param]`, `traceDetID` — trace parameters and associated detector.
-
-`tracePara` columns (GSL fit params, 4 values per hit) — ✅ verified 2026-04-17 — `EventBuilder_X.cpp:L25` + `analyzer_trace.cpp:L113-115`:
-- `[0]` = A — amplitude (proportional to energy)
-- `[1]` = T0 — timing offset from reference
-- `[2]` = riseTime — pulse rise time
-- `[3]` = B — baseline
-
-**Purpose:** Characterize pulse shape discrimination (PSD) — separates neutrons from gammas, or identifies pile-up. The `TCutG` graphical cuts in `analyzer_script.cpp` are drawn on `tracePara[0][1]` (T0) vs `tracePara[0][2]` (riseTime) to select "lower tail" and "high tail" events for a specific detector (`traceDetID == 12107`).
-
-### analyzer_pz_cal.cpp — Pole-Zero Calibration from Traces (155 lines)
-
-Extracts pole-zero correction parameters from waveform traces. Complements `pz_from_parquet.py` (which uses Parquet output). Works on ROOT TTree trace data.
-
-### analyzer_script.cpp — ROOT Script for Trace Shape Analysis (71 lines)
-
-Short ROOT CINT script demonstrating trace parameter analysis:
-- Opens `tac2_021_single.root`
-- Applies graphical cuts (`TCutG`: `lowerTail`, `highTail`) on `tracePara[0][1]` vs `tracePara[0][2]`
-- Plots energy vs trace shape parameters for detector `12107` with/without a 500 a.u. energy cut
-- **Purpose:** Inspect tail shape to separate full-energy peaks from Compton scatter or charge-loss events
-
----
-
-*Source: `DGS_tools_pack/dgs_analysis/` + `DGS_tools_pack/gebsort/`. Updated: 2026-04-07; analyzer_*.cpp section added 2026-04-17.*
+*Source: `DGS_tools_pack/dgs_analysis/` + `DGS_tools_pack/gebsort/`. Updated: 2026-04-18 (ROOT scripts split to dgs_analysis_root_scripts.md).*

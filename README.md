@@ -16,7 +16,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [overview_DGS.md](overview_DGS.md) | Full DGS (Gammasphere) system architecture, hardware inventory, IP map, subsystem map |
 | [overview_SmallSystem.md](overview_SmallSystem.md) | DuoGe (DUO) and X-Array (DXA) small system overviews |
 | [hardware_architecture.md](hardware_architecture.md) | Hardware breakdown: DuoGe vs DGS, signal chain, collector box architecture |
-| [reference_index.md](reference_index.md) | Index of schematics, datasheets, and PDF documentation |
+| [reference_index.md](reference_index.md) | Hardware drawings index: register map CSVs (DIG/MTRG/RTRG), schematics, PCB docs, datasheet locations |
 | [wiki_gsdaq.md](wiki_gsdaq.md) | Index of the ANL GS DAQ wiki with key facts and known inaccuracies |
 
 ### DAQ & Data Acquisition
@@ -30,6 +30,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [guceiver.md](guceiver.md) | Guceiver: live diagnostic GUI (waveform, spectrum, TAC-II, raw data) — connects to IOC TCP:9001 |
 | [dgs_analysis.md](dgs_analysis.md) | Post-experiment analysis pipeline: EventBuilder variants (Q, PQ — k-way merge, parallel, double-buffered), parquet_pysort, gray_apps summary, parquetCLI, gain_from_parquet.py, pz_from_parquet.py, RunParquet, ProcessRUN, GEB data format |
 | [dgs_analysis_grayapps.md](dgs_analysis_grayapps.md) | gray_apps full reference: GrayCAL (HPGe energy calibration GUI, core modules, polezero_dialog), GrayMAN (multi-peak spectrum analysis), grayfit (AutoFitter, FittingRunner, PeakFinder, pole_zero_fitter, FitResult hierarchy) — split from dgs_analysis.md |
+| [dgs_analysis_root_scripts.md](dgs_analysis_root_scripts.md) | ROOT analysis scripts (fastEventConstructor): analyzer.cpp (γ-γ coincidence), analyzer_tac.cpp (TAC-II), analyzer_trace.cpp (waveform/PSD), analyzer_pz_cal.cpp (PZ from traces), Cali_e.C (energy calibration, 110 dets), checkTACFile.cpp (TAC binary validator), findMapping.sh/findGS.sh (GS channel map tools) — split from dgs_analysis.md |
 | [gebsort.md](gebsort.md) | GEBSort: event builder/sorter, GEBMerge, DGS calibration workflow (find_MK, fwhm_onepeak, dgs_ecal), GEBSort.chat config |
 | [data_structures.md](data_structures.md) | Binary data structures: GEBHeader, DIG event payload (all 13 words, all HEADER_TYPE modes), TAC-II TDC, UniqueID convention, full event flow |
 | [run_procedures.md](run_procedures.md) | Typical DGS run procedures: directory setup, GEBSort, PZ/energy calibration workflow |

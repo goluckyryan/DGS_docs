@@ -26,7 +26,7 @@ Key signal ports (clocks `mclk`, `LVDS_RCLK`, and reset `mrst` omitted):
 | `Y_PLANE_COUNT` | out | 4 | Popcount of Y-plane hits (0–10) |
 | `COARSE_GE_SUM` | out | 3 | Sum of fast/coarse Ge disc bits [4:0] (bypasses clock-crossing FIFO) |
 | `LIVE_CHANNEL_VETO` | out | 10 | Per-Ge-channel veto requests driven by DIRTY/BGO-only events |
-| `RAW_DATA_OUT` | out | 16 | Either DELAYED_DATA (DGS mode) or RECOVERED_DATA |
+| `RAW_DATA_OUT` | out | 16 | Either DELAYED_DATA (DGS mode) or RECOVERED_DATA ✅ verified 2026-04-19 — `chan_in.vhd:L220` (`RECOVERED_DATA(15:10) & DELAYED_DATA` when `CLEAN_DIRTY(15)=1`, else `RECOVERED_DATA`) |
 
 ## Digitizer Data Word Format (18 bits)
 ```
@@ -47,9 +47,9 @@ After DCBAL_IN removes DC balance, RECOVERED_DATA[15] = FLG, [14:10] = coarse Ge
 - **plane_bit_count (U2, U3)**: LUT popcount over 10 bits → 4-bit count for X and Y planes respectively.
 
 ### REMAP_BITS_PROC state machine (3 states)
-- **IDLE**: Zero all outputs. Exits to WAIT_DIG_FLAG when `INPUT_MASK='0'`.
-- **WAIT_DIG_FLAG**: Hold zeros. Advances to REMAP_BITS only when `RECOVERED_DATA[15]` (FLG) = '1'. This synchronizes all Router channels to the same data boundary.
-- **REMAP_BITS**: Runs continuously. Masks discriminator bits against X_PLANE_MAP / Y_PLANE_MAP. If `CLEAN_DIRTY(15)='1'`, uses `DELAYED_DATA` (bit-delay compensated); else uses `RECOVERED_DATA`. Also drives `ANY_X` / `ANY_Y` flags.
+- **IDLE**: Zero all outputs. Exits to WAIT_DIG_FLAG when `INPUT_MASK='0'`. ✅ verified 2026-04-19 — `chan_in.vhd:L546-560` (REMAP_STATE <= IDLE reset, IDLE→WAIT_DIG_FLAG when not masked)
+- **WAIT_DIG_FLAG**: Hold zeros. Advances to REMAP_BITS only when `RECOVERED_DATA[15]` (FLG) = '1'. This synchronizes all Router channels to the same data boundary. ✅ verified 2026-04-19 — `chan_in.vhd:L565-573` (WAIT_DIG_FLAG: `if RECOVERED_DATA(15)='1' then REMAP_BITS`)
+- **REMAP_BITS**: Runs continuously. Masks discriminator bits against X_PLANE_MAP / Y_PLANE_MAP. If `CLEAN_DIRTY(15)='1'`, uses `DELAYED_DATA` (bit-delay compensated); else uses `RECOVERED_DATA`. Also drives `ANY_X` / `ANY_Y` flags. ✅ verified 2026-04-19 — `chan_in.vhd:L580-600` (X_BITS <= X_PLANE_MAP AND RECOVERED_DATA(9:0); stays in REMAP_BITS forever until reset)
 
 ### ONE_SHOTS process
 Each of the 5 disc_mach pairs feeds three retriggerable one-shots (HAVE_CLEAN, HAVE_DIRTY, HAVE_MODULE). Timer width = 7 bits (ASSERTION_DELAY = TSCATTER_DELAY_REG[14:8], max 127 clocks). If a new event arrives before the timer expires, it restarts. Clover mode has only HAVE_CLOVER_CLEAN and HAVE_CLOVER_DIRTY.
@@ -61,14 +61,17 @@ Each of the 5 disc_mach pairs feeds three retriggerable one-shots (HAVE_CLEAN, H
 | 0001 | `HAVE_CLEAN[4:0]` (DGS clean) | HAVE_CLEAN |
 | 0010 | `HAVE_DIRTY[4:0]` (DGS dirty) | HAVE_DIRTY |
 | 0100 | `HAVE_MODULE[4:0]` (DGS module) | HAVE_MODULE |
+| 0101 | `HAVE_BGO_ONLY[4:0]` (DGS BGO tuning mode) | HAVE_BGO_ONLY |
 | 1000 | `HAVE_CLOVER_CLEAN` (Clover) | HAVE_CLOVER_DIRTY |
 
 `CLEAN_DIRTY(15)='1'` additionally switches raw bit source to delay-corrected `DELAYED_DATA`.
 
+✅ verified 2026-04-19 — `chan_in.vhd:L507-518` (X_SELECT/Y_SELECT mux: all 5 modes + DFMA default; added BGO-only mode 0101 confirmed at L510/517, added 2023-04-27 per header comment L501)
+
 ### VETO_GEN_PROC
-When ENABLE_VETO='1':
-- `LIVE_CHANNEL_VETO[10:6]` ← DIRTY_EVENT[4:0] (Ge center channels)
-- `LIVE_CHANNEL_VETO[5:1]` ← DIRTY_EVENT[4:0] OR BGO_ONLY_EVENT[4:0] (BGO channels)
+When ENABLE_VETO='1': ✅ verified 2026-04-19 — `chan_in.vhd:L438-461`
+- `LIVE_CHANNEL_VETO[10:6]` ← DIRTY_EVENT[4:0] (Ge center channels) ✅ verified 2026-04-19 — `chan_in.vhd:L446-450`
+- `LIVE_CHANNEL_VETO[5:1]` ← DIRTY_EVENT[4:0] OR BGO_ONLY_EVENT[4:0] (BGO channels) ✅ verified 2026-04-19 — `chan_in.vhd:L454-458`
 
 ### COARSE_GE_SUM
 5-bit sum of `FAST_D_OUT[14:10]` (coarse Ge bits), added one bit at a time into a 3-bit result. Zeroed if INPUT_MASK='1'. Low-latency path (bypasses FIFO). ✅ verified 2026-04-16 — `chan_in.vhd:L211-213` (`COARSE_GE_BITS <= FAST_D_OUT(14 downto 10)` when not masked; sum is bitwise add of 5 bits into 3-bit result)

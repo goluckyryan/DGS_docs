@@ -99,6 +99,7 @@ RTRG/
 | File | Description |
 |------|-------------|
 | `throttle_limiters.vhd` | Filters throttle requests from 8 Digitizers; requires continuous assertion for programmable time; stretches valid requests to >2 µs pulses ✅ verified 2026-04-14 — `throttle_limiters.vhd:L23-26,L80` ("minimum assertion time of 2us"; `COUNTER_START=400` @ 50 MHz = 2 µs) |
+| `throttle_monos.vhd` | Per-channel retriggerable monostable stretcher: generates 2 µs pulse for each of the 8 Digitizer throttle requests on `SPARE_LVDS[8:1]`, ensuring any request (even a 20 ns glitch) propagates to the MTRG. Also produces `ANY_THROTTLE_REQ_OUT` with programmable width (`ANY_THROTTLE_WIDTH_REG`). `COUNTER_START=400` (400 × 20 ns = 2 µs). `MISC_CTL2_REG[9]` = force all on; `[8]` = block all; `INPUT_LINK_MASK_REG` prevents masked channels from requesting throttle. ✅ verified 2026-04-19 — `throttle_monos.vhd:L8-18,L50-60,L62` (entity ports + COUNTER_START=400 comment: "2us @ 50MHz") |
 
 ### Link Management
 | File | Description |
@@ -236,15 +237,15 @@ The Router **extracts** the per-channel veto mask (`VETO[9:0]`) from bits [9:0] 
 
 | Address | Register | Description |
 |---------|----------|-------------|
-| 0x100 | LOCK_BUS | Lock status of all 11 links |
-| 0x104–0x10C | DEN/REN/SYNC_BUS | Link enable/sync status |
-| 0x114–0x11C | TIMESTAMP[47:0] | Current 48-bit timestamp (3 words) |
-| 0x128 | MISC_STAT | See bit map below |
-| 0x12C–0x148 | DIAG_COUNTER[1–8] | Diagnostic counters per channel |
+| 0x100 | LOCK_BUS | Lock status of all 11 links | ✅ verified 2026-04-19 — `TOP.VHD:L2357` (`REG_100_IN => LOCK_BUS`; L980-989 builds LOCK_BUS from xLINKA_LOCK…xLINKL_LOCK) |
+| 0x104–0x10C | DEN/REN/SYNC_BUS | Link enable/sync status | ✅ verified 2026-04-19 — `TOP.VHD:L2358-2360` (`REG_104_IN => DEN_BUS`, `REG_108_IN => REN_BUS`, `REG_10C_IN => SYNC_BUS`) |
+| 0x114–0x11C | TIMESTAMP[47:0] | Current 48-bit timestamp (3 words) | ✅ verified 2026-04-19 — `TOP.VHD:L2362-2364` (`REG_114_IN => TIMESTAMP(47:32)`, `REG_118_IN => TIMESTAMP(31:16)`, `REG_11C_IN => TIMESTAMP(15:0)`) |
+| 0x128 | MISC_STAT | See bit map below | ✅ verified 2026-04-19 — `TOP.VHD:L2367` (`REG_128_IN => MISC_STAT_REG`) |
+| 0x12C–0x148 | DIAG_COUNTER[1–8] | Diagnostic counters per channel | ✅ verified 2026-04-19 — `TOP.VHD:L2368-2375` (`REG_12C_IN => DIAG_COUNTER(1)` … `REG_148_IN => DIAG_COUNTER(8)`) |
 | 0x150 | THROTTLE_STATUS | Per-channel throttle status | ✅ verified 2026-04-09 — `TOP.VHD:L2315` (`REG_150_IN => THROTTLE_STATUS`) — both in `Rtr4704_mod_for_reset` (0x260E) and `20220705` tag |
 | 0x158 | CODE_DATE | Firmware build date — `0x0414` (April 14) ✅ verified 2026-04-06 — TOP.VHD:L392 |
 | 0x15C | CODE_REVISION | Code revision — `0x260E`: bits[15:12]=2 (PCB rev B), bits[11:8]=6 (DGS Router), bits[7:4]=0 (major), bits[3:0]=E (minor) ✅ verified 2026-04-06 — TOP.VHD:L369,L371–390 |
-| 0x1B0–0x1CC | LOCK_COUNTER[1–8] | Lock event counters per link |
+| 0x1B0–0x1CC | LOCK_COUNTER[1–8] | Lock event counters per link | ✅ verified 2026-04-19 — `TOP.VHD:L2384-2391` (`REG_1B0_IN => LOCK_COUNTER(1)` … `REG_1CC_IN => LOCK_COUNTER(8)`) |
 
 ### MISC_STAT Register Bit Map (RTRG)
 

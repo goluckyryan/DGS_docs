@@ -136,14 +136,14 @@ All registers are 16-bit, A16/D16. Addresses in hex.
 | 0x0600 | R | `code_revision` | Firmware revision |
 | 0x0604 | R | `code_date` | Compilation date (MMDD) |
 | 0x0606 | R | `code_year` | Compilation year (YYYY) |
-| 0x0700 | R | `NIM_input_status` | Current state of all NIM inputs |
+| 0x0700 | R | `NIM_input_status` | Current state of all NIM inputs ✅ verified 2026-04-19 — `registers.vhd:L257` (`when X"0700" => VME_DATA_OUT <= NIM_STATUS`) |
 | 0x0702 | RW | `GATING_REG` | Coincidence starting trigger select: bit 0 = use NIM In 0 as starting trigger; bit 1 = use SERDES trigger from master as starting trigger. (NIM Out 0/1 are hardwired echoes, not controlled by this register.) ✅ verified 2026-04-08 — MYRIAD_Module_Specification.pdf §3.4 |
-| 0x0704 | R | `ECL_input_status_A` | Current state of ECL data inputs |
-| 0x0706 | R | `ECL_input_status_B` | Current state of ECL control inputs |
-| 0x0708 | R | `LATCHED_TIMESTAMP_A` | Timestamp bits 47:32 (latched on NIM In 0) |
-| 0x070A | R | `LATCHED_TIMESTAMP_B` | Timestamp bits 31:16 |
-| 0x070C | R | `LATCHED_TIMESTAMP_C` | Timestamp bits 15:0 |
-| 0x070E | RW | `SerDes_COMMAND_FORMAT` | Select DGS or GRETINA command format |
+| 0x0704 | R | `ECL_input_status_A` | Current state of ECL data inputs ✅ verified 2026-04-19 — `registers.vhd:L260` (`when X"0704" => VME_DATA_OUT <= ECL_STATUS_A`) |
+| 0x0706 | R | `ECL_input_status_B` | Current state of ECL control inputs ✅ verified 2026-04-19 — `registers.vhd:L261` (`when X"0706" => VME_DATA_OUT <= ECL_STATUS_B`) |
+| 0x0708 | R | `LATCHED_TIMESTAMP_A` | Timestamp bits 47:32 (latched on NIM In 0) ✅ verified 2026-04-19 — `registers.vhd:L262` (`when X"0708" => VME_DATA_OUT <= REG_708 -- RELATCHED_TIMESTAMP(47 downto 32)`) |
+| 0x070A | R | `LATCHED_TIMESTAMP_B` | Timestamp bits 31:16 ✅ verified 2026-04-19 — `registers.vhd:L263` |
+| 0x070C | R | `LATCHED_TIMESTAMP_C` | Timestamp bits 15:0 ✅ verified 2026-04-19 — `registers.vhd:L264` |
+| 0x070E | RW | `SerDes_COMMAND_FORMAT` | Select DGS or GRETINA command format ✅ verified 2026-04-19 — `registers.vhd:L265` (`when X"070E" => VME_DATA_OUT <= REG_70E_IN -- SERDES_COMMAND_FORMAT`) |
 | 0x0710 | R | `Coincidence_window_delay` | Delay after local trigger before coincidence window opens (×20 ns) |
 | 0x0712 | R | `coincidence_window_width` | Width of coincidence gate for GS trigger match |
 | 0x0714 | R | `LIVE_TIMESTAMP_A` | Running timestamp bits 47:32 |
@@ -156,12 +156,12 @@ All registers are 16-bit, A16/D16. Addresses in hex.
 | 0x0724 | R | `MISSED_TRIG_COUNT` | Counter of missed re-issued trigger messages |
 | 0x0726 | R | `DLYD_TRIG_ERR_COUNT` | Counter of re-issued trigger errors |
 | 0x0728 | RW | `PROPAGATION_CONTROL` | Controls SerDes command processing |
-| 0x07EC | R | `FIFO_COUNTER` | Number of triggers stored in FIFO |
-| 0x07EE | R | `TRIG_COUNTER` | Total triggers received |
-| 0x07F2–0x07Fe | R | `USER_COUNTER_0–6` | Edge counters for NIM inputs 0–6 |
-| 0x0800 | R | `USER_COUNTER_7` | Edge counter for NIM input 7 |
+| 0x07EC | R | `FIFO_COUNTER` | Number of triggers stored in FIFO ✅ verified 2026-04-19 — `registers.vhd:L280` (`when X"07EC" => VME_DATA_OUT <= std_logic_vector(FIFO_COUNTER)`) |
+| 0x07F0 | R | `TRIG_COUNTER` | Total triggers received ✅ verified 2026-04-19 — `registers.vhd:L281` (`when X"07F0"`); **KB previously said 0x07EE — corrected** |
+| 0x07F2–0x07Fe | R | `USER_COUNTER_0–6` | Edge counters for NIM inputs 0–6 ✅ verified 2026-04-19 — `MyRIAD.vhd:L910` (`USER_COUNTERs reads back at 0x07F2 - 0x0800`; 8 total NIM input counters) |
+| 0x0800 | R | `USER_COUNTER_7` | Edge counter for NIM input 7 ✅ verified 2026-04-19 — `MyRIAD.vhd:L910` (0x0800 = last of 8 USER_COUNTERs driven by `NIM_IN` rising edges, L997–1005) |
 | 0x0848 | RW | `sd_config` | SerDes configuration register |
-| 0x0860–0x0866 | R | RESERVED | Reserved for future use |
+| 0x0860–0x0866 | R | TDC vernier data | 4 × 16-bit TDC vernier words (bits 63:48, 47:32, 31:16, 15:0) ✅ verified 2026-04-19 — `registers.vhd:L296-299` (`TDC_VERNIER(63 downto 48/47 downto 32/31 downto 16/15 downto 0)`) |
 | 0x0900 | RW | `fpga_ctrl_reg` | Main FPGA configuration control |
 | 0x0902 | R | `vme_status` | VME FPGA status |
 | 0x0904 | R | `vme_aux_status` | VME FPGA auxiliary status |

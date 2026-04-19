@@ -210,7 +210,7 @@ The Ctrl FPGA and Stripe FPGA (SBX) use a **DPRAM-based I2C state machine** to d
 
 ### 32-bit Opcode Format
 
-Each DPRAM word is 32 bits, split as UPPER_16 (bits[31:16]) and LOWER_16 (bits[15:0]):
+Each DPRAM word is 32 bits, split as UPPER_16 (bits[31:16]) and LOWER_16 (bits[15:0]): ✅ verified 2026-04-18 — `I2C_Compiler/main.c:L925-927,L935-942,L965-966,L988-989`
 
 **UPPER_16:**
 | Bits | Field | Description |
@@ -263,14 +263,6 @@ The same I2C engine + opcode format is used in **both the SBX Stripe FPGA and th
 
 ---
 
-## Related Files
-- `collectorboxpi.md` — Pi IOC that controls the SBX
-- `collectorbox_PVs.md` — full PV list including Pickoff records
-- `DIG_firmware_expert.md` — Preamp Reset Kill details
-- `gammasphere_geometry.md` — GS hole numbering (what GS_ID dongle reports)
-
----
-
 ## SVN Location
 `DGS_tools_pack/DGS_SVN/dgs/SlopeBoxExtension/`  
 `DGS_tools_pack/DGS_SVN/dgs/SlopeBoxInterface/`
@@ -285,5 +277,6 @@ The same I2C engine + opcode format is used in **both the SBX Stripe FPGA and th
 - `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC; controls BGO HV via pickoff card
 - `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support; SPI protocol to pickoff card
 - `knowledgeBase/collectorbox_PVs.md` — Full PV list including BGO HV, SBX presence, slope box PVs
+- `knowledgeBase/DIG_firmware_expert.md` — Preamp Reset Kill (PRK) details; ADC threshold detection and kill state
 - `knowledgeBase/hardware_architecture.md` — Signal chain overview: detector → slope box → pickoff → collector FPGA → digitizer
 - `knowledgeBase/gammasphere_geometry.md` — GS hole numbering system used for GS_ID dongle addressing

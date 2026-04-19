@@ -117,7 +117,7 @@ _Explored: 2026-04-18_
 The following tables give exact FPGA register addresses used by the ADC scanner for each slot.
 Note: Slots are addressed in the order S1, S3, S5, S2, S4, S6 (odd slots first).
 
-**ADC Temperature (`ADC_TEMP_ADDR`):**
+**ADC Temperature (`ADC_TEMP_ADDR`):** ✅ verified 2026-04-19 — `TEMP.c:L1-8` (exact addresses match)
 | Slot | Addr |
 |------|------|
 | S1 | 147 |
@@ -127,7 +127,7 @@ Note: Slots are addressed in the order S1, S3, S5, S2, S4, S6 (odd slots first).
 | S4 | 231 |
 | S6 | 252 |
 
-**ADC Gain (`ADC_GAIN_ADDR`):**
+**ADC Gain (`ADC_GAIN_ADDR`):** ✅ verified 2026-04-19 — `GAIN.c:L1-8`
 | Slot | Addr |
 |------|------|
 | S1 | 148 |
@@ -137,7 +137,7 @@ Note: Slots are addressed in the order S1, S3, S5, S2, S4, S6 (odd slots first).
 | S4 | 232 |
 | S6 | 253 |
 
-**ADC Offset (`ADC_OFFSET_ADDR`):**
+**ADC Offset (`ADC_OFFSET_ADDR`):** ✅ verified 2026-04-19 — `OFFSET.c:L1-8`
 | Slot | Addr |
 |------|------|
 | S1 | 145 |
@@ -147,7 +147,7 @@ Note: Slots are addressed in the order S1, S3, S5, S2, S4, S6 (odd slots first).
 | S4 | 229 |
 | S6 | 250 |
 
-**ADC Reference (`ADC_REF_ADDR`):**
+**ADC Reference (`ADC_REF_ADDR`):** ✅ verified 2026-04-19 — `REF.c:L1-8`
 | Slot | Addr |
 |------|------|
 | S1 | 149 |
@@ -157,7 +157,7 @@ Note: Slots are addressed in the order S1, S3, S5, S2, S4, S6 (odd slots first).
 | S4 | 233 |
 | S6 | 254 |
 
-**48V Current Monitor per DVI (`FPGA_IMON_ADDR`, indexed 1–30, 5 DVIs × 6 slots):**
+**48V Current Monitor per DVI (`FPGA_IMON_ADDR`, indexed 1–30, 5 DVIs × 6 slots):** ✅ verified 2026-04-19 — `IMON.c:L1-30` (S1=134-138, S3=155-159, S5=176-180, S2=197-201 reversed, S4=218-222 reversed, S6=239-243 reversed)
 | Index | Signal | Addr |
 |-------|--------|------|
 | 1–5 | S1_DVI1–DVI5_48V_I | 134–138 |
@@ -167,7 +167,7 @@ Note: Slots are addressed in the order S1, S3, S5, S2, S4, S6 (odd slots first).
 | 15–11 | S4_DVI5–DVI1_48V_I | 218–222 (reversed) |
 | 30–26 | S6_DVI5–DVI1_48V_I | 239–243 (reversed) |
 
-**Voltage Monitors (`FPGA_VOLTAGE_ADDR`, 12V/2.5V/3.3V per slot + BGO rails):**
+**Voltage Monitors (`FPGA_VOLTAGE_ADDR`, 12V/2.5V/3.3V per slot + BGO rails):** ✅ verified 2026-04-19 — `VMON.c:L1-21`
 | Slot / Rail | 12V addr | 25V addr | 33V addr |
 |-------------|----------|----------|----------|
 | S1 | 141 | 142 | 143 |
@@ -178,7 +178,7 @@ Note: Slots are addressed in the order S1, S3, S5, S2, S4, S6 (odd slots first).
 | S6 | 246 | 247 | 248 |
 | BGO_FPGA | 249 | 245 | 244 |
 
-**Ground Fault Current per DVI (`FPGA_GNDFAULT_I_ADDR`, 5 per slot):**
+**Ground Fault Current per DVI (`FPGA_GNDFAULT_I_ADDR`, 5 per slot):** ✅ verified 2026-04-19 — `GF_I.c:L1-30`
 | Slots | DVI1–DVI5 Addr Range |
 |-------|---------------------|
 | S1 | 129–133 |
@@ -199,18 +199,29 @@ Note: Slots are addressed in the order S1, S3, S5, S2, S4, S6 (odd slots first).
 
 ### Register Map Summary
 
-Per-slot registers at addresses 64–127 (8 registers × 8 addresses per slot):
+Per-slot registers at addresses 64–111 (8 registers × 6 slots, base 64 + slot_offset×8): ✅ verified 2026-04-18 — `collectorboxpi/Pre_EPICS_Collector/SPI_Address.md` (Stripe FPGA Register Map)
 
 | Offset | Name | Function |
 |--------|------|----------|
 | +0 | `relay_control_sx` | Ground test current injection relay enable (per channel) |
 | +1 | `stripe_control_sx` | Stripe control |
-| +2 | `tristate_control_sx` | Tristate control |
+| +2 | `tristate_control_sx` | SBX port tristate controls |
 | +3 | `stripe_status_sx` | Stripe status (readback) |
-| +4 | `led_control_sx_1` (odd slots S1/S3/S5) or `sandbox_reg_sx_1` | LED control or sandbox register |
-| +5 | `led_control_sx_2` / `sandbox_reg_sx_2` | LED control 2 / sandbox |
-| +6 | `reserved_sx` | Reserved |
-| +7 | (additional) | — |
+| +4 | `led_control_sx_1` (odd slots S1/S3/S5) or `sandbox_reg_sx_1` | LED control 1 (odd slots only; sandbox stub on even slots) |
+| +5 | `led_control_sx_2` / `sandbox_reg_sx_2` | LED control 2 (odd slots) / sandbox |
+| +6 | `reserved_sx` | Reserved (nominally CODE_DATE but may be repurposed) |
+| +7 | `code_revision_sx` | FPGA firmware build number (read-only) |
+
+**Exact base addresses per slot:**
+
+| Slot | Base addr | relay_control | stripe_control | tristate_control | stripe_status | code_revision |
+|------|-----------|--------------|----------------|-----------------|--------------|---------------|
+| S1 | 64 | 64 | 65 | 66 | 67 | 71 |
+| S2 | 72 | 72 | 73 | 74 | 75 | 79 |
+| S3 | 80 | 80 | 81 | 82 | 83 | 87 |
+| S4 | 88 | 88 | 89 | 90 | 91 | 95 |
+| S5 | 96 | 96 | 97 | 98 | 99 | 103 |
+| S6 | 104 | 104 | 105 | 106 | 107 | 111 |
 
 **Relay control** (`irly_sx_N`): Enables ground test current injection per channel per slot. `GS${DetNbr}_irly_s1_1` through `irly_s6_N`.
 

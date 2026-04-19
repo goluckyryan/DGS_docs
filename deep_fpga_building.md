@@ -108,12 +108,58 @@ Open in ISE 13.4 (`Work13_4/Work13_4.xise`), select the desired testbench as the
 
 This simulation shares the same `trigger_top` component and `BUILD_TYPE` encoding as the production MTRG firmware (`BUILD_TYPE=4` for DGS Master Trigger) ✅ verified 2026-04-18 — `crate_def_tb.vhd:L36,L42`. It was used during development to validate the SERDES link initialization protocol and command routing logic without requiring physical hardware.
 
+## Firmware_Tags Archive (`FPGA/Firmware_Tags/`)
+
+`DGS_tools_pack/FPGA/Firmware_Tags/` is a **historical firmware release archive** — frozen snapshots of firmware at key experiment/release milestones. Unlike the live `FPGA/DIG/`, `FPGA/MTRG/`, `FPGA/RTRG/` source trees, these are point-in-time copies of compiled bitfiles and sometimes source. Useful for reproducing past configurations or tracking firmware evolution.
+
+_Source: `DGS_tools_pack/FPGA/Firmware_Tags/` (explored 2026-04-19)_
+
+### Directory Structure
+
+| Subdirectory | Contents |
+|---|---|
+| `Digitizer/MAIN_FPGA_TAGS/` | 28 DIG Main FPGA tags (20140613–20230809) + named branches (HELIOS, EXPERIMENT_*, Release_*) |
+| `Digitizer/VME/` | DIG VME FPGA tags |
+| `Digitizer/HELIOS/` | HELIOS experiment DIG variant (includes `dg pulse estimator.xls`, simulation configs) |
+| `Digitizer/VME_FPGA_LBL/` | Lawrence Berkeley Lab DIG VME FPGA (historical reference) |
+| `MasterTrigger/` | 17 MTRG Main FPGA tags (20140318–20220705) + `DGS/`, `DFMA/`, `JTA_TEMP_BRANCH/` |
+| `MasterTrigger/VME_FPGA/` | MTRG VME FPGA older tags |
+| `MasterTrigger/VME_FPGA_20250822/` | **Most recent MTRG VME FPGA** — `20250511.mcs` (May 2025), plus ChipScope, Cores, Source, Work13.4 ✅ verified 2026-04-19 — file listing confirmed |
+| `Router/` | 8 RTRG tags (20140613–20220705) + `DGS/`, `DFMA/`, `Release_*` |
+| `SBX/tag_20221020/` | Slope Box FPGA (SBX): `20221020.mcs`, `slopeboxint.bit`, ISE project files |
+| `TriggerCPLD/20140613/` | CPLD firmware: `fast_strb.jed` (JEDEC format, 2014) |
+| `TriggerVME/20140613/` | Trigger VME FPGA: `VME.mcs`, `VME.cfi`, `VME.prm`, `VME.sig` (2014) |
+
+### Key Notes
+
+- **MCS files** = Xilinx PROM programming files (used with iMPACT to flash hardware)
+- **JED files** = JEDEC format for CPLD programming (used with iMPACT for CPLD)
+- **BIT files** = raw FPGA configuration bitstream (used in ISE/iMPACT for direct FPGA config)
+- The most recent DIG Main FPGA tag in this archive is **20230809** (currently deployed on production Gammasphere: rev `0x4CD8`)
+- The most recent MTRG VME FPGA tag is **20250511.mcs** (inside `VME_FPGA_20250822/`)
+- The TriggerCPLD and TriggerVME entries are from 2014 — the CPLD handles fast-strobe logic on the trigger board
+- `SBX/` contains the Slope Box FPGA — separate from the main trigger chain; used for preamp slope adjustment
+
+### Digitizer Tag Timeline (MAIN_FPGA_TAGS)
+
+Selected milestones (from directory names):
+
+| Tag | Notes |
+|---|---|
+| `EXPERIMENT_SEP_2012` | Earliest archived experiment tag |
+| `Release_20130829` | First named release |
+| `Release_20140318` | Also present in MasterTrigger and Router |
+| `20180507` | Present in DIG, MTRG, RTRG — major synchronized release |
+| `20211118` | **Currently deployed DIG Main FPGA** (rev `0x4CD8`) |
+| `20230809` | Most recent archived DIG tag (not yet deployed on production) |
+
 ## Cross-References
 
 - `knowledgeBase/fpga.md` — FPGA system overview: which firmware runs on which device
 - `knowledgeBase/deep_fpga_DIG.md` — DIG firmware: ISE 14.7 Spartan-3 project, build branches
 - `knowledgeBase/deep_fpga_MTRG.md` — MTRG overview: ISE / Vivado projects, 3 devices
 - `knowledgeBase/deep_fpga_MTRG_VIVADO.md` — MTRG Vivado port: Kintex UltraScale build details
+- `knowledgeBase/deep_fpga_MTRG_VME.md` — MTRG VME FPGA: Spartan-3 VME interface firmware + tag history
 - `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: Virtex-4, ISE project
 - `knowledgeBase/vxworks.md` — VxWorks cross-compilation (IOC driver side of the build chain)
 

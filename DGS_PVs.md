@@ -2,7 +2,7 @@
 
 Source: `DGS_tools_pack/ioc/db/*.template` + `boot/vme*.cmd`
 EPICS CA: DGS 5064/5065 | DXA 5072/5073 | DUO 5080/5081
-Total raw PVs: ~57,000 (compressed here by pattern)
+Total raw PVs: ~88,700 VME IOC PVs (DIG+RTR+MTRG) + ~158,000 Collector Box PVs = ~247,000 system-wide (see Section 6 summary)
 
 ## PV Naming Convention
 
@@ -45,13 +45,13 @@ The `snapshot_pv/pv_filter.py` script implements these exclusions automatically 
 ## 1. Digitizer PVs — MDIG / SDIG (MDigUser.template)
 
 Pattern: `VME{CC}:{MDIG1|SDIG1|...}:{register}`
-~1,141 PVs per board instance. MDIG and SDIG share same template.
+~1,743 PVs per board instance (MDigUser: 1,368 + MDigRegisters: 359 + MDigRegistersVME: 6 + MDigUserVME: 10). MDIG and SDIG use parallel templates with identical record counts. ✅ verified 2026-04-19 — `record` count in each template + boot/vme99.cmd + boot/vme66.cmd
 
 ### 1a. Board-wide (single instance per board)
 
 | Register | RBV? | Type | Nature | Description |
 |----------|------|------|--------|-------------|
-| `trigger_mux_select` | ✓ | mbbo | Config | Trigger source: 0=IntAcptAll, 1=ExtTTL, 2=ExtTTCL (normal), 3=Diag |
+| `trigger_mux_select` | ✓ | mbbo | Config | Trigger source: 0=IntAcptAll, 1=ExtTTL, 2=ExtTTCL (normal), 3=Diag | ✅ verified 2026-04-19 — `MDigUser.template:L10572-10573`
 | `master_logic_enable` | ✓ | bo | Global | Global fanout — handled by IOC startup |
 | `master_fifo_reset` | — | bo | Reset | Reset output FIFO |
 | `master_counter_reset` | ✓ | bo | Reset | Reset all counters |
@@ -222,7 +222,7 @@ Pattern: `VME{CC}:{BOARD}:{register}N` and `VME{CC}:{BOARD}:{register}N_RBV`
 ## 2. RTRG PVs — RTR1–RTR4 (RTrigUser.template)
 
 Pattern: `VME{CC}:{RTR1|RTR2|RTR3|RTR4}:{register}`
-~613 PVs per RTRG instance.
+~1,080 PVs per RTRG instance (RTrigUser: 897 + RTrigRegisters: 183). ✅ verified 2026-04-19 — `record` count in each template + boot/vme66.cmd
 RTRG boards: VME03=RTR1, VME06=RTR2, VME09=RTR3, VME12=RTR4
 
 ### 2a. Board-wide Controls
@@ -297,7 +297,7 @@ RTRG boards: VME03=RTR1, VME06=RTR2, VME09=RTR3, VME12=RTR4
 ## 3. MTRG PVs (MTrigUser.template)
 
 Pattern: `VME10:MTRG:{register}` (single MTRG in VME10)
-~3,942 PVs total (mostly RAM table entries)
+~7,711 PVs total (mostly RAM table entries) ✅ verified 2026-04-19 — `record` count in MTrigUser.template + MTrigRegisters.template + boot/vme99.cmd
 
 ### 3a. Trigger / Threshold Controls
 
@@ -567,18 +567,19 @@ for i in $(seq 0 13); do caget GS1_BGO_HV${i}; done
 
 | Subsystem | PVs/instance | Instances | ~Total |
 |-----------|-------------|-----------|--------|
-| MDIG | 1,141 | 22 | ~25,100 |
-| SDIG | 1,141 | 22 | ~25,100 |
-| RTRG | 613 | 4 | ~2,450 |
-| MTRG | 3,942 | 1 | ~3,942 |
+| MDIG | 1,743 | 22 | ~38,350 |
+| SDIG | 1,743 | 22 | ~38,350 |
+| RTRG | 1,080 | 4 | ~4,320 |
+| MTRG | 7,711 | 1 | ~7,711 |
 | Collector Box | 1,431 | 110 | ~158,070 |
 | Global/OTHER | ~700 | 1 | ~700 |
 
-> **Note:** The 57,000-PV figure from the old raw dump only covers the VME IOC (DIG+RTR+MTRG).
-> Adding collector box PVs brings the true total to ~215,000 across the full DGS system.
+> **Note:** The ~88,700 VME IOC PV count is based on verified template record counts (2026-04-19).
+> Adding collector box PVs brings the true total to ~247,000 across the full DGS system.
+> (Older raw dumps showed ~57,000 — that figure was based on undercounted template records.)
 
 _Source: `DGS_tools_pack/ioc/db/*.template`, `collectorboxpi/CollectorBox_RevA/db/*.db`_
-_Last updated: 2026-04-05_
+_Last updated: 2026-04-19_
 
 ## Cross-References
 

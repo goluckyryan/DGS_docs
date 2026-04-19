@@ -76,8 +76,8 @@
 
 | Host | IP (192.168.203.x) | OS | Role |
 |------|--------------------|----|------|
-| tangerine | .78 | Rocky Linux 8 | DAQ host / FTP server for IOC |
-| IOC (vme66) | .81 | VxWorks | VME IOC |
+| tangerine | .78 | Rocky Linux 8 | DAQ host / FTP server for IOC | ✅ verified 2026-04-19 — `ANLDAQ/ioc/README.md:L33,L46` |
+| IOC (vme66) | .81 | VxWorks | VME IOC | ✅ verified 2026-04-19 — `ANLDAQ/ioc/README.md:L45,L50` |
 | sbxh3 | .164 | — | Raspberry Pi for SBX |
 | sbxcc | .158 | — | Raspberry Pi for SBX |
 
@@ -116,7 +116,7 @@ _Source: [wiki: Computers and networks](https://wiki.anl.gov/gsdaq/Computers_and
 
 | System | CA Server | CA Repeater |
 |--------|-----------|-------------|
-| DXA | 5072 | 5073 |
+| DXA | 5072 | 5073 | ✅ verified 2026-04-19 — `ANLDAQ/EPICS_para.sh:L23-24` |
 
 ### Network / Computers
 

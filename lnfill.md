@@ -1,5 +1,26 @@
 # lnfill — Liquid Nitrogen Filling System
 
+## Table of Contents
+- [What It Is](#what-it-is)
+- [Physical System](#physical-system)
+- [Computers in the System](#computers-in-the-system)
+- [Key Files](#key-files)
+- [LNFill_App.py — Fill Types](#lnfill_apppy--fill-types)
+- [Cron Jobs](#cron-jobs)
+- [Health Monitoring](#health-monitoring)
+- [AddPress.sh — Spare Tank Pressure Manager](#addpresssh--spare-tank-pressure-manager)
+- [Communications](#communications)
+- [ln2con — LN2 IOC Boot Host](#ln2con--ln2-ioc-boot-host)
+- [pi5 Setup (Debian 13)](#pi5-setup-debian-13)
+- [Operations & Troubleshooting](#operations--troubleshooting-from-wiki-ln-system)
+- [DetMan.py — FillManifold() Internals](#detmanpy--fillmanifold-internals)
+- [System Roles — pi5-lnFill vs DCS2 vs spark-ca9f](#system-roles--pi5-lnfill-vs-dcs2-vs-spark-ca9f)
+- [Log Archiving](#log-archiving-added-2026-04-18)
+- [AI Fill Monitoring](#ai-fill-monitoring-general-dgs-spark-ca9f)
+- [Cross-References](#cross-references)
+
+---
+
 ## What It Is
 
 Automated control system for filling germanium detector **dewars** with liquid nitrogen (LN). Ported from DGS1 (Scientific Linux 6 / Python 2) to Debian 13 / Python 3. Controls valves, monitors dewar fill level, runs scheduled fills, and sends alerts via Discord.
@@ -27,9 +48,9 @@ Automated control system for filling germanium detector **dewars** with liquid n
 
 | Computer | OS | IP | Role |
 |----------|----|----|------|
-| ln2con | Fedora 12 | 192.168.203.148 | Boot host for IOC; runs logrotate |
+| ln2con | Fedora 12 | 192.168.203.148 | Boot host for IOC; runs logrotate weekly (Mon noon: `0 12 * * 1`) ✅ verified 2026-04-18 — `lnfill/README.md:L24,L73-84` |
 | pi5 | Debian 13 | 192.168.203.58 | Main fill control (runs LNFill_App.py) ✅ verified 2026-04-07 — LNFill_ping_cron.sh:L19 + README.md:L25 |
-| lnfill | IOC | 192.168.203.121 | EPICS IOC for valve/sensor hardware |
+| lnfill | IOC | 192.168.203.121 | EPICS IOC for valve/sensor hardware ✅ verified 2026-04-18 — `lnfill/README.md:L26` |
 | dcs2 | — | DCS2.onenet | Runs ping health checks + pi5 health check crons |
 
 > **pi5 in this context is the LN fill control Pi**, separate from the general pi5-dgs (Ryan's setup Pi).
@@ -63,6 +84,7 @@ Automated control system for filling germanium detector **dewars** with liquid n
 | `setTNF.sh` | **Set Time of Next Fill** — writes `LN_TTNF:XC` PV with the next scheduled fill time. Called by `LNFill_cron.sh` after each fill. Logic: if current hour >10 → next fill is 12h earlier (morning→evening or evening→morning); if arg given, uses that hour directly. Format: `HH:01`. ✅ verified 2026-04-13 — `setTNF.sh:L7-29` |
 | `epics_cron.sh` | **EPICS environment for cron** — sets `EPICS_BASE`, `PYEPICS_USE_SYSTEM_LIBS`, `PYEPICS_LIBCA/COM`, and `LD_LIBRARY_PATH` for aarch64 Pi. Sourced by cron jobs that need pyepics. ✅ verified 2026-04-13 — `epics_cron.sh:L2-6` |
 | `clean.sh` | **Log file cleanup** — deletes fill log files under 80 bytes (aborted/empty runs) and removes stray `core.*` dump files from `~/` and `logs/`. ✅ verified 2026-04-13 — `clean.sh:L4-8` |
+| `archive_cron_log.sh` | **Weekly log archiver for `LNFill_cron.log`** — copies `LNFill_cron.log` to `logs/archive/LNFill_cron_YYYYMMDD.log` (Sunday date) and truncates the original if non-empty. Run via cron every Sunday at midnight (`0 0 * * 0`). ✅ verified 2026-04-18 — `lnfill/archive_cron_log.sh` (commit 26a7865); crontab entry confirmed on pi5-lnFill |
 
 ---
 
@@ -131,6 +153,7 @@ During M-fill startup, `CheckTemps()` runs *before* the instance kill check — 
 00 06,18 * * *   LNFill_cron.sh                  # Full fill at 6am + 6pm CDT ✅ verified 2026-04-18 — live pi5-lnFill crontab
 */15 * * * *     LNFill_Auto_EFill_cron.sh        # Emergency fill every 15 min
 */10 * * * *     SaveTemp.sh                      # Record temps every 10 min
+0 0 * * 0        archive_cron_log.sh              # Weekly archive of LNFill_cron.log (Sunday midnight) ✅ verified 2026-04-18 — live pi5-lnFill crontab
 ```
 
 ### On DCS2 (`dcsu@DCS2.onenet`, `/home/phy/dcsu/lnFill/`) ✅ verified 2026-04-16 — live `crontab -l` on DCS2
@@ -153,9 +176,13 @@ During M-fill startup, `CheckTemps()` runs *before* the instance kill check — 
 - On SSH failure: Discord alert to anomaly channel — exact message: `"⚠️ pi5-lnFill (<ip>) is unreachable via SSH at <date>"` ✅ verified 2026-04-11 — `LNFill_ping_cron.sh:L34-36`
 
 ### Pi5 Health Check (`LNFill_pi5_check.sh`, on DCS2)
-- Runs at **1:15 AM and 1:15 PM CDT** (`15 6,18 * * *` UTC) ✅ verified 2026-04-16 — `dcsu@DCS2` crontab
-- SSHes into `pi5-lnFill`, checks if `LNFill_App.py` is running via `pgrep -f LNFill_App.py` ✅ verified 2026-04-16 — `LNFill_pi5_check.sh:L11-12`
-- On failure: Discord alert to anomaly channel (`discord_anomaly.WebHook`) — exact message: `"⚠️ pi5-lnFill: LNFill_App.py is NOT running at <date>"` ✅ verified 2026-04-16 — `LNFill_pi5_check.sh:L15-17`
+- Runs at **6:15 AM and 6:15 PM CDT** (`15 6,18 * * *` UTC) ✅ verified 2026-04-16 — `dcsu@DCS2` crontab
+- **Checks one thing only:** SSHes into pi5-lnFill and runs `pgrep -f LNFill_App.py` — is the fill process currently running? ✅ verified 2026-04-18 — `LNFill_pi5_check.sh:L11-12`
+- Does NOT check fill completion, valve states, log content, or EPICS PVs
+- Catches: fill script never launched, or fill crashed and exited early
+- Does NOT catch: fill ran and finished normally before 6:15 (process already gone = false alarm)
+- On failure: Discord alert to anomaly channel (`discord_anomaly.WebHook`) — exact message: `"⚠️ pi5-lnFill: LNFill_App.py is NOT running at <date>"` ✅ verified 2026-04-18 — `LNFill_pi5_check.sh:L15-17`
+- Complemented by the AI 3-stage fill checker (spark-ca9f) which verifies actual fill completion via log grep
 
 ### Fill Duration Alert (`LNFill_check.sh`, on DCS2)
 - **Not currently in crontab** — must be invoked manually or via another mechanism ✅ verified 2026-04-17 — `dcsu@DCS2` crontab only contains `LNFill_pi5_check.sh`
@@ -183,22 +210,24 @@ Runs alongside a fill to keep tank station pressures high by opening spare (T3) 
 2. Opens spare fill valve if: ext pressure − tank pressure ≥ 3 PSI AND tank pressure < 32 PSI
 3. Closes spare fill valve if: differential ≤ −1 PSI OR tank pressure ≥ 32 PSI
 4. Cross-station coordination: if both spare valves are open, closes one if that station is already ahead by ≥2–3 PSI
-5. Valve holdoff timers prevent rapid cycling: 120s after max-pressure close, 60s after differential close
+5. Valve holdoff timers prevent rapid cycling: 120s after max-pressure close, 60s after differential close ✅ verified 2026-04-18 — `AddPress.sh:L88,L89` (`MIN_VALVE_OFF_TIME_MAX_PRESS=120`, `MIN_VALVE_OFF_TIME_DIFF_PRESS=60`)
 6. Adaptive sleep: starts at 1s, grows to 30s max; resets to 0s when a valve opens
-7. Exits when all manifold valves close or `MAX_RUN_TIME` (2,200s) reached; leaves spare valves in Auto
+7. Exits when all manifold valves close or `MAX_RUN_TIME` (2,200s) reached; leaves spare valves in Auto ✅ verified 2026-04-18 — `AddPress.sh:L80` (`MAX_RUN_TIME=2200`)
 
 **Known failed sensors (hardcoded v2.3):** `PRESS_EXT2_FAIL=1`, `PRESS_TS2_T2_FAIL=1`, `PRESS_TS2_T3_FAIL=1` ✅ verified 2026-04-13 — `AddPress.sh:L49,L54,L55`
 
 **Gauge calibration (v2.3):** `PRESS_TS1_T3_CAL=+2` (reads 2 PSI low); all others = 0 ✅ verified 2026-04-13 — `AddPress.sh:L42` (`PRESS_TS1_T3_CAL=2`)
 
-Fallback: if all pressure gauges for a station fail, assumes 28 PSI (early in run) or 20 PSI (after 400s).
+Fallback: if all pressure gauges for a station fail, assumes 28 PSI (early in run, ≤400s) or 20 PSI (after 400s). ✅ verified 2026-04-18 — `AddPress.sh:L194-198` (`RUN_TIME <= 400 → TS1_PRESS=28`, else `TS1_PRESS=20`)
 
 ---
 
 ## Communications
 
 ### InfluxDB (on DCS2.onenet)
-- `SaveTemp.sh` + `templog/StoreDetTemps.py` push temperature data (measurement: `Temperature,gsid=NNN,en=0/1 value=<K>`) to InfluxDB db `HPGeTemp` at `http://192.168.203.56:8181/api/v3/write_lp` ✅ verified 2026-04-13 — `SaveTemp.sh:L7` + `templog/StoreDetTemps.py:L51-57`
+- `SaveTemp.sh` + `templog/StoreDetTemps.py` push two measurements to InfluxDB db `HPGeTemp` at `http://192.168.203.56:8181/api/v3/write_lp` ✅ verified 2026-04-13 — `SaveTemp.sh:L7` + `templog/StoreDetTemps.py:L51-57`:
+  - **Detector temps:** `Temperature,gsid=NNN,en=0/1 value=<K>` — all 110 GS detectors, only written if temp > 10 K; values > 520 K are zeroed (treated as disconnected/bad sensor). Tags: `gsid` = zero-padded GS ID (001–110), `en` = `MOD###_DV_EN` (0=disabled, 1=enabled). CA get timeout: 0.15s per channel. ✅ verified 2026-04-18 — `StoreDetTemps.py:L44-55` (`if detTemps[i]>10:` write; `if detTemp[gsid] > 520: detTemp[gsid] = 0`)
+  - **Pi5 board temperature:** `pi_Temp value=<celsius>` — measured via `vcgencmd measure_temp` (parsed from `temp=42.8'C` format). Also pushed to `HPGeTemp` db in the same curl batch. ✅ verified 2026-04-18 — `StoreDetTemps.py:L31-33,L39-40` (`getPiTemp()` + `logfile2.write(influx_entry)`)
 - `LNFill_App.py` writes only coarse fill events to InfluxDB: `Fill,type=<X> value=1` at start and `Fill,type=<X> value=0` at end (via `WriteInflux()`) ✅ verified 2026-04-13 — `LNFill_App.py:L259,L532`. **Per-detector fill durations are NOT written to InfluxDB** — they exist only in text log files (`logs/fill_YYYYMMDD_HHMM.log`). This is the key gap for the LN2 fill time monitoring task (QUEUE.md).
 - `WriteDiscordMessage.py:WriteInflux()` sends line protocol via curl to `HPGeTemp` db ✅ verified 2026-04-13 — `WriteDiscordMessage.py:L23`
 - `LNFill_ping_cron.sh` writes `ping_status` metrics for hosts (ln2con, pi5, lnfill IOC, GS collector servers) ✅ verified 2026-04-13 — `LNFill_ping_cron.sh:L11` (`url=http://192.168.203.56:8181/...`)
@@ -212,9 +241,76 @@ DET: A-12   35342   247  19.2K  16.6K  Cold   Cold    OK   247
 ```
 (columns: hose-slot, GSID, fill_time_s, temp_before, temp_after, sensor_before, sensor_after, status, LED_cold_time) ✅ verified 2026-04-13 — `DetMan.py:L338-351` (format string field order confirms hose[0]-hose[1], GSID, filltime, temps[0]/[1], sens[0]/[1], stat, ledT)
 
+**How detID is obtained — hose-to-detector mapping:**
+
+The detID stored in `_SM:SUB.E` is read via Channel Access at startup by `DetValve.py`:
+```python
+self.gsid_pv = "LNH" + str(mid) + "-" + str(vid).zfill(2) + "_SM:SUB.E"
+self.gsID = int(self.getPVValue(self.gsid_pv))
+```
+
+The `.E` field of each `LNHx-xx_SM:SUB` record is **NOT set in `gamln.db`** — it is set at IOC initialization time by the `dfill_sub_init` C function compiled into **`lnfiller.vx`** (the VxWorks application binary, loaded by `startup.cmd`). ✅ verified 2026-04-18 — `gamln.db` has no `field(E,...)` entries; `startup.cmd` loads `vx68040/lnfiller.vx` then calls `iocInit`; `gamln.db` subroutine records use `INAM="dfill_sub_init"`.
+
+**Key implication:** The hose→detID mapping is **embedded in the compiled VxWorks binary** (`lnfiller.vx`). It cannot be changed without recompiling the binary and rebooting the IOC. If a fill hose is physically rerouted to a different detector dewar, the binary must be updated.
+
+**Complete hose→detID mapping** ✅ verified 2026-04-18 — extracted from `dgs@ln2con:/home/lncon/prod/lnfill/log/ln.inits` (IOC state-save file written at each boot by `dfill_sub_init`).
+
+> ✅ **`ln.inits` snapshot confirmed 2026-04-18** — archived at `DGS_tools_pack/ln2con/ln.inits.snapshot.20260418`. Table above matches exactly; H4-25/H4-26 duplicate (detID=22) is persistent, not a one-time error. IOC was last rebooted 2026-04-02 16:47. If rebooted again with hoses rerouted, verify against the live file or a recent fill log.
+
+Format: `Hx-yy  detID  manifold_num  ...`
+
+| Hose | detID | Hose | detID | Hose | detID | Hose | detID |
+|------|-------|------|-------|------|-------|------|-------|
+| H1-01 | 73 | H2-01 | 87 | H3-01 | 301 | H4-01 | 82 |
+| H1-02 | 502 | H2-02 | 79 | H3-02 | 76 | H4-02 | 72 |
+| H1-03 | 105 | H2-03 | 69 | H3-03 | 88 | H4-03 | 52 |
+| H1-04 | 504 | H2-04 | 59 | H3-04 | 94 | H4-04 | 404 |
+| H1-05 | 101 | H2-05 | 205 | H3-05 | 106 | H4-05 | 40 |
+| H1-06 | 61 | H2-06 | 206 | H3-06 | 66 | H4-06 | 110 |
+| H1-07 | 103 | H2-07 | 207 | H3-07 | 104 | H4-07 | 42 |
+| H1-08 | 508 | H2-08 | 71 | H3-08 | 86 | H4-08 | 96 |
+| H1-09 | 509 | H2-09 | 209 | H3-09 | 102 | H4-09 | 409 |
+| H1-10 | 81 | H2-10 | 210 | H3-10 | 310 | H4-10 | 30 |
+| H1-11 | 511 | H2-11 | 51 | H3-11 | 92 | H4-11 | 411 |
+| H1-12 | 75 | H2-12 | 29 | H3-12 | 312 | H4-12 | 412 |
+| H1-13 | 93 | H2-13 | 49 | H3-13 | 313 | H4-13 | 413 |
+| H1-14 | 89 | H2-14 | 214 | H3-14 | 84 | H4-14 | 414 |
+| H1-15 | 65 | H2-15 | 13 | H3-15 | 98 | H4-15 | 24 |
+| H1-16 | 516 | H2-16 | 63 | H3-16 | 78 | H4-16 | 416 |
+| H1-17 | 517 | H2-17 | 31 | H3-17 | 317 | H4-17 | 417 |
+| H1-18 | 107 | H2-18 | 25 | H3-18 | 64 | H4-18 | 26 |
+| H1-19 | 57 | H2-19 | 21 | H3-19 | 54 | H4-19 | 419 |
+| H1-20 | 520 | H2-20 | 43 | H3-20 | 70 | H4-20 | 420 |
+| H1-21 | 41 | H2-21 | 221 | H3-21 | 18 | H4-21 | 421 |
+| H1-22 | 77 | H2-22 | 33 | H3-22 | 322 | H4-22 | 68 |
+| H1-23 | 523 | H2-23 | 27 | H3-23 | 20 | H4-23 | 80 |
+| H1-24 | 83 | H2-24 | 11 | H3-24 | 56 | H4-24 | 38 |
+| H1-25 | 19 | H2-25 | 23 | H3-25 | 44 | H4-25 | 22 |
+| H1-26 | 526 | H2-26 | 17 | H3-26 | 74 | H4-26 | 22 |
+| H1-27 | 55 | H2-27 | 45 | H3-27 | 28 | H4-27 | 36 |
+| H1-28 | 37 | H2-28 | 35 | H3-28 | 328 | H4-28 | 428 |
+
+Notes:
+- detIDs 5xx, 2xx, 3xx, 4xx = non-standard (spare/special detectors, DUO, or empty slots)
+- H4-25 and H4-26 both show detID=22 — possible duplicate/error in ln.inits
+- Hx-yy maps directly to EPICS PV `LNHx-yy_SM:SUB.E` and Python `mid=x, vid=yy`
+- This mapping is set by `dfill_sub_init` in `lnfiller.vx` at IOC boot; `ln.inits` is the state-save record
+
+**To extract the current mapping:** Two options:
+1. **Read ln.inits:** `dgs@ln2con:/home/lncon/prod/lnfill/log/ln.inits` — contains full table (see above)
+2. **Parse fill logs:** Each `fill_YYYYMMDD_HHMM.log` in `~/lnFill/logs/` shows `DET: A-12  35342` — hose-slot to detID, one per fill run
+
+**Where `gamln.db` and `lnfiller.vx` live (on ln2con, 192.168.203.148):**
+- IOC boot tree: `/home/lncon/prod/lnfill/Rev6-01-04/` ✅ verified 2026-04-18 — `dgs@ln2con` direct SSH
+- `startup.cmd` loads: `vx68040/lnfiller.vx` + `rtdb/gamln.db` + `rtdb/tempmon.db`
+- Also mirrored on NFS: `/dgsdata/fs2/vol3/ln2con/vxboot/lnfill/Rev6-01-04/`
+- **Not in any git or SVN repo** — lives only on ln2con and NFS server
+- See `nfs_layout.md` for full `gamln.db` analysis (1357 records, 406 sub records) ✅ verified 2026-04-13
+
 To implement fill duration trending, two approaches:
-1. **Log-parser script:** parse existing `logs/fill_*.log` files, extract per-GSID fill durations + timestamps → push to InfluxDB. Historical data available from existing logs.
-2. **Code injection:** add `WriteInflux(f'FillDuration,gsid={gsid} value={filltime}')` in `DetMan.py:buildFillLog()` after L352 — writes per-detector fill duration in real time going forward.
+1. **Log-parser script:** parse existing `logs/fill_*.log` files, extract per-detID fill durations + timestamps → push to InfluxDB as `FillDuration,detid=<detID> value=<seconds>`. Historical data available from 237+ existing logs (back to Jan 2026).
+2. **Code injection:** add `WriteInflux(f'FillDuration,detid={detID} value={filltime}')` in `DetMan.py:buildFillLog()` after L352 — writes per-detector fill duration in real time going forward.
+- Note: use **detID** (not hose-slot) as the InfluxDB tag — it is the stable Gammasphere detector identifier; hose positions can be rerouted.
 
 ### Discord Webhooks
 Two webhook files required:
@@ -224,15 +320,74 @@ Two webhook files required:
 
 ---
 
-## ln2con
+## ln2con — LN2 IOC Boot Host
 
-- **Role:** Boot host for lnfill IOC
-- **Login:** `gamop` user
-- **Log files:** `~/lnfill_log2/`
-  - `ln.inits` — IOC init state
-  - `ln.state` — IOC state
-  - `ln_log` — fill logs
-- **Logrotate:** runs weekly (Monday noon) to archive/clean logs
+✅ verified 2026-04-18 — direct SSH as `dgs@192.168.203.148`
+
+**Hardware:**
+- Fedora 12 (Constantine), Linux 2.6.32, i686 — very old, no `ip` command
+- IP: 192.168.203.148
+- Serves as NFS boot host for the lnfill VxWorks IOC (MVME167, 192.168.203.121)
+
+**Login:**
+- `dgs` account ✅ works (password in TOOLS.md / workspace secrets)
+- `gamop` account exists but password unknown to General DGS
+- SSH requires old key type flags: `-o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa`
+
+**Disk layout:**
+- `/` — 77G, 5% used
+- `/export/home` — 181G, 3% used (NFS exports to VxWorks IOC)
+- `/home` — 20G (local home dirs)
+- Key dirs: `/export/home/{dgs,edm,EPICS,gam6_alt,lncon,scripts}`
+
+**NFS export to VxWorks IOC (`lnfill`, 192.168.203.121):**
+- VxWorks mounts: `lncon.gam.lbl.gov:/export/home/lncon` → `/home/lncon` (VxWorks side)
+- Old hostname `lncon.gam.lbl.gov` still used in `vx_mounts` config
+
+**IOC boot tree location:** `/home/lncon/prod/lnfill/`
+| Dir/File | Contents |
+|----------|----------|
+| `Rev6-01-04/` | **Active** VxWorks boot tree (current production version) |
+| `Rev6-01-01/` to `Rev6-01-03/` | Older revisions (archived) |
+| `Rev6-01-03.tar.gz` | Compressed archive of Rev6-01-03 |
+| `boot/`, `boot02/` | VxWorks boot ROM configs |
+| `local/` | Site-specific configs: `vx_mounts`, `resource.def.R312` |
+| `log/` | IOC logs (83 MB total): `ln.inits`, `ln_log`, `ln_log_archive/`, `ln.state` |
+| `tools/` | Log processing: `auto_process`, `lnlogs`, `log_cleanup`, `process_logs` |
+| `scaget/` | Local EPICS CA get utilities |
+
+**`Rev6-01-04/` boot tree structure:**
+- `startup.cmd` — VxWorks startup script (loads all modules, DBs, starts fill sequencer)
+- `vx68040/lnfiller.vx` — **compiled fill application** (contains `dfill_sub_init` which sets hose→detID mapping)
+- `rtdb/gamln.db` — EPICS records (1357 records: valves, manifolds, sensors)
+- `rtdb/tempmon.db` — Temperature monitoring records (429 records)
+- `default.dctsdr` — VxWorks DCT database (binary)
+- `targetmv167/` — MVME167-specific object files (iocCore, drvSup, recSup, devSup, seq)
+
+**`startup.cmd` boot sequence:**
+1. Mount NFS filesystem (`vx_mounts`)
+2. Load LED support libraries
+3. Load EPICS core, drivers, records, device support, sequencer
+4. Set state-save/log paths to `/vxboot/lnfill/log/`
+5. Load `lnfiller.vx` (main fill application)
+6. Set `gamln_auto_det_fill_enabled=1` and `gamln_auto_tank_fill_enabled=1`
+7. Call `ln_init()` — initializes fill system, spawns `ln_logger`
+8. Load databases: `default.dctsdr`, `gamln.db`, `tempmon.db`
+9. `iocInit` — starts IOC (calls `dfill_sub_init` on all sub records → sets detID mapping)
+10. `seq &fill` — starts EPICS state sequencer for fill logic
+
+**Log files (on ln2con):**
+| File | Contents |
+|------|----------|
+| `log/ln.inits` | IOC initialization state — contains full hose→detID mapping table |
+| `log/ln_log` | Running fill event log (valve open/close events with timestamps) |
+| `log/ln_log_archive/` | Weekly rotated logs (date-stamped, back to 2020) |
+| `log/ln.state` | IOC state-save (current valve states) |
+| `log/LNFillApp/` | Additional app logs |
+
+**Log rotation:** Managed by `lnlogrotate.conf` on ln2con. The actual conf file is at `/home/lncon/prod/lnfill/log/lnlogrotate.conf` (also symlinked from `/export/home/lncon/`). Schedule: `0 12 * * 1` (every Monday at noon) in `gamop`'s crontab. ✅ verified 2026-04-18 — `lnfill/README.md:L84` + live read of conf on ln2con (192.168.203.148). Conf parameters: `rotate 520` (keep up to 520 archives), `size 512k` (rotate when file exceeds 512 KB), `daily` (daily rotation eligible), `dateext` + `dateformat .%Y%m%d` (date-stamped archives), `nocompress` (plain text), `copytruncate` (truncate in-place — safe for live file), `olddir ln_log_archive` (archives go to `ln_log_archive/`), `create 0666` (recreate with world-rw). Target log: `/home/gamop/lnfill_logs/ln_log`.
+
+**hosts file:** Contains the full original onenet host list (many legacy machines: gam0, gam1, gamvxi01-07, gsdaq1-4, gamdas01-18, etc.)
 
 ---
 
@@ -403,10 +558,73 @@ _Source: `lnfill/DetMan.py` — verified 2026-04-18_
 ```
 DET: A-12   35342   247  19.2K  16.6K  Cold   Cold    NORMAL   247
 ```
-Columns: hose-slot, GSID, fill_time_s, temp_before, temp_after, sensor_before, sensor_after, status, LED_cold_time_s ✅ verified 2026-04-13 — `DetMan.py:L338-351`
+Columns: hose-slot, detID, fill_time_s, temp_before, temp_after, sensor_before, sensor_after, status, LED_cold_time_s ✅ verified 2026-04-13 — `DetMan.py:L338-351`
+- **hose-slot** (`A-12`) maps to EPICS PV (`LNH1-12`) — physical valve position, can change if cables are rerouted
+- **detID** (`35342`) is the stable Gammasphere detector identifier used in physics analysis; use this as the InfluxDB tag for fill duration trending
 
 ---
 *Source: `DGS_tools_pack/lnfill/` (git repo on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05. Operations section added from [wiki: LN System](https://wiki.anl.gov/gsdaq/LN_system): 2026-04-06. DetMan.py FillManifold section added: 2026-04-18.*
+
+## System Roles — pi5-lnFill vs DCS2 vs spark-ca9f
+
+| Machine | Role in LN2 system |
+|---------|-------------------|
+| **pi5-lnFill** (192.168.203.58) | **Primary control host** — runs all fill scripts (`LNFill_cron.sh`, `LNFill_Auto_EFill_cron.sh`, `SaveTemp.sh`). Has direct EPICS CA access to lnfill IOC. All valve commands originate here. |
+| **DCS2** (DCS2.onenet) | **External monitor** — runs ping checks (`LNFill_ping_cron.sh`) and pi5 health checks (`LNFill_pi5_check.sh`). Has a copy of the lnfill repo but does NOT run fills. Hosts InfluxDB + Grafana for temperature trending. |
+| **spark-ca9f** (192.168.203.132) | **AI monitor** (General DGS) — runs OpenClaw cron jobs that SSH into pi5-lnFill to verify fill completion. Sends alerts to Discord #dgs-spark if fills are missing or stuck. Does NOT control valves or run fill scripts. |
+
+---
+
+## Log Archiving (added 2026-04-18)
+
+### Per-Fill Logs (`~/lnFill/logs/`)
+Each fill run creates `fill_YYYYMMDD_HHMM.log` — already organized, no rotation needed.
+
+### LNFill_cron.log — Weekly Archive
+- Accumulates all fill start/end timestamps (grepped by AI fill checker)
+- **Weekly rotation:** `archive_cron_log.sh` runs Sunday midnight via crontab on pi5-lnFill (`0 0 * * 0`) ✅ verified 2026-04-18 — live pi5-lnFill crontab
+- Archives to: `~/lnFill/logs/archive/LNFill_cron_YYYYMMDD.log` (Sunday date)
+- Truncates original after archiving (uses `truncate -s 0` to preserve any open file handles)
+
+### LNFill_Auto_EFill_cron.log — Monthly Archive
+- Grows at ~96 entries/day (every 15 min)
+- **Monthly rotation:** handled inside `LNFill_Auto_EFill_cron.sh` itself, at the top of the script
+- On 1st of each month: archives to `~/lnFill/logs/archive/LNFill_Auto_EFill_cron_YYYYMM.log`
+- Only archives if file doesn't already exist (prevents duplicate runs on the 1st)
+
+### SaveTemp.log — Monthly Archive
+- Grows at ~144 entries/day (every 10 min)
+- Same monthly rotation pattern as above, handled inside `SaveTemp.sh`
+- Archives to `~/lnFill/logs/archive/SaveTemp_YYYYMM.log`
+
+### Archive Directory
+`~/lnFill/logs/archive/` — created automatically on first run.
+
+---
+
+## AI Fill Monitoring (General DGS, spark-ca9f)
+
+Six OpenClaw cron jobs on spark-ca9f provide 3-stage fill verification twice daily:
+
+| Time | Stage | Check |
+|------|-------|-------|
+| 6:30 AM/PM | Stage 1 | `LN2  Fill Begin` present in log → fill started |
+| 7:00 AM/PM | Stage 2 | Manifold completions present → fill progressing |
+| 7:15 AM/PM | Stage 3 | `LN2  Fill Ends` present → fill complete |
+
+**Script:** `~/.openclaw/workspace/skills/ln2-fill-check/scripts/ln2_check.sh <stage> <am|pm>`
+
+**Logic:**
+- Any stage: if `LN2  Fill Ends` found for today → FILL_COMPLETE, silent exit
+- Stage 1: if `LN2  Fill Begin` not found → alert immediately
+- Stage 2: if no manifold completions and fill never started → alert
+- Stage 3: if fill still not complete → alert
+- All alerts go to Discord #dgs-spark (`1489370812875145408`)
+- SSH via sshpass (`dgs@192.168.203.58`) — reads `~/lnFill/LNFill_cron.log`
+
+This is a **complementary** layer — `LNFill_cron.sh` already self-alerts via Discord webhook if the fill log is empty. The AI checker adds structured 3-stage coverage and pings Ryan + Michael Oberling.
+
+---
 
 ## Cross-References
 

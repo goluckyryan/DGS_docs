@@ -1,5 +1,23 @@
 # ANLDAQ — Front-End DAQ GUI & Data Receiver
 
+## Table of Contents
+- [What It Is](#what-it-is)
+- [Key Files & Roles](#key-files--roles)
+- [GUI Internals](#gui-internals)
+- [Architecture](#architecture)
+- [EPICS System Configurations](#epics-system-configurations-from-epics_parash)
+- [How to Use](#how-to-use)
+- [Dependencies](#dependencies)
+- [VxWorks IOC Data Pipeline](#vxworks-ioc-data-pipeline-inloop--outloop--minisender)
+- [tcpReceiver — Detailed Notes](#tcpreceiver--detailed-notes)
+- [GUI Windows — Detailed Reference](#gui-windows--detailed-reference)
+- [softIOC — Global Broadcast PV System](#softIoc--global-broadcast-pv-system-justglobalsdb)
+- [softIOC — Support PVs](#softIoc--support-pvs-dgssupportdb)
+- [Notes](#notes)
+- [See Also](#see-also)
+
+---
+
 ## What It Is
 
 ANLDAQ is the **front-end operator interface** for the DGS (and other ANL detector) DAQ systems. It provides:
@@ -263,6 +281,7 @@ Startup sequence:
 - **System tabs** — via `gui_SYS.py`: timestamps, links, TCP, code revision
 - **Settings** — persisted to `settings.json` (exp name, folder, run counter, IOC config, duration index)
 - **CollectorBox PVs** — optionally loaded via `cb_json2pv.py` + `CollectorBox_PV.json` (graceful fallback if absent) ✅ verified 2026-04-07 — `commander.py:L93-97`: `try: from cb_json2pv import LoadCollectorBoxPVs ... except Exception: CB_PV, CB_DET_LIST = [], []`
+- **"Others" groupbox** — miscellaneous buttons including **SBX/CollectorBox** (`btn_det`): opens `DetWindow` showing all 110 detectors by collector box group (NE/SE/NW/SW). Enabled only when `SYSTEM == DGS`; grayed out for other system configs (XArray, DuoGe, SBX). ✅ verified 2026-04-19 — `commander.py:L247` (Others QGroupBox), `L283-286` (`btn_det`, `OpenDetWindow()`, `setEnabled(os.environ.get("SYSTEM") == "DGS")`)
 - **Guceiver** — live monitor launched from GUI; path added to `sys.path` at startup
 
 Run control:
@@ -473,7 +492,7 @@ Key flow-control PVs:
 Key facts:
 - Three binaries: `tcpReceiver` (single-threaded), `tcpReceiverMT` (production multi-threaded), `tcpReceiverUDP` (experimental UDP forwarding)
 - IOC is the **TCP server** on port 9001 (`SOCK_STREAM`); receiver is the TCP client
-- DIG packets: `0xAAAAAAAA` magic; TRIG packets: `0xAAAA0000` (16 words → repacked to 10)
+- DIG packets: `0xAAAAAAAA` magic; TRIG packets: `0xAAAA0000` (16 words → repacked to 10) ✅ verified 2026-04-18 — `tcpReceiver/constant.h:L4-5` (`TRIG_DATA_SIZE=16`, `TRIG_PACKET_LENGTH=10`); `receiver.h:L155,L359,L445` (magic word matching)
 - Max file size: 2 GB; auto-split. Default buffer: 1M words (4 MB). ✅ verified 2026-04-17 — `tcpReceiver/constant.h:L7-8` (`MAX_FILE_SIZE_BYTE = 1024LL*1024*1024*2`; `DEFAULT_DATA_SIZE = 1000000`)
 - Run control: `expInfo.sh` → `start_run.sh` / `stop_run.sh` / `sync_exp_data.sh`
 - `run_control_gui.py` — standalone Tkinter GUI for `dgs4` (SSHes to dcs2) ✅ verified 2026-04-17 — `run_control_gui.py` (352 lines, read in full)
@@ -586,6 +605,41 @@ Full PV name pattern: `GLBL:DIG:<NN>:<preset>_<param>` where `<NN>` is a fanout 
 
 > **Note:** The SVN archive (2022) had 5,195-line version with simpler flat namespace. Current version (14,248 lines) adds per-preset profiles for BGO/Ge channel types.
 
+### Complete `GLBL:DIG:F00:` Suffix List (177 root broadcast PVs)
+
+_Source: `ANLDAQ/EPICS/softIOC/db/JustGlobals.db` — verified 2026-04-19 by `grep 'record(dfanout,"GLBL:DIG:F00:'`_
+
+The 177 root PVs fall into two groups:
+
+**A. Per-detector-type presets (4 × ~35 params = 140 PVs):** Same 35 parameters repeated for each of the four detector-type prefixes (`BGOp_`, `BGOs_`, `GeC_`, `GeS_`):
+
+```
+ahit_count_mode, CFD_fraction, channel_enable, coarse_threshold, coarse_width,
+counter_reset, d3_window, disc_count_mode, disc_width, downsample_factor,
+dropped_event_count_mode, d_window, Early_pre_m_sel, enable_dec_pause,
+event_count_mode, event_extension_mode, ext_disc_sel, ext_disc_src,
+k0_window, k_window, led_threshold, MultiplexWordSelect, m_window,
+p1_window, P2_mode, p2_window, pileup_extension_enable, pileup_mode,
+pileup_waveform_only_mode, preamp_reset_delay, preamp_reset_delay_en,
+raw_data_delay, raw_data_length, trigger_polarity, write_flags
+```
+
+**B. Global (non-preset) flat PVs (37 PVs):** Applied system-wide regardless of detector type:
+
+```
+cfd_mode, clk_select, counter_mode, dac_attenuation, dac_channel_select,
+DIAG_DISC_SEL, diag_input, diag_input_en, diag_mux_control, DIAG_WAVE_SEL,
+EXT_DISC_REQ, ext_disc_ts_sel, FIFO_Prog_Thresh, holdoff_time,
+lfsr_rate_sel, lfsr_seed, load_delays, master_counter_reset,
+master_fifo_reset, master_logic_enable, peak_sensitivity,
+rj45_throttle_mode, sd_line_loopback_en, sd_local_loopback_en, sd_pem,
+sd_rx_pwr, sd_sm_lost_lock_flag_rst, sd_sm_stringent_lock, sd_sync,
+sd_tx_pwr, stop_ho_at_peak, trigger_mux_select, ts_counter_mode,
+ts_counter_reset, veto_enable, win_comp_max, win_comp_min
+```
+
+> This list is directly useful for the QUEUE task "ANLDAQ GUI — simplify PV generation" (static suffix list per board type).
+
 ---
 
 ## softIOC — Support PVs (`dgsSupport.db`)
@@ -677,3 +731,7 @@ All 17 `calcout` records are hardcoded to `VME10` (the MTRG crate in the standar
 - `knowledgeBase/EPICS_asyn.md` — asyn driver internals: caput/caget flow, port concept, asynUInt32Digital
 - `knowledgeBase/collectorbox_devicesupport.md` — collector box EPICS device support (SPI driver, CAMAC_IO link)
 - `knowledgeBase/guceiver.md` — Guceiver live diagnostic GUI (waveform/spectrum/TAC-II tabs); companion to the main ANLDAQ GUI
+
+---
+
+*Created: 2026-04-05 | Last reviewed: 2026-04-19*

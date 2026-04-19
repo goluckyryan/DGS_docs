@@ -8,7 +8,7 @@ A single VME crate with one MTRG, one RTRG, and two DIGs (BUS_LEFT + BUS_RIGHT p
 
 | Hardware | Role |
 |----------|------|
-| MVME5500 (IOC board) | VxWorks IOC — runs EPICS, controls all boards via VME |
+| MVME5500 (IOC board) | VxWorks IOC — runs EPICS, controls all boards via VME ✅ verified 2026-04-18 — `ioc/README.md:L16,L44` (mvme5500 vxWorks boot file) |
 | MTRG board | Master trigger — runs trigger algorithms, distributes decisions |
 | RTRG board | Router — aggregates DIG hits, forwards trigger commands |
 | DIG board × 2 | Digitizer pair (BUS_LEFT + BUS_RIGHT) — 10 ch each, 20 ch total |
@@ -62,7 +62,7 @@ Slot 7: MTRG
 ### VME Crate Structure
 
 - Each VME crate contains **3 individual VME backplanes**, each acting as an independent VME system ✅ verified 2026-04-18 — [wiki.anl.gov/gsdaq/CrateAndBoardMapping](https://wiki.anl.gov/gsdaq/CrateAndBoardMapping): "Each of these crates is actually three separate 7-slot backplanes with a common power supply"; VME01+VME02+VME03 = one physical crate (top of right-side relay rack)
-- Each VME system hosts **4 digitizers** → up to 12 DIGs per crate, 40 channels per VME system, 120 ch per crate
+- Each VME system hosts **up to 4 digitizers** → up to 12 DIGs per crate, 40 channels per VME system, 120 ch per crate ✅ verified 2026-04-18 — `DGS_SVN/dgs/daq_system_tags/SL6_DGS_20220923/ioc/boot/vme01-10.cmd`: most VME systems configure 4 DIGs (MDIG1/SDIG1/MDIG2/SDIG2 at slots 4–7); VME06 configures only 2 (short backplane — MDIG2+SDIG2 commented out), VME04 configures 3 (SDIG1 slot empty). Actual Gammasphere install: 44 DIG boards per MEMORY.md (10×4 + 2×2 crates).
 - One of the 12 VME systems per crate is reserved for the Router Trigger (RTRG) + associated electronics
 - Each VME backplane also has **one IOC board (MVME5500)**
 - **VME Fiber Expander** board (PCB #3174, ANL part `21pc032`, Rev A, Sept 2021) provides fully optical interface between MTRG (System Trigger) and RTRGs — replaced original copper/Cat5 Trigger Paddle Cards; installed July 2022. Requires DC balance enabled (`EN_RTR_DCBAL`, `LinkL_DCbal`) and cable pre-emphasis **disabled** (`PEHLRU=PEEFG=PEABCD=0`). ✅ verified 2026-04-17 — `knowledgeBase/DGS_SVN.md` (PCB #3174), `knowledgeBase/link_sys_analysis.md:1I`, `knowledgeBase/trig_setup_scripts.md` (fiber expander notes)

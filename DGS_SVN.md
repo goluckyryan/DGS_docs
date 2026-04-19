@@ -131,10 +131,23 @@ Useful for:
 
 ---
 
-## Connections to Other Subsystems
+## Cross-References
 
-- **vxworks/** — `migration.md` references the con6/Solaris-to-Ubuntu migration this SVN contains
-- **fpga/** — FPGA firmware may have early versions in the SVN tree
-- **ioc/** — pre-Git IOC files are in `dgsSoftIOC/` *(not in local mirror; full IOC history in Git)*
-- **sbx.md** — `SlopeBoxExtension/` explored: GS_ID dongle, BGO HV map, pickoff card notes
-- **ANLDAQ.md** — `gtReceiver/` is the legacy receiver; current receiver is in ANLDAQ git repo
+| Topic | File |
+|-------|------|
+| VxWorks build pipeline; migration from con6/Solaris to Ubuntu | [`vxworks_migration.md`](vxworks_migration.md) |
+| FPGA firmware overview (current active firmware, derived from SVN era) | [`fpga.md`](fpga.md) |
+| EPICS IOC (current Git version; pre-Git history in `DGS_SVN/dgsSoftIOC/`) | [`ioc.md`](ioc.md) |
+| SBX/SlopeBox: GS_ID dongle, BGO HV map, pickoff card | [`sbx.md`](sbx.md) |
+| ANLDAQ/tcpReceiverMT — supersedes legacy `gtReceiver/` in SVN | [`ANLDAQ.md`](ANLDAQ.md) |
+| MγRIAD hardware documentation (PDF manual, memory map) | [`myriad.md`](myriad.md) |
+| PSG auto-DB generation tool (used CSV register maps; see `psg/`) | [`QUEUE.md`](../../workspace/QUEUE.md) (pending task) |
+| PDF index — includes many docs referenced from this SVN | [`PDF_index.md`](PDF_index.md) |
+| Hardware drawings / reference index | [`reference_index.md`](reference_index.md) |
+| Data structures: GEB header formats (GEB_TYPE_DGS=14, DGSTRIG=15) | [`data_structures.md`](data_structures.md) |
+| Digitizer Tester hardware (full documented version) | [`digitizer_tester.md`](digitizer_tester.md) |
+| Collector box: `NewBlackBox/` pre-EPICS Pi code history | [`collectorbox_devicesupport.md`](collectorbox_devicesupport.md) |
+
+---
+
+*Source: `/home/dgsspark/DGS_tools_pack/DGS_SVN/dgs/`. Explored: 2026-04-06–2026-04-15. Status: archive — exhausted, all key areas documented.*

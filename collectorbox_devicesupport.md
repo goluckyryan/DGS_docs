@@ -173,7 +173,7 @@ When a CA client writes an ao PV tagged `DTYP = "Collector Local Serial"`:
 
 4. **If `parm` string after `@` is empty → Read-Modify-Write:**
    - SPI read: `Do_SPI1_transaction(1, Bidx, UsrAddr, 0)` → `SPI_data_in`
-   - Strip upper bits: `SPI_data_out = SPI_data_in & 0xFFFF`
+   - Strip upper bits: `SPI_data_out = SPI_data_in & 0x00FFFF` (upper 8 bits = FPGA status, lower 16 = register data) ✅ verified 2026-04-18 — `CollectorSupport_AO.c:L254`
    - AND with mask: `SPI_data_out = SPI_data_out & AndMask`
    - OR user data: `SPI_data_out = SPI_data_out | UsrData`
 5. **If `parm` is non-empty → Write-Only:**
@@ -251,6 +251,85 @@ Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[dev
 - DEVSEL routing: how the FPGA decodes DEVSEL to select sub-circuits
 - FPGA status bits (upper 8 of 24-bit return): what they mean
 - Exact timing/sequencing requirements for multi-step operations
+
+---
+
+## I2C Device Support (`CollectorI2C_AI/AO.c`)
+
+_Source: `CollectorBox_RevA/CollectorApp/src/CollectorI2C_AI.c` and `CollectorI2C_AO.c`. ✅ verified 2026-04-19 against source._
+
+The I2C handlers implement DTYP `"CollectorI2CSerial"` — a separate device support path (registered alongside `"Collector Local Serial"` in `CollectorSupport.dbd`) for controlling I2C peripherals **via the Collector FPGA's I2C command FIFO** rather than direct SPI register writes.
+
+### How It Differs from Normal SPI Device Support
+
+Normal `CollectorLocalSerial` PVs write/read FPGA registers directly with single 24-bit SPI transactions. I2C PVs are different: the EPICS device support writes **I2C command words into an FPGA-side command FIFO**, and the Collector FPGA's I2C state machine processes those commands autonomously.
+
+### camacio Field Encoding (I2C AO)
+
+The `camacio` link fields carry more meaning for I2C than for standard SPI:
+
+| camacio field | I2C meaning |
+|---|---|
+| `B` (bits 4:0) | DEVSEL index — which device on the SPI bus (0–31) |
+| `N` (bits 6:0) | Address of the I2C command FIFO in the Collector FPGA |
+| `N` (bits 14:8) | Address of the I2C scan control register |
+| `A` (bits 6:0) | 7-bit I2C device address (shifted left 1 to make room for R/W bit) |
+| `A` (bits 11:8) | Bit index in scan control register to turn off scanning during write |
+| `A` (bits 15:12) | Bit index in control reg that triggers FIFO processing ("send FIFO") |
+| `F` (bits 7:0) | I2C register address within the target device |
+| `F` (bits 15:8) | Address of the FIFO-process-control register in Collector FPGA |
+| `C` (bits 7:0) | Transfer type (see below) |
+| `C` (bits 15:8) | Second I2C register address (for type 0x50 dual-register writes) |
+
+### I2C FIFO Command Word Format
+
+Each 16-bit word pushed into the FPGA command FIFO:
+
+```
+Bit 15  : DONE — ACK4_CTL[1]: combined with RPTS to control end-of-byte action
+Bit 14  : RPTS — ACK4_CTL[0]:
+            00 = ACK, continue with next FIFO word
+            01 = ACK, Repeated Start, continue
+            10 = ACK, then STOP
+            11 = STOP without ACK
+Bit 13  : NACK — if 1, skip ACK check on 9th clock
+Bit 12  : READ — if 1, sample SDA into readback latch
+Bit 11  : SAVE — if 1, present sampled data with strobe at ACK time
+Bit 10  : EXTD — if 1, fetch+execute next command without ACK (multi-byte seq)
+Bit 9   : LOOP — if 1, data[7:0] is a loop count; repeat next FIFO word N times
+Bit 8   : TOGS — toggle SAVE every other byte (avoids over-presenting data)
+Bits 7:0: DATA — byte clocked out on SDA, or loop count if LOOP=1
+```
+
+### Transfer Type (`C` field, bits 7:0)
+
+| Range | Meaning |
+|---|---|
+| `0x00–0x0F` | Write N data bytes: devaddr / regaddr / data×N. ACK on all bytes. |
+| `0x10–0x1F` | Same, but NACK on last byte. |
+| `0x20–0x2F` | Read N bytes: devaddr(W) / regaddr / Repeated-Start / devaddr(R) / data×N. ACK on all. |
+| `0x30–0x3F` | Same read, but NACK on last byte (standard I2C read protocol). |
+| `0x40` | No internal register address: devaddr / data. ACK both. |
+| `0x41` | No internal register address: devaddr / data. NACK data byte. |
+| `0x50` | Two-byte write to different register addresses (I2C_RegAddr + I2C_RegAddr2). |
+
+### Scan Inhibit / FIFO Trigger Sequence (AO write path)
+
+Before writing to the FIFO, the AO handler optionally disables the FPGA's autonomous I2C scanner:
+1. Read-modify-write the scan control register (N bits 14:8) to clear the scanner-enable bit (A bits 11:8)
+2. Write all I2C command words to the FIFO at address N[6:0]
+3. Write the process-control register (F bits 15:8) to set the "send FIFO" bit (A bits 15:12), triggering the FPGA to process the FIFO
+4. If scan inhibit was applied, re-enable scanning by setting the bit back
+
+If `ScanCtlRegAddr == 0`, the scan-inhibit step is skipped.
+
+### I2C AI (Read) Path
+
+The AI handler is simpler: it writes I2C command words to the Collector FPGA FIFO for a **read-type** transaction (C = 0x20–0x3F), then reads the result from the FPGA's SPI reply word. The Collector FPGA autonomously clocks out the I2C sequence, samples the data byte(s), and makes them available for the Pi to read back via SPI.
+
+### Data Width Limitation
+
+Standard `ai`/`ao` records hold 16-bit values, limiting single-call transfers to 2 data bytes. For longer sequences (>2 bytes), the device support code automatically uses the `CollectorGlobDataStructure` global waveform buffer.
 
 ---
 

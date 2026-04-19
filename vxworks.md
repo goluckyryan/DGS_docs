@@ -463,16 +463,17 @@ Each trigger module exposes up to 16 FIFOs, accessed via VME address offsets:
 
 > **Note:** MON FIFO 7 (index 6) was previously at `0x0178`, moved to `0x5000` in firmware update 2025-05-28 (JTA). This is the main DAQ data FIFO for most applications.
 
-✅ verified 2026-04-16 — `readTrigFIFO.c:L78-96` (FIFO_READ_ADDRESS array + comments) + `inLoopSupport.c:L678-694` (FIFO index cheat sheet)
+✅ verified 2026-04-19 — `readTrigFIFO.c:L78-96` (FIFO_READ_ADDRESS array; MON FIFO 7 = `0x5000` with comment "JTA 20250528 moved MON FIFO 7 to 0x5000"). Note: the cheat sheet comment in `inLoopSupport.c:L678-694` still shows `0x0178` for MON FIFO 7 — that comment is **outdated** and disagrees with `FIFO_READ_ADDRESS[6] = 0x5000` in `readTrigFIFO.c`, which is the ground truth.
 
 ### FIFO Status Register
 
-- **MON_FIFO_STATE** at offset `0x01B4` (MTRG) / `0x01A0` — 16-bit register; 2 bits per FIFO:
-  - Bit `2n+1` = Full flag for FIFO n
-  - Bit `2n+0` = Empty flag for FIFO n
-- **CHAN_FIFO_STATE** at offset `0x01A4`
-- **MON FIFO 7 live depth** at `0x0154` (live counter, in longwords)
-- **MON FIFO 7 latched depth** at `0x01AC` (latched at event boundaries — used for readout sizing)
+- **`MTRG_MON_FIFO_STATE_REG`** at offset `0x01B4` — 16-bit register covering all 8 MON FIFOs; 2 bits per FIFO:
+  - Bit `2n+1` = Full flag for MON FIFO n
+  - Bit `2n+0` = Empty flag for MON FIFO n
+  - ✅ verified 2026-04-19 — `inLoopSupport.c:L73` (`MTRG_MON_FIFO_STATE_REG = (0x1B4/4)`) + L709 (used for all FifoNum < 8). Note: in-code comment at L666 says `0x01A0` but that contradicts the variable definition — `0x01B4` is the ground truth.
+- **`MTRG_CHAN_FIFO_STATE_REG`** (CHAN_FIFO_STATE) at offset `0x01A4` ✅ verified 2026-04-19 — `inLoopSupport.c:L74` (`MTRG_CHAN_FIFO_STATE_REG = (0x01A4/4)`)
+- **MON FIFO 7 live depth** at `0x0154` (live counter, in longwords) ✅ verified 2026-04-19 — `inLoopSupport.c:L79` (`MTRG_MON7_LIVE_DEPTH = (0x0154/4)`)
+- **MON FIFO 7 latched depth** at `0x01AC` (latched at event boundaries — used for readout sizing) ✅ verified 2026-04-19 — `inLoopSupport.c:L78` (`MTRG_MON7_LATCHED_DEPTH = (0x01AC/4)`)
 
 ### `CheckAndReadTrigger()` Logic (in `inLoopSupport.c`)
 
@@ -573,99 +574,28 @@ A helper function `PushTypeFToQueue()` sets `rawBuf->board`, `rawBuf->len = 16`,
 
 ---
 
-## Port 9010 On-Demand FIFO Grabber (Planned / Not Yet Implemented)
+## devGData.c — Legacy VME_IO Device Support (Removed 2025-04-21)
 
-_Source: `vxworks/On-Demand-FIFO-Grabber-Plan.md` — design plan only; `fifoGrabber.c` does not exist yet as of 2026-04-18_
+`devGData.c` was an EPICS device support module for `VME_IO`-type records. It provided three device sets:
+- **`devAiGData`** — `ai` records; signal codes 0x01–0x0b mapped to per-board channel rates, 0xc to card latency, 0xd/0xe to KB sent/read diff. All handlers were **commented out** — effectively a no-op.
+- **`devBoGData`** — `bo` records; writing to signal=1 set `daqBoards[card].EnabledForReadout`. This was the original PV-controlled mechanism for enabling boards in inLoop.
+- **`devAoGData`** — `ao` records; simply stored `pao->rval` to `pao->val` — a pass-through for state machine use.
 
-A planned standalone TCP diagnostic service that allows raw FIFO data to be grabbed from a specific digitizer board **without starting the full DAQ pipeline**. Currently, FIFO data is only accessible via the full chain: `Online_CS_StartStop` PV → inLoop polling → QSend queue → MiniSender (port 9001) → receiver.
+**Removed from the build:** `dgsDrivers/dgsDriverApp/src/Makefile:L63` — `JTA 20250421: removed`. The file still exists in the source tree but is no longer compiled into `gretDet.munch`.
 
-### Purpose
-- Diagnostics and board testing without requiring a full receiver
-- Direct DMA reads of digitizer FIFO content on-demand
-- Scripted spot-checks of raw data integrity
+**Current mechanism for `EnabledForReadout`:** `devGVME.c` initializes it to 0 in `devGVMECardInit()`. `inLoop.st` maps `VME{CRATE}:{BOARD}:CS_Ena` PVs (monitored via `DECLMON`) to per-board enable flags via `SetupBoardAddresses()` — replacing the old VME_IO PV approach. The `CS_Ena` PV pattern is documented in `ANLDAQ.md`.
 
-### Architecture
+✅ verified 2026-04-19 — `devGData.c` full read + `dgsDriverApp/src/Makefile:L63` + `inLoop.st:L167,535`
 
-```
-Client (Python)
-    │
-    │  TCP port 9010
-    ▼
-FifoGrabberTask (new VxWorks C task, fifoGrabber.c)
-    ├── CMD_START_BOARD → ClearDigMstrLogicEnable() → ClearDigFIFO() → SetDigMstrLogicEnable()
-    └── CMD_GRAB_FIFO  → read FIFOStatusReg depth → sysVmeDmaV2LCopy() → integrity check → send
-```
+---
 
-**No interference with MiniSender or inLoop** — separate port, separate task, no queue access.
+## Port 9010 On-Demand FIFO Grabber (Planned — Not Implemented)
 
-### Wire Protocol (binary, big-endian / network byte order)
+> ⚠️ Design plan only as of 2026-04-18. `fifoGrabber.c` does not exist. No VxWorks build changes made.
 
-**Request (16 bytes):**
-```c
-struct FG_Req {
-    uint32_t cmd;    // 1=PING, 2=START_BOARD, 3=GRAB_FIFO, 4=STOP_BOARD
-    uint32_t board;  // board number 0–6
-    uint32_t param1; // GRAB_FIFO: max words; START_BOARD: 0
-    uint32_t param2; // GRAB_FIFO: 0=digitizer FIFO, 1–15=trigger FIFO index
-};
-```
-
-**Response (16 bytes + optional payload):**
-```c
-struct FG_Resp {
-    uint32_t status; // 0=OK, 1=ERR_BOARD, 2=NO_DATA, 3=BAD_INTEGRITY
-    uint32_t len;    // bytes of raw payload to follow (0 if no payload)
-    uint32_t param1; // actual bytes DMA'd
-    uint32_t param2; // FIFO depth at time of read
-};
-// followed by `len` bytes of raw FIFO data
-```
-
-### Key Implementation Details (planned)
-
-| Item | Detail |
-|------|--------|
-| **File** | `dgsDrivers/dgsDriverApp/src/fifoGrabber.c` (+ `.h`) |
-| **Task priority** | 150 — below inLoop (190) so inLoop wins; above most background tasks |
-| **Socket options** | TCP_NODELAY, SO_RCVBUF/SNDBUF=65536 (matching `SendReceiveSupport.c`) |
-| **Connection model** | One client at a time; stateless — connection closed after each request |
-| **Init call** | `FifoGrabberInit(9010)` from VxWorks shell after `iocInit` |
-| **Build change** | Add `devDGSDriverSupport_SRCS += fifoGrabber.c` to `dgsDrivers/dgsDriverApp/src/Makefile` |
-| **Integrity check** | `buf[0] == 0xAAAAAAAA` (digitizer FIFO start word) |
-| **DMA chunking** | Loop at `DMA_CHUNK_SIZE_IN_BYTES=0x10000` (same as `readDigFIFO.c`) |
-
-### Existing Functions Reused (no changes)
-
-| Function | File | Purpose |
-|----------|------|---------|
-| `ClearDigMstrLogicEnable()` | `inLoopSupport.c:272` | Disable digitizer |
-| `ClearDigFIFO()` | `inLoopSupport.c:325` | Clear FIFO (bit 27 pulse) |
-| `SetDigMstrLogicEnable()` | `inLoopSupport.c:294` | Arm digitizer + init pipeline |
-| `InitializeDigPipeline()` | `inLoopSupport.c:314` | Load delays (called by above) |
-| `sysVmeDmaV2LCopy()` | MV5500 BSP | DMA VME→local copy |
-| `daqBoards[]` | `inLoopSupport.c` global | Board base addresses + FIFO pointers |
-| `FIFOStatusReg[]` | `inLoopSupport.c` global | FIFO depth register pointers |
-
-### Python Client (planned: `grab_fifo.py`)
-
-```python
-import socket, struct
-FG_PORT = 9010
-CMD_PING, CMD_START, CMD_GRAB, CMD_STOP = 1, 2, 3, 4
-
-def grab_fifo(ioc_ip, board, max_words=65536):
-    with socket.create_connection((ioc_ip, FG_PORT), timeout=5) as s:
-        s.sendall(struct.pack('!4I', CMD_GRAB, board, max_words, 0))
-        status, length, actual, depth = struct.unpack('!4I', s.recv(16))
-        payload = b''
-        while len(payload) < length:
-            payload += s.recv(length - len(payload))
-    return status, payload  # raw 32-bit words
-```
-
-### Status
-
-> ⚠️ **Not implemented** — design plan only. `fifoGrabber.c` and `fifoGrabber.h` have not been created. No changes to the VxWorks build have been made. Plan documented in `vxworks/On-Demand-FIFO-Grabber-Plan.md`.
+- **Purpose:** Standalone TCP diagnostic service on port 9010 — grab raw FIFO data from a specific digitizer board without starting the full DAQ pipeline (no MiniSender, no receiver required).
+- **Plan document:** `vxworks/On-Demand-FIFO-Grabber-Plan.md` — full wire protocol, implementation details, Python client.
+- **Requires:** New `dgsDrivers/dgsDriverApp/src/fifoGrabber.c`, new task (`FifoGrabberTask`, priority 150), `FifoGrabberInit(9010)` call from VxWorks shell post-`iocInit`.
 
 ---
 

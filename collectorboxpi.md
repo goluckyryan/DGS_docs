@@ -419,9 +419,11 @@ The `collectorboxpi/` root contains two top-level scripts that manage the detect
 
 ### `Add_Remove_Detectors.sh` (must run as root)
 
+> ⚠️ **Known bug (2026-04-18):** Line 11 sets `EPIC_dir=/share/EPICS` (missing trailing `d`) — the `cd $EPIC_dir` at L12 silently fails. The script continues because all subsequent paths are hardcoded absolute (`/shared/EPICS/Pre_EPICS_Collector`), so the actual scan and IOC restart steps still work correctly. The failing `cd` is a no-op bug. ✅ verified 2026-04-18 — `Add_Remove_Detectors.sh:L10-12` vs working paths at L24
+
 Full sequence executed:
 1. `systemctl stop softIOC.service` — stop the EPICS IOC
-2. `cd /shared/EPICS/Pre_EPICS_Collector`
+2. `cd /shared/EPICS/Pre_EPICS_Collector` (via hardcoded absolute path — the earlier `cd $EPIC_dir` fails silently)
 3. `./ALL_power_OFF` — cut power to all SBXs on all stripes
 4. `sleep 5` — allow power to fully discharge
 5. `./Scan_DVI_Power` — scan 48V power state per DVI cable; exit code 0 = all OK, exit 148 (= C exit 404 mod 256) = cables not usable
@@ -460,7 +462,7 @@ Standalone C programs that run on the Raspberry Pi **before EPICS is active**. T
 | `Write_to_DPRAM` | Reads a data file and writes it to the DPRAM of a specified SBX |
 | `Write_to_EEPROM` | Reads address/data file and writes to 24AA002 EEPROM (byte or page mode) |
 | `spi_with_b_mbo_debug` | Low-level SPI debug utility for verifying raw SPI transfers |
-| `SPI_rw` | Interactive SPI read/write for testing arbitrary register access |
+| `SPI_rw` | Interactive SPI read/write for testing arbitrary register access. Usage: `sudo ./SPI_rw <r|w> <devsel> <addr> <data>` (devsel 0–31, addr 0–1023, data 16-bit). See `collectorboxpi/Pre_EPICS_Collector/SPI_Address.md` for full register map and examples. ✅ verified 2026-04-18 — `SPI_Address.md:L1-16` |
 
 **SPI architecture (brief):**
 - Uses **SPI1** (Aux SPI), not SPI0; enabled via `dtoverlay=spi1-1cs` in `/boot/config.txt`

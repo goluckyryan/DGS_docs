@@ -82,14 +82,18 @@ This register lives at `reg_led_threshold[i](23:16)` in `Digitizer.vhd`. The bla
 
 ## 4. Side Effect: BGO Veto Gate
 
-When a Ge channel is blanked (`CHANNEL_KILLED = 1`), the FPGA uses this as a **gate for the paired BGO channels**.
+When a Ge channel is blanked (`CHANNEL_KILLED = 1`), the FPGA can use this as a **gate for the paired BGO channels** — but only when the BGO channel's `external_disc_mode` bits are set to `"101"`.
 
-In `Digitizer.vhd` (Front Bus Left configuration):
+In `Digitizer.vhd` (mode `"101"`, Front Bus Left configuration):
 ```vhdl
 external_disc_flag(i) <= not(CHANNEL_KILLED(i+5));
 ```
+✅ verified 2026-04-18 — `Digitizer.vhd:L1121-1126` (DGS BuildBranch, mode "101" case: "use the CHANNEL_KILLED of the Ge channel (5:9) as a gate for the BGO channel (0:4)")
 
 Channels 0–4 are BGO scintillators. Channels 5–9 are the paired Ge detectors. When Ge channel `i+5` is in reset-kill mode, BGO channel `i` is also suppressed. This prevents the BGO from triggering on the electromagnetic noise that often accompanies a preamp reset.
+
+> **Note:** This BGO gating is not hardwired — it requires the BGO channel's `reg_external_disc_mode` bits [2:0] to be set to `"101"` (mode 101). The `external_disc_flag` is a mux with multiple modes (000–111); mode 101 on FRONT_BUS_LEFT boards is specifically the CHANNEL_KILLED gate. Other modes route different sources (REMOTE_DISCBIT, AUX_DIN, VME_EXT_DISC_REQUEST, etc.).
+✅ verified 2026-04-18 — `Digitizer.vhd:L968-1130` (full external_disc_flag mux case statement for channels 0–8)
 
 ---
 
@@ -100,9 +104,9 @@ The firmware records **when** the preamp reset happened, so analysis code can:
 - Flag events that occurred right after a reset (still recovering)
 - Correct for baseline disturbances
 
-**`PARST_TSM`** — "Preamp Reset Timestamp Match" — is a 1-bit flag in the event header (Word 13, bit 12). It means: the upper 20 bits of the timestamp of the last preamp reset match the current event's timestamp. In other words: the reset was recent (within the current ~10 ms timestamp rollover window).
+**`PARST_TSM`** — "Preamp Reset Timestamp Match" — is a 1-bit flag in the event header (Word 13, bit 12). It means: the upper 20 bits of the timestamp of the last preamp reset match the current event's timestamp. In other words: the reset was recent (within the current ~10 ms timestamp rollover window). ✅ verified 2026-04-18 — `Event_Header_FIFO.vhd:L381,L477` (`header(13)(12) <= event_data.PARST_TSM` in both LED and CFD header modes)
 
-**`TS_OF_LAST_PREAMP_RESET[23:0]`** — the lower 24 bits of the 48-bit timestamp when the reset was detected. Stored in the multiplexed header field `MPX_FIELD` (Word 11, bits 23:0) when `CAPTURE_PARST_TS = 1` (controlled by bit 7 of `reg_d3_window`).
+**`TS_OF_LAST_PREAMP_RESET[23:0]`** — the lower 24 bits of the 48-bit timestamp when the reset was detected. Stored in the multiplexed header field `MPX_FIELD` (Word 11, bits 23:0) when `CAPTURE_PARST_TS = 1` (controlled by bit 7 of `reg_d3_window`). ✅ verified 2026-04-18 — `Event_Header_FIFO.vhd:L372,L468` (`header(11)(23 downto 0) <= event_data.MPX_FIELD` in both LED and CFD modes); `jta_channel.vhd:L51` confirms CAPTURE_PARST_TS controls whether MPX_FIELD holds preamp reset timestamp or 2nd early energy.
 
 In `jta_channel.vhd`:
 ```vhdl
@@ -125,13 +129,13 @@ In `SERDES_RX_Mach.vhd`:
 ```vhdl
 FRONT_END_RESET_FLAG <= '1';   -- one clock pulse
 ```
+✅ verified 2026-04-19 — `SERDES_RX_Mach.vhd:L312` (20211118 DGS_TAG_20180607_TWEAK branch: `FRONT_END_RESET_FLAG <= '1'` in Frame 15 async command decode)
 
-In `Digitizer.vhd`:
-```vhdl
-LOAD_DELAYS_COMBO <= front_end_reset_flag OR reg_channel_pulsed_control(0);
-```
+In `Digitizer.vhd`, `front_end_reset_flag` is declared as a signal (L250) and connected as `FRONT_END_RESET_FLAG` output of `SERDES_RX_Mach` (L1883). However, in the deployed 20211118 DGS firmware, `LOAD_vals` is wired only to `reg_channel_pulsed_control(0)` (L990) — **`front_end_reset_flag` does not drive `LOAD_vals` in the deployed build**.
 
-`LOAD_DELAYS_COMBO` is passed to each channel as `LOAD_vals` — it reloads all programmable delay values from registers. Think of it as a soft reset that re-arms the delay chain without touching the ADC or the SERDES link.
+> ⚠️ The `LOAD_DELAYS_COMBO <= front_end_reset_flag OR reg_channel_pulsed_control(0)` expression does not appear in the 20211118 DGS firmware (DGS_TAG_20180607_TWEAK branch) or the active fpga/ tree DGS build. It may describe a future/unreleased firmware variant. `front_end_reset_flag` appears to be received but not used in the current deployed DGS Digitizer.vhd. ✅ verified 2026-04-19 — `Digitizer.vhd:L250,L990,L1883` (20211118 tag + active fpga/ tree: no LOAD_DELAYS_COMBO signal exists; LOAD_vals => reg_channel_pulsed_control(0) only)
+
+Think of `FRONT_END_RESET` as a soft reset that re-arms the delay chain without touching the ADC or the SERDES link (when implemented).
 
 This is separate from the hardware-detected preamp reset above. It does **not** trigger the `PREAMP_DELAY` kill state.
 
@@ -176,6 +180,16 @@ WAIT_EDGE (normal operation resumes)
 | `jta_channel.vhd` | Passes PREAMP_RESET_DELAY registers; latches PARST timestamp into PEHQ |
 | `Digitizer.vhd` | Routes CHANNEL_KILLED to BGO gates; connects LOAD_DELAYS_COMBO |
 | `SERDES_RX_Mach.vhd` | Decodes Frame 15 FRONT_END_RESET command from MTRG |
+
+---
+
+## See Also
+
+- [`DGS_PVs.md`](DGS_PVs.md) — `preamp_reset_delayN` / `preamp_reset_delay_enN` PV descriptions
+- [`DIG_firmware_expert.md`](DIG_firmware_expert.md) — DIG firmware expert guide; modes, trigger_mux_select, aux I/O
+- [`deep_fpga_DIG.md`](deep_fpga_DIG.md) — DIG firmware architecture overview
+- [`VME_registers.md`](VME_registers.md) — VME register map; `reg_led_threshold[ch](23:16)` and `reg_channel_control[ch](3)` physical addresses
+- [`ioc.md`](ioc.md) — EPICS IOC where these PVs are instantiated
 
 ---
 
