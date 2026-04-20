@@ -1,5 +1,27 @@
 # dgs_analysis — DGS Analysis Code Collection
 
+## Table of Contents
+- [What It Is](#what-it-is)
+- [Repository](#repository)
+- [armory/ — Reusable Tools](#armory--reusable-tools)
+  - [fastEventConstructor](#fasteventconstructor)
+  - [parquet_pysort — Python/C++ Parquet Pipeline](#parquet_pysort--pythonc-parquet-pipeline)
+  - [gray_apps](#gray_apps)
+- [working/ — Experiment-Specific Scripts & Calibration](#working--experiment-specific-scripts--calibration)
+  - [RunParquet (legacy)](#runparquet-legacy--superseded-by-processrun)
+  - [parquetCLI](#parquetcli)
+  - [gain_from_parquet.py](#gain_from_parquetpy)
+  - [pz_from_parquet.py](#pz_from_parquetpy)
+  - [pz_from_evtparquet.py](#pz_from_evtparquetpy)
+  - [DownloadRaw.sh](#downloadrawsh)
+  - [ProcessRUN (primary pipeline)](#processrun-primary-pipeline--apr-2026)
+  - [BenchmarkTAC2_021.sh](#benchmarktac2_021sh)
+- [Data Format: GEB](#data-format-geb-gretina-event-builder)
+- [Connections to Other Subsystems](#connections-to-other-subsystems)
+- [EventBuilder_PQ Benchmark Results](#eventbuilder_pq-benchmark-results)
+
+---
+
 ## What It Is
 
 A collection of **experiment-independent analysis code** for processing DGS raw data. Structured as:
