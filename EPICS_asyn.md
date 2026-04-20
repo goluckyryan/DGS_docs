@@ -181,16 +181,16 @@ For interrupt-driven hardware, the interrupt handler calls `setIntegerParam()` +
 
 ## asyn in DGS
 
-- Used in the VxWorks VME IOC (`gretDet.munch`) — asyn R4-37 cross-compiled for MVME5500
+- Used in the VxWorks VME IOC (`gretDet.munch`) — asyn **4-17** cross-compiled for MVME5500 ✅ verified 2026-04-19 — `vxworks/dgsIoc/configure/RELEASE:L22`: `ASYN=$(TOP)/../synApps/asyn4-17`; EPICS base 3.14.12.1; sncseq 2.0.12; build maintained by JTA/MBO (last touched 2022)
 - Each DIG, RTRG, MTRG board = one asyn port
 - Port name format: short board-local strings (e.g., `"MDIG1"`, `"MDIG2"`, `"RTR1"`, `"MTRG"`) ✅ verified 2026-04-08 — `ioc/boot/vme66.cmd:L133-140`
-- The collector box Pi IOC uses an older `CAMAC_IO` device support style (pre-asyn) — direct device support, no asyn layer
+- The collector box Pi IOC uses an older `CAMAC_IO` device support style (pre-asyn) — direct device support, no asyn layer ✅ verified 2026-04-19 — `collectorboxpi/CollectorBox_RevA/CollectorApp/src/CollectorSupport.dbd`: all device registrations use `CAMAC_IO` (not `INST_IO` or asyn); DTYP strings `CollectorLocalSerial`, `CollectorSoftControl`, `CollectorI2CSerial` all map to `CAMAC_IO`
 
 ### DGS-Specific `asynUInt32Digital` Mask Encoding
 
 _Source: `vxworks/dgsDrivers/dgsDriverApp/src/asynDigitizerDriver.cpp:L379-404` ✅ verified 2026-04-08_
 
-The DGS asyn digitizer driver extends the standard `asynUInt32Digital` mask with a **custom sub-field encoding** for bit-field registers. When the PSG spreadsheet generates DB records for a multi-bit sub-field (e.g., a 5-bit field starting at bit 3), the mask is encoded as:
+The DGS asyn digitizer driver extends the standard `asynUInt32Digital` mask with a **custom sub-field encoding** for bit-field registers. When the PSG spreadsheet generates DB records for a multi-bit sub-field (e.g., a 5-bit field starting at bit 3), the mask is encoded as: ✅ verified 2026-04-20 — `asynDigitizerDriver.cpp:L379-404` (read path: L382 sentinel check `(mask&0xffff0000)==0xaaaa0000`, L384 `numbits=(mask&0x0000ff00)/256`, L387 `shift=mask&0x000000ff`; write path: L436-453 same pattern)
 
 ```
 mask = 0xaaaa_NNSS
@@ -207,11 +207,11 @@ The driver decodes this as:
 2. Extracts `numbits = 5`, `shift = 3`
 3. Builds real mask: `(2^5 - 1) << 3 = 0b11111000 = 0xF8`
 4. Calls base `asynPortDriver::readUInt32Digital()` with real mask
-5. Right-shifts result by `shift` to return the sub-field value directly
+5. Right-shifts result by `shift` to return the sub-field value directly ✅ verified 2026-04-20 — `asynDigitizerDriver.cpp:L400` (`if (is_long) *value=(*value)>>shift`)
 
 For raw whole-register reads (no sub-field), the mask is a standard bitmask with no `0xaaaa` sentinel.
 
-> Note: The comment in the source acknowledges this is somewhat awkward — `mask` is reused as a local variable and the code notes it "probably should just pass cmask" — but it works correctly in practice.
+> Note: The comment in the source acknowledges this is somewhat awkward — `mask` is reused as a local variable and the code notes it "probably should just pass cmask" (`L399-404` comment block) — but it works correctly in practice.
 
 ---
 

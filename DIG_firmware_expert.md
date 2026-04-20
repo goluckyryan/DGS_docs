@@ -107,7 +107,7 @@ Subtracts "delayed" input from "prompt" input every 10 ns. For positive pulses, 
 - Amplitude depends on 'd' buffer length and signal slope
 - Larger 'd' → more sensitive to small/slow signals; smaller 'd' → less time walk
 - 'd' < 10 not recommended (numerical truncation errors)
-- Recommended 'd' = 16 for HPGe detectors (<1 µs rise time) → 160 ns coarse discriminator delay
+- Recommended 'd' = 16 for HPGe detectors (<1 µs rise time) → 160 ns coarse discriminator delay ✅ verified 2026-04-20 — `DIG_firmware_expert.pdf p.11`: "For HPGe detectors with a rise time of less than 1usec, a 'd' value of 16 is recommended. The coarse discriminator uses a fixed delay time of 160ns (16 clocks)."
 
 **Discriminator Hold-off**: On first threshold crossing, loads hold-off counter; discriminator disabled for that many 10-ns ticks. Ensures one fire per edge. Output pulse is 10 ns wide (one clock).
 

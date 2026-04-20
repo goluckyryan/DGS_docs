@@ -144,23 +144,23 @@ All registers are 16-bit, A16/D16. Addresses in hex.
 | 0x070A | R | `LATCHED_TIMESTAMP_B` | Timestamp bits 31:16 ✅ verified 2026-04-19 — `registers.vhd:L263` |
 | 0x070C | R | `LATCHED_TIMESTAMP_C` | Timestamp bits 15:0 ✅ verified 2026-04-19 — `registers.vhd:L264` |
 | 0x070E | RW | `SerDes_COMMAND_FORMAT` | Select DGS or GRETINA command format ✅ verified 2026-04-19 — `registers.vhd:L265` (`when X"070E" => VME_DATA_OUT <= REG_70E_IN -- SERDES_COMMAND_FORMAT`) |
-| 0x0710 | R | `Coincidence_window_delay` | Delay after local trigger before coincidence window opens (×20 ns) |
-| 0x0712 | R | `coincidence_window_width` | Width of coincidence gate for GS trigger match |
-| 0x0714 | R | `LIVE_TIMESTAMP_A` | Running timestamp bits 47:32 |
-| 0x0716 | R | `LIVE_TIMESTAMP_B` | Running timestamp bits 31:16 |
-| 0x0718 | R | `LIVE_TIMESTAMP_C` | Running timestamp bits 15:0 |
-| 0x071A | RW | `TIMESTAMP_ERROR_CTRL` | Reset timestamp error counter |
-| 0x071E | R | `TIMESTAMP_ERROR_CNT_A` | Timestamp error counter bits 31:16 |
-| 0x0720 | R | `TIMESTAMP_ERROR_CNT_B` | Timestamp error counter bits 15:0 |
-| 0x0722 | RW | `TTCL_TIME_OFFSET` | Master trigger re-issue offset control |
-| 0x0724 | R | `MISSED_TRIG_COUNT` | Counter of missed re-issued trigger messages |
-| 0x0726 | R | `DLYD_TRIG_ERR_COUNT` | Counter of re-issued trigger errors |
-| 0x0728 | RW | `PROPAGATION_CONTROL` | Controls SerDes command processing |
+| 0x0710 | RW | `Coincidence_window_delay` | Delay value for coincidence trigger window (writable). Default=0x0100. ✅ verified 2026-04-20 — `registers.vhd:L265,L394` (both read and write cases present; `xREG_710` default `X"0100"` at L379) |
+| 0x0712 | RW | `coincidence_window_width` | Gate width for coincidence trigger (writable). Default=0x0110. ✅ verified 2026-04-20 — `registers.vhd:L266,L395` (read+write; `xREG_712` default `X"0110"` at L380) |
+| 0x0714 | R | `LIVE_TIMESTAMP_A` | Running timestamp bits 47:32 ✅ verified 2026-04-20 — `registers.vhd:L267` (`VME_DATA_OUT <= REG_714 -- SYSTEM_TIMESTAMP(47 downto 32)`) |
+| 0x0716 | R | `LIVE_TIMESTAMP_B` | Running timestamp bits 31:16 ✅ verified 2026-04-20 — `registers.vhd:L268` |
+| 0x0718 | R | `LIVE_TIMESTAMP_C` | Running timestamp bits 15:0 ✅ verified 2026-04-20 — `registers.vhd:L269` |
+| 0x071A | RW | *(reserved)* | **Reserved — do not read or write.** ⚠️ Previously mislabeled as `TIMESTAMP_ERROR_CTRL` — corrected 2026-04-20. ✅ verified 2026-04-20 — `registers.vhd:L270` (comment: "reserved, do not read or write") |
+| 0x071E | R | `TIMESTAMP_ERROR_CNT_A` | Timestamp error counter bits 31:16 (errors from SERDES) ✅ verified 2026-04-20 — `registers.vhd:L272` (`REG_TS_ERR_COUNT(31 downto 16)`) |
+| 0x0720 | R | `TIMESTAMP_ERROR_CNT_B` | Timestamp error counter bits 15:0 ✅ verified 2026-04-20 — `registers.vhd:L273` (`REG_TS_ERR_COUNT(15 downto 0)`) |
+| 0x0722 | RW | `TTCL_TIME_OFFSET` | Master trigger re-issue offset control ✅ verified 2026-04-20 — `registers.vhd:L274,L398` (read + writable; comment: "TTCL_TIME_OFFSET register") |
+| 0x0724 | R | `MISSED_TRIG_COUNT` | Counter of missed re-issued trigger messages ✅ verified 2026-04-20 — `registers.vhd:L275` (`std_logic_vector(REG_724) -- MISSED_TRIG_COUNT`) |
+| 0x0726 | R | `DLYD_TRIG_ERR_COUNT` | Counter of re-issued trigger errors ✅ verified 2026-04-20 — `registers.vhd:L276` (`std_logic_vector(REG_726) -- DLYD_TRIG_ERR_COUNT`) |
+| 0x0728 | RW | `PROPAGATION_CONTROL` | Controls SerDes command processing ✅ verified 2026-04-20 — `registers.vhd:L277,L399` (read + write) |
 | 0x07EC | R | `FIFO_COUNTER` | Number of triggers stored in FIFO ✅ verified 2026-04-19 — `registers.vhd:L280` (`when X"07EC" => VME_DATA_OUT <= std_logic_vector(FIFO_COUNTER)`) |
 | 0x07F0 | R | `TRIG_COUNTER` | Total triggers received ✅ verified 2026-04-19 — `registers.vhd:L281` (`when X"07F0"`); **KB previously said 0x07EE — corrected** |
 | 0x07F2–0x07Fe | R | `USER_COUNTER_0–6` | Edge counters for NIM inputs 0–6 ✅ verified 2026-04-19 — `MyRIAD.vhd:L910` (`USER_COUNTERs reads back at 0x07F2 - 0x0800`; 8 total NIM input counters) |
 | 0x0800 | R | `USER_COUNTER_7` | Edge counter for NIM input 7 ✅ verified 2026-04-19 — `MyRIAD.vhd:L910` (0x0800 = last of 8 USER_COUNTERs driven by `NIM_IN` rising edges, L997–1005) |
-| 0x0848 | RW | `sd_config` | SerDes configuration register |
+| 0x0848 | RW | `sd_config` | SerDes configuration register ✅ verified 2026-04-20 — `registers.vhd:L295,L401` (read: `xREG_848 -- SERDES configuration register`; write case at L401) |
 | 0x0860–0x0866 | R | TDC vernier data | 4 × 16-bit TDC vernier words (bits 63:48, 47:32, 31:16, 15:0) ✅ verified 2026-04-19 — `registers.vhd:L296-299` (`TDC_VERNIER(63 downto 48/47 downto 32/31 downto 16/15 downto 0)`) |
 | 0x0900 | RW | `fpga_ctrl_reg` | Main FPGA configuration control |
 | 0x0902 | R | `vme_status` | VME FPGA status |
@@ -189,7 +189,9 @@ State machine: fires when "starting trigger" occurs (NIM In 0 if `GATING_REG[0]`
 ## FPGA Firmware Architecture
 _Source: `DGS_tools_pack/FPGA/others/MyRIAD/MAIN_FPGA/Source/MyRIAD.vhd` (explored 2026-04-08)_
 
-**Main FPGA chip:** Xilinx Spartan-3 **XC3S1000-FG456**
+**Main FPGA chip:** Xilinx Spartan-3 **XC3S1000-FG456** ✅ verified 2026-04-19 — `FPGA/others/MyRIAD/MAIN_FPGA/Work13/MyRIAD.xise`: Device=xc3s1000, Package=fg456, Family=Spartan3
+
+**VME FPGA chip:** Xilinx Spartan-3 **XC3S400-FG320** ✅ verified 2026-04-19 — `FPGA/others/MyRIAD/VME_FPGA/Work13.4/Work13.4.xise`: Device=xc3s400, Package=fg320, Family=Spartan3
 
 ### Generic Parameter
 ```vhdl

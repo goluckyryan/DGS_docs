@@ -161,7 +161,7 @@ All other runs: delete from data0 once confirmed on NFS (spot-check MD5 of a few
 
 ## Monitoring
 
-⚠️ **Data0 space monitor cron status (as of 2026-04-16):** The hourly data0 space monitor cron (id: `d3285cee-893e-49c4-91df-85e57ace9b07`) that previously ran on pi5-dgs is **NOT active** on spark-ca9f (crontab empty). The data0 filesystem is on DCS2, not spark-ca9f. Confirm with Ryan whether this monitoring should be migrated — either to a cron on DCS2 itself, or to spark-ca9f with an SSH-based check.
+**Data0 space monitor cron:** No active data0 monitor cron exists on spark-ca9f, pi5-lnFill, or DCS2. The old pi5-dgs cron (id: `d3285cee-893e-49c4-91df-85e57ace9b07`) was confirmed deleted; no replacement was set up. ✅ verified 2026-04-19 — `utility_scripts.md` + DCS2 crontab check. data0 is at 1% used (3.4T free as of 2026-04-18) — no urgent need, but worth addressing eventually.
 
 ---
 

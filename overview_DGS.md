@@ -118,23 +118,23 @@ DGS is a full software+firmware+hardware stack:
 | Host | IP | OS | Role |
 |------|----|----|------|
 | DCS2 | .56 | Ubuntu 24.04 | Data analysis, InfluxDB, Grafana |
-| dgs1 | .122 | SL 6.8 | Main DAQ |
-| dgs2 | .123 | Rocky 8.7 | Main DAQ (4TB SSD) |
-| dgs4 | .125 | SL 7.9 | — |
-| dgs6 | .184 | Rocky 8.7 | — |
+| dgs1 | .122 | SL 6.8 | Main DAQ | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
+| dgs2 | .123 | Rocky 8.7 | Main DAQ (4TB SSD) | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
+| dgs4 | .125 | SL 7.9 | — | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
+| dgs6 | .184 | Rocky 8.7 | — | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
 | gs-ts-south | .186 | — | Terminal server south (even GS IDs) | ✅ verified 2026-04-19 — `ANLDAQ/EPICS_para.sh:L47`
 | gs-ts-north | .91 | — | Terminal server north (odd GS IDs) | ✅ verified 2026-04-19 — `ANLDAQ/EPICS_para.sh:L47`
-| gs-csw | .26 | — | Collector box south-west |
-| gs-cse | .42 | — | Collector box south-east |
-| gs-cne | .88 | — | Collector box north-east |
-| gs-cnw | .149 | — | Collector box north-west |
-| banyan | .167 | Windows 11 | Windows in data room |
+| gs-csw | .26 | — | Collector box south-west | ✅ verified 2026-04-19 — `lnfill/LNFill_ping_cron.sh:L17` (`192.168.203.26  # gs-csw`)
+| gs-cse | .42 | — | Collector box south-east | ✅ verified 2026-04-19 — `lnfill/LNFill_ping_cron.sh:L16` (`192.168.203.42  # gs-cse`)
+| gs-cne | .88 | — | Collector box north-east | ✅ verified 2026-04-19 — `lnfill/LNFill_ping_cron.sh:L14` (`192.168.203.88  # gs-cne`)
+| gs-cnw | .149 | — | Collector box north-west | ✅ verified 2026-04-19 — `lnfill/LNFill_ping_cron.sh:L15` (`192.168.203.149  # gs-cnw`)
+| banyan | .167 | Windows 11 | Windows in data room | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
 | lnfill IOC | .121 | — | VME IOC for LN valves/sensors |
 | ln2con | .148 | Fedora 12 | lnfill IOC boot host |
 | pi5-lnfill | .58 | Debian 13 | LN fill cron + HPGe temp push |
 | spark-ca9f (DGX Spark) | .132 | Linux (arm64) | General DGS host — **this machine** (replaced pi5-dgs 2026-04-15) |
 | pi5-dgs | .2 | Debian 13 | Ryan's former admin Pi (retired from General DGS role 2026-04-15) |
-| piserver1 | .154 | Ubuntu 20.04 | Pi PXE server |
+| piserver1 | .154 | Ubuntu 20.04 | Pi PXE server | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
 | gs-pdu-north | .224 | — | Power strip north |
 | gs-pdu-south | .225 | — | Power strip south |
 | fs2.onenet | .71 | — | NFS/tftp server for collector Pis | ✅ verified 2026-04-19 — `collectorboxpi/README.md:L287` (`nfsroot=192.168.203.71:/mnt/vol1/fs2/nfs/piserver/...`)

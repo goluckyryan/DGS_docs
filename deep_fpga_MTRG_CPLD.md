@@ -70,14 +70,16 @@ Note: `sum_conn_ctrl[1:0]` mux options: `00`=sum data, `01`=raw disc bits, `10`=
 
 ### Key Signals
 
+✅ verified 2026-04-20 — `DGS_CPLD/fast_strb.vhd:L84-100` (entity port declarations)
+
 | Signal | Dir | Width | Description |
 |--------|-----|-------|-------------|
-| DISC_BITS | In | 8 | Discriminator input bits |
-| CONN_A/B/C/D_DATA | In | 8 each | Router sum data inputs |
+| DISC_BITS | In | 8 | Discriminator input bits (one per channel; `7 downto 0`) |
+| CONN_A/B/C/D_DATA | In | 8 each | Router sum data inputs (`7 downto 0`) |
 | FAST_STRB | Out | 1 | Fast strobe output to auxiliary detectors |
-| SUM_CONN_OUT | Out | 8 | Sum data output to connector |
-| VME_CS/RNW/STRB | In | — | VME bus control |
-| BUF_VME_DATA | Bidir | 16 | VME data bus |
+| SUM_CONN_OUT | Out | 8 | Sum data output to connector (`7 downto 0`; tri-stated via OBUFT) |
+| VME_CS/RNW/STRB | In | — | VME bus control (CS = 3-bit chip select; RNW = read/write; STRB = data strobe + STRB_IO edge-detect variant) |
+| BUF_VME_DATA | Bidir | **8** | VME data bus (`7 downto 0`) — **corrected from earlier erroneous 16-bit entry** |
 
 ### Tristate Bus Management
 

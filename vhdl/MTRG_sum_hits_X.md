@@ -71,4 +71,4 @@ A generic sub-component shared by all MTRG trigger algorithms. Receives `TRIGGER
 - **Receives from**: `calc_total_sum.vhd` (SUM_OF_X = total X-plane sum across all Routers); VME registers (threshold, enable, prescale, holdoff, type code)
 - **Sends to**: Master Trigger collector state machine (TRIG_FIFO_OUT, EVENT_AVAILABLE); throttle logic (ALGO_THROTTLE_REQUEST); matrix trigger logic (RAW_NONVETOED_TRIG_ACK)
 - **Instantiates**: `trig_algo_support` (generic trigger support, not detailed here)
-- **Note**: An equivalent Y-plane version likely exists; this file handles the X-plane sum trigger
+- **Note**: There is **no separate Y-plane sum trigger** — instead, `sum_hits_XY.vhd` handles both X and Y planes together, requiring **both** `GLOBAL_X_TOTAL > SUM_OF_X_THRESH` AND `GLOBAL_Y_TOTAL > SUM_OF_Y_THRESH` to fire. `sum_hits_X.vhd` is X-only; `sum_hits_XY.vhd` is the coincidence trigger. ✅ verified 2026-04-20 — `VIVADO_MAIN_FPGA/trunk/Source/sum_hits_XY.vhd:L1-3` (entity description: "trigger issued only if BOTH sums are over their respective thresholds"); `ls` confirms no `sum_hits_Y.vhd` in either ISE or VIVADO trunk.

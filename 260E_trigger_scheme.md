@@ -2,7 +2,7 @@
 _Firmware: RTRG 0x260E, MTRG (current trunk)_
 _Example: 2-detector DUO (BGO ch-0 → Ge ch-5, BGO ch-1 → Ge ch-6; Y_MAP=A5/A6)_
 _Source: `DGS_tools_pack/FPGA/` — chan_in.vhd, disc_mach.vhd, router_data_path.vhd, router_top (TOP.VHD), mt_input_channel.vhd, eight_mt_channel.vhd, sum_hits_X.vhd, calc_total_sum.vhd, top.vhd_
-_Last updated: 2026-04-17_
+_Last updated: 2026-04-19_
 
 ---
 
@@ -240,7 +240,7 @@ The downlink chain (MTRG → Digitizers):
 | `X_PLANE_MAP_REG` | Same for X-plane |
 | `CLEAN_DIRTY_REG` | Selects CLEAN/DIRTY/MODULE/Clover source for X and Y hit maps |
 | `TSCATTER_DELAY_REG` | [14:8] = assertion window; [6:0] = overlap (coincidence) window |
-| `THROTTLE_LIMIT_TIME_REG` | Minimum continuous assertion length before a throttle request is accepted |
+| `THROTTLE_LIMIT_TIME_REG` | Minimum continuous assertion length before a throttle request is accepted. Bits[10:0] = count; bits[15:14] select prescaler (00=20.48 µs/tick, 01=20.97 ms/tick, 10=~21.47 s/tick, 11=~6 hr/tick). ✅ verified 2026-04-19 — `throttle_limiters.vhd:L63,L272,L288-296` (entity port comment + LIMIT_MACH decrement logic + prescaler select) |
 | `INPUT_LINK_MASK_REG` | Per-channel dead-channel mask |
 | `ENABLE_VETO` | Enables live-channel veto generation |
 
@@ -333,8 +333,8 @@ These are 8-bit fields (the 7-bit RTRG sum zero-extended to 8 bits), accommodati
 
 The `calc_total_sum` instance receives all eight `RTR_SUM_OF_X` and `RTR_SUM_OF_Y` arrays and produces:
 
-- **`GLOBAL_X_TOTAL[10:0]`** — 11-bit total X-plane multiplicity across all 8 RTRGs (max 640)
-- **`GLOBAL_Y_TOTAL[10:0]`** — 11-bit total Y-plane multiplicity across all 8 RTRGs (max 640)
+- **`GLOBAL_X_TOTAL[15:0]`** — 16-bit total X-plane multiplicity across all 8 RTRGs (max 640; 10 bits significant) ✅ verified 2026-04-18 — `calc_total_sum.vhd:L22-23` (std_logic_vector(15 downto 0))
+- **`GLOBAL_Y_TOTAL[15:0]`** — 16-bit total Y-plane multiplicity across all 8 RTRGs (max 640; 10 bits significant) ✅ verified 2026-04-18 — `calc_total_sum.vhd:L22-23` (std_logic_vector(15 downto 0))
 
 The summation is performed in `calc_total_sum` via a 3-stage pipelined adder tree (detailed in section 8).
 
@@ -598,8 +598,8 @@ graph TD
 
     LINKL_TX -->|"SerDes uplink"| MT_IN
     MT_IN -->|"RTR_SUM_OF_X/Y (8-bit each)"| CALCSUM
-    CALCSUM -->|"GLOBAL_X_TOTAL (11-bit)"| TRIG2
-    CALCSUM -->|"GLOBAL_Y_TOTAL (11-bit)"| TRIG3
+    CALCSUM -->|"GLOBAL_X_TOTAL (16-bit)"| TRIG2
+    CALCSUM -->|"GLOBAL_Y_TOTAL (16-bit)"| TRIG3
     TRIG2 -->|"TRIGGER_OCCURRED"| VETO
     TRIG3 -->|"TRIGGER_OCCURRED"| VETO
     CPLD -->|"FAST_STROBE"| TRIG5
@@ -623,3 +623,4 @@ graph TD
 - `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG: consumes RTRG multiplicity/hit data to make global trigger decisions
 - `knowledgeBase/deep_fpga_DIG.md` — DIG: upstream source of the 18-bit SERDES words that chan_in.vhd receives
 - `knowledgeBase/ttcl.md` — TTCL frame format: frames 12/14 (inter-trigger/remote trigger) that the RTRG forwards with nulls
+- `knowledgeBase/vhdl/` — Per-module plain-English VHDL summaries: `RTRG_chan_in.md`, `RTRG_disc_mach.md`, `RTRG_router_data_path.md`, `MTRG_top.md`, `MTRG_calc_total_sum.md`, etc.

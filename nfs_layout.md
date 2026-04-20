@@ -884,7 +884,7 @@ Top-level directories on vol5 (18 named experiments + test areas):
 
 - `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC; PXE boot infrastructure served from fs2.onenet piserver NFS
 - `knowledgeBase/influxdb_grafana.md` — InfluxDB/Grafana on DCS2 (192.168.203.56); same server as NFS mounts
-- `knowledgeBase/expMemory_2008_Chiara.md` — Active experiment data locations on NFS (vol3/vol4 paths)
+- `knowledgeBase/expMemory_2008_Chiara.md` — Active experiment data locations on NFS (vol5 paths)
 - `knowledgeBase/lnfill.md` — LN2 fill system; lnfill scripts on vol3, ln2con home on vol3
 - `knowledgeBase/ANLDAQ.md` — Data acquisition; raw run files land on NFS vol4/vol5
 - `knowledgeBase/dgs_analysis.md` — Post-analysis; reads from NFS experiment directories

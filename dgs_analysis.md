@@ -148,7 +148,7 @@ SNAPPY compression, PLAIN encoding. Author: Scott Carmichael (2026-02-24).
 - Doppler correction
 - Compton suppression flag
 
-**Event builder:** timestamp coincidence window `(ts − first_ts) < timewin`; N parallel threads with boundary merge and global `event_id` assignment.
+**Event builder:** timestamp coincidence window `(ts − first_ts) < timewin` ✅ verified 2026-04-20 — `dgs_decode_lib.cpp:L676`; N parallel threads with boundary merge and global `event_id` assignment.
 
 **Key files:**
 | File | Role |
@@ -177,6 +177,12 @@ g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
 
 **Ultimate goal:** Roaring bitmap index — for each energy bin, a roaring bitmap stores the set of `event_id`s containing a hit, enabling rapid energy-gated coincidence queries without scanning the full dataset.
 
+**Prototype:** `armory/fastEventContructor/roaring_bitmap_tests.py` (by S. Carmichael, 2026-02-25) — proof-of-concept using `pyroaring` + PyArrow. Two approaches tested:
+1. Load entire table with `pq.read_table()` + pandas, iterate rows to populate bitmaps — simple but memory-heavy
+2. Stream via `pyarrow.dataset` scanner with `batch_size=10^7` (respects row-group boundaries) — memory-efficient
+
+Benchmark result: ~15 s to build bitmaps for 10^6 events; ~1–2 s to retrieve events matching a gamma-gamma gate (`event_id in g1_union`). Energy bins: 4000 bins spanning 0–8000 ADC (bin_width = 2.0). Gate query: union of per-bin bitmaps in the gate range → filter parquet with `(event_id, “in”, g1_union)`. Dependency: `pip install pyroaring`. ✅ verified 2026-04-20 — `roaring_bitmap_tests.py`
+
 **Threading details:**
 - `decode.py`: `ThreadPoolExecutor`, one worker per tid; GE/BGO files submitted as sub-tasks for overlapping I/O. Requires **Python 3.14.3t (free-threaded / no-GIL)** for true parallelism. ✅ verified 2026-04-14 — `parquet_pysort/CLAUDE.md:L63` ("Python 3.14.3t (free-threaded) — No-GIL build"); `README.md:L145` ("Python 3.12+ — free-threaded build (3.14t) recommended")
 - `event_builder.py`: Reads all input into one Arrow table, splits into N chunks, calls C++ `build_events()` per chunk in parallel. Column renames (`header_ts→gs_ts`, etc.) are zero-copy Arrow references — no `.to_pylist()`. Optional `--sort-by gs_ecal|gs_edc` sorts output before writing (default: no sort). ✅ verified 2026-04-18 — `parquet_pysort/CLAUDE.md` event_builder description.
@@ -184,7 +190,7 @@ g++ -O2 -std=c++17 -shared -fPIC -o libdgs.so dgs_decode_lib.cpp
 
 **Algo notes:**
 - Algo 0: simple `sum2/MM - sum1/MM` (no pole-zero, no baseline).
-- Algo 1 (SZ_1, low-rate): Baseline via exponential avg (`BASE_ALPHA=0.01`, updated only when `dtev ≥ 250 µs`). Energy = `sum2/MM - sum1/MM * pz1 - base*(1-pz1)` where `pz1 = PZ^(1/MM)`. Both require `base > 10.0` for nonzero energy.
+- Algo 1 (SZ_1, low-rate): Baseline via exponential avg (`BASE_ALPHA=0.01` ✅ verified 2026-04-20 — `dgs_decode_lib.cpp:L35`, updated only when `dtev ≥ 250 µs`). Energy = `sum2/MM - sum1/MM * pz1 - base*(1-pz1)` where `pz1 = PZ^(1/MM)`. Both require `base > 10.0` for nonzero energy.
 - Algo 2 (SZ_2, high-rate): Uses `pz4 = PZ^((MM+KK)/MM)`. Two regimes based on `dtev` vs `dgs_SZ_t1`/`dgs_SZ_t2`: `≥ t2` computes baseline from `sampled_baseline` (FPGA-sampled, 24-bit, `MSAMPLE=1024` = 10.24 µs window) using PZ decay formula; `< t2` extrapolates from pre-learned `baselast`/`sum1last` factor. Energy formula same as SZ_1 but uses `pz4`. Requires `base > 10.0`.
 - `dtev`: computed from firmware `last_disc_timestamp` (time since last discriminator trigger), with wrap-around correction. Matches `lastdisc_dt_ticks()` in `bin_dgs.c`.
 - `sum2` field extraction in `jta.c` is header-type-dependent: types 0/1/3/5 use `>> 28` (4-bit); types 4/6/7/8 use `>> 24` (8-bit).
@@ -292,6 +298,7 @@ Interactive REPL for exploring `_dgs.parquet` (hit-level) or `_events.parquet` (
 | `rm <name>` | Delete stored object |
 | `newWindow` | Next plot in a new window |
 | `set <VAR> <value>` | Set a script variable; use `{VAR}` in subsequent commands (scripting) |
+| `saveParquet <out.parquet> G(<gate>) [CS] [CAL(col, file.cal)]` | **Filter and save**: apply gate (required), optional CS flag, optional energy calibration → write surviving rows/events to new Parquet ✅ verified 2026-04-20 — `dgs_analysis/working/parquetCLI:L743-833` |
 
 #### Plotting
 
@@ -678,7 +685,5 @@ Key improvements with ReadPool (vs without):
 > - `findMapping.sh` / `findGS.sh` — GS channel map tools
 
 <!--  original section removed 2026-04-18; see dgs_analysis_root_scripts.md  -->
-
-<!-- BEGIN REMOVED SECTION (kept as tombstone marker) -->
 
 *Source: `DGS_tools_pack/dgs_analysis/` + `DGS_tools_pack/gebsort/`. Updated: 2026-04-18 (ROOT scripts split to dgs_analysis_root_scripts.md).*

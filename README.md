@@ -75,7 +75,8 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [VME_registers.md](VME_registers.md) | Complete VME register address map for DIG, MTRG, and RTRG main FPGAs + VME FPGA + flash; address patterns, bit-field notes, IOC shell usage examples |
 | [EPICS.md](EPICS.md) | EPICS primer: record types, tools, Python integration for DGS |
 | [EPICS_asyn.md](EPICS_asyn.md) | asyn driver support: caput flow diagram, port concept, worker threads, bulk writes, passive hardware callbacks |
-| [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary; trigger FIFO readout (`readTrigFIFO.c`, `CheckAndReadTrigger`, Type-F headers, DMA chunking, FIFO index map) |
+| [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary, legacy `devGData.c`, Port 9010 FIFO grabber design |
+| [vxworks_fifo_readout.md](vxworks_fifo_readout.md) | DMA buffer architecture, trigger FIFO readout (`readTrigFIFO.c`, `CheckAndReadTrigger`), Type-F synthetic headers (trigger + digitizer), FIFO index map, DMA chunking |
 | [vxworks_migration.md](vxworks_migration.md) | Migration notes from con6 (Solaris) to Ubuntu 24 |
 
 ### Collector Box & Gammasphere
@@ -106,11 +107,31 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [digitizer_tester.md](digitizer_tester.md) | Digitizer Tester: dual 200 MHz 16-bit DAC, analog switch matrix (10ch), TTCL link, waveform generation |
 | [preamp_reset_readme.md](preamp_reset_readme.md) | Preamplifier reset handling: ADC threshold detection (LOLO/HIHI), PREAMP_DELAY kill state, BGO veto gate, PARST timestamp, Frame 15 remote reset |
 
+### VHDL Module Analysis (`vhdl/` subdirectory)
+
+Detailed plain-English summaries of key FPGA VHDL source files. Generated 2026-04-15 from primary source.
+
+| File | Module | Description |
+|------|--------|-------------|
+| [vhdl/RTRG_chan_in.md](vhdl/RTRG_chan_in.md) | `chan_in.vhd` | RTRG: serial SERDES input receiver, 18-bit word decoding, 640 ns DPRAM delay alignment, discriminator bit extraction |
+| [vhdl/RTRG_disc_mach.md](vhdl/RTRG_disc_mach.md) | `disc_mach.vhd` | RTRG: discriminator classifier (clean/dirty/BGO-only), event tagging logic |
+| [vhdl/RTRG_overlap_mach.md](vhdl/RTRG_overlap_mach.md) | `overlap_mach.vhd` | RTRG: trigger overlap and hold-off state machine |
+| [vhdl/RTRG_router_data_path.md](vhdl/RTRG_router_data_path.md) | `router_data_path.vhd` | RTRG: Link-L multiplicity aggregation, data forwarding to MTRG |
+| [vhdl/RTRG_top.md](vhdl/RTRG_top.md) | `TOP.VHD` | RTRG top-level: all sub-block wiring, port map, SERDES link management |
+| [vhdl/MTRG_top.md](vhdl/MTRG_top.md) | `top.vhd` | MTRG top-level: 8 Router aggregation, trigger decision distribution, NIM I/O, CPLD bus |
+| [vhdl/MTRG_eight_mt_channel.md](vhdl/MTRG_eight_mt_channel.md) | `eight_mt_channel.vhd` | MTRG: instantiates 8 `mt_input_channel` blocks, one per Router link |
+| [vhdl/MTRG_mt_input_channel.md](vhdl/MTRG_mt_input_channel.md) | `mt_input_channel.vhd` | MTRG: per-Router input channel: SERDES receiver, hit extraction, multiplicity contribution |
+| [vhdl/MTRG_sum_hits_X.md](vhdl/MTRG_sum_hits_X.md) | `sum_hits_X.vhd` | MTRG: summing hit counts across X-plane (north/south hemisphere aggregation) |
+| [vhdl/MTRG_calc_total_sum.md](vhdl/MTRG_calc_total_sum.md) | `calc_total_sum.vhd` | MTRG: final multiplicity sum and trigger decision comparator |
+| [vhdl/PROGRESS.md](vhdl/PROGRESS.md) | — | Checklist of VHDL files summarized (RTRG + MTRG) |
+
 ### Liquid Nitrogen
 
 | File | Description |
 |------|-------------|
 | [lnfill.md](lnfill.md) | LN filling system: valves, tanks, fill schedule, cron jobs, Discord alerts, ops procedures (overtime, manual fill, findhose) |
+| [lnfill_ioc.md](lnfill_ioc.md) | LN fill system deep internals: InfluxDB data flow, hose→detID mapping table, ln2con IOC boot tree, DetMan.py FillManifold() state machine |
+| [con6_lnfill.md](con6_lnfill.md) | con6 (Solaris 10, 192.168.203.136): CVS source repo + 68040 cross-compiler for lnfill IOC; ln2con NFS boot host; archiving priority and retirement migration plan |
 
 ### Utilities & Operations
 

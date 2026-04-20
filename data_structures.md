@@ -120,8 +120,8 @@ Word  Bits    Field                Notes
  1    15:4    USER_DEF             User-defined field ✅ verified 2026-04-07 — class_DIG.h:L25
  1    26:16   PACKET_LENGTH        Total packet length in 32-bit words ✅ verified 2026-04-07 — class_DIG.h:L26
  1    31:27   GEO_ADDR             VME geographic address (slot number) ✅ verified 2026-04-07 — class_DIG.h:L27
- 2    31:0    EVENT_TIMESTAMP[31:0] Lower 32 bits of 48-bit event timestamp
- 3    15:0    EVENT_TIMESTAMP[47:32] Upper 16 bits of 48-bit event timestamp
+ 2    31:0    EVENT_TIMESTAMP[31:0] Lower 32 bits of 48-bit event timestamp ✅ verified 2026-04-20 — `receiver.h:L402` (`header[1] & 0xFFFFFFFF`)
+ 3    15:0    EVENT_TIMESTAMP[47:32] Upper 16 bits of 48-bit event timestamp ✅ verified 2026-04-20 — `receiver.h:L402` (`(header[2] & 0x0000FFFF) << 32`)
  3    19:16   HEADER_TYPE          Data format type (see below)
  3    20      PEQ_BYPASS           1 = PEQ energy filter bypassed
  3    21      TRIG_TS_MODE         Trigger timestamp mode

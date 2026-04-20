@@ -356,6 +356,200 @@ Standard `ai`/`ao` records hold 16-bit values, limiting single-call transfers to
 | `bcm2835.c` / `.h` | Raspberry Pi GPIO/SPI library |
 
 ---
+
+## CollectorI2C — I2C Bridge Device Support
+
+**Files:** `CollectorI2C_AI.c`, `CollectorI2C_AO.c`  
+**DTYP string:** `CollectorI2CSerial`  
+✅ verified 2026-04-19 — `CollectorI2C_AI.c` lines 1–452
+
+The collector FPGA has an on-board I2C controller with a **command FIFO**. The Pi writes 16-bit words into this FIFO via SPI to describe each I2C bus transaction; the FPGA executes the transaction autonomously after the FIFO is loaded. Loading the FIFO is an **AI PV** action (write to FIFO = "read" type record); a separate BO pulse PV kicks off the transaction.
+
+### camacio Field Mapping for I2C
+
+| camacio field | I2C parameter |
+|---|---|
+| `B` (Bidx) | Device index within collector (0–31) |
+| `C` | Transfer type (mode byte — see below) |
+| `N` (UsrAddr) | SPI register address of the I2C command FIFO |
+| `A` | I2C device address (7-bit, shifted left by 1 to leave room for R/W) |
+| `F` | I2C internal register address (8-bit) |
+
+### FIFO Word Format (16-bit)
+
+```
+15   14   13   12   11   10   09   08   07  ...  00
++----+----+----+----+----+----+----+----+----------+
+|DONE|RPTS|NACK|READ|SAVE|EXTD|LOOP|TOGS|  Data    |
++----+----+----+----+----+----+----+----+----------+
+```
+
+| Bit | Name | Meaning |
+|-----|------|---------|
+| 15 | DONE/ACK4_CTL[1] | With RPTS: 00=continue, 01=repeated start, 10=STOP, 11=STOP w/o ACK |
+| 14 | RPTS/ACK4_CTL[0] | See above |
+| 13 | NACK | If 1, skip ACK check on 9th clock |
+| 12 | READ | If 1, sample SDA into readback latch |
+| 11 | SAVE | If 1, present collected READ data at ACK strobe |
+| 10 | EXTD | If 1, fetch next command immediately without ACK (multi-byte) |
+| 9  | LOOP | If 1, data field = loop count; next command repeated that many times |
+| 8  | TOGS | If 1, toggle SAVE flag every other byte |
+| 7:0 | DATA | Byte to clock out on SDA, or loop count if LOOP=1 |
+
+### C Parameter (Transfer Type) Modes
+
+| C value | Transaction format |
+|---------|-------------------|
+| `0x00`–`0x0F` | Write: devaddr / regaddr / N data bytes (ACK all) |
+| `0x10`–`0x1F` | Write: devaddr / regaddr / N data bytes (NACK last byte) |
+| `0x20`–`0x2F` | Read: devaddr(W) / regaddr / repeated-start / devaddr(R) / N data bytes (ACK all) |
+| `0x30`–`0x3F` | Read: devaddr(W) / regaddr / repeated-start / devaddr(R) / N data bytes (NACK last) |
+| `0x40` | No internal register: devaddr / 1 data byte (ACK both) |
+| `0x41` | No internal register: devaddr(ACK) / 1 data byte (NACK data) |
+
+The lower nibble of `0x0x`/`0x1x`/`0x2x`/`0x3x` = number of data bytes. For >2 bytes the code pulls data from `GLBL_CollectorDataArray[Bidx][]` global buffer.
+
+**Key design note:** Writing a `CollectorI2CSerial` AI PV only _loads the command FIFO_ — it does **not** trigger the I2C transaction. A separate `BO` PV must pulse a control register to start the transaction.
+
+---
+
+## CollectorStep — Closed-Loop HV Stepping
+
+**File:** `CollectorStep_AI.c`  
+**DTYP string:** `CollectorStep`  
+✅ verified 2026-04-19 — `CollectorStep_AI.c` lines 1–362
+
+`CollectorStep` is a **software closed-loop controller** implemented as an EPICS AI record. It does not directly write to hardware; instead it computes a new demand value that other PVs apply to the hardware (HV DAC). The SCAN rate of the CollectorStep PV determines how fast the stepping occurs.
+
+### Operating Modes
+
+| `C` bit 15 | Mode | Mailbox array used |
+|---|---|---|
+| 0 | **Integer mode** | `GLBL_CollectorControlVals[Bidx][Cidx]` (unsigned 16-bit) |
+| 1 | **Floating point mode** | `GLBL_CollectorFloatVals[Bidx][Cidx]` (epicsFloat64) |
+
+### camacio Field Mapping for Step
+
+| camacio field | Step parameter |
+|---|---|
+| `B` (Bidx) | Device index |
+| `C` | Bit 15 = float/int mode; bits 5:0 = Cidx (mailbox index) |
+| `A` | Aidx = index of interlock/enable mailbox |
+| `F` | Enable bitmask — if `ControlVals[Bidx][Aidx] & F` is nonzero, stepping is blocked |
+
+### Mailbox Layout (relative to Cidx)
+
+| Mailbox offset | Name | Meaning |
+|---|---|---|
+| `[Cidx+0]` | DEMAND | Target value to move toward |
+| `[Cidx+1]` | STEPSIZE | Max change per execution cycle |
+| `[Cidx+2]` | HYSTERESIS | Dead band — no movement if abs(ACTUAL-DEMAND) < HYSTERESIS |
+| `[Cidx+3]` | ABSMAX | Upper clamp (minimum is always 0) |
+| `[Cidx+4]` | ACTUAL | Current monitored value (feedback) |
+
+### Algorithm
+
+1. Read `ACTUAL` and `DEMAND` from mailboxes.
+2. Check interlock: if `ControlVals[Bidx][Aidx] & F` ≠ 0 → exit, no change.
+3. If `abs(ACTUAL-DEMAND) < HYSTERESIS` → exit, already close enough.
+4. If `ACTUAL < DEMAND` → ADD mode: new value = current PV + STEPSIZE, clamped to ABSMAX.
+5. If `ACTUAL > DEMAND` → SUBTRACT mode: new value = current PV − STEPSIZE, clamped to 0.
+6. Write new value to PV. The downstream PV picks this up and writes it to hardware.
+
+This pattern allows **safe ramp-up/ramp-down** of HV by limiting the rate of change and blocking movement if hardware interlocks are asserted.
+
+---
+
+## CollectorDPRSupport — Dual-Port RAM (DPRAM) Read
+
+**File:** `CollectorDPRSupport_AI.c`  
+**DTYP string:** `CollectorDPRAM`  
+✅ verified 2026-04-19 — `CollectorDPRSupport_AI.c` lines 1–405
+
+The Collector FPGA has a banked register address space. The DPRAM device support handles both single-register reads and **loop (multi-read) transactions** into the global data buffer, with optional mailbox duplication and trace/debug controls.
+
+### camacio Field Mapping for DPRAM
+
+| camacio field | DPRAM parameter |
+|---|---|
+| `B` (Bidx) | Device index |
+| `C` | bits 14:12 = MailboxMode (0–7); bits 7:0 = Cidx (mailbox index) |
+| `N` | bits 9:7 = Bank (0 = default bank; nonzero → write bank# to addr 127 first); bits 6:0 = RegisterAddr |
+| `A` | AndMask (bitmask applied to read data; 0 → treated as 0xFFFF) |
+| `F` | bits 3:0 = ShiftFactor; bit 15 = ShiftDirection (1=left, 0=right) |
+
+### Bank Switching
+
+If `Bank` (bits 9:7 of N) ≠ 0, the device support writes the bank number to SPI address 127 before the data read. This selects the register bank in the FPGA before accessing the target register.
+
+### MailboxModes
+
+| Mode | Behavior |
+|------|----------|
+| 0 | Single read. N→addr. PV gets masked/shifted data. No mailbox dup. |
+| 1 | Single read. N→addr. PV gets data + duplicated to `ControlVals[Bidx][Cidx]`. |
+| 2 | Single read. N→addr. Data → mailbox only. PV returns FPGA status byte. |
+| 3 | Single read. Mailbox is address. PV gets data, no dup. |
+| 4 | Loop read (fixed addr). Mailbox = loop count. Data stored to global buffer. PV gets last data. |
+| 5 | Loop read (incrementing addr). Mailbox = loop count. Data stored to global buffer. PV gets last data. |
+| 6–7 | Extended modes (8-bit AndMask). |
+
+### Debug / Trace
+
+Print verbosity is controlled by `GLBL_CollectorControlVals[Bidx][5]` (overall flag) and `GLBL_CollectorControlVals[Bidx][17]` (address/mailbox filter). If bit 15 of `[17]` is set, prints only when N matches; if bit 14 is set, prints only when Cidx matches. This allows selective tracing without flooding the log.
+
+---
+
+## CollectorCalc — Mailbox Comparison / Interlock Logic
+
+**File:** `CollectorCalc_BI.c` (426 lines)  
+**DTYP string:** `CollectorCalc`  
+✅ verified 2026-04-19 — `CollectorCalc_BI.c` lines 1–426
+
+`CollectorCalc` is an EPICS **BI (binary input) record** device support that evaluates a comparison expression on values from the global mailbox arrays and returns **0 or 1**. It is used for HV interlock logic: a `CollectorCalc` PV computes whether some condition is met (temperature OK, current within range, etc.) and that result gates other PVs.
+
+The DSET is `devBiCollectorCalc`. The `init_record_bi` return value is `2` (EPICS: no raw-value conversion). Debug verbosity is controlled by `GLBL_CollectorControlVals[Bidx][13]` (per-device trace flag).
+
+### camacio Field Mapping for CollectorCalc
+
+| camacio field | Parameter |
+|---|---|
+| `B` (Bidx) | Device index within collector (0–31) |
+| `C` | bits 15:12 = BitIndex; bits 11:8 = Function1 (comparison mode 0–15); bits 7:0 = Cidx |
+| `N` (Nval) | Bitmask or loop count used by some modes |
+| `A` bits 7:0 | Aidx1 — first mailbox index |
+| `A` bits 15:8 | Aidx2 — second mailbox index |
+| `A` bit 15 | ShiftDir (1=left, 0=right) — used by mode 12 |
+| `A` bits 14:12 | Enbl_GT/EQ/LT — comparison enables for mode 12 |
+| `A` bits 11:8 | ShiftAmount — used by mode 12 |
+| `F` (Fval) | Threshold value for difference/mask comparisons |
+
+### Function1 Modes (bits 11:8 of C)
+
+| Mode | Comparison | Returns 1 if... |
+|---|---|---|
+| 0 | Always FALSE | Never |
+| 1 | EQ | `mailbox[Aidx1] == mailbox[Aidx2]` |
+| 2 | LT | `mailbox[Aidx1] < mailbox[Aidx2]` |
+| 3 | GT | `mailbox[Aidx1] > mailbox[Aidx2]` |
+| 4 | DIFF_EQ | `mailbox[Aidx1] - mailbox[Aidx2] == F` |
+| 5 | DIFF_LT | `mailbox[Aidx1] - mailbox[Aidx2] < F` |
+| 6 | DIFF_GT | `mailbox[Aidx1] - mailbox[Aidx2] > F` |
+| 7 | BIT_AND_N | `(mailbox[Aidx1] & N) != 0` |
+| 8 | BIT_XOR_N | `(mailbox[Aidx1] ^ N) != 0` |
+| 9 | XOR_AND | `((mailbox[Aidx1] ^ N) & F) != 0` |
+| 10 | OR | `(mailbox[Aidx1] | mailbox[Aidx2]) != 0` |
+| 11 | AND | `(mailbox[Aidx1] & mailbox[Aidx2]) != 0` |
+| 12 | SHIFT_CMP | `((mailbox[Aidx1] & N) << or >> ShiftAmount)` compared to F using Enbl_GT/EQ/LT enables |
+
+Mode 12 is the most complex: it masks `mailbox[Aidx1]` with `N`, shifts the result left or right by `ShiftAmount`, then evaluates `>F`, `<F`, and `==F` comparisons as independently enabled by bits 14:12 of `A`. The function is TRUE if any enabled comparison succeeds.
+
+### Usage Context
+
+In the collector HV control chain: `CollectorCalc` BI PVs compute interlock conditions (e.g., "is temperature below threshold?", "is HV current within range?") and write the result to a mailbox slot that `CollectorStep` checks in its enable-bitmask gate. This creates a pure-software interlock chain without any dedicated hardware interlock logic.
+
+---
+
 *Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/CollectorApp/src/` — C device support source. Created: 2026-04-05.*
 
 ## Cross-References

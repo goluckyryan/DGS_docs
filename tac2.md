@@ -64,7 +64,7 @@ A variable delay elapses between `WANT_NEXT_TDC` and when `TDC_AUTOSAMPLE` finis
 
 ## Event Data Format
 
-Each TAC-II event is **15 words of 16-bit values** (sent as lower 16 bits of 32-bit VME transactions):
+Each TAC-II event is **15 words of 16-bit values** (sent as lower 16 bits of 32-bit VME transactions) ✅ verified 2026-04-20 — `trig_mon_collect.vhd:L222-287` (0xAAAA header + NUM_TRIG_WORDS + NUM_TDC_WORDS); default `MON7_FILL_CTL_REG=0x0086` → NUM_TDC_WORDS=8, NUM_TRIG_WORDS=6, total=1+6+8=15 (`registers.vhd:L1190`):
 
 | Word | Name | Description |
 |------|------|-------------|

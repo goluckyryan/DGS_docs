@@ -9,10 +9,11 @@
 - [How to Use](#how-to-use)
 - [Dependencies](#dependencies)
 - [VxWorks IOC Data Pipeline](#vxworks-ioc-data-pipeline-inloop--outloop--minisender)
+- [Connections to Other Subsystems](#connections-to-other-subsystems)
 - [tcpReceiver — Detailed Notes](#tcpreceiver--detailed-notes)
 - [GUI Windows — Detailed Reference](#gui-windows--detailed-reference)
-- [softIOC — Global Broadcast PV System](#softIoc--global-broadcast-pv-system-justglobalsdb)
-- [softIOC — Support PVs](#softIoc--support-pvs-dgssupportdb)
+- [softIOC — Global Broadcast PV System](#softioc--global-broadcast-pv-system-justglobalsdb)
+- [softIOC — Support PVs](#softioc--support-pvs-dgssupportdb)
 - [Notes](#notes)
 - [See Also](#see-also)
 
@@ -308,6 +309,13 @@ Run control:
 **Script runner** — "Select Script" combo → reads `scripts/enableScriptList.txt` (one filename per line, `#` for comments) → runs selected script via `QProcess`: ✅ verified 2026-04-17 — `commander.py:L718-740`
 - `.py` files → `python3 <script>`; others → `bash <script>`
 - stdout/stderr piped to console; script working dir = `scripts/`
+- **Current `enableScriptList.txt` entries (2 scripts):** `basic_settings_LED.py`, `Serdes_Linkup.sh` ✅ verified 2026-04-20 — `ANLDAQ/gui/scripts/enableScriptList.txt` (exact contents)
+
+**`scripts/terminals` (legacy standalone launcher)** — executable bash script that pre-dates the PyQt6 GUI; originally used with EDM (EPICS Display Manager). ✅ verified 2026-04-19 — `ANLDAQ/gui/scripts/terminals`
+- Single argument: `S` → spawns the softIOC in a `gnome-terminal`; any integer N → opens `gnome-terminal` telnet to `${TERMINAL_SERVER}` port `2000+N`
+- Checks for already-running softIOC via `ps ax | grep SoftIOC | grep bin` before spawning
+- **Not used by `commander.py`** — `commander.py` reimplements both behaviors directly in Python (L782, L818–843). The `terminals` script is kept for manual/legacy use only.
+- `${TERMINAL_SERVER}` and `${ANLDAQ_DIR}` must be set in environment (same variables used by the GUI)
 
 ---
 
@@ -734,4 +742,4 @@ All 17 `calcout` records are hardcoded to `VME10` (the MTRG crate in the standar
 
 ---
 
-*Created: 2026-04-05 | Last reviewed: 2026-04-19*
+*Created: 2026-04-05 | Last reviewed: 2026-04-19 | ToC updated: 2026-04-19 (added Connections to Other Subsystems)*

@@ -155,6 +155,57 @@ python3 GenerateCmdFile.py
 
 **Never edit `st_<N>.cmd` by hand** — it will be overwritten on next run.
 
+### Per-Detector Macro Assignments
+_Source: `GenerateCmdFile.py::build_macros()` ✅ verified 2026-04-19 — GenerateCmdFile.py:L299-378_
+
+For each active cable, `build_macros()` computes the following macros passed to `dbLoadRecords`:
+
+| Macro | Source | Description |
+|-------|--------|-------------|
+| `DetNbr` | `DNG_ID` (zero-padded 3 digits) | GS hole number assigned by dongle |
+| `VMEGS` | computed `get_dvi_number(box, cable)` | DVI/GS VME slot number (zero-padded) |
+| `DigChNum` | `(cable-1) % 5` | DIG channel within a digitizer (0–4) |
+| `DigNum` | `((cable-1)//5) % 2 + 1` | Which DIG board (1 or 2) on this strip |
+| `VMENum` | `get_vme_num(box, cable)` | VME crate number for this cable |
+| `BusAddr` | `cable` (int) | Cable number — used as hardware bus address in DB templates |
+| `DetNbr_MapVal` | `DNG_ID` unpadded | Raw GS hole number for map PVs |
+| `VMEGS_MapVal` | `get_dvi_number(box, cable)` unpadded | Raw DVI number for map PVs |
+| `DS_GEHV` | `GE_HV_OPERATING` | DOL init for `MOD${DetNbr}_DS_GEHV` |
+| `DV_HIHI/HIGH/LOW/LOLO` | `GE_HV_OPERATING ± 2%/4%` | HV alarm limits |
+| `GE_HV_ABSMAX` | `GE_HV_NAMEPLATE` | Absolute HV ceiling |
+| `Ge_Prefix/ID/Type` | scan file columns 14–16 | Detector ID info |
+| `Ge_MCA_Resolution/Reset_Period/GR/Depletion_Voltage` | `mca_data_<N>.txt` | MCA calibration data |
+| `DV_TEMP_INPA` | `GS<NNN>_Conv_Temp.VAL` (default) | Temperature INPA link; overridable in `special_detectors.txt` |
+| `DV_TEMP_PREC` | `1` (default, `2` for det 048 PT500) | Temperature display precision |
+
+### Geometry Helpers
+_Source: `GenerateCmdFile.py::get_dvi_number()`, `get_vme_num()` ✅ verified 2026-04-19 — GenerateCmdFile.py:L236-256_
+
+**`get_dvi_number(box, cable)` — DVI/GS hole number mapping:**
+
+| Box | Formula | Notes |
+|-----|---------|-------|
+| 201 | `cable × 2` | Strips 1–3, even GS numbers |
+| 202 | `cable × 2 + 60` (cables ≤25) else 0 | Upper hemisphere |
+| 203 | `cable × 2 − 1` | Strips 1–3, odd GS numbers |
+| 204 | `cable × 2 − 1 + 60` (cables ≤5); `(cable−5) × 2 − 1 + 60` (cables 11–30); 0 otherwise | Cables 6–10 are strip-2 with no detectors; cable 30 out of range |
+
+**`get_vme_num(box, cable)` — VME crate assignment:**
+
+| Box | VME offset | Formula |
+|-----|-----------|--------|
+| 201 | 1 | `(cable−1) // 10 + 1` |
+| 202 | 4 | `(cable−1) // 10 + 4` |
+| 203 | 7 | `(cable−1) // 10 + 7` |
+| 204 | 10 | `(cable−1) // 10 + 10` |
+
+Each box spans up to 3 VME crates (10 cables per crate). Together the 4 boxes cover VME crates 1–12, matching the 12 IOC crates (`192.168.203.141–145, 177–183`).
+
+### Autosave .req File Generation
+_Source: `GenerateCmdFile.py::generate_req()` ✅ verified 2026-04-19 — GenerateCmdFile.py:L388-430_
+
+`generate_req()` writes `iocBoot/iocCollectorApp/softIOC_<N>_settings.req` listing only **`CollectorSoftControl`** output PVs for autosave — hardware register PVs (`CollectorLocalSerial`) are explicitly excluded so the IOC never writes stale data to hardware at startup. The PV list is parameterized by `AUTOSAVE_PVS_PER_ACTIVE_DET` (currently 5 PVs: HV demand, step size, hysteresis, absmax, DS_GEHV).
+
 ---
 
 ## Running the IOC

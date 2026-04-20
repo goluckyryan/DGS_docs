@@ -74,12 +74,7 @@ Stored average BGO tuning values per hemisphere.
 
 ## Data0 Space Monitor (Cron)
 
-A cron job that ran hourly checking `/mnt/data0` free space on DCS2. Previously hosted on pi5-dgs.
-
-- **Threshold:** 300 GB free ⚠️ unverified — no script found in ANLDAQ, lnfill repos, DCS2 crontab (dcsu), or spark-ca9f crontab (2026-04-18 verified). Threshold likely from old pi5-dgs crontab no longer in version control. Ask Ryan to confirm.
-- **Action:** Discord alert to #dgsclaw if below threshold
-- **Current status (2026-04-05 09:00 CDT):** 396 GB free (78% used) — runs are accumulating
-- **Migration status (checked 2026-04-18):** No crontab active on spark-ca9f (DGX Spark, current General DGS host) and not on DCS2. This cron job has **not** been migrated and appears to have no surviving source — ask Ryan if it should be set up on spark-ca9f.
+**Status: DELETED / does not exist.** ✅ verified 2026-04-19 — Ryan confirmed the cron job should be deleted. No script found on spark-ca9f, pi5-lnFill, or DCS2 (dcsu crontab checked). The 300 GB threshold was from an old pi5-dgs crontab no longer in version control. No action needed.
 
 ---
 
@@ -113,8 +108,6 @@ Legacy EPICS database files (`resm1.db` – `resm6.db`) from the pre-upgrade VXI
 - For `BGO_tune_v2.py`: could read all 7 BGO counters in one batch call instead of 7 sequential subprocesses
 
 *Note added 2026-04-05 per Ryan.*
-
----
 
 ---
 
@@ -156,7 +149,7 @@ Sets all digitizer channels to **LED (Leading-Edge Discriminator) mode** with ha
 2. After all boards: set `Online_CS_StartStop=Stop` and `Online_CS_SaveData=No Save`
 3. Uses `epics.caput(pv, val, wait=True, timeout=5.0)` — synchronous, waits for IOC acknowledgement
 
-**Exception list for DIG count per VME:** VME06 and VME10 have only MDIG1 (not MDIG2) — matches the Gammasphere crate layout (2 shorter crates). All other VMEs default to MDIG1+MDIG2.
+**Exception list for DIG count per VME:** VME06 and VME10 have only 2 digitizers (MDIG1+SDIG1, no MDIG2/SDIG2) — matches the Gammasphere crate layout (2 shorter VME backplanes, 10-slot vs 21-slot). All other VMEs (01–05, 07–09, 11–12) have 4 digitizers (MDIG1+SDIG1+MDIG2+SDIG2). ✅ verified 2026-04-19 — `DGS_SVN/dgs/salvaged_notes/DGS_systemdef.txt:L6,L10` (VME06/VME10 each list only MDIG1+SDIG1); `vme06.cmd:L120-123` (MDIG2+SDIG2 asynDigitizerConfig commented out with ###)
 
 ---
 
@@ -195,7 +188,7 @@ Serdes_Linkup.sh
 
 ---
 
-*Source: `DGS_tools_pack/DGS_SVN/dgs/NS_scripts/`. Created: 2026-04-05. Updated: 2026-04-17 (cron migration status check). Updated: 2026-04-17 (added ANLDAQ GUI helper scripts: basic_settings_LED.py, terminals, enableScriptList.txt).*
+*Source: `DGS_tools_pack/DGS_SVN/dgs/NS_scripts/`. Created: 2026-04-05. Updated: 2026-04-17 (cron migration status check; added ANLDAQ GUI helper scripts: basic_settings_LED.py, terminals, enableScriptList.txt). Updated: 2026-04-19 (removed duplicate `---` separator).*
 
 ## Cross-References
 

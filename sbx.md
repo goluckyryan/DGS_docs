@@ -128,7 +128,7 @@ Also provides BGO HV demand control via DAC (see address map below).
 | 41 | Ring 6, pin 4 |
 | 42 | Ring 5, pin 5 |
 | 43 | Ring 5, pin 4 |
-| 44/45 | Likely back plug (unconfirmed) |
+| 44/45 | Likely back plug — developer's own guess ("semi-reasonable guess") ✅ verified 2026-04-20 — `DGS_SVN/dgs/SlopeBoxInterface/PickoffCard/bgo notes.txt` (addr 44/45 entries are blank; note reads: "semi-reasonable guess is that the backplug is probably 44/45") |
 
 ✅ verified 2026-04-13 — `SlopeBoxInterface/PickoffCard/bgo notes.txt:L1-19` (addr 32–43 all confirmed; addr 39 note: "doesn't affect the ring" and may be 2nd connection to ring 1 per same source)
 
@@ -142,9 +142,9 @@ Also provides BGO HV demand control via DAC (see address map below).
 - **180 DAC units per tube** — established from `SVN/dgs/sbxscreens/Std_Test.sh` (JTA, 2021-04-02), the cross-test commissioning script ✅ verified 2026-04-14 — `Std_Test.sh:L76-110` (`caput $Dnum_BGO_HV0..13 180` for all 14 tubes)
 - BGO HV sweep range used during tuning: **0 → 250 DAC units** (from `slopebox_scripts/BGO_Sweep_test`)
 - Ge/BGO HV both switched off first; BGO HV0-13 all set to 180 then BGO HV supply enabled; Ge HV enabled last
-- DC offset DACs (GeCenter, GeSide, BGOsum, BGOpattern): **150 DAC units** nominal
-- Ge threshold: **600 DAC units** nominal
-- `PARST_AutoClampDwell`: **10000** (preamp reset clamp dwell time)
+- DC offset DACs (GeCenter, GeSide, BGOsum, BGOpattern): **150 DAC units** nominal ✅ verified 2026-04-19 — `DGS_SVN/dgs/sbxscreens/Std_Test.sh:L21-28` (`caput $Dnum_GeCenter_DCOffset 150`, `_GeSide_DCOffset 150`, `_BGOsum_DCOffset 150`, `_BGOpattern_DCOffset 150`)
+- Ge threshold: **600 DAC units** nominal ✅ verified 2026-04-19 — `DGS_SVN/dgs/sbxscreens/Std_Test.sh:L30` (`caput $Dnum_Ge_Threshold 600`)
+- `PARST_AutoClampDwell`: **10000** (preamp reset clamp dwell time) ✅ verified 2026-04-19 — `DGS_SVN/dgs/sbxscreens/Std_Test.sh:L40` (`caput $Dnum_PARST_AutoClampDwell 10000`)
 
 ---
 
@@ -173,8 +173,8 @@ A small board in the SBX that identifies the **GS hole number** for this detecto
 
 ### Full GS System
 The SBX is controlled via the **Collector Box Raspberry Pi** soft IOC (one Pi per Collector Box, handles up to 28 detectors):
-- **SPI1 hardware interface** via `bcm2835` library at ~50 MHz clock
-- **GPIO 12** (J8 pin 32) used as ADC scanner enable/reset control line
+- **SPI1 hardware interface** via `bcm2835` library. Default speed divider = **50** (`SPI_DEFAULT_SPEED`), giving `250 MHz / (2×51) ≈ **2.45 MHz** SPI clock`. ⚠️ **Correction (2026-04-19):** Earlier note said "~50 MHz" — that was wrong; 50 is the divider parameter, not the frequency. The formula per the code comments: `SPICLKfreq = 250E6/(2*(speed+1))`. ✅ verified 2026-04-19 — `initTrace.c:L44,L56-63` (`SPI_DEFAULT_SPEED=50`, formula documented in comments; changed from 48 on 20240103)
+- **GPIO 12** (J8 pin 32) used as ADC scanner enable/reset control line ✅ verified 2026-04-19 — `spi.h:L7-9` (`SCANNER_CONTROL_PIN = RPI_BPLUS_GPIO_J8_32`, comment confirms GPIO 12; `RESET_ADC_SCANNER()` → HIGH, `ENABLE_ADC_SCANNER()` → LOW)
   - `RESET_ADC_SCANNER()` → GPIO HIGH
   - `ENABLE_ADC_SCANNER()` → GPIO LOW
 - Source: `collectorboxpi/CollectorBox_RevA/CollectorApp/src/spi.h`, `initTrace.c`

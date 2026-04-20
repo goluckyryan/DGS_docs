@@ -233,7 +233,7 @@ Two pickoff card variants for the Slope Box (SBX) interface:
 
 | Directory | Description |
 |-----------|-------------|
-| `PickoffCard_SBX_Interface/` | Standard SBX pickoff card (Revision A only) |
+| `PickoffCard_SBX_Interface/` | Standard SBX pickoff card (Revision A + **Revision B**) |
 | `PickoffCard_SBX_Extension/` | SBX Extension pickoff card (Revisions A–C + Prototype + Tags) |
 
 **SBX Extension Revision C** (`PickoffCard_SBX_Extension/Revision_C/Source/`):
@@ -248,6 +248,21 @@ Key source files:
 - `RAM_Buffer.vhd` — RAM buffer
 
 Note: Revision C README states it is "supposed to be the same as revision B, at least at the time of design."
+
+**SBX Interface Revision B** (`PickoffCard_SBX_Interface/Revision_B/Source/SlopeBoxInt_TopLevel_RevB.vhd`): ✅ verified 2026-04-19 — top-level entity + architecture signals read in full
+- Target device: **Spartan-6 XC6SLX4-2TQG144** (same as Revision A), toolchain ISE 14.7, created 2018-06-22
+- Firmware: `CODE_REVISION = 0x0011`, `CODE_DATE = 0x0414`
+- Clocks: PLL generates 50/100/200 MHz + inverted 50 MHz, 10 MHz, and 4 MHz from TrigClk or free-running OSC. 4 MHz used as slope box scan clock (default cycle = 4,000,000 counts = 1 s)
+- **New in Revision B vs prototype/Revision A:**
+  - `BGOP_MUX_SDI/SDO/CLK/CS` — BGO Pattern analog mux now SPI-controlled (was parallel-select in prototype)
+  - `FPGAPOWERCONVERTERSDA/SCL/EN/OE` — I2C interface to power converter board
+  - `FPGA_PREAMPSCL/SDA`, `PREAMP_I2C_OE`, `PreampRstMon` — I2C interface to preamplifier + reset monitor input
+  - `BufSerCommClk`, `BufSerDatToPickoff`, `FPGASERDATTOCOLLECTOR`, `BUFSYNCFROMCOLLECTOR`, `FPGACOLLECTOR_SPI_CE` — new DVI serial interface to BGO Pattern Collectors (replaces Pi-only path)
+- **Track-and-hold control** (`TRACK_HOLD_CTL_REG`, added 2020-03-08): controls timing of external T&H switch during preamp resets; delay counter (`[7:0]`) + assert counter (`[7:0]`)
+- **Pi SPI interface**: SPI0 (GPIO 7–11: CE1_N, CE0_N, MISO, MOSI, SCLK); GPIO 4 = Pi presence detect; all other GPIOs routed as `inout`
+- **ChipScope**: ILA + VIO + ICON present for debug; VIO can substitute for Pi (address/data/RW/DO_TRANSACTION signals)
+- Slope box scanner: scans 8 ADC channels via serial; result latched per channel; `SLOPE_BOX_DATA_FLAGS` (one-hot per channel); data buffered in dual-port RAM (A side = slope box writes, B side = Pi reads)
+- Internal registers: `FPGA_CTL_REG` (0x0004 PU = ENABLE_SCAN on), `MISC_CTL_REG` (0x00FF PU), `BGOP_MUX_CTL_REG`, `TRACK_HOLD_CTL_REG` (0x80FF PU), `BUFFER_MODE_REG` (0x0021 PU)
 
 ---
 

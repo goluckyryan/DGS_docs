@@ -162,7 +162,7 @@ Decodes TAC-II TDC packets (magic `0x0000AAAA`). The TAC-II provides fine-timing
 | **Data** | Raw header field display (all DIG fields decoded) |
 | **TAC-II** | TAC timing data: trigger/TDC timestamps, vernier values, multiplicity |
 
-Plot update interval: selectable via UI (timer-driven, paused when tab not visible).
+Plot update interval: **50 ms default** (selectable via UI spinbox); paused when tab not visible. Status bar updates every **500 ms** via a separate timer. ✅ verified 2026-04-19 — `Guceiver.py:L137-138` (status timer=500ms), `class_waveTab.py:L112-113` (plot timer=50ms default; comment erroneously says 100ms), `class_spectrumTab.py:L108-109` (50ms), `class_dataTab.py:L268-269` (50ms)
 
 ---
 

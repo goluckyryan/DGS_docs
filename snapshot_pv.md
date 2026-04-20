@@ -129,7 +129,7 @@ python3 watchDog.py vme01_db.txt vme10_db.txt collector201_db.txt
 ```
 [2026-04-05 21:15:00 UTC] VME01:MDIG1:coarse_threshold0              500
 ```
-⚠️ **Timestamps are UTC** — convert to CDT (UTC−5 in summer) for display.
+⚠️ **Timestamps are UTC** — convert to CDT (UTC−5 in summer) for display. ✅ verified 2026-04-19 — `dumpPVs.py:L37` (`datetime.now(timezone.utc)` — explicitly timezone-aware UTC)
 
 ### PV exclusion filters (built-in)
 Excludes noisy/internal PVs that change constantly:

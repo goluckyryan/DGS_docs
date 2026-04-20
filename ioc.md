@@ -70,8 +70,8 @@ NTP server: `192.168.203.56` ✅ verified 2026-04-06 — `ioc/boot/cdCommands:L2
 |------|-------|-------------|
 | `BUS_LEFT.bin` | DIG Main FPGA | **Master digitizer** firmware (MDIG1, slot 3, board 0) — clock sourced from SERDES link; drives the inter-DIG front bus clock to slave ✅ verified 2026-04-08 — `uploadFW.cmd:L17` (board 0=MDIG1) + `Digitizer.vhd:L354-355` ("SERDES is external clock source in master digitizer") |
 | `BUS_RIGHT.bin` | DIG Main FPGA | **Slave digitizer** firmware (MDIG2, slot 4, board 1) — clock sourced from front bus (driven by master DIG); sends throttle/lock status back to master via SDATA ✅ verified 2026-04-08 — `uploadFW.cmd:L22` (board 1=MDIG2) + `Digitizer.vhd:L968-970` (slave SDATA signals) |
-| `trigger_top.bin` | MTRG Main FPGA | Master trigger |
-| `V4747_mod_router_top.bin` | RTRG Main FPGA | Router |
+| `trigger_top.bin` | MTRG Main FPGA | Master trigger ✅ verified 2026-04-20 — `ioc/firmware/uploadFW.cmd:L28` (`ProgramFlash(5, 0, "trigger_top.bin")` — board 5 = MTRG) |
+| `V4747_mod_router_top.bin` | RTRG Main FPGA | Router ✅ verified 2026-04-20 — `ioc/firmware/uploadFW.cmd:L23` uses `router_top.bin`; git repo stores it as `V4747_mod_router_top.bin` — the `V4747` prefix comes from the Virtex-4 part number (`xc4vlx80`). On the actual tangerine system, the file is placed in `/global/ioc/FW_Maint/` as `router_top.bin`. |
 | `DIG_VME_FPGA_20220729.mcs` | DIG VME FPGA | VME interface (Jul 2022) |
 | `MTRG_VME_FPGA_20250711.mcs` | MTRG VME FPGA | VME interface (Jul 2025) |
 
@@ -172,10 +172,11 @@ Boot sequence:
 | `SCAN_DELAY` | Throttle: waits `ScanDelay` seconds (default 0.01s, dynamically adjusted) before next scan pass |
 | `DISABLE_COLLECTION` | On stop signal: disables `CS_Ena` on all boards; → `DRAIN_REMAINING_DATA` |
 | `DRAIN_REMAINING_DATA` | Drains remaining FIFO data after run stop; sends end-of-run marker; → `INIT` |
-- B0–B6 map slot numbers to board names (or `X` = empty slot)
+- B0–B6 are board name labels for inLoop board iteration (or `X` = empty position)
 - `inLoop` uses these to form PV names like `MDIG1_CS_Ena` for readout control (e.g. `B3=X` → PV `X_CS_Ena`)
-- The slot index in `BN=` must match the physical VME slot (0-indexed from slot 1)
-- Example: `B0=MDIG1,B1=MDIG2,B2=X,B3=X,B4=X,B5=MTRG,B6=X` → MDIG1 in slot 1, MDIG2 in slot 2, MTRG in slot 6
+- BN is **not** a direct physical slot index; it is an ordered list of boards that inLoop iterates. The physical slot for each board is set separately by `asynDigitizerConfig(portName, boardNum, slot)`. BN provides only the board name string used to construct PV names.
+  - ⚠️ corrected 2026-04-19 — previous claim ("BN = VME slot 0-indexed from slot 1") was wrong. vme66.cmd: MDIG1 is B0 but physically in slot 3; vme99.cmd: MDIG1 is B0 and physically in slot 2. No consistent slot formula. ✅ verified 2026-04-19 — `ioc/boot/vme66.cmd:L133` (slot 3) vs `L190` (B0=MDIG1); `ioc/boot/vme99.cmd:L147` (slot 2) vs `L200` (B0=MDIG1)
+- Example: `B0=MDIG1,B1=MDIG2,B2=X,B3=X,B4=X,B5=MTRG,B6=X` → inLoop iterates 7 board positions; MDIG1 and MDIG2 are readable, MTRG is readable, B2–B4,B6 are dummies (X)
 
 **User package data formula (VME01–12 production crates):** `[(crate# - 1) × 4] + 101 + board#` ✅ verified 2026-04-07 — `ioc/boot/vme66.cmd:L162-164` (comment)
 - Board# restricted to {0,1,2,3} for digitizers → VME01: 101–104, VME02: 105–108, … VME12: 145–148

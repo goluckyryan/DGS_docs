@@ -94,7 +94,7 @@ measurement[,tag1=val1,tag2=val2] field1=val1[,field2=val2] [timestamp_ns]
 ```
 Examples from DGS:
 ```
-# Detector temperature (HPGeTemp db)
+# Detector temperature (HPGeTemp db) — value is in Kelvin (raw from MOD###_DV_TEMP PV)
 Temperature,gsid=005,en=1 value=87.3
 
 # PV snapshot (DGS db)  
@@ -113,7 +113,7 @@ GS5_GE_HV_DEMAND_VOLTS value=3000.0 1743890400000000000
 **Script:** `/home/phy/dcsu/lnFill/SaveTemp.sh` → `templog/StoreDetTemps.py`
 **Triggered by:** cron job on **pi5-lnFill** (192.168.203.58), every 10 min (`*/10 * * * *`) ✅ verified 2026-04-18 — live pi5-lnFill crontab; SaveTemp.sh runs from `/home/dgs/lnFill/` on pi5-lnFill, not DCS2
 **Data written:**
-- `Temperature,gsid=NNN,en=0/1 value=<temp_C>` for each of 110 GS holes ✅ verified 2026-04-09 — `StoreDetTemps.py:L51` (`influx_entry = "Temperature,gsid="+str(i).zfill(3)+",en="...`)
+- `Temperature,gsid=NNN,en=0/1 value=<temp_K>` for each of 110 GS holes ✅ verified 2026-04-09 — `StoreDetTemps.py:L51` (`influx_entry = "Temperature,gsid="+str(i).zfill(3)+",en="...`); value is in **Kelvin** (raw EPICS PV readback from `MOD###_DV_TEMP`; normal range 84–95 K) ✅ verified 2026-04-19 — live InfluxDB query returned 84.7–95.4 K
 - `pi_Temp value=<temp_C>` — Raspberry Pi board temperature ✅ verified 2026-04-09 — `StoreDetTemps.py:L41`
 
 **PVs read:** `MOD001_DV_TEMP` + `MOD001_DV_EN` … `MOD110_DV_TEMP` + `MOD110_DV_EN` (from collector box softIOC via pyepics). If `DV_TEMP > 520 K`, the detector is not connected — value stored as 0. ✅ verified 2026-04-13 — `StoreDetTemps.py:L95` (`if detTemp[gsid] > 520: detTemp[gsid] = 0 # not connected`)

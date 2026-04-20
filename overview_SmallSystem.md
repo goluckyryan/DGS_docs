@@ -78,8 +78,8 @@
 |------|--------------------|----|------|
 | tangerine | .78 | Rocky Linux 8 | DAQ host / FTP server for IOC | ✅ verified 2026-04-19 — `ANLDAQ/ioc/README.md:L33,L46` |
 | IOC (vme66) | .81 | VxWorks | VME IOC | ✅ verified 2026-04-19 — `ANLDAQ/ioc/README.md:L45,L50` |
-| sbxh3 | .164 | — | Raspberry Pi for SBX |
-| sbxcc | .158 | — | Raspberry Pi for SBX |
+| sbxh3 | .164 | — | Raspberry Pi for SBX | ✅ verified 2026-04-19 — `snapshot_pv/EPICS_env.sh:L28` (IP .164, comment sbxh3); cross-ref `sbx.md` |
+| sbxcc | .158 | — | Raspberry Pi for SBX | ✅ verified 2026-04-19 — `snapshot_pv/EPICS_env.sh:L28` (IP .158, comment sbxcc); cross-ref `sbx.md` |
 
 ### EPICS Ports
 
@@ -104,7 +104,7 @@ _Source: [wiki: Computers and networks](https://wiki.anl.gov/gsdaq/Computers_and
 ### Notes
 - Uses the same DIG/RTRG/MTRG FPGA hardware chain as full DGS, scaled down
 - SBX Raspberry Pis (sbxh3, sbxcc) run the older legacy IOC from `DGS_SVN/dgs/SlopeBoxInterface/RaspberryPi/` — **not** `collectorboxpi/` (which is for the GS Collector Box Pi). The SBX Pi IOC uses a custom `PickoffLocalSerial` EPICS driver for SPI/GPIO communication with the Pickoff card. ✅ verified 2026-04-16 — `DGS_SVN/dgs/SlopeBoxInterface/RaspberryPi/LocalEpics/db/PickoffPVs.db:L1` (custom driver, not collectorboxpi)
-- IOC boots from tangerine (FTP server), runs as vme66
+- IOC boots from tangerine (FTP server), runs as vme66 ✅ verified 2026-04-20 — `ioc/README.md:L43,L50-51` (host: tangerine, target name: vme66, startup: /global/ioc/boot/vme66.cmd)
 
 ---
 

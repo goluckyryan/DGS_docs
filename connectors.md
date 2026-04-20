@@ -121,9 +121,14 @@ Separate from the 16 I/O signals. Can substitute for the onboard 100 MHz clock a
 
 Connects Master digitizer to Slave digitizer(s) within the same VME crate.
 
-- Carries: `FB_LED` (discriminator propagation), front bus bits [17:0] including discriminator patterns
-- In Slave mode: bit 17 carries the Master ch 0 discriminator bit → all Slave channels slave to Master ch 0
-- No dedicated pinout documented here yet — see schematic `31Y334-Schematic-10ChanDigitizer-Rev4.2.pdf`
+- **Current firmware (post-2022 DGS redesign):** The front bus was redesigned as three separate buses:
+  - **FBUS_10BIT[9:0]** — 10-bit section: carries per-channel discriminator bits from the FRONT_BUS_LEFT board; received as `REMOTE_DISCBIT` and `REMOTE_COARSE_DISCBIT` by the other board ✅ verified 2026-04-19 — `Front_Bus.vhd:L63,L82-83,L126-127`
+  - **FBUS_8BIT[7:0]** — 8-bit section: carries BGO pattern bits (`BGOp_DISCBIT[4:0]`, 5-bit) and other signals ✅ verified 2026-04-19 — `Front_Bus.vhd:L66,L172-173`
+  - **FBUS_3BIT[2:0]** — 3-bit section: carries additional BGO pattern bits (bits [1:0] → `BGOp_DISCBIT[1:0]`) ✅ verified 2026-04-19 — `Front_Bus.vhd:L69,L173`
+  - FRONT_BUS_LEFT board DRIVES the 10-bit section and RECEIVES the 8-bit and 3-bit sections; FRONT_BUS_RIGHT board does the opposite
+- **Legacy firmware (pre-2022):** Used `FBUS_MDATA[17:0]`: bits [15:0] = TTCL clock data; bit 16 = Master **ch 9** discriminator bit (ext disc source for Slave channels; was ch 0 before 2014-12-02); bit 17 = master reset signal ✅ verified 2026-04-19 — `DIG_firmware_expert.md:L514-517` (cross-referenced against `Front_Bus.vhd` of pre-2022 tag)
+  - ⚠️ Old doc said "bit 17 = ch 0 discriminator" — **WRONG on two counts**: the discriminator was on bit 16 (not 17), and it was ch 9 (not ch 0) since 2014-12-02
+- No dedicated pinout documented here — see schematic `31Y334-Schematic-10ChanDigitizer-Rev4.2.pdf`
 
 ---
 

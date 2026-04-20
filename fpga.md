@@ -353,7 +353,7 @@ Max cable length:   ~10 µs × 2×10⁸ m/s (speed of light in fiber)  ≈  2 km
                     (less in practice — SERDES pipeline latency per hop consumes part of the budget)
 ```
 
-This is likely why TRIG_DELAY uses **two** 1K BRAMs in series rather than one: doubling the delay from ~10 µs to ~20 µs doubles the tolerable cable length, at the cost of halving the maximum sustainable event rate per PEQ slot (from ~1.6 MHz to ~800 kHz). It is a deliberate design trade-off between physical reach and maximum count rate.
+TRIG_DELAY uses **two** 1K BRAMs in series (`TRIG_DELAY_T1_EXP` + `TRIG_DELAY_T2`) rather than one: doubling the delay from ~10 µs to ~20 µs doubles the tolerable cable length, at the cost of halving the maximum sustainable event rate per PEQ slot (from ~1.6 MHz to ~800 kHz). It is a deliberate design trade-off between physical reach and maximum count rate. ✅ verified 2026-04-19 — `jta_channel.vhd:L1040-1097` (20211118 tag: comment "Two BRAMs stitched together to give 20us delay"; `TRIG_DELAY_T1_EXP` each 1K×18 BRAM, chained T1→T2)
 
 **What happens if the PEQ fills up?** If a new `ACCEPTED_HIT` arrives while the Filler is still busy (PEQ full), the firmware asserts `GENERAL_ERROR_FLAG` and resets the PEQ — that event is **lost**. This is an error condition, not normal operation. It is prevented by two mechanisms: (1) pileup rejection in the channel logic limits the rate of `ACCEPTED_HIT` pulses, and (2) the throttle mechanism signals the MTRG to raise the trigger threshold if the downstream readout FIFO approaches full, reducing the overall hit rate before the PEQ saturates.
 

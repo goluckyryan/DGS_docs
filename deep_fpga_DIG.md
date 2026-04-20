@@ -26,6 +26,7 @@
   - [External Discriminator Modes (per channel)](#external-discriminator-modes-per-channel)
   - [Event Packet Format](#event-packet-format) → **[deep_fpga_DIG_eventpacket.md](deep_fpga_DIG_eventpacket.md)**
 - [Per-Channel Signal Processing, VME FPGA & See Also](#per-channel-signal-processing-vme-fpga--see-also) → **[deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md)**
+- [Channel_Readout_Controller.vhd — Readout Arbitration & Timing State Machine](#channel_readout_controllervhd--readout-arbitration--timing-state-machine)
 - [Cross-References](#cross-references)
 
 ## Target Devices
@@ -427,6 +428,57 @@ Bits [29:27] of `reg_external_disc_mode` additionally select which timestamp edg
 |--------|-------------|-----------|--------------|
 | LED | `0100` | TS_OF_LAST_EVENT[47:0], PU flags, TRIG_MON | Standard |
 | CFD | `0101` | CFD_SAMPLE[0/1/2], TS_OF_LAST_EVENT[29:0] | CVD_VALID, TSM_FLAG |
+
+### Channel_Readout_Controller.vhd — Readout Arbitration & Timing State Machine
+
+_Source: `FPGA/DIG/MAIN_FPGA/BuildBranches/DGS/Source/Channel_Readout_Controller.vhd` (697 lines). Fully read 2026-04-20._
+
+One instance per channel (10 total). Manages the **go/no-go decision** and **waveform position timing** for each accepted event before it enters the `acptd_event_fifo`. Author: Michael Oberling.
+
+**Key constants:**
+- `cHEADER_SIZE = 28` — number of header words injected ahead of waveform ✅ verified 2026-04-20 — `Channel_Readout_Controller.vhd:L136`
+- `cREPORTED_HEADER_SIZE = 26` (= cHEADER_SIZE − 2) — per GRETINA's packet length definition ✅ verified 2026-04-20 — `Channel_Readout_Controller.vhd:L137`
+- `cT_BUFFER_SIZE = 2048` — size of the T waveform delay buffer (20.48 µs at 100 MHz) ✅ verified 2026-04-20 — `Channel_Readout_Controller.vhd:L138`
+- `cACPTD_EVENT_FIFO_DEPTH = 1025` — accepted event FIFO depth ✅ verified 2026-04-20 — `Channel_Readout_Controller.vhd:L139`
+
+**Readout timing pipeline (3 stages):**
+
+1. **Stage 1** — Latch `READOUT_WINDOW` (forced even), `READOUT_PRETRIGGER`, and compute `WAVEFORM_DELAY = M + T = INTERNAL_READOUT_OFFSET + cT_BUFFER_SIZE`.
+2. **Stage 2** — Compute `WAVEFORM_WINDOW_WIDTH = READOUT_WINDOW − cREPORTED_HEADER_SIZE` (or 0 if window < header); `PACKET_LENGTH = READOUT_WINDOW`; `WAVEFORM_WINDOW_OFFSET = WAVEFORM_DELAY − READOUT_PRETRIGGER`.
+3. **Stage 3** — Apply CFD or LED `TRIGGER_OFFSET_CALIBRATION` (LED=17 clock ticks, generic constant) to produce `WAVEFORM_WINDOW_OFFSET`. Also sets `ACPTD_EVENT_FIFO_FULL_THRESH` = FIFO depth − `PACKET_LENGTH/2 − 1` (uses `EMPTY` flag instead if packet is very large).
+
+**Timestamp comparison (rollover-safe):** `READOUT_START_TIMESTAMP = event_timestamp + WAVEFORM_WINDOW_OFFSET`. `EVENT_READOUT_READY_FLAG` fires when `CURRENT_TIMESTAMP − READOUT_START_TIMESTAMP ≥ 0x800000` (i.e., time has come for readout to start). `OFFSET_COMPARISON` is set if the event was late (timestamp already passed). ✅ verified 2026-04-20 — `Channel_Readout_Controller.vhd:L371-401`
+
+**State machine (`READOUT_CONTROL_STATE`, 7 states):** ✅ verified 2026-04-20 — `Channel_Readout_Controller.vhd:L144-150`
+
+| State | Description |
+|-------|-------------|
+| `WAIT_FOR_EVENT_FIFO_DELAY` | 1-clock pipeline flush after processing an event; returns to WAIT_FOR_EVENT_FIFO |
+| `WAIT_FOR_EVENT_FIFO` | Polls `xxNEXT_EVENT_DATA_READY`; routes to NORMAL or EXTENDED wait based on pileup flag |
+| `NORMAL_EVENT_WAIT` | Waits for PEQ decision (accept/reject) + `EVENT_READOUT_READY_FLAG`; drops rejected events |
+| `EXTENDED_EVENT_WAIT` | Uses **previous** event's decision for pileup extensions; drops if `PILEUP_EXTEND_ENABLE=0` or if `DROP_TRAIN` is set |
+| `EVENT_READ_TRIG` | Final go/no-go based on `EVENT_EXTEND_MODE` (see below); triggers `READ_EVENT` or drops |
+| `DROP_THIS_EVENT` | Drops event (no counter increment); returns to WAIT_FOR_EVENT_FIFO_DELAY |
+| `DROP_AND_COUNT_THIS_EVENT` | Drops and increments `DROPPED_EVENT_COUNT`; sets `DROP_TRAIN` to drop rest of pileup train |
+
+**`EVENT_EXTEND_MODE` (2-bit register, applied in `EVENT_READ_TRIG` state):**
+
+| Mode | Name | Behavior |
+|------|------|----------|
+| `00` | Drop offset | Offset events → DROP_AND_COUNT; non-offset events → read if FIFO ready |
+| `01` | Full extension | Read full waveform regardless of offset; drop only if FIFO full |
+| `10` | Truncation | Waveform truncated by `SHIFTED_EVENT_OFFSET_TIME`; reads only remaining portion |
+| `11` | Headers only | Offset events → headers only (no waveform); non-offset → normal readout |
+
+✅ verified 2026-04-20 — `Channel_Readout_Controller.vhd:L564-650`
+
+**`WAVEFORM_VETO`:** Set in `NORMAL_EVENT_WAIT` when `PILEUP_WAVEFORM_ONLY=1` but event is not a pileup event. Causes `EVENT_READ_TRIG` to set `LAST_EVENT_OFFSET_TIME = WAVEFORM_WINDOW_WIDTH` → zero waveform samples, header only.
+
+**`DROP_TRAIN` signal (added 2014-06-25):** Once any event in a pileup train is dropped (FIFO full or offset), `DROP_TRAIN` is asserted to force all subsequent pileup extensions to also be dropped. Prevents partial pileup train readout, which would corrupt event correlation. ✅ verified 2026-04-20 — `Channel_Readout_Controller.vhd:L217-228`
+
+**Dropped event counter:** Counts only modes #3 (offset event in mode 00) and #4 (FIFO full). Rejected events (#1) and disabled pileup extensions (#2) are dropped silently. Uses `sync_capture_counter` instance with rate/accumulate mode switchable via `DROPPED_EVENT_COUNTER_MODE`. ✅ verified 2026-04-20 — `Channel_Readout_Controller.vhd:L214-216,L358-368`
+
+**`EVENT_DECISION_DROPPED` diagnostic:** Set permanently if the PEQ tries to register a decision while the 5-bit decision FIFO is full. Non-recoverable — requires reset. ✅ verified 2026-04-20 — `Channel_Readout_Controller.vhd:L238-248`
 
 ## Per-Channel Signal Processing, VME FPGA & See Also
 

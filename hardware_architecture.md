@@ -63,8 +63,8 @@ Slot 7: MTRG
 
 - Each VME crate contains **3 individual VME backplanes**, each acting as an independent VME system ✅ verified 2026-04-18 — [wiki.anl.gov/gsdaq/CrateAndBoardMapping](https://wiki.anl.gov/gsdaq/CrateAndBoardMapping): "Each of these crates is actually three separate 7-slot backplanes with a common power supply"; VME01+VME02+VME03 = one physical crate (top of right-side relay rack)
 - Each VME system hosts **up to 4 digitizers** → up to 12 DIGs per crate, 40 channels per VME system, 120 ch per crate ✅ verified 2026-04-18 — `DGS_SVN/dgs/daq_system_tags/SL6_DGS_20220923/ioc/boot/vme01-10.cmd`: most VME systems configure 4 DIGs (MDIG1/SDIG1/MDIG2/SDIG2 at slots 4–7); VME06 configures only 2 (short backplane — MDIG2+SDIG2 commented out), VME04 configures 3 (SDIG1 slot empty). Actual Gammasphere install: 44 DIG boards per MEMORY.md (10×4 + 2×2 crates).
-- One of the 12 VME systems per crate is reserved for the Router Trigger (RTRG) + associated electronics
-- Each VME backplane also has **one IOC board (MVME5500)**
+- **4 RTRGs total** service all 11 DIG VME systems; each RTRG shares a VME system with DIGs (not a dedicated VME system): RTR1 (IOC1/slot 7) → IOC1/2/3; RTR2 (IOC4/slot 3) → IOC4/5/6; RTR3 (IOC32/slot 6, same VME as MTRG) → IOC7/8; RTR4 (IOC10/slot 3) → IOC9/10/11 ✅ verified 2026-04-20 — `DGS_SVN/dgs/daq_system_tags/SL6_DGS_20220923/ioc/boot/vme32.cmd:L48-51`
+- Each VME backplane also has **one IOC board (MVME5500)** ✅ verified 2026-04-19 — `ioc/boot/vme66.cmd:L133-140` (Slot 1 = IOC MVME5500); all other crate cmd files follow same slot-1 IOC pattern
 - **VME Fiber Expander** board (PCB #3174, ANL part `21pc032`, Rev A, Sept 2021) provides fully optical interface between MTRG (System Trigger) and RTRGs — replaced original copper/Cat5 Trigger Paddle Cards; installed July 2022. Requires DC balance enabled (`EN_RTR_DCBAL`, `LinkL_DCbal`) and cable pre-emphasis **disabled** (`PEHLRU=PEEFG=PEABCD=0`). ✅ verified 2026-04-17 — `knowledgeBase/DGS_SVN.md` (PCB #3174), `knowledgeBase/link_sys_analysis.md:1I`, `knowledgeBase/trig_setup_scripts.md` (fiber expander notes)
 - Prior to digital upgrade (before 2023): VXI crates used (larger, housed in a separate electronics "shack" room); VXI system dismantled post-upgrade
 
@@ -89,7 +89,7 @@ Accepted events → VME FIFO → MVME5500 (VME backplane) → tcpReceiver → ho
 
 ### EPICS Control
 
-- MVME5500 runs `gretDet.munch` — accesses DIG/RTRG/MTRG registers via **VME backplane**
+- MVME5500 runs `gretDet.munch` — accesses DIG/RTRG/MTRG registers via **VME backplane** ✅ verified 2026-04-19 — `ioc/boot/vme99.cmd:L37`, `ioc/boot/vme66.cmd:L24` (`ld < gretDet.munch`)
 - Publishes PVs over onenet (EPICS CA)
 - Raspberry Pi runs soft IOC — controls slope box / collector box HV via **SPI** (local hardware)
 - CA ports: DuoGe = 5080/5081
@@ -191,9 +191,9 @@ Gammasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
 - Vacuum: 10⁻⁵ to 10⁻⁶ Torr inside detector cold volume
 - Temperature: liquid nitrogen (~77 K)
 - Bias voltage: 2,900–4,800 V across the array (most common values: 4000V and 4800V) ✅ verified 2026-04-13 — `collectorboxpi/CollectorBox_RevA/iocBoot/iocCollectorApp/st_202.cmd` DS_GEHV values (non-zero range: 2900–4800V); DS_GEHV=0 = empty/disabled slot
-- Preamp type: **transistor-reset preamplifier** (no resistor feedback; NPN transistor bleeds accumulated charge when output reaches ~+10V; second comparator turns NPN off at ~0V)
+- Preamp type: **transistor-reset preamplifier** (no resistor feedback; NPN transistor bleeds accumulated charge when output reaches ~+10V; second comparator turns NPN off at ~0V) ✅ verified 2026-04-20 — transistor-reset type confirmed by `DIG_firmware_expert.md:114` (sourced from `DIG_firmware_expert.pdf`); +10V/0V voltage thresholds are standard HPGe transistor-reset preamp circuit values (not DGS-specific — no DGS schematic source found)
 - Normal reset rate: every few ms to a few hundred ms depending on neutron damage to crystal
-- Leakage current: typically ~1 nA
+- Leakage current: typically ~1 nA ⚠️ unverified - no DGS-specific source; general HPGe physics value (detector datasheet or HPGe expert confirmation needed)
 
 **Common repair reasons:** bad resolution, excessive reset rate, no signal.
 
