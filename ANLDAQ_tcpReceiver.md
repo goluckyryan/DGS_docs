@@ -159,11 +159,16 @@ ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
 5. Posts to ELOG with run duration + data size
 6. Launches `RunParquet` (parquet sort pipeline) in a new terminal
 
-**`sync_exp_data.sh`** (new in latest pull):
-- Monitors `dataFolder` + `expInfo.sh` with `inotifywait` (falls back to polling every 20 s)
-- Rsyncs data to `nfsFolder` (NFS mount) on new run or file change
-- Uses `--append` during active run (binary files are append-only)
-- Final sync on Ctrl+C
+**`sync_exp_data.sh`** — Live data rsync daemon (sources `expInfo.sh` for paths):
+- Reads `expName`, `dataFolder`, `nfsFolder` from `expInfo.sh` at startup
+- Monitors `dataFolder` + `expInfo.sh` with `inotifywait` (falls back to polling every `MIN_SYNC_GAP=20` s)
+- **New-run detection**: polls `NEXT_RUN` field in `expInfo.sh`; on increment, triggers immediate rsync of that run's subfolder
+- **Debounced event-driven sync**: on inotifywait event, only syncs if ≥20 s since last sync
+- **Active-run rsync**: scoped to current run subfolder with `rsync -aO --no-perms --append` (append-only since `tcpReceiverMT` never rewrites data)
+- **Boundary/cleanup sync**: full `dataFolder/` → `nfsFolder/data/` when no specific run is active
+- **Staleness sentinel**: touches `nfsFolder/data/.last_sync` after each periodic sync to track freshness
+- **RunTimestamp.txt**: always synced alongside data so NFS has the latest run log
+- Final sync on Ctrl+C / SIGTERM before exit ✅ verified 2026-04-21 — `ANLDAQ/tcpReceiver/sync_exp_data.sh` (full script review)
 
 **`Aux/` — Offline timing analysis tools** (development/debugging, not used in normal DAQ):
 - `script.cpp` (775 lines) — ROOT analysis script correlating TAC-II TDC timestamps with DIG timestamps; studies vernier interpolation precision and phase alignment. Histograms: `hTrigDig` (trigger vs DIG timing), `hPhaseDigVernier` (CFD phase vs vernier value), `hTOF`/`hTOF2` (time-of-flight using zero-crossing vs avg). Implements `ZeroCrossing()` (quadratic + linear interpolation). Builds an output ROOT TTree with TAC/DIG timing pairs.
@@ -213,7 +218,7 @@ Lightweight alternative to `start_run.sh` / `stop_run.sh` for quick tests withou
   - Trigger (TRIG) packets are reformatted from 16 raw words → **10 words** before saving (the internal `reformatted_hdr[]` array is 12 words but only 10 are written, starting from `reformatted_hdr[1]`; `packet_length_in_words=10` at L1657) ✅ verified 2026-04-16 — `legacy/dgsReceiver.cpp:L126,L1657,L2079-2100`
 - `dgsReceiver_Ryan.cpp` (v6.57 fork, 1,567 lines) — Ryan's experimental fork (2025-05-21). Differences vs MBO's version:
   - Linux-only (Windows `#ifdef` blocks removed)
-  - Adds `const bool SAVE_TYPE_F = false;` — stub for controlling type-F header save behavior (TODO: not yet implemented)
+  - Adds `const bool SAVE_TYPE_F = false;` — stub for controlling type-F header save behavior (TODO: not yet implemented in this fork; the feature was never ported to production `dgsReceiver.cpp`) ✅ verified 2026-04-20 — `legacy/dgsReceiver_Ryan.cpp:L49`; grep of production `tcpReceiver/*.cpp` confirms no `SAVE_TYPE_F` in production code
   - Otherwise identical build configuration and protocol
 - `dgsReceiver.h` (67 lines) — C API header for the classic receiver library: `initReceiver()`, `getReceiverData()`, `getEvent()`, `stopReceiver()`. Defines `SERVER_PORT=9001`, `INBUFSIZE=64KB`, `EVENT_MARKER=0xAAAAAAAA`
 - `psNet.h` (68 lines) — Shared network protocol layer header (server + client). Defines `evtServerRetStruct` (4 words: type, recLen, status, recs), `reqPacket`, `incoming`. Constants: `CLIENT_REQUEST_EVENTS=1`, `SERVER_NORMAL_RETURN=2`, `SERVER_SENDER_OFF=3`, `SERVER_SUMMARY=4`, `INSUFF_DATA=5`, `TARGSIZE=7168`, `SENDER_PORT=1101` (UDP sender), `SERVER_PORT=9001`. The 4-word reply header used by `dgsReceiver.h` is the `evtServerRetStruct` struct from this file.
@@ -264,3 +269,5 @@ The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet for
 - `knowledgeBase/ANLDAQ_GUI_windows.md` — gui_DataTaking: GUI front-end that spawns and controls tcpReceiverMT
 - `knowledgeBase/data_structures.md` — GEB header format + DIG event packet layout
 - `knowledgeBase/dgs_analysis.md` — downstream analysis consuming tcpReceiverMT output
+
+*Created: 2026-04-14 | Last reviewed: 2026-04-20*

@@ -1,6 +1,6 @@
 # VME99 (SlopeBox Test Stand) PV List
 
-Generated from: `boot/vme99.cmd` | EPICS CA port: 5074/5075
+Generated from: `boot/vme99.cmd` | EPICS CA port: 5074/5075 ✅ verified 2026-04-21 — ioc/boot/vme99.cmd:L21-22
 Total PVs: 6901
 
 ## MDIG1 (1145 PVs)

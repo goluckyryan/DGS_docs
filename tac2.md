@@ -73,7 +73,7 @@ Each TAC-II event is **15 words of 16-bit values** (sent as lower 16 bits of 32-
 | 3 | TS high | Bits [47:32] of 48-bit trigger timestamp |
 | 4 | TS mid | Bits [31:16] of timestamp |
 | 5 | TS low | Bits [15:0] of timestamp |
-| 6 | Wheel | 10-bit target wheel encoder position at trigger time |
+| 6 | Wheel | 16-bit `TRIG_MON_DET_DATA`: bits [15:10]=`ENCODER_SOURCE_SELECT_REG[15:10]` (source flags), bits [9:0]=`SWEEP_RAM_ADDRESS` (10-bit encoder position at trigger time) ✅ verified 2026-04-20 — `top.vhd:L1180` (`TRIG_MON_DET_DATA <= ENCODER_SOURCE_SELECT_REG(15 downto 10) & SWEEP_RAM_ADDRESS`) |
 | 7 | Aux dat | User-defined (reserved, tied to a register) |
 | 8 | TDCtsLo | Lower 16 bits of 100 MHz timestamp when TDC data was collected (for validity checking) |
 | 9 | trigacks | Bitmap: which other trigger algorithms fired between WANT_NEXT_TDC and TDC collection |

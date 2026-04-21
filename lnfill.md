@@ -15,6 +15,7 @@
 - [Connections to Other Subsystems](#connections-to-other-subsystems)
 - [Operations & Troubleshooting](#operations--troubleshooting-from-wiki-ln-system)
 - [System Roles — pi5-lnFill vs DCS2 vs spark-ca9f](#system-roles--pi5-lnfill-vs-dcs2-vs-spark-ca9f)
+- [Emergency Fallback — pi5-lnFill Down](#emergency-fallback--pi5-lnfill-down-added-2026-04-21)
 - [Log Archiving](#log-archiving-added-2026-04-18)
 - [AI Fill Monitoring](#ai-fill-monitoring-general-dgs-spark-ca9f)
 - [Cross-References](#cross-references)
@@ -158,24 +159,27 @@ During M-fill startup, `CheckTemps()` runs *before* the instance kill check — 
 0 0 * * 0        archive_cron_log.sh              # Weekly archive of LNFill_cron.log (Sunday midnight) ✅ verified 2026-04-18 — live pi5-lnFill crontab
 ```
 
-### On DCS2 (`dcsu@DCS2.onenet`, `/home/phy/dcsu/lnFill/`) ✅ verified 2026-04-16 — live `crontab -l` on DCS2
+### On DCS2 (`dcsu@DCS2.onenet`, `/home/phy/dcsu/lnFill/`) ✅ verified 2026-04-21 — live `crontab -l` on DCS2
 
 ```sh
 */12 * * * *     LNFill_ping_cron.sh              # Ping all hosts every 12 min (ACTIVE)
-15 6,18 * * *    LNFill_pi5_check.sh              # Check LNFill_App.py is running @ 1:15am/pm CDT (ACTIVE)
+15 6,18 * * *    LNFill_pi5_check.sh              # Check LNFill_App.py is running @ 6:15am/pm CDT (ACTIVE)
+5 6,18 * * *     LNFill_cron.sh                  # DCS2 WATCHDOG: backup fill at 6:05am/pm if pi5 failed (ACTIVE) ✅ added 2026-04-21
 ```
 
-> **Note (2026-04-17):** `LNFill_cron.sh`, `LNFill_Auto_EFill_cron.sh`, and `SaveTemp.sh` are **commented out** in the DCS2 crontab. They run from **pi5-lnFill** (192.168.203.58) directly. ✅ verified 2026-04-18 — `pi5-lnFill` crontab (via `DCS2.onenet` SSH hop): `LNFill_cron.sh` runs at 00 06,18 daily (old 16:44 entry commented out), `LNFill_Auto_EFill_cron.sh` runs every 15 min, `SaveTemp.sh` runs every 10 min — all in `/home/dgs/lnFill/`.
+> **DCS2 backup fill watchdog (added 2026-04-21):** `LNFill_cron.sh` now runs at **6:05 AM and 6:05 PM** on DCS2 as an automatic backup. If pi5-lnFill ran the fill at 6:00, the manifold valves will already be open and the watchdog check at the top of `LNFill_cron.sh` exits silently. If pi5 failed, DCS2 proceeds with a full fill. This makes DCS2 a self-healing fallback with no manual intervention needed.
 
 ---
 
 ## Health Monitoring
 
 ### Ping Check (`LNFill_ping_cron.sh`, on DCS2)
-- Pings 8 hosts: .148 (ln2con), .58 (pi5), .121 (lnfill IOC), .154 (piserver1), .88 (gs-cne), .149 (gs-cnw), .42 (gs-cse), .26 (gs-csw) ✅ verified 2026-04-09 — `LNFill_ping_cron.sh:L10` + DNS lookup from DCS2
+- Pings **7 hosts**: .148 (ln2con), .58 (pi5-lnFill), .121 (lnfill IOC), .88 (gs-cne), .149 (gs-cnw), .42 (gs-cse), .26 (gs-csw) ✅ verified 2026-04-21 — `LNFill_ping_cron.sh:L10-17` (7-element `ips` array; piserver1 .154 is **not** present)
 - For pi5: uses **SSH** instead of ping (catches OS-broken-but-network-up failures) ✅ verified 2026-04-13 — `LNFill_ping_cron.sh:L23-24` (`if [ "${ip}" = "${pi5_ip}" ]; then # SSH check`)
 - When SSH succeeds: also records `mem_available_mb` → Grafana trend ✅ verified 2026-04-09 — `LNFill_ping_cron.sh:L24-26`
 - On SSH failure: Discord alert to anomaly channel — exact message: `"⚠️ pi5-lnFill (<ip>) is unreachable via SSH at <date>"` ✅ verified 2026-04-11 — `LNFill_ping_cron.sh:L34-36`
+- **`enablePost2Discord` flag (added 2026-04-21):** Top of script has `enablePost2Discord=true/false`. Set to `false` to suppress Discord alerts (e.g. during planned pi5 downtime). Set back to `true` when pi5 is restored. Avoids noisy false alerts without commenting out code.
+- **EPICS collector server health check:** After the ping loop, iterates over all 110 GS IDs (`VME_GS001_to_True_GS` … `VME_GS110_to_True_GS`) using `cainfo`, extracts the `Host:` field, and identifies which of the 4 collector servers (gs-cne/.88, gs-cnw/.149, gs-cse/.42, gs-csw/.26) responded. Writes `collector_status,host=<name> ok=1i` or `ok=0i` to InfluxDB `HPGeTemp` db. Stops early once all 4 are confirmed alive. ✅ verified 2026-04-21 — `LNFill_ping_cron.sh:L47-110` (full EPICS check block)
 
 ### Pi5 Health Check (`LNFill_pi5_check.sh`, on DCS2)
 - Runs at **6:15 AM and 6:15 PM CDT** (`15 6,18 * * *` UTC) ✅ verified 2026-04-16 — `dcsu@DCS2` crontab
@@ -397,8 +401,40 @@ set_hilo_lim 107 78
 | Machine | Role in LN2 system |
 |---------|-------------------|
 | **pi5-lnFill** (192.168.203.58) | **Primary control host** — runs all fill scripts (`LNFill_cron.sh`, `LNFill_Auto_EFill_cron.sh`, `SaveTemp.sh`). Has direct EPICS CA access to lnfill IOC. All valve commands originate here. |
-| **DCS2** (DCS2.onenet) | **External monitor** — runs ping checks (`LNFill_ping_cron.sh`) and pi5 health checks (`LNFill_pi5_check.sh`). Has a copy of the lnfill repo but does NOT run fills. Hosts InfluxDB + Grafana for temperature trending. |
-| **spark-ca9f** (192.168.203.132) | **AI monitor** (General DGS) — runs OpenClaw cron jobs that SSH into pi5-lnFill to verify fill completion. Sends alerts to Discord #dgs-spark if fills are missing or stuck. Does NOT control valves or run fill scripts. |
+| **DCS2** (DCS2.onenet) | **External monitor + backup fill host** — runs ping checks, pi5 health checks, and (since 2026-04-21) a **backup fill watchdog** at 6:05 AM/PM. If pi5-lnFill fails to start a fill, DCS2 automatically takes over via its own `LNFill_cron.sh`. Hosts InfluxDB + Grafana. `WriteDiscordMessage.py` auto-detects hostname and prefixes all messages with `[DCS2]`. |
+| **spark-ca9f** (192.168.203.132) | **AI monitor** (General DGS) — runs OpenClaw cron jobs that SSH into pi5-lnFill (or DCS2 as fallback) to verify fill completion via log grep. Sends alerts to Discord #dgs-spark if fills are missing or stuck. Does NOT control valves or run fill scripts directly (uses `lnfill-f` skill for manual triggers). |
+
+---
+
+## Emergency Fallback — pi5-lnFill Down (added 2026-04-21)
+
+### Automatic Recovery
+DCS2 runs `LNFill_cron.sh` at 6:05 AM/PM every day as a watchdog. If pi5-lnFill missed the 6:00 fill, DCS2 starts it automatically. No manual action needed for fills.
+
+### Manual Trigger
+Use the `lnfill-f` skill on spark-ca9f:
+```bash
+bash ~/.openclaw/workspace/skills/lnfill-f/scripts/lnfill_f.sh
+```
+Tries pi5-lnFill SSH first, falls back to DCS2. Reports which machine started the fill.
+
+### DCS2 Fallback Setup (already applied 2026-04-21)
+- **`LNFill_App.py`** — patched to auto-detect libca path and `BASE_DIR` (works on x86_64 DCS2 and aarch64 pi5). Uses `ctypes.util.find_library()` with explicit fallbacks for `/usr/lib/aarch64-linux-gnu/` (Pi5), `/usr/lib/x86_64-linux-gnu/` (DCS2/Spark), and `/usr/local/lib/` (custom EPICS builds). `BASE_DIR` tries `/home/dgs/lnFill` → `/home/phy/dcsu/lnFill` → script directory. ✅ committed 2026-04-21 — `lnfill` commit `0ce799b`
+- **`LNFill_cron.sh` — manifold watchdog guard** — before starting a fill, checks all 4 manifold fill valves (`LNM1_FV:VM` … `LNM4_FV:VM`). If any valve is `Open` → fill already in progress on pi5-lnFill → DCS2 skips its watchdog fill and exits. Prevents duplicate concurrent fills. ✅ committed 2026-04-21 — `lnfill` commit `4d33976`
+- **`discord.WebHook`** — symlinked to `discord_anomaly.WebHook` on DCS2 (fill messages go to #anomaly temporarily)
+- **`WriteDiscordMessage.py`** — prefixes all messages with `[DCS2]` via `socket.gethostname()` (hostname auto-detected). ✅ committed 2026-04-21 — `lnfill` commit `0ce799b`
+- **`enablePost2Discord`** — set to `false` in `LNFill_ping_cron.sh` to suppress false SSH-unreachable alerts while pi5-lnFill is down
+
+### Restore Checklist (when pi5-lnFill is back)
+1. Power cycle pi5-lnFill, check console for kernel errors
+2. Verify SSH: `ssh dgs@192.168.203.58`
+3. Copy `discord.WebHook` from pi5 to DCS2 (replace the symlink): `scp dgs@192.168.203.58:~/lnFill/discord.WebHook dcsu@DCS2.onenet:~/lnFill/discord.WebHook`
+4. Tell General DGS: "pi5 is back" — it will flip `enablePost2Discord=true` on DCS2
+
+### Known Limitations (pending NFS fix)
+- DCS2 writes fill logs to its own local `logs/` — separate from pi5's log
+- The `LNFill_cron.sh` watchdog check (manifold valves) works reliably, but a shared NFS log folder would be cleaner (in QUEUE.md)
+- `discord.WebHook` on DCS2 posts to #anomaly instead of the normal fill channel until proper webhook is copied
 
 ---
 

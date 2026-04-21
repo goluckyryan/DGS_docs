@@ -63,15 +63,15 @@ This ensures every RTRG channel is locked to the same data-frame boundary before
 
 Five `discriminator_mach` sub-blocks handle the five Ge/BGO channel pairs (Ge = bits [9:5], BGO = bits [4:0]). Each `disc_mach` examines the timing overlap between a Ge discriminator firing and the corresponding BGO discriminator firing to classify each event:
 
-- **CLEAN_EVENT** — Ge fired, BGO did **not** fire within the overlap window → Ge-only (full-energy deposit)
-- **DIRTY_EVENT** — Both Ge and BGO fired within the overlap window → Compton scatter coincidence
-- **BGO_ONLY_EVENT** — BGO fired, Ge did not → BGO-shield-only event
+- **CLEAN_EVENT** — Ge fired, BGO did **not** fire within the overlap window → Ge-only (full-energy deposit) ✅ verified 2026-04-20 — `disc_mach.vhd:L165` (timer expires without BGO → `CLEAN_EVENT <= '1'`)
+- **DIRTY_EVENT** — Both Ge and BGO fired within the overlap window → Compton scatter coincidence ✅ verified 2026-04-20 — `disc_mach.vhd:L153-157` (BGO fires while timer active → `DIRTY_EVENT <= '1'`)
+- **BGO_ONLY_EVENT** — BGO fired, Ge did not → BGO-shield-only event ✅ verified 2026-04-20 — `disc_mach.vhd:L93` (comment: "BGO fires, but Ge does not before timer expires : this is a BGO_ONLY event")
 
 One-shot timers (7-bit wide, up to 127 clocks) stretch these single-tick pulses into an **assertion window** (`ASSERTION_DELAY = TSCATTER_DELAY_REG[14:8]`). A retriggerable one-shot restarts its timer on each new event, so a burst of events within the window produces a single extended assertion. The resulting extended flags are:
 
-- `HAVE_CLEAN[4:0]` — asserted for the assertion window after each CLEAN_EVENT per pair
-- `HAVE_DIRTY[4:0]` — asserted for the assertion window after each DIRTY_EVENT per pair
-- `HAVE_MODULE[4:0]` — asserted for the assertion window after either a CLEAN or DIRTY event
+- `HAVE_CLEAN[4:0]` — asserted for the assertion window after each CLEAN_EVENT per pair ✅ verified 2026-04-20 — `chan_in.vhd:L107,L327-334` (5-bit signal; retriggerable one-shot driven by CLEAN_EVENT)
+- `HAVE_DIRTY[4:0]` — asserted for the assertion window after each DIRTY_EVENT per pair ✅ verified 2026-04-20 — `chan_in.vhd:L108,L337-344` (retriggerable one-shot driven by DIRTY_EVENT)
+- `HAVE_MODULE[4:0]` — asserted for the assertion window after either a CLEAN or DIRTY event ✅ verified 2026-04-20 — `chan_in.vhd:L109,L347-354` (retriggerable one-shot; comment L311: "HAVE_MODULE is a little special")
 
 ### 1.5 X-Plane and Y-Plane Hit Maps
 
@@ -114,8 +114,8 @@ In the 2-detector DUO:
 
 Each clock, `disc_mach` pipelines `GE_DISC_FLAG` and `BGO_DISC_FLAG` one tick and detects rising edges:
 
-- `GE_EDGE` — fires for one tick when Ge transitions from low to high
-- `BGO_EDGE` — fires for one tick when BGO transitions from low to high
+- `GE_EDGE` — fires for one tick when Ge transitions from low to high ✅ verified 2026-04-20 — `disc_mach.vhd:L54,L105,L107` (signal declared; `GE_EDGE <= '1'` on rising edge)
+- `BGO_EDGE` — fires for one tick when BGO transitions from low to high ✅ verified 2026-04-20 — `disc_mach.vhd:L54,L111,L113` (signal declared; `BGO_EDGE <= '1'` on rising edge)
 
 ### 2.2 Four-State Overlap Machine
 

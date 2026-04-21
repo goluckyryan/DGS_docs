@@ -91,13 +91,13 @@ Detector signals
 DIG — ADC (14-bit, 100 MHz) ✅ verified 2026-04-06 — decimator.vhd:adc_data(13 downto 0); LEFT_RIGHT.ucf: CLK50_OSC×2 = 100 MHz logic clock
     │  Per-channel: delay chain → filters → discriminator → hit flag
     │
-    │  SERDES Link A–H (18-bit, 50 MHz, DC-balanced)
+    │  SERDES Link A–H (18-bit, 50 MHz, DC-balanced) ✅ verified 2026-04-20 — `trigger_data_types.vhd:L42` ("array of eight 18-bit registers ... raw SERDES"); `router_data_path.vhd:L87` ("DIG_LINK_RXs, however these are 18 bits wide"); MTRG BOM Y1=50.000 MHz oscillator
     │  TX word: [SYNC | COARSE_DISC[9:5] | ACCEPTED_HITS[9:0]]
     ▼
 RTRG — Aggregates 8 digitizers
     │  X-plane hit count + Y-plane hit count + throttle OR
     │
-    │  SERDES Link L (18-bit, 50 MHz)
+    │  SERDES Link L (18-bit, 50 MHz) ✅ verified 2026-04-20 — `trigger_data_types.vhd:L42`; `FPGA/README.md:L164` ("All links use 18-bit DC-balanced LVDS SERDES running at 50 MHz")
     │  TX word: [THR | Y-mult[6:0] | VAL | X-mult[6:0] | POL] (16-bit) ✅ verified 2026-04-14 — `router_data_path.vhd:L10-15,L230-233`
     ▼
 MTRG — Runs trigger algorithms

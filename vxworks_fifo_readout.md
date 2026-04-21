@@ -31,13 +31,13 @@ _Source: `DGS_SVN/dgs/Documentation/Formal/Software/howTheSenderWorks.docx` (T. 
 ### Buffer Pool
 - **200 buffers** total, shared across all 4 digitizers in a crate ✅ verified 2026-04-08 — `DGS_DEFS.h:L48` (`RAW_Q_SIZE = 200`, changed from 400 on 2023-04-12 JTA)
 - Each buffer: **1 MB** (`RAW_BUF_SIZE`) ✅ verified 2026-04-08 — `DGS_DEFS.h:L34` (changed from 512 KB on 2023-04-12 JTA)
-- Queue size: **`RAW_Q_SIZE = 200`** (defined in `DGS_DEFS.h`; previously 400 before April 2023)
+- Queue size: **`RAW_Q_SIZE = 200`** (defined in `DGS_DEFS.h`; previously 400 before April 2023) ✅ verified 2026-04-20 — `vxworks/dgsDrivers/dgsDriverApp/src/DGS_DEFS.h:L48` (`#define RAW_Q_SIZE 200 //changed from 400 to 200 20230412 JTA`)
 - Each buffer has a **reference counter** — zero = free, non-zero = in use
 
 > **Note:** The salvaged notes (`20180924_notes.txt`) document the older values (RAW_Q_SIZE=400, RAW_BUF_SIZE=512KB). These were doubled/halved in April 2023 — same total memory (~200MB), different trade-off.
 
 ### Trigger Throttle (software fallback)
-- If buffers in Return Queue fall below **1/3** of `RAW_Q_SIZE` (i.e., <67 free with current Q=200), `TrigCon.st` asserts `TrigInhL` and `TrigInhD` via EPICS CA.
+- If buffers in Return Queue fall below **1/3** of `RAW_Q_SIZE` (i.e., <67 free with current Q=200), a sequencer program asserts trigger inhibit PVs via EPICS CA. ⚠️ Note: The PV names `TrigInhD`/`TrigInhL` (and sequencer `TrigCon.st`) are from the **legacy GRETINA/PSG DAQ** (`DGS_SVN/psg/CodeGeneratingSpreadsheetGeneric/dgs_databases_20220714/daqCrate.template`) — they do **not** exist in the current DGS IOC (`ANLDAQ/`, `ioc/`, `collectorboxpi/`). The current DGS throttle mechanism uses hardware FIFO half-full flags rather than CA sequencer inhibit. ✅ verified 2026-04-20 — confirmed absence of `TrigInhD`/`TrigInhL` in all current DGS repos; origin traced to `psg/daqCrate.template` (GRETINA era)
 - This is a **software path** — latency can be 10+ ms at high rates. Hardware FIFO throttle (half-full flag → RTRG throttle line) is the primary fast mechanism.
 
 ### Garbage Collection (optional, compile-time)

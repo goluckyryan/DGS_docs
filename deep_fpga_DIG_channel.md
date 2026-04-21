@@ -68,7 +68,7 @@ Both taps − BASELINE_VALUE
     ▼
 THRESH_DISC_FLAG  (one-shot pulse)
     │
-    └─→ Opens PEQ entry, starts energy integration, latches 48-bit timestamp
+    └─→ Opens PEQ entry, starts energy integration, latches 48-bit timestamp ✅ verified 2026-04-21 — `jta_channel.vhd:L49` (20211118): `TIMESTAMP : in std_logic_vector(47 downto 0)`
 ```
 
 The two-tap comparison (PROMPT and DELAYED both above threshold) acts as a simple coincidence filter that suppresses single-sample noise spikes. The threshold value is set by `reg_led_threshold`.
@@ -123,7 +123,7 @@ Channels 1–9 use addresses `0x044` through `0x064` (4-byte spacing). The `CFD_
 
 ### After Discrimination — PEQ and Energy Integration
 
-When a discriminator fires (LED or CFD), the channel opens a slot in the **Pending Event Queue (PEQ)** — a 16-deep FIFO. The event remains pending until the trigger decision arrives from the Router (~2–4 µs later, within the ~20 µs TRIG_DELAY window). During that time, three energy sums are accumulated:
+When a discriminator fires (LED or CFD), the channel opens a slot in the **Pending Event Queue (PEQ)** — a 16-deep FIFO. ✅ verified 2026-04-21 — `pehq.vhd` (20211118 tag): address counter `a` is `std_logic_vector(3 downto 0)` (4 bits → 16 entries); SRL_DELAY_256x16 + SRL_DELAY_68x16 blocks indexed by `a` confirm 16-entry SRL-based FIFO. The event remains pending until the trigger decision arrives from the Router (~2–4 µs later, within the ~20 µs TRIG_DELAY window). During that time, three energy sums are accumulated:
 
 ```
 Discriminator fire
@@ -224,10 +224,10 @@ All addresses are per-channel. Channel 0 uses the base address shown; channels 1
 
 | Register | Ch 0 Address | Bits | Description |
 |----------|-------------|------|-------------|
-| `reg_raw_data_delay` | `0x100` | `[9:0]` | Pipeline delay before raw data capture (pre-trigger samples) ✅ verified 2026-04-19 — `asynDigParams.c:L489` (`setAddress(reg_raw_data_delay0,0x0100)`) |
-| `reg_raw_data_length` | `0x140` | `[9:0]` | Number of waveform samples to capture ✅ verified 2026-04-19 — `asynDigParams.c:L499` (`setAddress(reg_raw_data_length0,0x0140)`) |
+| `reg_raw_data_delay` | `0x100` | `[9:0]` | Pipeline delay before raw data capture (pre-trigger samples) ✅ verified 2026-04-21 — `vxworks/dgsDrivers/dgsDriverApp/src/asynDigParams.c:L489` (`setAddress(reg_raw_data_delay0,0x0100)`) |
+| `reg_raw_data_length` | `0x140` | `[9:0]` | Number of waveform samples to capture ✅ verified 2026-04-21 — `vxworks/dgsDrivers/dgsDriverApp/src/asynDigParams.c:L499` (`setAddress(reg_raw_data_length0,0x0140)`) |
 
-> ⚠️ Note: The VHDL source (`DGS_TAG_20180607_TWEAK/Registers.vhd:L136,L146`) labels `0x100` as `reg_raw_data_length` and `0x140` as `reg_raw_data_window`. The asyn driver (`asynDigParams.c`) is the ground truth: `0x100` = `reg_raw_data_delay`, `0x140` = `reg_raw_data_length`. `reg_raw_data_window` does not exist in the current IOC driver.
+> ⚠️ Note: The VHDL source (`DGS_TAG_20180607_TWEAK/Registers.vhd:L136,L146`) labels `0x100` as `reg_raw_data_length` and `0x140` as `reg_raw_data_window`. The older SVN driver (`DGS_SVN/dgs/20180921/asynDigParams.c:L688,698`) also used those VHDL names. The **current live driver** (`vxworks/dgsDrivers/dgsDriverApp/src/asynDigParams.c`) renamed `0x100` → `reg_raw_data_delay` and `0x140` → `reg_raw_data_length`; `reg_raw_data_window` no longer exists in the current IOC. ✅ verified 2026-04-21 — cross-checked VHDL, SVN driver, and live driver.
 
 **Diagnostic counters (read-only):**
 

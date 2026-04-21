@@ -280,7 +280,7 @@ Two NIM inputs and two NIM outputs:
 > ⚠️ **Previous doc listed incorrect values** (`AUX/NIM`, `SumX`, `SumY`, etc.) — those were from an older firmware version. Corrected 2026-04-11 against current `MTrigUser.template`.
 
 **NIM output sub-select** (`NIM1_SubSelect`/`NIM2_SubSelect` PV):
-- `TrigRam` (0), `VetoRam` (1), `SweepRam` (2), `EncXtra` (3), `FiltInProg` (4), `Diag` (5), `EncChng` (6), `SelSlowClk` (7)
+- `TrigRam` (0), `VetoRam` (1), `SweepRam` (2), `EncXtra` (3), `FiltInProg` (4), `Diag` (5), `EncChng` (6), `SelSlowClk` (7) ✅ verified 2026-04-21 — `MTrigUser.template:L103-104,L112-113` (NIM1_SubSelect and NIM2_SubSelect mbbo records; both have identical 8-option encoding)
 
 **Key EPICS PVs (on `VME99:MTRG:`):**
 

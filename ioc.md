@@ -195,16 +195,16 @@ Boot sequence:
 ## Boot Scripts
 
 Located in `boot/`:
-- `vme66.cmd` — DuoGe crate (CRATE=66); uses `cdCommands` (CA port 5080/5081 DuoGe)
-- `vme99.cmd` — GRETINA lab test stand (CRATE=99); uses `cdCommandsLab` (CA port 5074/5075 G-wing)
+- `vme66.cmd` — DuoGe crate (CRATE=66); uses `cdCommands` (CA port 5080/5081 DuoGe) ✅ verified 2026-04-20 — `ioc/boot/cdCommands:L11-12` (SERVER_PORT=5080, REPEATER_PORT=5081); `vme66.cmd:L14` (< cdCommands)
+- `vme99.cmd` — GRETINA lab test stand (CRATE=99); uses `cdCommandsLab` (CA port 5074/5075 G-wing) ✅ verified 2026-04-20 — `ioc/boot/vme99.cmd:L18,L21,L27` (G-wing port 5074/5075 comment + putenv + < cdCommandsLab)
 - `cdCommands` — paths + EPICS CA env for DuoGe system
-- `nfsCommands` — NFS mount: `nfsAuthUnixSet("fs.gam", 6000, 10, 0, 0)`
+- `nfsCommands` — NFS mount: `nfsAuthUnixSet("fs.gam", 6000, 10, 0, 0)` ✅ verified 2026-04-20 — `ioc/boot/nfsCommands:L1`
 
 **Key differences between vme66 and vme99:**
-- vme66: loads `daqCrate.template` + NFS globals commented out; `cdCommands` (DuoGe port)
-- vme99: loads `daqCrate.template` + `dgsGlobals_DGS_VME99.db`; `cdCommandsLab` (G-wing/test port)
-- vme99: two MDIG boards both use `MDigRegisters/User` (master-type DB); vme66: MDIG1=master, MDIG2=slave (`SDigRegisters/User`)
-- Both: `asynDebug.template` line present but commented out
+- vme66: loads `daqCrate.template` + NFS globals commented out; `cdCommands` (DuoGe port) ✅ verified 2026-04-20 — `vme66.cmd:L98` (daqCrate.template); `vme66.cmd:L105` (dgsGlobals commented out)
+- vme99: loads `daqCrate.template` + `dgsGlobals_DGS_VME99.db`; `cdCommandsLab` (G-wing/test port) ✅ verified 2026-04-20 — `vme99.cmd:L123,L130`
+- vme99: two MDIG boards both use `MDigRegisters/User` (master-type DB); vme66: MDIG1=master, MDIG2=slave (`SDigRegisters/User`) ✅ verified 2026-04-20 — `vme66.cmd:L59-60` (MDigRegisters+SDigRegisters); `vme99.cmd:L85-86` (both MDigRegisters)
+- Both: `asynDebug.template` line present but commented out ✅ verified 2026-04-20 — `vme66.cmd:L84` + `vme99.cmd:L109` (both `#dbLoadRecords("db/asynDebug.template"...)`)
 - Regular VME01–12 (Gammasphere) boot scripts live on NFS at `/global/ioc/boot/` — not in this git repo
 - **PV dump on startup:** Both `vme66.cmd` and `vme99.cmd` now end with `dbl > "vme<NN>_db.txt"` — dumps the full PV list to a text file at IOC startup ✅ verified 2026-04-17 — `ioc` commit `4eb1eb0`
 - **`bootFiles.txt`** currently points to `boot/vme66.cmd` (changed from `vme99.cmd`) ✅ verified 2026-04-17 — `ioc` commit `4eb1eb0`

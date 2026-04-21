@@ -135,7 +135,7 @@ _Source: `DGS_tools_pack/FPGA/Firmware_Tags/` (explored 2026-04-19)_
 - **MCS files** = Xilinx PROM programming files (used with iMPACT to flash hardware)
 - **JED files** = JEDEC format for CPLD programming (used with iMPACT for CPLD)
 - **BIT files** = raw FPGA configuration bitstream (used in ISE/iMPACT for direct FPGA config)
-- The most recent DIG Main FPGA tag in this archive is **20230809** (currently deployed on production Gammasphere: rev `0x4CD8`)
+- The most recent DIG Main FPGA tag in this Firmware_Tags archive is **20230809** — ⚠️ **not** the currently deployed version (deployed: date=`20250704`, rev=`0x4CD8`; stored in `ioc/` via git-LFS, not in this archive)
 - The most recent MTRG VME FPGA tag is **20250511.mcs** (inside `VME_FPGA_20250822/`)
 - The TriggerCPLD and TriggerVME entries are from 2014 — the CPLD handles fast-strobe logic on the trigger board
 - `SBX/` contains the Slope Box FPGA — separate from the main trigger chain; used for preamp slope adjustment
@@ -150,8 +150,10 @@ Selected milestones (from directory names):
 | `Release_20130829` | First named release |
 | `Release_20140318` | Also present in MasterTrigger and Router |
 | `20180507` | Present in DIG, MTRG, RTRG — major synchronized release |
-| `20211118` | **Currently deployed DIG Main FPGA** (rev `0x4CD8`) |
-| `20230809` | Most recent archived DIG tag (not yet deployed on production) |
+| `20211118` | Historical tag — NOT the deployed firmware |
+| `20230809` | Most recent DIG tag in the Firmware_Tags archive — ⚠️ **not** the currently deployed version |
+
+> ✅ verified 2026-04-20 — `ioc/README.md:L28-29`: deployed DIG Main FPGA date = `20250704`, rev = `0x4CD8`. The `20250704` build is **not** present in the Firmware_Tags archive (archive only goes to `20230809`). The firmware binary is stored in `ioc/` via git-LFS, not in the Firmware_Tags snapshot archive.
 
 ## Cross-References
 

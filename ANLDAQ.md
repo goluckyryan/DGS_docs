@@ -519,38 +519,7 @@ Key facts:
 - `gui/scripts/basic_settings_LED.py` — Python equivalent of basic_settings_DGS.sh for LED mode (currently hardcoded VME66 = test stand; threshold=300) ✅ verified 2026-04-17 — `basic_settings_LED.py:L12` (`THRESHOLD=300`), `L27` (`VME_RANGE = range(66, 67)  # VME66`)
 - Legacy receivers in `legacy/`: `dgsReceiver.cpp` (MBO v6.57) + Ryan's fork
 
-### basic_settings_DGS.sh — DIG Channel Initialization
-
-**Source:** `DGS_tools_pack/ANLDAQ/tcpReceiver/basic_settings_DGS.sh`  
-**Mode:** Configurable at top of script (`mode=CFD` or `mode=LED`). Default: CFD.
-
-Loops over VME01–12 (2 MDIGs per crate; VME06+VME10 have only MDIG1), channels 5–9 per DIG:
-
-| Step | PV | CFD Value | LED Value | Notes |
-|---|---|---|---|---|
-| Reset | `master_logic_enable` | `Reset` | `Reset` | Clear logic before config |
-| Mode | `cfd_mode` | `CFD_Mode` | `LED_Mode` | Selects CFD or LED discriminator |
-| P1 | `p1_window{CH}` | 0.07 µs | 0.07 µs | Pre-trigger window |
-| P2 | `p2_window{CH}` | 0.05 µs | 0.05 µs | Pre-trigger 2 window |
-| M | `m_window{CH}` | 3.5 µs | 2.5 µs | Main integration window |
-| K0 | `k0_window{CH}` | 0.56 µs | 0.5 µs | K0 delay |
-| K | `k_window{CH}` | 0.2 µs | 0.5 µs | K delay (CFD fixed) |
-| D | `d_window{CH}` | 0.06 µs | 0.16 µs | CFD fraction delay |
-| D3 | `d3_window{CH}` | 0.2 µs | — | Baseline tracker offset (CFD only) |
-| CFD fraction | `CFD_fraction{CH}` | 25 | — | CFD fraction % (CFD only) |
-| Threshold | `led_threshold{CH}` | 30 | 300 | LED threshold ADC counts |
-| Polarity | `trigger_polarity{CH}` | `RiseEdge` | `RiseEdge` | |
-| Raw data delay | `raw_data_delay{CH}` | 0.5 µs | 0.5 µs | |
-| Raw data length | `raw_data_length{CH}` | 0.32 µs | 0.32 µs | Minimum trace (no waveform) |
-
-After channel config per DIG: `CS_Ena=Enable`, `veto_enable=0`, FIFO reset→run.  
-Final: `Online_CS_StartStop=Stop`, `Online_CS_SaveData=No Save` (safety — ensures system isn't writing data).
-
-> **CFD values labeled "Mike CFD value"** — these are Mike Carpenter's tuned production parameters. Earlier commented-out values (k=0.16, d=0.1, m=3.5, CFD_fraction=30) were previous defaults. ✅ verified 2026-04-17 — `basic_settings_DGS.sh` source comments
-
-> ⚠️ Wiki says "UDP packets" — incorrect. `SOCK_STREAM` = TCP. See `ANLDAQ_tcpReceiver.md` for details.
-
-> **Full details, packet consistency table, `class_DIG.h`/`class_TDC.h` decode docs:** → [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md)
+> **Full init table (CFD/LED parameter values, PV list):** → [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md)
 
 ## GUI Windows — Detailed Reference
 

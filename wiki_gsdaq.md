@@ -188,6 +188,11 @@ All known wiki pages have been visited as of 2026-04-17. Summary:
 
 **No pending wiki pages.** If new pages appear on the wiki, add them here.
 
+| `/gsdaq/Triggers` | 2026-04-20 | Trigger as "decision makers"; 1 MTRG + 4 RTRG for GS; VME Fiber Expander connects external systems (AGFA) to MTRG; Electric Honeycomb requires 13 bits/detector (7 BGO segs + 6 face-to-face BGO) → 110 scatter bits to trigger — all already in KB |
+| `/gsdaq/IOC` | 2026-04-20 | Empty page — no content |
+| `/gsdaq/Argonne_Gas-Filled_Analyzer` | 2026-04-20 | Stub only — AGFA is gas-filled separator at ATLAS for heavy nuclei studies; links external |
+| `/gsdaq/DGS_Commander_EDM_Screens` | 2026-04-20 | Interactive image map of EDM GUI; 7 main sections: Run Control (Start/Stop/Save/NoSave), Main Controller (waveforms/HW/timing), Main Controller Side Panel, VXI Heartbeat (obsolete), Temperatures, LN Main, Setup Script State — added to `run_procedures.md` |
+
 ---
 
 *Created: 2026-04-05 (initial crawl)*

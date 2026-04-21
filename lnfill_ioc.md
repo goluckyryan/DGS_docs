@@ -324,6 +324,93 @@ Columns: hose-slot, detID, fill_time_s, temp_before, temp_after, sensor_before, 
 
 ---
 
+## Auxiliary Scripts (lnfill repo)
+
+_Documented 2026-04-21 — code-verified from `DGS_tools_pack/lnfill/`._
+
+### `AddPress.sh` (V2.3, 2024-06-28)
+
+**Purpose:** Auxiliary pressure management during LN2 fills — keeps dewar tanks pressurized by selectively opening spare (Tank 3) fill valves on each tank station.
+
+**Key logic:**
+- Monitors pressure on Tank Station 1 (TS1: VME03 manifolds A+B) and Tank Station 2 (TS2: VME09 manifolds C+D) during an active fill.
+- Opens the spare tank fill valve (`LNT3_FV:EN` / `LNT6_FV:EN`) when the external dewar pressure exceeds tank pressure by `VALVE_OPEN_PRESS` (3 PSI) and tank is below `MAX_TANK_PRESS` (32 PSI).
+- Closes the spare fill valve when: external pressure falls too low (`VALVE_CLOSE_PRESS` = -1 PSI), tank is at max, or the two stations have diverged in pressure by `TS1/TS2_PRESS_DIFF_OFF_THRESH` (2/3 PSI) — prevents one station from hogging flow at the expense of the other.
+- Redundant gauge fallback: if primary pressure gauge is out-of-range or flagged `FAIL`, falls back to gauge 2, then gauge 3, then a hardcoded estimate (28 PSI early in fill, 20 PSI late).
+- **Currently failed sensors (hardcoded):** `PRESS_EXT2_FAIL=1` (TS2 external gauge), `PRESS_TS2_T2_FAIL=1` (TS2 tank 2 gauge), `PRESS_TS2_T3_FAIL=1` (TS2 tank 3 gauge).
+- Runs for up to `MAX_RUN_TIME=2200 s` (≈37 min); exits early when all manifold fill valves are closed after `MIN_RUN_TIME=240 s`.
+- Check interval grows from 1 s up to `MAX_SLEEP_TIME=30 s`; resets to 0 when a valve is opened.
+- **Called by:** `LNFill_App.py` during automated detector fills (started as a background subprocess alongside fill sequence).
+
+**Key PVs:**
+| PV | Meaning |
+|---|---|
+| `LNP1-01_PR:AP` | TS1 external dewar pressure |
+| `LNP1-02_PR:AP` / `LNP1-03_PR:AP` / `LNP1-04_PR:AP` | TS1 tank 1/2/3 pressure |
+| `LNP2-01_PR:AP` | TS2 external dewar pressure |
+| `LNP2-02_PR:AP` / `LNP2-03_PR:AP` / `LNP2-04_PR:AP` | TS2 tank 1/2/3 pressure |
+| `LNT3_FV:EN` | TS1 spare (Tank 3) fill valve |
+| `LNT6_FV:EN` | TS2 spare (Tank 6) fill valve |
+| `LNM1_FV:EN` / `LNM2_FV:EN` | TS1 manifold fill valves (A/B) |
+| `LNM3_FV:EN` / `LNM4_FV:EN` | TS2 manifold fill valves (C/D) |
+
+---
+
+### `setTNF.sh`
+
+**Purpose:** Sets the EPICS PV `LN_TTNF:XC` ("Time of Next Fill") to a time 12 hours from the current hour.
+
+**Logic:** If current hour is >10 AM, subtracts 12 → sets to 0X:01 (morning time). Otherwise adds 12 → sets to afternoon time. Optionally accepts a specific hour as `$1` to override.
+
+**Called by:** `LNFill_cron.sh` at the end of each scheduled fill to schedule the next fill approximately 12 hours out.
+
+---
+
+### `LNFill_pi5_check.sh`
+
+**Purpose:** Health check — confirms that `LNFill_App.py` is running on `pi5-lnFill`. If not, sends a Discord alert to the `#anomaly` webhook.
+
+**Mechanism:** SSH to `pi5-lnFill` with 5-second connect timeout; runs `pgrep -f LNFill_App.py`. On failure (process not found or SSH unreachable): sends a `curl` POST to `$anomalyWebHook` (loaded from `discord_anomaly.WebHook` file).
+
+**Called by:** DCS2 cron at **06:15 and 18:15 daily** (`15 6,18 * * *`) ✅ verified 2026-04-21 — `dcsu@DCS2.onenet crontab -l`.
+
+---
+
+### `LNFill_check.sh`
+
+**Purpose:** Post-fill duration anomaly detector. Parses `LNFill_cron.log` to find the last fill begin/end timestamps, computes fill duration, and alerts Discord if duration was below threshold.
+
+**Logic:**
+1. Finds last `LN2  Fill Ends:` line in log → extracts timestamp (`MM/DD/YYYY-H:MM`).
+2. Finds the most recent `LN2  Fill Begin` line before that end line.
+3. Parses both timestamps → computes `duration_min`.
+4. If `duration_min < THRESH_MIN` (default 10 min): sends alert to `$anomalyWebHook`.
+5. A very short fill (<10 min) signals a potential problem — fill aborted early, sensor failure, or cryostat vacuum issue.
+
+**Arguments:** `$1` = optional threshold in minutes (default: 10).
+
+**Alert format:** `"Last Fill Duration Alert: <N> minutes @ <begin_ts>"`
+
+**Called by:** Presumably from DCS2 cron after each fill cycle.
+
+---
+
+### `archive_cron_log.sh`
+
+**Purpose:** Rotates `LNFill_cron.log` — copies it to `logs/archive/LNFill_cron_YYYYMMDD.log` then truncates the live log to zero. Prevents unbounded growth.
+
+**Called by:** DCS2 cron (presumably weekly or monthly).
+
+---
+
+### `epics_cron.sh`
+
+**Purpose:** EPICS environment setup for cron jobs on aarch64 (Pi5). Exports `EPICS_BASE`, `PYEPICS_USE_SYSTEM_LIBS`, `PYEPICS_LIBCA`, `PYEPICS_LIBCOM`, and `LD_LIBRARY_PATH` so that `caget`/`caput`/pyepics work correctly in non-login shell cron context.
+
+**Used by:** All lnfill cron jobs that invoke `caget`/`caput` or `python3 -c "import epics"` — sourced at the top of each cron script.
+
+---
+
 ## Cross-References
 
 - [`lnfill.md`](lnfill.md) — Operational overview, fill types, cron jobs, health monitoring, troubleshooting
@@ -333,4 +420,4 @@ Columns: hose-slot, detID, fill_time_s, temp_before, temp_after, sensor_before, 
 
 ---
 
-*Split from `lnfill.md` 2026-04-20 (F task — MD organization). Original content created 2026-04-05 through 2026-04-18.*
+*Split from `lnfill.md` 2026-04-20 (F task — MD organization). Original content created 2026-04-05 through 2026-04-18. Auxiliary scripts documented 2026-04-21.*

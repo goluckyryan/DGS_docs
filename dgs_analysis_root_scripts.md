@@ -238,3 +238,5 @@ root -l 'readTrace.C("runXXX.root", 0, 999, true)'  # print raw ADC values
 ---
 
 *Split from `dgs_analysis.md` 2026-04-18. Original content documented 2026-04-17/18.*
+
+*Last reviewed: 2026-04-20*

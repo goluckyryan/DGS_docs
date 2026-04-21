@@ -246,6 +246,7 @@ For each stripe (1–6) × port (1–5) position (= 30 slots total):
 - Waits 10 s after all relays are on for power to settle
 
 ### Phase 2 — I2C & Preamp Enable (loop over detector list)
+**Placeholder skip:** `NUM=000` → immediately `continue` (avoids channel-connect timeout on empty slots like box 204 stripe 2) ✅ verified 2026-04-20 — commit 8cf8952
 For each connected detector with SBX present:
 - `GS<NNN>_ResetAllI2CMach = run` — reset I2C state machines
 - `GS<NNN>_ResetAllScanMachines = run` — reset all scan machines
@@ -257,6 +258,7 @@ For each connected detector with SBX present:
 - Waits 2 s for PVs to settle
 
 ### Phase 3 — BGO HV Interlock
+**Placeholder skip:** `NUM=000` → immediately `continue` ✅ verified 2026-04-20 — commit 8cf8952
 For each connected detector with SBX present:
 - Reads `GS<NNN>_SlopeBoxBGOInterlock`:
   - `"Interlock OPEN"` → `BGO_HV_CTRL = "BGO HV Off"`
@@ -264,8 +266,13 @@ For each connected detector with SBX present:
   - Any other value → error; forces `"BGO HV Off"`
 
 ### Phase 4 — HPGe HV Interlock & Ramp
+**Placeholder skip:** `NUM=000` → immediately `continue` ✅ verified 2026-04-20 — commit 8cf8952
 For each connected detector with SBX present:
 - Sets ramp parameters: `GE_HV_STEP_SIZE=10`, `MANUAL_GE_HV_DEMAND=0`, `GE_HV_HYSTERESIS=5`
+- **Sets dynamic HV alarm limits on `Conv_GeHV`** (NEW — commit 8cf8952): reads `MOD<NNN>_DS_GEHV` (operating HV) and `GS<NNN>_GE_HV_ABSMAX` (nameplate HV), then sets:
+  - `Conv_GeHV.HIGH = operating_HV + 100 V` (warning threshold)
+  - `Conv_GeHV.HIHI = nameplate_HV + 100 V` (alarm threshold)
+  - `Conv_GeHV.LOW = 0`, `Conv_GeHV.LOLO = 0` ✅ verified 2026-04-20 — `softioc_postscript.sh` commit 8cf8952
 - Reads `GS<NNN>_SlopeBoxTempHigh`:
   - `"Temp HIGH"` → `GE_HV_CTRL = "Ge HV Off"` (interlock open)
   - `"Temp OK"` → `GE_HV_CTRL = "Ge HV ON"`, reads operating HV from `MOD<NNN>_DS_GEHV`, writes it to `GE_HV_DEMAND_VOLTS` (ramp starts)
@@ -297,11 +304,13 @@ EPICS CALC field: "A * gain + const"
 - Fallback CALC: `"A + 273.15"` (raw PT100 degC to K, no gain)
 
 ### Phase 6 — Health Check & Error Report
+**Placeholder skip + index tracking (NEW — commit 8cf8952):** Loop now uses `IDX` to track `STRIPE=IDX/5+1`, `PORT=IDX%5+1` for relay retry; `NUM=000` → immediately `continue`. ✅ verified 2026-04-20 — `softioc_postscript.sh` commit 8cf8952
+
 For each detector, reads ~40 PVs and checks ranges:
 
 | Check | Error condition |
 |-------|-----------------|
-| PT100 temp | >400 K (cable fault), >100 K (warm), <50 K (DVI fault) |
+| PT100 temp | >400 K → relay retry up to 3× then ERROR; >100 K (warm warning), <50 K (DVI fault) |
 | PT500 temp | >105°C (fault), >−160°C (warm), bypassed warning |
 | Slope Box ID | non-numeric, =255 (DVI fault), >128, <1 |
 | Power board status | =0 (I2C comm error) or not 255 |
@@ -309,6 +318,8 @@ For each detector, reads ~40 PVs and checks ranges:
 | 5V rail | outside [4, 5] V |
 | +12V rail | outside [11, 12] V |
 | −12V rail | outside [−12, −11] V |
+
+**PT100 > 400 K relay retry (NEW — commit 8cf8952):** Instead of immediately logging an error, the script power-cycles the preamp relay (`GS<COLL>_prly_s<S>_<P>`) up to **3 times** (`off` → 1 s → `on` → 2 s), re-reads PT100 after each attempt. On success → WARNING only. If still > 400 K after 3 retries → ERROR + I2C_COMM_ERROR increment. ✅ verified 2026-04-20 — `softioc_postscript.sh` commit 8cf8952
 
 **I2C comm error thresholds** (configured at top of script):
 - `I2C_COMM_ERROR_TRIGGER_THRESHOLD = 5` — errors below this are suppressed (noise)
@@ -323,6 +334,7 @@ Number of Detector: N -> Errors:E Warnings:W
 N Connected GSs  / M Connected SBXs / K Interlocked BGO / J Interlocked HPGe
 ```
 ✅ verified 2026-04-18 — `collectorboxpi/softioc_postscript.sh` (full read, all 673 lines)
+✅ updated 2026-04-20 — commit 8cf8952 ("set HV range"): placeholder slot skip in Phases 2–4 + health check; dynamic `Conv_GeHV` alarm limits in Phase 4; PT100 relay retry (3×) in Phase 6
 
 ---
 
@@ -541,3 +553,5 @@ Standalone C programs that run on the Raspberry Pi **before EPICS is active**. T
 - `knowledgeBase/nfs_layout.md` — PXE boot infrastructure on fs2.onenet; piserver NFS layout and MAC table
 - `knowledgeBase/gammasphere_geometry.md` — GS hole numbering and collector box assignments
 - `knowledgeBase/influxdb_grafana.md` — Temperature data pushed to InfluxDB by SaveTemp.sh (runs on Pi)
+
+*Created: 2026-04-06 | Last reviewed: 2026-04-20*

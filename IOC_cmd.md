@@ -58,7 +58,7 @@ These are called automatically by the boot script. Do not re-run on a live IOC w
 | `asynTrigRouterConfig1` | `portName, card#, slot` | Init RTRG asyn driver (C function name; registered in iocsh as `asynTrigRouterConfig`) ✅ verified 2026-04-09 — `drvAsynTrigRouter.c:L52,L69,L75` + `vme66.cmd:L137` | `drvAsynTrigRouter.c` |
 | `asynTrigMasterConfig1` | `portName, card#, slot` | Init MTRG asyn driver (C function name) ✅ verified 2026-04-09 — `asynTrigMasterDriver.cpp:L236` + `vme66.cmd:L140` | `asynTrigMasterDriver.cpp` |
 | `asynDebugConfig` | `portName, card#` | Init debug asyn driver ✅ verified 2026-04-09 — `vme66.cmd:L145` | `drvAsynDebug.c` |
-| `setupFIFOReader()` | none | Start FIFO reader thread for DMA readout | `QueueManagement.c` |
+| `setupFIFOReader()` | none | Start FIFO reader thread for DMA readout ✅ verified 2026-04-20 — `QueueManagement.c:L50` (function definition + iocsh registration) | `QueueManagement.c` |
 
 ### Flash Firmware — DANGEROUS
 
@@ -66,11 +66,11 @@ These are called automatically by the boot script. Do not re-run on a live IOC w
 
 | Command | Parameters | Description | Source |
 |---------|-----------|-------------|--------|
-| `ProgramFlash` | `bdnum, bank, "file.bin"` | Erase + write firmware to flash bank (0=lower, 1=upper) | `devGVME.c` |
-| `EraseFlash` | `bdnum, bank` | Erase one flash bank | `devGVME.c` |
-| `ReadFlash` | `bdnum, bank, "file.bin"` | Read one flash bank and write to file on disk. `bank` 0=lower, 1=upper. Output byte order matches `.bin` format. **Read-only — safe** | `devGVME.c` |
-| `VerifyFlash` | `bdnum, bank, stopOnErr, "file.bin"` | Verify flash content against binary file | `devGVME.c` |
-| `ConfigureFlash` | `bdnum, bank` | Instruct VME FPGA to reconfigure main FPGA from flash | `devGVME.c` |
+| `ProgramFlash` | `bdnum, bank, "file.bin"` | Erase + write firmware to flash bank (0=lower, 1=upper) ✅ verified 2026-04-20 — `devGVME.c:L687,L883` | `devGVME.c` |
+| `EraseFlash` | `bdnum, bank` | Erase one flash bank ✅ verified 2026-04-20 — `devGVME.c:L573,L676` | `devGVME.c` |
+| `ReadFlash` | `bdnum, bank, "file.bin"` | Read one flash bank and write to file on disk. **⚠️ NOT IMPLEMENTED** — confirmed absent from `devGVME.c`: only `VerifyFlash`, `EraseFlash`, `ProgramFlash`, `DownloadFlash`, `ConfigureFlash` are registered. Use `VerifyFlash` to compare flash against a file instead. ✅ verified 2026-04-20 — `devGVME.c` (grepped all iocshFuncDef registrations, no ReadFlash found) | `devGVME.c` |
+| `VerifyFlash` | `bdnum, bank, stopOnErr, "file.bin"` | Verify flash content against binary file ✅ verified 2026-04-20 — `devGVME.c:L398,L562` | `devGVME.c` |
+| `ConfigureFlash` | `bdnum, bank` | Instruct VME FPGA to reconfigure main FPGA from flash ✅ verified 2026-04-20 — `devGVME.c:L993,L1079` | `devGVME.c` |
 
 Typical firmware upload sequence (from `ioc/boot/uploadFW.cmd`):
 ```
@@ -82,9 +82,9 @@ ConfigureFlash(0, 0)
 
 | Command | Parameters | Description | Safe? | Source |
 |---------|-----------|-------------|-------|--------|
-| `VMERead32` | `bdnum, regaddr` | Read 32-bit VME register (byte offset); prints value. `bdnum` = cardno (2nd arg of `asynDigitizerConfig`) | Yes | `devGVME.c` |
-| `VMEWrite32` | `bdnum, regaddr, data` | Write 32-bit VME register (byte offset) directly. `bdnum` = cardno | **No** | `devGVME.c` |
-| `devGVMECardInit` | `cardno, slot` | Map VME address space for a card | Boot-only | `devGVME.c` |
+| `VMERead32` | `bdnum, regaddr` | Read 32-bit VME register (byte offset); prints value. `bdnum` = cardno (2nd arg of `asynDigitizerConfig`) ✅ verified 2026-04-20 — `devGVME.c:L253,L302-336` | Yes | `devGVME.c` |
+| `VMEWrite32` | `bdnum, regaddr, data` | Write 32-bit VME register (byte offset) directly. `bdnum` = cardno ✅ verified 2026-04-20 — `devGVME.c:L241,L265-297` | **No** | `devGVME.c` |
+| `devGVMECardInit` | `cardno, slot` | Map VME address space for a card ✅ verified 2026-04-20 — `devGVME.c:L117,L341` | Boot-only | `devGVME.c` |
 
 `regaddr` is a 32-bit word offset into the board's VME address space.
 
@@ -169,9 +169,9 @@ Started via `seq &name` in boot script. Not normally called interactively.
 
 | Symbol | Description |
 |--------|-------------|
-| `inLoop` | Readout control state machine (board enable/disable, CS logic) |
-| `outLoop` | Data output state machine |
-| `MiniSender` | TCP data sender (port 9001) |
+| `inLoop` | Readout control state machine (board enable/disable, CS logic) ✅ verified 2026-04-20 — `vme66.cmd:L190` (`seq &inLoop,"CRATE=66,B0=MDIG1,..."`) |
+| `outLoop` | Data output state machine ✅ verified 2026-04-20 — `vme66.cmd:L193` (`seq &outLoop,"CRATE=66"`) |
+| `MiniSender` | TCP data sender (port 9001) ✅ verified 2026-04-20 — `MiniSender.st:L106` calls `InitRequestSocket()` from `SendReceiveSupport.c:L120` where `SERVER_PORT 9001` is defined |
 
 ---
 
@@ -348,7 +348,7 @@ DGS asyn port names (from boot scripts): `MDIG1`, `MDIG2`, `RTR1`, `MTRG` (DUO/v
 
 ## VxWorks Boot ROM Shell (`[VxWorks]:` prompt)
 
-This is the **boot loader** phase — runs before the VxWorks kernel image is loaded. Accessible only via the physical serial console (or terminal server at 9600 baud). The IOC crate shows this prompt at power-on or after a reboot, and auto-boots after a timeout unless a key is pressed to interrupt.
+This is the **boot loader** phase — runs before the VxWorks kernel image is loaded. Accessible via telnet to the IOC crate. ✅ verified 2026-04-20 — Ryan Tang confirmed (no terminal server; access is via telnet only). The IOC crate shows this prompt at power-on or after a reboot, and auto-boots after a timeout unless a key is pressed to interrupt.
 
 > This is the most dangerous shell — **`c` writes directly to NVRAM** and wrong parameters can prevent the IOC from ever booting without physical intervention.
 
@@ -508,7 +508,7 @@ These are built-in but must **never** be run without authorization:
 `dbl`, `dbgrep`, `dbla`, `dbpr`, `dbgf`, `dbcar`, `dbap`, `dbstat`, `dbior`, `dblsr`,
 `dbLockShowLocked`, `casr`, `asynReport`, `epicsEnvShow`, `epicsParamShow`,
 `epicsThreadShowAll`, `epicsThreadShow`, `epicsMutexShowAll`, `taskwdShow`,
-`VMERead32`, `ReadFlash`, `registryDump`, `pwd`, `date`, `coreRelease`, `generalTimeReport`,
+`VMERead32`, `registryDump`, `pwd`, `date`, `coreRelease`, `generalTimeReport`,
 `i`, `ti`, `checkStack`, `version`, `devReport`, `lkup`, `d`, `printf`, `cd`, `pwd`, `ls`, `ll`, `lsr`, `llr`, `cat`, `ifShow`, `routeShow`, `hostShow`, `netstat`, `ping` (VxWorks built-ins)
 `p`, `v`, `e`, `?` (boot ROM shell — read-only)
 
@@ -540,13 +540,13 @@ These are built-in but must **never** be run without authorization:
 
 From `ANLDAQ/EPICS_para.sh`:
 
-| System | Terminal Server IP | Example Port | IOC Data IP(s) |
-|--------|--------------------|--------------|----------------|
-| DUO (tangerine/vme66) | 192.168.203.54 | 2001 | 192.168.203.81 | ✅ verified 2026-04-17 — `EPICS_para.sh:L18` |
-| DXA | 192.168.203.47 | ? | 192.168.203.212, .213 | ✅ verified 2026-04-17 — `EPICS_para.sh:L27` |
-| SlopeBox (vme99) | 192.168.203.139 | ? | — | ✅ verified 2026-04-17 — `EPICS_para.sh:L38` |
-| DGS south | 192.168.203.186 | per crate | .141–.145, .177–.183 | ✅ verified 2026-04-17 — `EPICS_para.sh:L47` |
-| DGS north | 192.168.203.91 | per crate | .141–.145, .177–.183 | ✅ verified 2026-04-17 — `EPICS_para.sh:L47` |
+| System | Terminal Server IP | Example Port | IOC Data IP(s) | Source |
+|--------|--------------------|--------------|----------------|--------|
+| DUO (tangerine/vme66) | 192.168.203.54 | 2001 | 192.168.203.81 | ✅ `EPICS_para.sh:L18` |
+| DXA | 192.168.203.47 | ? | 192.168.203.212, .213 | ✅ `EPICS_para.sh:L27` |
+| SlopeBox (vme99) | 192.168.203.139 | ? | — | ✅ `EPICS_para.sh:L38` |
+| DGS south | 192.168.203.186 | per crate | .141–.145, .177–.183 | ✅ `EPICS_para.sh:L47` |
+| DGS north | 192.168.203.91 | per crate | .141–.145, .177–.183 | ✅ `EPICS_para.sh:L47` |
 
 IOC IPs are for **data stream only** — do not telnet to them for shell access.
 

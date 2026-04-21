@@ -54,11 +54,11 @@ Links G, H, R, U are unused (`X`) in this config. Link L of each RTRG connects b
 - Clear starting timestamp registers to zero.
 - **1B:** Assert/release `RESET_LINK_INIT`. Clear `LOCK_RETRY`, `LOCK_ACK`, stringent lock, `IMP_SYNC`.
 - **1C:** Disable all trigger types: MAN/AUX, SUM_X, SUM_Y, SUM_XY, ALGO5 (coincidence), LINK_L/R/U.
-  - Clear all coincidence trigger mask bits (`COINC_TRIG_MASK_*`).
-  - Set `ALGO_5_SELECT=1` (Algorithm 5 = coincidence trigger).
-  - Set `LINK_U_IS_TRIGGER_TYPE=1` (Link U = Remote Trigger, not MYRIAD).
-- **1D:** Clear all trigger veto enables (NIM, RAM, throttle) for all algorithms A–H.
-- **1E:** Clear global veto enables (`SOFTWARE_VETO`, `EN_RAM_VETO`, `ENBL_MON7_VETO`, `ENBL_NIM_VETO`, `ENBL_THROTTLE_VETO`).
+  - Clear all coincidence trigger mask bits (`COINC_TRIG_MASK_*`). ✅ verified 2026-04-20 — `link_sys.py:L119-131` (`reg_COINC_TRIG_MASK`, `COINC_TRIG_MASK_A1`…`B7` all set to 0)
+  - Set `ALGO_5_SELECT=1` (Algorithm 5 = coincidence trigger). ✅ verified 2026-04-20 — `link_sys.py:L137`
+  - Set `LINK_U_IS_TRIGGER_TYPE=1` (Link U = Remote Trigger, not MYRIAD). ✅ verified 2026-04-20 — `link_sys.py:L143`
+- **1D:** Clear all trigger veto enables (NIM, RAM, throttle) for all algorithms A–H. ✅ verified 2026-04-20 — `link_sys.py:L159-163` (`EN_RAM_VETO_A/B/C/D/E` → 0 pattern)
+- **1E:** Clear global veto enables (`SOFTWARE_VETO`, `EN_RAM_VETO`, `ENBL_MON7_VETO`, `ENBL_NIM_VETO`, `ENBL_THROTTLE_VETO`). ✅ verified 2026-04-20 — `link_sys.py:L182-186`
 - **1F:** Enable DEN/REN/SYNC on MTRG links L, R, U (fiber inter-master connections).
 - **Enable DC balance** on MTRG (`EN_RTR_DCBAL=1`) — required for fiber expander (2022+).
 - **1G:** Set input link mask (`ILM_*`) for links A–H based on `MT_LINK_MAP`:

@@ -111,7 +111,7 @@ RTRG/
 ### Register Interface & I/O
 | File | Description |
 |------|-------------|
-| `registers.vhd` | VME register map (~256 addresses) — control, status, diagnostics |
+| `registers.vhd` | VME register map (157 `when X"..."` case entries, highest address 0x113C) — control, status, diagnostics ✅ verified 2026-04-21 — `registers.vhd`: `grep -c "when X\""` = 157; `sort -u` max = `X"113C"` |
 | `AUX_IO.VHD` | Auxiliary front panel I/O multiplexing |
 | `LED_CTL.VHD` | LED indicator control |
 
@@ -230,7 +230,7 @@ The Router **extracts** the per-channel veto mask (`VETO[9:0]`) from bits [9:0] 
 | 0x078–0x094 | Y_PLANE_MAP[1–8] | Y-plane discriminator type mapping per DIG channel (8 regs × 16 bits) ✅ verified 2026-04-18 — `TOP.VHD:L2261-2268` |
 | 0x098 | ANY_THROTTLE_WIDTH | Throttle pulse width | ✅ verified 2026-04-09 — `TOP.VHD:L2270` (`REG_098 => ANY_THROTTLE_WIDTH_REG`) |
 | 0x09C | THROTTLE_LIMIT_TIME | Min assertion time for throttle | ✅ verified 2026-04-09 — `TOP.VHD:L2271` (`REG_09C => THROTTLE_LIMIT_TIME_REG`; added 2016-03-02 for `throttle_limiters`) |
-| 0x0C8 | TSCATTER_DELAY | Ge/BGO timing for dirty hits — bits[14:8]=ASSERTION_DELAY (7-bit, how long CLEAN/DIRTY pulses are stretched), bits[6:0]=OVERLAP_DELAY (7-bit Compton scatter coincidence window) ✅ verified 2026-04-15 — `knowledgeBase/vhdl/RTRG_chan_in.md` §Key Constants (sourced from `chan_in.vhd` TSCATTER_DELAY_REG port usage) |
+| 0x0C8 | TSCATTER_DELAY | Ge/BGO timing for dirty hits — bits[14:8]=ASSERTION_DELAY (7-bit, how long CLEAN/DIRTY pulses are stretched), bits[6:0]=OVERLAP_DELAY (7-bit Compton scatter coincidence window). **Default: 0x3020** (ASSERTION_DELAY=48 clocks=480 ns, OVERLAP_DELAY=32 clocks=320 ns at 100 MHz) ✅ verified 2026-04-21 — `RTRG/Firmware/DGS_Version/MAIN_FPGA/Source/registers.vhd:L895` (`xREG_0C8 <= X"3020"`) |
 | 0x0CC | CLEAN_DIRTY | Clean/dirty/module detection mode — bit[15]=use delay-corrected DELAYED_DATA vs RECOVERED_DATA; bits[3:0]=X_SELECT source (0000=DFMA raw, 0001=HAVE_CLEAN, 0010=HAVE_DIRTY, 0100=HAVE_MODULE, 1000=HAVE_CLOVER_CLEAN); bits[7:4]=Y_SELECT source ✅ verified 2026-04-15 — `knowledgeBase/vhdl/RTRG_chan_in.md` §CLEAN_DIRTY control register modes (sourced from `chan_in.vhd`) |
 
 ### Status Registers (Read)
@@ -395,6 +395,11 @@ Each Router sends one 132-bit word to the MTRG per trigger cycle (2 µs), one wo
 - `knowledgeBase/ttcl.md` — TTCL: frame 12 (inter-trigger) and frame 14 (remote trigger) that RTRG replaces with null before forwarding to DIG
 - `knowledgeBase/connectors.md` — RTRG connector pinouts: 125-pin SERDES links, NIM I/O, CPLD ribbons
 - `knowledgeBase/260E_trigger_scheme.md` — Deep dive into RTRG 0x260E trigger scheme: `chan_in.vhd` serial reception + bit alignment, `router_data_path.vhd` multiplicity aggregation, X/Y plane maps, Link-L output format; verified against VHDL source
+- `knowledgeBase/vhdl/RTRG_chan_in.md` — `chan_in.vhd` plain-English analysis: 18-bit SERDES word decoding, 640 ns DPRAM delay alignment, discriminator bit extraction, CLEAN_DIRTY register modes
+- `knowledgeBase/vhdl/RTRG_disc_mach.md` — `disc_mach.vhd` analysis: discriminator classifier (clean/dirty/BGO-only), event tagging logic
+- `knowledgeBase/vhdl/RTRG_overlap_mach.md` — `overlap_mach.vhd` analysis: trigger overlap and hold-off state machine (stretches CLEAN/DIRTY pulses into HAVE_CLEAN/HAVE_DIRTY assertion windows)
+- `knowledgeBase/vhdl/RTRG_router_data_path.md` — `router_data_path.vhd` analysis: Link-L multiplicity aggregation, data forwarding to MTRG
+- `knowledgeBase/vhdl/RTRG_top.md` — `TOP.VHD` analysis: top-level RTRG block wiring, port map, all sub-module instantiation
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Rtr4704*/` — VHDL source + bitfiles. Created: 2026-04-05.*

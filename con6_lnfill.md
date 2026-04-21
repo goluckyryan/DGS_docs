@@ -190,7 +190,7 @@ Local archive at `DGS_tools_pack/ln2con/` (key files only):
 
 ---
 
-## Related Files
+## Cross-References
 
 - `lnfill.md` — LN2 fill system: valves, fill types, cron jobs, Discord alerts, ops procedures
 - `lnfill_ioc.md` — Deep internals: ln2con IOC boot tree, hose→detID mapping, InfluxDB data flow, DetMan.py state machine

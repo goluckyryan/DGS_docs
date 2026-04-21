@@ -165,16 +165,16 @@ All registers are 16-bit, A16/D16. Addresses in hex.
 | 0x0900 | RW | `fpga_ctrl_reg` | Main FPGA configuration control |
 | 0x0902 | R | `vme_status` | VME FPGA status |
 | 0x0904 | R | `vme_aux_status` | VME FPGA auxiliary status |
-| 0x0906 | R | `spare_registers` | Spare/reserved |
+| 0x0906 | RW | `config_req_ack` | Configuration request/ack (write triggers FPGA reconfiguration; read back = ack) ✅ verified 2026-04-20 — `register_block.vhd:L243` (comment: "0x0906 (configuration request/ack)") |
 | 0x0908 | RW | `flash_vpen` | Flash write-protect enable |
 | 0x090A | RW | `config_start_low` | FPGA config start address (low) |
-| 0x090C | RW | `config_stop_high` | FPGA config stop address (high) |
+| 0x090C | RW | `config_start_high` | FPGA config start address (high) — only bits [7:0] used ✅ verified 2026-04-20 — `register_block.vhd:L181,L252` (read/write cases both `config_start_high`; note: **KB previously had 0x090C and 0x0910 swapped**) |
 | 0x090E | RW | `config_stop_low` | FPGA config stop address (low) |
-| 0x0910 | RW | `config_start_high` | FPGA config start address (high) |
+| 0x0910 | RW | `config_stop_high` | FPGA config stop address (high) — only bits [7:0] used; default=0x0007 (stop at 0x70000) ✅ verified 2026-04-20 — `register_block.vhd:L185,L256` (read/write cases both `config_stop_high`; L134 default `X"0007"`) |
 | 0x0918 | RW | `vme_sandbox1` | VME sandbox register 1 (debug) |
 | 0x091A | RW | `vme_sandbox2` | VME sandbox register 2 (debug) |
 | 0x091C | RW | `vme_sandbox3` | VME sandbox register 3 (debug) |
-| 0x091E | R | `vme_sandbox4` | VME sandbox register 4 (debug) |
+| 0x091E | RW | `vme_sandbox4` | VME sandbox register 4 (debug) — R/W, default=0x3333 ✅ verified 2026-04-20 — `register_block.vhd:L195,L265` (both read and write cases; L118 default `X"3333"`) |
 | 0x1000 | R | `fifo` | FIFO read port — each read returns one 16-bit word from the trigger FIFO |
 
 _Note: Above 0x0902 entries sourced from `MYRIAD_Module_Specification.pdf` (v1.0, 2014). Some may differ from User Manual v1.2 (2015)._

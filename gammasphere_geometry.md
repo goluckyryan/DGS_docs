@@ -15,19 +15,19 @@ Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 
 | 1 | 17.3° | 5 | GS001, GS002, GS003, GS004, GS006 | ✅ verified 2026-04-14 — `angtheta.dat` lines 1–6
 | 2 | 31.7° | 5 | GS005, GS007, GS008, GS009, GS010 | ✅ verified 2026-04-14 — `angtheta.dat` lines 5,7–10
 | 3 | 37.4° | 5 | GS011, GS012, GS013, GS014, GS016 | ✅ verified 2026-04-18 — `angtheta.dat` lines 11,12,13,14,16 all = 37.4
-| 4 | 50.1° | 10 | GS015, GS017, GS018, GS019, GS020, GS021, GS022, GS023, GS024, GS026 |
+| 4 | 50.1° | 10 | GS015, GS017, GS018, GS019, GS020, GS021, GS022, GS023, GS024, GS026 | ✅ verified 2026-04-20 — `angtheta.dat` lines 15,17–24,26 all = 50.1
 | 5 | 58.3° | 5 | GS025, GS027, GS028, GS030, GS032 | ✅ verified 2026-04-18 — `angtheta.dat` lines 25,27,28,30,32 all = 58.3
 | 6 | 69.8° | 10 | GS029, GS031, GS033, GS034, GS035, GS036, GS037, GS038, GS040, GS042 | ✅ verified 2026-04-14 — `angtheta.dat` lines 29,31,33–38,40,42 all = 69.8
 | 7 | 79.2° | 5 | GS039, GS041, GS044, GS046, GS048 | ✅ verified 2026-04-18 — `angtheta.dat` lines 39,41,44,46,48 all = 79.2
 | 8 | 80.7° | 5 | GS043, GS045, GS047, GS050, GS052 | ✅ verified 2026-04-14 — `angtheta.dat` lines 43,45,47,50,52 all = 80.7
-| 9 | 90.0° | 10 | GS049, GS051, GS053, GS054, GS055, GS056, GS057, GS058, GS060, GS062 |
-| 10 | 99.3° | 5 | GS059, GS061, GS064, GS066, GS068 |
-| 11 | 100.8° | 5 | GS063, GS065, GS067, GS070, GS072 |
-| 12 | 110.2° | 10 | GS069, GS071, GS073, GS074, GS075, GS076, GS077, GS078, GS080, GS082 |
-| 13 | 121.7° | 5 | GS079, GS081, GS083, GS084, GS086 |
-| 14 | 129.9° | 10 | GS085, GS087, GS088, GS089, GS090, GS091, GS092, GS093, GS094, GS096 |
+| 9 | 90.0° | 10 | GS049, GS051, GS053, GS054, GS055, GS056, GS057, GS058, GS060, GS062 | ✅ verified 2026-04-20 — `angtheta.dat` lines 49,51,53–58,60,62 all = 90.0
+| 10 | 99.3° | 5 | GS059, GS061, GS064, GS066, GS068 | ✅ verified 2026-04-20 — `angtheta.dat` lines 59,61,64,66,68 all = 99.3
+| 11 | 100.8° | 5 | GS063, GS065, GS067, GS070, GS072 | ✅ verified 2026-04-20 — `angtheta.dat` lines 63,65,67,70,72 all = 100.8
+| 12 | 110.2° | 10 | GS069, GS071, GS073, GS074, GS075, GS076, GS077, GS078, GS080, GS082 | ✅ verified 2026-04-20 — `angtheta.dat` lines 69,71,73–78,80,82 all = 110.2
+| 13 | 121.7° | 5 | GS079, GS081, GS083, GS084, GS086 | ✅ verified 2026-04-20 — `angtheta.dat` lines 79,81,83,84,86 all = 121.7
+| 14 | 129.9° | 10 | GS085, GS087, GS088, GS089, GS090, GS091, GS092, GS093, GS094, GS096 | ✅ verified 2026-04-20 — `angtheta.dat` lines 85,87–94,96 all = 129.9
 | 15 | 142.6° | 5 | GS095, GS097, GS098, GS099, GS100 |
-| 16 | 148.3° | 5 | GS101, GS102, GS103, GS104, GS106 |
+| 16 | 148.3° | 5 | GS101, GS102, GS103, GS104, GS106 | ✅ verified 2026-04-20 — `angtheta.dat` lines 101–104,106 all = 148.3
 | 17 | 162.7° | 5 | GS105, GS107, GS108, GS109, GS110 |
 
 **Total: 110 detectors, 17 rings** ✅ verified 2026-04-18 — `angtheta.dat` (110 entries, 17 distinct polar angles)

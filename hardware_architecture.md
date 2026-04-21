@@ -191,9 +191,9 @@ Gammasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
 - Vacuum: 10⁻⁵ to 10⁻⁶ Torr inside detector cold volume
 - Temperature: liquid nitrogen (~77 K)
 - Bias voltage: 2,900–4,800 V across the array (most common values: 4000V and 4800V) ✅ verified 2026-04-13 — `collectorboxpi/CollectorBox_RevA/iocBoot/iocCollectorApp/st_202.cmd` DS_GEHV values (non-zero range: 2900–4800V); DS_GEHV=0 = empty/disabled slot
-- Preamp type: **transistor-reset preamplifier** (no resistor feedback; NPN transistor bleeds accumulated charge when output reaches ~+10V; second comparator turns NPN off at ~0V) ✅ verified 2026-04-20 — transistor-reset type confirmed by `DIG_firmware_expert.md:114` (sourced from `DIG_firmware_expert.pdf`); +10V/0V voltage thresholds are standard HPGe transistor-reset preamp circuit values (not DGS-specific — no DGS schematic source found)
+- Preamp type: **transistor-reset preamplifier** (no resistor feedback; NPN transistor bleeds accumulated charge when output reaches ~+10V; second comparator turns NPN off at ~0V) ✅ verified 2026-04-20 — `DGS_SVN/dgs/Detector_Repair/DetectorRepairProcedure.docx:JTA,2019-06-02` ("When the output gets to about +10V the comparator turns on" / "A 2nd comparator ensures that the NPN is turned off when the output gets near 0V")
 - Normal reset rate: every few ms to a few hundred ms depending on neutron damage to crystal
-- Leakage current: typically ~1 nA ⚠️ unverified - no DGS-specific source; general HPGe physics value (detector datasheet or HPGe expert confirmation needed)
+- Leakage current: typically ~1 nA ✅ verified 2026-04-20 — `DGS_SVN/dgs/Detector_Repair/DetectorRepairProcedure.docx:JTA,2019-06-02` ("Inevitably there is a certain amount of DC leakage (typically in the ~1nA range)")
 
 **Common repair reasons:** bad resolution, excessive reset rate, no signal.
 

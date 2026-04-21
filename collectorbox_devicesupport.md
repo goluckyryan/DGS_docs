@@ -559,3 +559,5 @@ In the collector HV control chain: `CollectorCalc` BI PVs compute interlock cond
 - `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector)
 - `knowledgeBase/sbx.md` — Slope Box Extension; pickoff card; BGO HV; GS_ID dongle
 - `knowledgeBase/EPICS.md` — EPICS record types and device support concepts
+
+*Created: 2026-04-06 | Last reviewed: 2026-04-20*

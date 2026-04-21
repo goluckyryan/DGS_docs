@@ -487,6 +487,7 @@ A VxWorks-specific CPU time profiling library for measuring how long different c
   - `start_profile_counter(idx)` / `stop_profile_counter(idx)` — bracket the code to profile
   - `print_profile_summary()` — prints all counters: name, total time, % of run time, executions/sec
   - `get_profile_counter_percent_time()`, `get_profile_counter_exec_second()`, etc. — read individual stats
+- VxWorks timebase: **33.3 MHz** (`PROFILE_TICK_FREQUENCY = 33333333.333 Hz`) ✅ verified 2026-04-21 — `DGS_DEFS.h:L64`; passed as `clock_frequency` arg to `init_profile_counters()`
 - Used in the IOC to measure timing of inLoop/outLoop data path sections during development/debugging
 - Not directly exposed as EPICS PVs; output via VxWorks console (`printf`)
 
@@ -540,3 +541,5 @@ These registers match the VME FPGA firmware register map for flash access — us
 - `knowledgeBase/EPICS_asyn.md` — asyn driver internals: port model, worker threads, write flow
 - `knowledgeBase/VME_registers.md` — VME register addresses used by the IOC driver
 - `knowledgeBase/fpga.md` — FPGA firmware overview; the firmware binaries loaded by VxWorks
+
+*Created: 2026-04-05 | Last reviewed: 2026-04-20*

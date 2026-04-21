@@ -41,7 +41,7 @@
 ### Internal BRAM
 
 The XC3S5000 contains **104 BRAM blocks** (~1.9 Mb total), each configurable as ✅ verified 2026-04-06 — `DIG/MAIN_FPGA/BuildBranches/SumOverRise/Work/DIGITIZER.syr:L21666` (87/104 BRAMs used in that build)
-1024 × 18-bit dual-port RAM. Approximately 54–56 blocks are used (~52%):
+1024 × 18-bit dual-port RAM. **87 RAMB16 blocks used (83%)** in the SumOverRise build ✅ verified 2026-04-21 — `DIGITIZER.syr:L21666` (`Number of BRAMs: 87 out of 104`). The breakdown of explicitly instantiated primitives:
 
 | Use | Blocks | Details |
 |-----|--------|---------|
@@ -171,10 +171,10 @@ All branches target `xc3s5000-fg900-5`.
 |--------|-------------|-----------------|
 | **DGS** | Production | Full pipeline: triple filters, CFD, coarse discriminators, diagnostic waveform mux |
 | **Majorana** | MAJORANA experiment | Simplified: no CFD, no coarse discriminators, no triple filters |
-| **DGS_QUAD_M_SUMS** | Quad energy capture | 4 M-sum windows instead of standard count |
-| **DoubleSampleTag** | Double sampling | Samples ADC twice per clock cycle |
-| **SumOverRise** | Rise-time energy | Energy sum calculated over rise time instead of fixed windows |
-| **DGSBramTest** | BRAM validation | BRAM-based delay chains instead of SRL |
+| **DGS_QUAD_M_SUMS** | Quad energy capture | 4 M-sum windows instead of standard count ✅ verified 2026-04-21 — `BuildBranches/DGS_QUAD_M_SUMS/Source/Digitizer.vhd:L597` ("20220717: quad 'M' sum modification, with dual early sum capture") |
+| **DoubleSampleTag** | PEHQ rework + readout refactor | Name is misleading — **no double-sampling logic found**. Primary changes (2020–2023): (1) PEHQ width made parametric (`PEHQ_WIDTH` generic; was hardcoded 340-bit); (2) PEHQ overflow/underflow protection added (2023-10-01: `a /= "1110"` guard on write, `a /= "1111"` guard on read), `PEHQ_overflow`/`PEHQ_underflow` output flags added; (3) PEHQ reset changed from asynchronous to synchronous (2023-07-25); (4) `event_packer.vhd` reset logic refactored from async to inline synchronous per-state; uses older ISE UCF constraint files (`MSTR_digitizer.ucf`, `SLAVE_digitizer.ucf`) instead of XDC. Branch appears to be a long-running engineering development branch rather than a feature branch. ✅ verified 2026-04-21 — `BuildBranches/DoubleSampleTag/Source/pehq.vhd` (PEHQ_WIDTH generic, overflow/underflow flags, sync reset); `event_packer.vhd` diff vs DGS branch |
+| **SumOverRise** | Adjustable pre-rise sum timing | Adds `EARLY_PRE_M_SEL` generic to `jta_channel`: bit[8] of `reg_d3_window` selects whether the early pre-rise M-sum uses pre-rise or post-rise M+K0 as coarse delay ✅ verified 2026-04-21 — `BuildBranches/SumOverRise/Source/Digitizer.vhd:L1167` (`EARLY_PRE_M_SEL => reg_d3_window(i)(8)`) |
+| **DGSBramTest** | BRAM-based energy accumulation | Uses `SUM_ACROSS_BUFFER` (`ESUM.vhd`) for BRAM-based rolling energy integration (P2, M1, M2, D sums) vs. the production DGS state-machine approach (`ESUM_STATES`). Both branches use SRL delays for P1/K/D; distinction is in energy sum implementation. ✅ verified 2026-04-21 — `BuildBranches/DGSBramTest/Source/jta_channel.vhd:L1346-1398` (5× `SUM_ACROSS_BUFFER` instances); `ESUM.vhd:L1-4` (`SUM_ACROSS_BUFFER` = "summing logic across a RAM used as a delay buffer") |
 
 **Project files (ISE 14.7):**
 - DGS: `DGS/Work/BUS_LEFT.xise` / `BUS_RIGHT.xise`
@@ -496,3 +496,5 @@ One instance per channel (10 total). Manages the **go/no-go decision** and **wav
 - `knowledgeBase/connectors.md` — DIG connector pinouts: RJ45 SERDES, 36-pin Aux I/O
 - `knowledgeBase/VME_registers.md` — DIG VME register addresses from asyn driver source
 - `knowledgeBase/fpga.md` — FPGA system overview: DIG role in 3-tier trigger hierarchy
+
+*Created: 2026-04-07 | Last reviewed: 2026-04-20*

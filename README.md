@@ -103,6 +103,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | File | Description |
 |------|-------------|
 | [sbx.md](sbx.md) | Slope Box + SBX: HV generation, signal conditioning, BGO pattern/sum, pickoff card (hardwired routing), GS_ID dongle, Pi IOC (SPI/GPIO); no FPGA |
+| [slope_box_interface.md](slope_box_interface.md) | SlopeBox EPICS IOC software (SVN): PickoffApp device support, CAMAC_IO link type repurposing for SPI/GPIO, transaction format, why asyn was rejected, BGO counter scripts, original BASIC control programs (1997) |
 | [myriad.md](myriad.md) | MγRIAD module: aux detector interface, NIM I/O pinout, ECL connectors, TTCL link, DGS usage |
 | [digitizer_tester.md](digitizer_tester.md) | Digitizer Tester: dual 200 MHz 16-bit DAC, analog switch matrix (10ch), TTCL link, waveform generation |
 | [preamp_reset_readme.md](preamp_reset_readme.md) | Preamplifier reset handling: ADC threshold detection (LOLO/HIHI), PREAMP_DELAY kill state, BGO veto gate, PARST timestamp, Frame 15 remote reset |

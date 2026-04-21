@@ -297,3 +297,5 @@ _Source: `dgs_analysis/armory/gray_apps/src/Fitter/` — explored 2026-04-07_
 ---
 
 *Split from `dgs_analysis.md` on 2026-04-16. Source: `dgs_analysis/armory/gray_apps/`.*
+
+*Last reviewed: 2026-04-20*

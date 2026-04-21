@@ -29,7 +29,7 @@
 
 ### Analog Switch Matrix (`Analog_Switch_MUX.vhd`)
 - Routes any DAC output (DAC0, DAC1, DAC0+DAC1 sum, DAC0−DAC1 diff) to any of 10 output channels
-- MUX controlled via I2C (`MUX_SCL`, `MUX_SDA`)
+- MUX controlled via I2C (`mux_scl`, `mux_sda_in/out`, `mux_sda_dir`, `mux_reset_n`) ✅ verified 2026-04-21 — `Analog_Switch_MUX.vhd:L39-43` (entity port declarations)
 - Signal amplitudes and connection scheme compatible with LBL digitizer module
 
 ### SERDES (TTCL link)

@@ -63,7 +63,7 @@ This extracts the top 4 bits of the recovered 16-bit Router word. Based on the R
 ## Key Constants / Parameters
 - System data cycle: ~2 µs (driven by Router framing)
 - Per-digitizer data extracted once per 2 µs cycle, staggered ~225 ns per digitizer
-- 8 digitizers per Router assumed (arrays indexed 1..8)
+- 8 digitizers per Router ✅ verified 2026-04-21 — `eight_mt_channel.vhd:L147` (`FOR i in 1 to 8 generate`) instantiates 8 × `mt_input_channel`; `ROUTER_THROTTLE_REQUESTS` is `std_logic_vector(8 downto 1)`
 
 ## Connections to Other Modules
 - **Instantiated by**: `eight_mt_channel.vhd` (8× for 8 Router connections)

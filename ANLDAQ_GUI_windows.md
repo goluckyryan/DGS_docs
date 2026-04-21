@@ -403,115 +403,13 @@ A `QMainWindow` that manages a live DAQ run:
 
 ## Guceiver — Online Waveform/Spectrum Viewer
 
+> **Full reference moved to [`guceiver.md`](guceiver.md)** (split 2026-04-20 to eliminate duplication).
+
 **Location:** `ANLDAQ/gui/Guceiver/`  
 **Entry point:** `Guceiver.py` — `python3 Guceiver.py`  
 **Purpose:** Standalone PyQt6 GUI for online monitoring of DIG and TAC-II data streams in real time. Connects directly to a VxWorks IOC TCP server (port 9001) and decodes raw digitizer packets — **not** via tcpReceiverMT. Separate tool from the main ANLDAQ GUI.
 
-### Architecture
-
-```
-Guceiver.py (GUI / QMainWindow)
-  ├── class_Receiver.py  — TCP socket client + packet decoder (runs in QThread)
-  │     ├── class_DIG.py     — DIG packet field decoder
-  │     └── class_TAC.py     — TAC-II packet field decoder
-  ├── class_waveTab.py   — Waveform display tab (matplotlib)
-  ├── class_spectrumTab.py — Energy spectrum tab (POST_RISE - PRE_RISE histogram)
-  ├── class_dataTab.py   — Raw decoded field table tab
-  └── class_tacTab.py    — TAC-II time correlation tab
-```
-
-### GUI Layout
-
-- **Run Time** display (seconds since receiver start)
-- **IOC selector** — ComboBox populated from `$IOC_IP` env var (space-separated IPs); port hardcoded to 9001
-- **Total Bytes / Data Rate** displays (updated every 500 ms via QTimer)
-- **Total Events** display
-- **Start/Stop Receiver** button (green when running)
-- **Tab widget** with 4 tabs: Waveform, Spectrum, Data, TAC-II
-
-**Board selector:** On startup, reads `{board_name}:user_package_data` EPICS PVs (via `epics.caget`) to get board IDs. Board and channel selectors on each tab filter which DIG channel's data is displayed.
-
-**EPICS integration:** On Start, sets `Online_CS_SaveData=Save` and `Online_CS_StartStop=Start`. On Stop, sets `Online_CS_StartStop=Stop` and `Online_CS_SaveData=No Save`.
-
-### Receiver (class_Receiver.py)
-
-Runs in a `QThread`. Protocol:
-1. Opens TCP socket to selected IOC IP:9001
-2. Per-frame: sends 4-byte big-endian request word (`0x00000001`)
-3. Reads 16-byte reply header: `(reply_type, record_size, status, num_record)`
-4. Reads `record_size × num_record` bytes; converts to `uint32` array
-5. Parses words sequentially, building payloads:
-   - `0xAAAAAAAA` start word → DIG packet
-   - `0x0000AAAA` start word → TAC-II packet (fixed 16 words)
-6. For DIG: `payload[1]` bits `[26:16]` = `PACKET_LENGTH` (max word index); `payload[3]` bits `[19:16]` = `header_type` (must be 7 or 8); `payload[1]` bits `[3:0]` = `channel_id` (0xD = end-of-run sentinel → emits `daq_stopped` signal)
-7. Dispatches complete payloads to `DIG.decode_data()` or `TAC.decode()` under `QMutex`
-8. Buffers decoded objects in ring arrays (max 100): `waveformArray`, `energyArray`, `dataArray`, `TACArray` — tabs read these arrays every 500 ms
-
-### DIG Packet Decoder (class_DIG.py)
-
-Decodes DIG header type 7/8 packets. Key fields extracted:
-
-| Field | Source words/bits | Description |
-|---|---|---|
-| `CH_ID` | payload[1][3:0] | Channel ID (0–9) |
-| `USER_DEF` | payload[1][15:4] | Board ID (USER_DEF register) |
-| `PACKET_LENGTH` | payload[1][26:16] | Total words in packet |
-| `HEADER_TYPE` | payload[3][19:16] | 7 or 8 (valid data) |
-| `EVENT_TYPE` | payload[3][25:23] | Event classification |
-| `EVENT_TIMESTAMP` | payload[4..5] | 48-bit timestamp (×10 ns = ns) |
-| `PEAK_TIMESTAMP` | payload[6..7] | 48-bit peak timestamp |
-| `SAMPLED_BASELINE` | payload[8] | Baseline ADC value |
-| `PRE_RISE_ENERGY` | payload[9] | Pre-rise energy sum |
-| `POST_RISE_ENERGY` | payload[10] | Post-rise energy sum |
-| `P2_SUM` | payload[11] | P2 sum |
-| `PILEUP_FLAG` | bit flag | Pileup detected |
-| `VETO_FLAG` | bit flag | Event vetoed |
-| `CFD_SAMPLE_[0-2]` | header type 8 only | CFD samples for sub-sample timing |
-| `waveform[]` | remaining words | Raw ADC samples (if `decodeWaveForm=True`) |
-
-Energy in spectrum tab: `(POST_RISE_ENERGY - PRE_RISE_ENERGY) / M_windows` (M_windows configurable, default 1000).
-
-### TAC-II Decoder (class_TAC.py)
-
-Fixed 16-word payload. Key fields:
-
-| Field | Source | Description |
-|---|---|---|
-| `timestampTrig` | payload[2..4] | 48-bit trigger timestamp (×10 = ns) |
-| `timestampTDC` | derived | Coarse TDC timestamp (×10 = ns) |
-| `coarseTime` | payload[8] | Coarse time counter |
-| `trigType` | payload[1] | Trigger type |
-| `wheel` | payload[5] | Target wheel position |
-| `multiplicity` | payload[6] | Event multiplicity |
-| `triggerBitMask` | payload[9] | Which trigger bits fired |
-| `fourNanoSecCounter` | payload[10:14] | 4 ns TDC counters (4 channels A/B/C/D) |
-| `vernierAB` | payload[14] | Vernier fine time A+B (6 bits each) |
-| `vernierCD` | payload[15] | Vernier fine time C+D (6 bits each) |
-| `vernier[0..3]` | derived | Fine time per TDC channel (0–63 LSB = ~250 ps/LSB) |
-| `phaseTime[0..3]` | derived | Phase-corrected time per channel |
-| `avgPhaseTime` | derived | Average phase time across valid channels |
-
-TAC-II provides sub-4ns timing resolution via vernier interpolation.
-
-### Tab Descriptions
-
-| Tab | Class | Content |
-|---|---|---|
-| Waveform | `WaveformTab` | Live ADC waveform plot; board+channel selector; pause button; matplotlib + RectangleSelector zoom; update interval configurable |
-| Spectrum | `SpectrumTab` | Energy histogram (POST_RISE−PRE_RISE)/M; board+channel selector; M_windows setting; bin count + range configurable; clear button |
-| Data | `dataTab` | Table of raw decoded DIG fields for last N events; board+channel selector; pause button |
-| TAC-II | `tacTab` | TAC-II time correlation display; plots fine vernier timing vs event index |
-
-### Key Design Notes
-
-- **No GEB headers** — Guceiver reads raw IOC TCP stream directly, unlike `tcpReceiverMT` which wraps in GEB headers for file output
-- **Thread safety** — all array writes/reads protected by `QMutex`; tabs read-copy under lock
-- **End-of-run detection** — channel_id 0xD in DIG packet header triggers `daq_stopped` signal → GUI auto-stops
-- **Connection retry** — `setup_connection()` retries silently after first failure message (avoids console spam)
-- **IOC IP from env** — `$IOC_IP` env var; no hardcoded IPs in current code (commented-out list preserved for reference)
-- **Launch args** — `dig_board_list` passed as CLI arg list; used to populate board ComboBox via EPICS caget at startup
-
-_Documented: 2026-04-19_
+See **[`guceiver.md`](guceiver.md)** for: architecture diagram, class_Receiver.py protocol, DIG/TAC-II decoder field tables, tab descriptions, and key design notes.
 
 ---
 
@@ -522,3 +420,5 @@ _Documented: 2026-04-19_
 - `knowledgeBase/link_sys_analysis.md` — link_sys.py 5-stage sequence (called by gui_LinkSys.py)
 - `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG firmware details for trigger tab PVs
 - `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware details for RTR window PVs
+
+*Created: 2026-04-13 | Last reviewed: 2026-04-20*

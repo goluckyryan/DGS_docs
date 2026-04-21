@@ -203,10 +203,10 @@ Word  Bits    Field                       Notes
 ### Words 14+ — Waveform Trace (optional, types 2/4/6)
 
 Raw 16-bit ADC samples packed into 32-bit words (2 samples per word):
-- ADC data = 14-bit unsigned offset binary (0 = most negative, 0x3FFF = most positive)
-- Bit 14 = timing mark
-- Bit 15 = downsampling marker
-- Number of trace words = `(PACKET_LENGTH - HEADER_LENGTH)` words
+- ADC data = 14-bit unsigned offset binary (0 = most negative, 0x3FFF = most positive) ✅ verified 2026-04-21 — `class_DIG.h:L244` (`(word >> 16) & 0x3FFF`) + `DIG_firmware_expert.md:L360`
+- Bit 14 = timing mark ✅ verified 2026-04-21 — `DIG_firmware_expert.md:L360` ("Bit 14 = timing mark") + `DIG_firmware_expert.md:L213` ("Bit 14 of each 16-bit half encodes timing marks")
+- Bit 15 = downsampling marker ✅ verified 2026-04-21 — `DIG_firmware_expert.md:L360` ("bit 15 = down-sampling marker")
+- Number of trace words = `(PACKET_LENGTH - HEADER_LENGTH)` words ✅ verified 2026-04-21 — `class_DIG.h:L239` (`num_trace_words = PACKET_LENGTH - trace_start_index` where `trace_start_index = 14 = HEADER_LENGTH`)
 
 ---
 

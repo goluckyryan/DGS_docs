@@ -111,7 +111,7 @@ Subtracts "delayed" input from "prompt" input every 10 ns. For positive pulses, 
 
 **Discriminator Hold-off**: On first threshold crossing, loads hold-off counter; discriminator disabled for that many 10-ns ticks. Ensures one fire per edge. Output pulse is 10 ns wide (one clock).
 
-**Preamp Reset Kill**: Handles transistor-reset preamplifiers (Gammasphere uses these). Preamplifier integrates leakage current → slow sawtooth ramp → periodic transistor resets. SBX differentiator converts signals to exponentials, turns resets into large opposite-polarity spikes. Preamp Reset Kill uses an opposite-polarity discriminator with large preset threshold to detect reset, then starts a delay count during which main discriminator is disabled. Reset rate: every few ms to few hundred ms depending on neutron damage. SBX clamp time: ~200–250 µs → dead time from PRK not significant unless detector is near needing anneal.
+**Preamp Reset Kill**: Handles transistor-reset preamplifiers (Gammasphere uses these). Preamplifier integrates leakage current → slow sawtooth ramp → periodic transistor resets. SBX differentiator converts signals to exponentials, turns resets into large opposite-polarity spikes. Preamp Reset Kill uses an opposite-polarity discriminator with large preset threshold to detect reset, then starts a delay count during which main discriminator is disabled. Reset rate: every few ms to few hundred ms depending on neutron damage. SBX clamp time: **~100 µs** default (`PARST_SWITCH_COUNT`=5000 × 2 × 10 ns at 100 MHz; max ~655 µs via register; configurable per detector) → dead time from PRK not significant unless detector is near needing anneal. ✅ verified 2026-04-21 — `SlopeboxInt_TopLevel_RevC.vhd:L552,L3208-3237` (default=5000 → 100 µs; prior claim of 200–250 µs was incorrect — not found in firmware source; correction from `sbx.md` 2026-04-06)
 
 **Peak Detector** (in LED mode): When discriminator fires, saves filtered ADC value at "prompt" input. Every clock, compares current prompt to saved value; if still climbing, updates. Peak declared when saved value not updated for N consecutive clocks (N = peak sensitivity value, typically 4). If peak found before holdoff expires → timestamp saved in header, PEAK_VALID set. If holdoff expires first → peak timestamp = 0, PEAK_VALID not set. Optional: early holdoff termination when peak found (useful for variable rise time signals).
 
@@ -180,15 +180,26 @@ Per-channel selection of external discriminator source, then second selection:
 - ORed with main discriminator
 - Replaces main discriminator
 
-**External discriminator sources** (8 selections, vary by master/slave and channel):
-- '0' (disabled)
-- Channel 9 signal (master) or ch9 of master digitizer (slave)
-- Front panel RS-485 input (AUX_DIN[10], MSbit of 11-bit Aux I/O) — only works when bit 10 is configured as input
-- Timestamp bit (periodic signals at 0.745 Hz / 6.0 Hz / 23.8 Hz / 95.4 Hz / 1.5 kHz / 48.8 kHz / 195.3 kHz) ✅ verified 2026-04-18 — `Timestamp_Generator.vhd:L238-244` (TEST RATE 0–6 comments match exactly)
-- VME command (pulsed control register; no system-wide sync, diagnostic use)
-- Trigger command (Frame 15 of 20-frame cycle, with channel selection mask; system-wide sync)
-- Preamp Reset Kill signal of adjacent channel (ch. n+5, master only)
-- Another channel's signal
+**External discriminator sources** — 3-bit `reg_external_disc_src` per channel (8 modes); mapping depends on channel group (ch9, ch5–8, ch0–4) and `FRONT_BUS_LEFT` compile-time setting. ✅ verified 2026-04-20 — `Digitizer.vhd:L968-1170` (DISC_BLK generate loops, per-channel case statements)
+
+**Note on AUX_DIN[10]:** The Aux I/O front-panel RS-485 input (`AUX_DIN[10]`) was previously used as source `"010"` but was **commented out 2022-09-30** when the digitizer fanout board was added — it physically covers the AUX I/O header, making the front-panel source non-functional. Source `"010"` was repurposed to BGO/Ge front-bus signals. ✅ verified 2026-04-20 — `Digitizer.vhd:L993-994` (comment: "20220930: The digitizer fanout board covers the AUX I/O pins so use of the AUX I/O as an external discriminator is now valueless.")
+
+**Current 3-bit source map (DGS build, all channel groups share codes 011–111; codes 000–010 differ per group):**
+
+| Code | Ch 9 | Ch 5–8 | Ch 0–4 |
+|------|------|--------|--------|
+| 000 | `'0'` (ch9 can't slave to itself) | Ch 9 of this digitizer (GRETINA master) | Ch 9 of this digitizer (GRETINA master) |
+| 001 | Front-bus: Ge Side (LEFT) or Ge Center (RIGHT) | Front-bus: Ge Side (LEFT) or Ge Center (RIGHT) | Front-bus: BGO pattern (LEFT) or Ge Center assoc. (RIGHT) |
+| 010 | Front-bus: BGO pattern (LEFT) or BGO pattern assoc. (RIGHT) | Front-bus: BGO pattern (LEFT) or BGO pattern assoc. (RIGHT) | Front-bus: Ge Side (LEFT) or Ge Side assoc. (RIGHT) |
+| 011 | Timestamp edge (rate from bits 29:27 of `reg_external_disc_mode`) | ← same | ← same |
+| 100 | VME command (write to register → single external disc) | ← same | ← same |
+| 101 | Front-bus: BGO sum (LEFT) or Ge Center coarse (RIGHT) | Front-bus: BGO sum (LEFT) or Ge Center coarse (RIGHT) | Front-bus: not-CHANNEL_KILLED of assoc. Ge (LEFT) or Ge coarse (RIGHT) |
+| 110 | Trigger frame 15 command (system-wide sync, channel mask) | ← same | ← same |
+| 111 | Another channel fired (any of ch0–8) | Any other channel fired | Any other channel fired |
+
+- Timestamp bit rates: 0.745 Hz / 6.0 Hz / 23.8 Hz / 95.4 Hz / 1.5 kHz / 48.8 kHz / 195.3 kHz ✅ verified 2026-04-18 — `Timestamp_Generator.vhd:L238-244`
+- VME command: pulsed control register; no system-wide sync, diagnostic use
+- Trigger command (code 110): Frame 15 of 20-frame cycle, with channel selection mask; system-wide sync
 
 **Timestamp-based external discriminator uses:**
 - "External only" mode → acts like auto-trig oscilloscope (baseline measurement)
@@ -599,10 +610,9 @@ This is a hardware strobe mode — no TTCL/MTRG involvement. Useful for bench te
 
 **Key signal: AUX_DIN[10] = Aux10 (pins 32/33)**
 - This is the MSbit of the 11-bit Auxiliary I/O (`AUX_DIN[10:0]`)
-- Used as the **external discriminator input** from the front panel
-- Referenced in firmware as "Auxiliary I/O bit 10 on the front panel"
-- When a channel's external discriminator source is set to "front panel" (option 3 in the source matrix), it reads `AUX_DIN[10]`
-- ⚠️ If the Aux I/O is configured such that bit 10 is an **output**, it cannot be used as an external discriminator input
+- **Was** used as the front-panel external discriminator input, but is **no longer functional** in the DGS build
+- **⚠️ Disabled 2022-09-30:** When the digitizer fanout board was installed on Gammasphere digitizers, it physically covers the AUX I/O header connector, blocking all 11 Aux I/O signals. The firmware comment in `Digitizer.vhd:L993-994` reads: *"The digitizer fanout board covers the AUX I/O pins so use of the AUX I/O as an external discriminator is now valueless."* The AUX_DIN[10] source code line is commented out in all three channel-group case statements. ✅ verified 2026-04-20 — `Digitizer.vhd:L993-994, L1049-1050, L1109-1110`
+- The connector pinout above documents the hardware; the signals still exist on the PCB but are inaccessible under the fanout board in the current GS installation
 
 ---
 
@@ -635,5 +645,5 @@ _Document complete. PDF: 72 pages, SVN rev #6185, Sept 2021. Written to file: 20
 
 ---
 
-*Created: 2026-04-05 | Last reviewed: 2026-04-19*
+*Created: 2026-04-05 | Last reviewed: 2026-04-20*
 

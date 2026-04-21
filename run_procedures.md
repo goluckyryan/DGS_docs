@@ -252,5 +252,27 @@ See `knowledgeBase/dgs_analysis.md` for full details on each step.
 
 ---
 
+---
+
+## DGS Commander EDM Screens
+
+**Source:** https://wiki.anl.gov/gsdaq/DGS_Commander_EDM_Screens  
+The EDM (Extensible Display Manager) GUI is the primary operator interface for Gammasphere run control. The main screen has 7 sections:
+
+| Section | Purpose |
+|---------|---------|
+| **Run Control** | Start/Stop data acquisition; Save/NoSave toggle for data writing |
+| **Main Controller** | Control/monitoring screens for waveforms, hardware, timing, trigger setup |
+| **Main Controller Side Panel** | Extension of Main Controller (additional controls) |
+| **VXI Heartbeat / Enabled Detectors** | **Obsolete** — leftover from pre-upgrade DAQ system; no longer functional |
+| **Temperatures** | Per-detector temperature monitoring (HPGe cold chain health) |
+| **LN Main** | LN2 system control and monitoring |
+| **Setup Script State** | Indicator for scripts run via Main Controller |
+
+Note: Much information is duplicated across screens by design — same data presented in different contexts.
+
+---
+
 *Created: 2026-04-05 from [wiki: Typical DGS Run Procedures](https://wiki.anl.gov/gsdaq/Typical_DGS_run_procedures)*
 *Updated: 2026-04-16 — moved verification note outside code fence (formatting fix); RunParquet defaults verified 2026-04-14*
+*Updated: 2026-04-20 — added DGS Commander EDM Screens section from wiki*
