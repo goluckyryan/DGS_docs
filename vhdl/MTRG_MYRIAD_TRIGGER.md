@@ -125,7 +125,7 @@ The machine holds `LOAD_PRE_FIFO` while the trigger input remains high to preven
 Added October 2015. A shadow FIFO allows a separate state machine to record trigger monitor data (detector state, extra data) at the moment of each trigger. Interface:
 - `TRIG_MON_FIFO_RD_CLK`, `TRIG_MON_FIFO_RE` — read clock/enable from monitor state machine
 - `TRIG_MON_DET_DATA` — 16-bit detector state (e.g. target wheel position)
-- `TRIG_MON_XTRA_DATA` — 16-bit extra state (TBD)
+- `TRIG_MON_XTRA_DATA` — 16-bit extra state: `GLOBAL_X_TOTAL[7:0] & GLOBAL_Y_TOTAL[7:0]` — the live X+Y multiplicity sums at the moment of trigger ✅ verified 2026-04-22 — `top.vhd:L1185` (`TRIG_MON_XTRA_DATA <= GLOBAL_X_TOTAL(7 downto 0) & GLOBAL_Y_TOTAL(7 downto 0)` — comment: "added 20160307 to put router totals into trigger data stream")
 - `TRIG_MON_FIFO_DATA_OUT`, `TRIG_MON_FIFO_FULL`, `TRIG_MON_FIFO_EMPTY` — standard FIFO status
 
 This is passed through to `trig_algo_support` (shared base) which handles the actual shadow FIFO.
