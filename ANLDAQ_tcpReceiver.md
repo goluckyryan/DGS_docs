@@ -118,11 +118,11 @@ Decodes the full DIG event packet header (words 0–13 + optional trace words):
 ### `class_TDC.h` — TAC-II Hit Decoder
 
 Decodes the MTRG TDC/TAC-II packet (10 words after repacking):
-- `timestampTrig` — MTRG 48-bit trigger timestamp (×10 ns)
-- `coarseTS` — 16-bit coarse TDC counter
-- Four-phase 4 ns counters (0°/90°/180°/270°) + vernier AB/CD (6 bits each, ~50 ps/step)
-- `CalTAC_simple()` — computes average phase timestamp in ns with ~50 ps resolution
-- Trash data detection: specific counter pattern `0x1006/1005/1004/1003`
+- `timestampTrig` — MTRG 48-bit trigger timestamp (×10 ns) ✅ verified 2026-04-22 — `class_TDC.h:L189,L207` (`timestampTrig = (((uint64_t) data[2] & 0xFFFF) << 32) + data[1]; ... timestampTrig *= 10;`)
+- `coarseTS` — 16-bit coarse TDC counter ✅ verified 2026-04-22 — `class_TDC.h:L111,L194` (`uint16_t coarseTS`; `coarseTS = data[5] >> 16;`)
+- Four-phase 4 ns counters (0°/90°/180°/270°) + vernier AB/CD (6 bits each, ~50 ps/step) ✅ verified 2026-04-22 — `class_TDC.h:L52` (`vernierAB & 0x3F` = 6 bits); `class_TDC.h:L228` (`0.05 * tdcData.vernier[i]` = 50 ps/step)
+- `CalTAC_simple()` — computes average phase timestamp in ns with ~50 ps resolution ✅ verified 2026-04-22 — `class_TDC.h:L214-255` (averages valid phaseTime[i] values using 50 ps/LSB vernier)
+- Trash data detection: specific counter pattern `0x1006/1005/1004/1003` ✅ verified 2026-04-22 — `class_TDC.h:L199-202` (exact `== 0x1006/0x1005/0x1004/0x1003` comparison; sets `trashData = true`)
 
 ### Run Control Scripts
 
