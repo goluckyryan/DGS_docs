@@ -608,7 +608,7 @@ _Source: `dgsDrivers/dgsDriverApp/src/outLoop.st` (490 lines, EPICS State Notati
 
 **Two concurrent state sets:**
 1. `ss outLoop` — main control flow (run/stop, buffer movement)
-2. `ss outLoopTraceMon` — PV refresh timer (runs every 0.5 s in parallel)
+2. `ss outLoopTraceMon` — PV refresh timer (runs every 0.5 s in parallel) ✅ verified 2026-04-22 — `outLoop.st:L374` (`when (delay(0.5))`)
 
 #### Main State Machine (`ss outLoop`)
 
@@ -619,7 +619,7 @@ _Source: `dgsDrivers/dgsDriverApp/src/outLoop.st` (490 lines, EPICS State Notati
 | `INIT` | `delay(0.5)` | Service trace/PV refresh if flagged; stay in `INIT` |
 | `CHECK_FOR_DATA` | `!AcqRun && !Running` | Go to `CHECK_FOR_EMPTY_WRITTEN_Q` (drain remaining buffers) |
 | `CHECK_FOR_DATA` | `written_bufs > 0` | Go to `PROCESS_DATA` |
-| `CHECK_FOR_DATA` | `delay(0.05)` | Poll `getWrittenBufCount()` / `getSenderBufCount()`; log AcqRun/Running mismatch (rate-limited); stay in `CHECK_FOR_DATA` |
+| `CHECK_FOR_DATA` | `delay(0.05)` | Poll `getWrittenBufCount()` / `getSenderBufCount()`; log AcqRun/Running mismatch (rate-limited); stay in `CHECK_FOR_DATA` | ✅ verified 2026-04-22 — `outLoop.st:L330` |
 | `PROCESS_DATA` | Entry | Call `CheckAndMoveBuffers(written_bufs, send_bufs, sendEnable)`; accumulate `send_bufs += written_bufs`; reset `written_bufs=0`; go to `CHECK_FOR_DATA` |
 | `CHECK_FOR_EMPTY_WRITTEN_Q` | Entry | Update buffer counts; log flush message |
 | `CHECK_FOR_EMPTY_WRITTEN_Q` | `written_bufs > 0` | Go to `PROCESS_DATA` (drain last buffers) |
@@ -659,7 +659,7 @@ _Source: `dgsDrivers/dgsDriverApp/src/outLoop.st` (490 lines, EPICS State Notati
 | `DAQC{CRATE}_CV_TraceLen` / `DAQC{CRATE}_CV_Trace` | Waveform trace length + data (1024-sample array) |
 | `DAQC{CRATE}_CV_BuffersAvail` / `DAQC{CRATE}_CV_NumSendBuffers` | Legacy compatibility copies of buffer counts |
 
-**Key C support functions (from `outLoopSupport.c`):**
+**Key C support functions (from `outLoopSupport.c`):** ✅ verified 2026-04-22 — all function signatures confirmed in `outLoopSupport.c` (L82, L171, L209, L729, L786, L791, L796, L801, L817)
 
 | Function | Description |
 |----------|-------------|
