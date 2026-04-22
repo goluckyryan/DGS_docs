@@ -68,16 +68,16 @@ All PVs use `CAMAC_IO` link type, repurposing the `camacio` struct fields for SP
 |----------------|---------|
 | `B` | GPIO / detector address (0 = local Pi-to-pickoff, no Collector Box routing) |
 | `C` | Transaction length in bits (typically 24) — or control flags for soft PVs |
-| `N` | SPI address + R/W bit (bit 7 = R/W; bits 6:0 = 7-bit register address) |
-| `A` | AND mask (for bo/bi/mbbi/mbbo bit-field extraction) |
-| `F` | OR mask / shift factor |
+| `N` | 7-bit SPI register address (bits 6:0, masked with `& 0x007F` in device support); **R/W direction is NOT stored here** — it is hardcoded per record type (AI/BI/MBBI always read; AO/BO/MBBO always write) ✅ verified 2026-04-22 — `PickoffSupport_AI.c:L92` (`RegisterAddr = PtrToLinkStruct->n & 0x007F`), `PickoffSupport_MBBO.c:L144` (same mask); `Do_SPI1_transaction(1,...)` for reads, `Do_SPI1_transaction(0,...)` for writes |
+| `A` | AND mask (for bo/bi/mbbi/mbbo bit-field extraction) ✅ verified 2026-04-22 — `PickoffSupport_AI.c:L93` (`AndMask = PtrToLinkStruct->a`) |
+| `F` | Shift factor: bits[3:0] = shift amount; bit 15 = shift direction (1=right, 0=left). **Not an OR mask.** ✅ verified 2026-04-22 — `PickoffSupport_AI.c:L183-187` (`ShiftFactor = PtrToLinkStruct->f & 0x000F; if (f & 0x8000) ShiftDirection=1 else 0`) |
 | `parm` | Additional parameters after `@` in OUT/INP string |
 
 **Example PV OUT field (ao write to register 0x14, 24-bit, local Pi):**
 ```
 OUT(0, 24, 20, 0, 0, "")
       ^   ^   ^
-      B=0 C=24 N=0x14 (address 20, R/W=0 → write)
+      B=0 C=24 N=0x14 (address 20 decimal = 0x14; R/W determined by record type, not N)
 ```
 
 ### Device Support Identifiers (from `.dbd`)
