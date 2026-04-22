@@ -164,6 +164,125 @@ A helper function `PushTypeFToQueue()` sets `rawBuf->board`, `rawBuf->len = 16`,
 
 ---
 
+## QueueManagement.c — Buffer Lifecycle & Key Structures
+_Source: `dgsDrivers/dgsDriverApp/src/QueueManagement.c` + `DGS_DEFS.h` — code-read 2026-04-22_
+
+### `rawEvt` Structure (buffer descriptor)
+
+Each buffer slot is described by a `rawEvt` struct (defined in `DGS_DEFS.h`). Queues pass **pointers to rawEvt**, not the data itself.
+
+```c
+typedef struct {
+    unsigned int id;              // Unique, permanent ID assigned at allocation
+    unsigned int *datapcrosscheck; // Copy of data ptr — never changes; used for integrity check
+    unsigned int board;           // Which VME board (slot index) this data came from
+    unsigned int len;             // Length of data in bytes
+    unsigned int *data;           // Pointer to actual 1 MB DMA buffer
+    owner_enum owner;             // Who currently owns this buffer
+    unsigned short board_type;    // Board type code (see BrdType_* defines)
+    unsigned short data_type;     // 0 = normal data; non-zero = board-specific
+} rawEvt;
+```
+
+✅ verified 2026-04-22 — `DGS_DEFS.h:L221-232`
+
+### `owner_enum` — Buffer Ownership Tracking
+
+| Value | Meaning |
+|-------|---------|
+| `OWNER_UNDEF` (0) | Freshly allocated, not yet owned |
+| `OWNER_Q_FREE` (1) | Sitting in `qFree` — available |
+| `OWNER_INLOOP` (2) | Checked out by `inLoop` state machine (being filled) |
+| `OWNER_Q_WRITTEN` (3) | Sitting in `qWritten` — filled, waiting for sender |
+| `OWNER_OUTLOOP` (4) | Checked out by `outLoop` (being validated/dispatched) |
+| `OWNER_Q_SENDER` (5) | Sitting in `qSender` |
+| `OWNER_SENDER` (6) | Checked out by sender (MiniSender/SendReceive) |
+
+✅ verified 2026-04-22 — `DGS_DEFS.h:L201-209`
+
+### Queue Operations
+
+| Function | Direction | Ownership change |
+|----------|-----------|------------------|
+| `getFreeBuf()` | `qFree` → inLoop | Sets `OWNER_INLOOP`; stamps `data[0]=0x87654321` |
+| `putWrittenBuf()` | inLoop → `qWritten` | Sets `OWNER_Q_WRITTEN` |
+| `getWrittenBuf()` | `qWritten` → outLoop | Sets `OWNER_OUTLOOP`; validates len≥16 + `0xAAAAAAAA` header |
+| `putSenderBuf()` | outLoop → `qSender` | Sets `OWNER_Q_SENDER` |
+| `getSenderBuf()` | `qSender` → sender | Sets `OWNER_SENDER`; validates len≥16 + header |
+| `putFreeBuf()` | sender → `qFree` | Resets `len=0`, `board=-1`, `data[0]=0x12345678`; sets `OWNER_Q_FREE` |
+
+All queue ops use **`NO_WAIT`** — they never block. If a queue is empty/full, the function returns `NoBufferAvail` / `QueuePutError`. ✅ verified 2026-04-22 — `QueueManagement.c:L230-355`
+
+### `bufDiag()` — Buffer Integrity Checker
+
+Called on every get/put. Checks (when `PRINT_BUFFER_ERRORS` is defined):
+1. NULL pointer → `BUF_ERR_NULL`
+2. `data` pointer changed from original (`datapcrosscheck` mismatch) → `BUF_ERR_DP`
+3. `len < 16` (if requested) → `BUF_ERR_LEN`
+4. First word `!= 0xAAAAAAAA` for DIG boards, `!= 0x0000AAAA` for MTRG (if requested) → `BUF_ERR_AA`
+
+✅ verified 2026-04-22 — `QueueManagement.c:L175-230`
+
+### `setupFIFOReader()` — Initialization
+
+Called once from the IOC startup script (before sequencers start). Actions:
+1. `sysVmeDmaInit()` — initializes the Universe II DMA engine (MVME5500 only)
+2. Configures DMA: 32-bit VME block transfers (`DCTL_VDW_32 | DCTL_VCT_BLK`), A32 space
+3. Creates `DMASem` epicsEvent (single global DMA mutex — VxWorks 5.x DMA is not thread-safe)
+4. Creates three msgQ queues (`qFree`, `qWritten`, `qSender`) with `RAW_Q_SIZE=200` slots each
+5. Allocates 200 `rawEvt` structs + 200 × 1 MB DMA buffers (`cacheDmaMalloc` for DMA, `calloc` otherwise)
+6. Loads all 200 buffers into `qFree`
+
+If called again (re-init): deletes and recreates all three queues, then re-fills `qFree`.
+
+✅ verified 2026-04-22 — `QueueManagement.c:L48-128`
+
+### `daqBoard` Structure — Per-Slot VME Board Descriptor
+
+Defined in `DGS_DEFS.h`. One global array: `daqBoards[GVME_MAX_CARDS]` = 7 slots per crate.
+
+```c
+struct daqBoard {
+    struct daqRegister vmeRegisters[GVME_NUM_REGISTERS]; // 0x24 = 36 VME registers
+    volatile unsigned int *base32;  // VME A32 base address pointer
+    volatile unsigned int *FIFO;    // Pointer to FIFO register
+    unsigned short vmever;          // VME version
+    unsigned int rev;               // Firmware revision
+    unsigned int subrev;            // Firmware sub-revision
+    unsigned short mainOK;          // Firmware load OK flag
+    unsigned short board;           // Board index (0–6)
+    unsigned short EnabledForReadout; // 1 = inLoop should read this board
+    int DigUsrPkgData;              // User package data for Type-F DIG headers
+    int TrigUsrPkgData;             // User package data for Type-F trigger headers
+    unsigned short router;          // Router index
+    unsigned short board_type;      // Board type index (see BrdType_* below)
+};
+```
+
+✅ verified 2026-04-22 — `DGS_DEFS.h:L294-334`
+
+### Board Type Constants (`BrdType_*`)
+
+Stored in `daqBoard.board_type` and `rawEvt.board_type`. Decoded from bits [11:8] of the `code_revision` VME register.
+
+| Constant | Value | Board |
+|----------|-------|-------|
+| `BrdType_NO_BOARD` | 0 | No board present |
+| `BrdType_GRETINA_RTRIG` | 1 | GRETINA Router Trigger |
+| `BrdType_GRETINA_MTRIG` | 2 | GRETINA Master Trigger |
+| `BrdType_LBNL_DIG` | 3 | LBNL Digitizer |
+| `BrdType_DGS_MTRIG` | 4 | DGS Master Trigger |
+| `BrdType_DGS_RTRIG` | 6 | DGS Router Trigger |
+| `BrdType_MYRIAD` | 8 | MyRIAD board |
+| `BrdType_ANL_MDIG` | 12 (0xC) | ANL Master Digitizer |
+| `BrdType_ANL_SDIG` | 13 (0xD) | ANL Slave Digitizer |
+| `BrdType_MAJORANA_MDIG` | 14 | Majorana Master Digitizer |
+| `BrdType_MAJORANA_SDIG` | 15 | Majorana Slave Digitizer |
+
+Values 5, 7, 9–11 are undefined (`BrdType_UNDEF_*`). ✅ verified 2026-04-22 — `DGS_DEFS.h:L337-352`
+
+---
+
 ## Cross-References
 
 - `knowledgeBase/vxworks.md` — VxWorks build, IOC overview, munch process, glossary
