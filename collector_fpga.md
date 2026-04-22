@@ -236,18 +236,28 @@ Two pickoff card variants for the Slope Box (SBX) interface:
 | `PickoffCard_SBX_Interface/` | Standard SBX pickoff card (Revision A + **Revision B**) |
 | `PickoffCard_SBX_Extension/` | SBX Extension pickoff card (Revisions A–C + Prototype + Tags) |
 
-**SBX Extension Revision C** (`PickoffCard_SBX_Extension/Revision_C/Source/`):
-Key source files:
-- `RefTop.vhd` — top-level entity
-- `PI_TRANSACTOR.vhd` — Pi transactor (SPI communication with Raspberry Pi)
-- `ADGS5412_controller.vhd` — analog switch controller
-- `LTC1660_controller.vhd` — DAC controller (LTC1660: 8-ch 10-bit DAC) ✅ verified 2026-04-16 — `PickoffCard_SBX_Extension/Revision_C/Source/LTC1660_controller.vhd:L127-134` (DAC A–H = 8 ch, 10-bit data `LATCHED_PI_DATA(9 downto 0)`)
-- `I2C_STARTUP_ROM.vhd` — I2C startup ROM sequencer
-- `LOOK_UP_TABLE1.VHD` / `Ref_LUT1.VHD` — lookup tables
-- `Ref_SlopeBoxScan.vhd` — slope box scanning logic
-- `RAM_Buffer.vhd` — RAM buffer
+**SBX Extension Revision C** (`PickoffCard_SBX_Extension/Revision_C/Source/`): ✅ verified 2026-04-22 — `RefTop.vhd` entity + `SlopeBoxPickoffPkg.vhd` component declarations read in full
+- Target device: **Spartan-6 XC6SLX9-2TQG144** (larger than Rev A/B which use XC6SLX4), toolchain ISE 14.7, created 2020-10-05 (entity `SlopeBoxInt`, generic `globalPI_SPI_PORT`)
+- Note: Revision C README states it is "supposed to be the same as revision B, at least at the time of design" — same register map, same interfaces.
 
-Note: Revision C README states it is "supposed to be the same as revision B, at least at the time of design."
+Key source files and architecture:
+- `RefTop.vhd` — top-level entity (`SlopeBoxInt`); same port list as Revision B (TrigClk diff pair, OSC, BGO disc bits, parallel BGO mux select, 5 SPI buses for analog switches, Pi SPI, DVI serial collector link)
+- `SlopeBoxPickoffPkg.vhd` — package with all component declarations; defines the full module hierarchy
+- **`SERIAL_CTL_MACH`** — central Pi SPI controller. Dual-port: accepts SPI from Raspberry Pi (SPI0: SCK/MOSI/MISO/CE) *or* DVI serial from the collector box (`BufSerCommClk`/`BufSerDatToPickoff`). `TRIG_CLK_PRESENT` flag selects which port is active. VIO backdoor available for lab debug (7-bit address, 16-bit data, RW, DO_TRANSACTION). Generates `MACH_ENABLEs[15:0]` (one-hot) to dispatch to subsidiary state machines, watchdog timers, `PREFETCH_DATA` from RAM, and `LATCHED_ADDRESS[6:0]` + `LATCHED_DATA_RECEIVED[15:0]` outputs.
+- **`LOOK_UP_TABLE1`** — 7-bit Pi address → 4-bit `DIAG_DEV_ADDR` + 16-bit one-hot `MACH_ENABLE` decoder; routes each Pi address to the correct subsidiary controller
+- **`ADGS5412_CONTROLLER`** — controls the ADGS5412 analog switch (BGO gain/function select) via SPI at 50 MHz (1/2 of CLK_100MHZ). 16-bit serial transaction: bit[0]=R/W* (always WRITE=0), bits[7:1]=internal register address `0b0000001` (switch control register), bits[15:8]=switch control data from Pi. State machine: IDLE→ASSERT_CS→ASSERT_DATA→SCK_ON↔SCK_OFF (×16 bits)→DEASSERT_CS→IDLE. Triggered by rising edge of `MACH_ENABLE`.
+- **`SlopeBoxScanner`** — 4 MHz scanner for slope box ADC readout. `SCAN_CONTROL[1:0]`: 00=no action, 01=scan only, 10=command only, 11=scan+command. Command buffer FIFO (24-bit) holds Pi write commands; `Scanner2Arbiter_FIFO` (26-bit) crosses domains; `FIFO_FWFT_1Kx16` delivers results. `SLOPE_BOX_ID[7:0]` = ID read from ADC scan; `CYCLE_DELAY[15:0]` sets scan rate (counts of 4 MHz clock between cycles). `DOMAIN_CROSS_FIFO_EMPTY` flag. `DIAG_SCANNER_STATE[6:0]` = bits[6:3] scan state + bits[2:0] transaction state.
+- **`RAM_BUFFER`** — dual-clock dual-port RAM with two operating modes:
+  - **Histogram mode** (MODE=0): A-side writes from slope box scanner (4 MHz domain); B-side reads from Pi. `HISTO_STOP_VAL[15:0]` = histogram stop threshold. `USER_PRESCALE[7:0]` = writes to skip between samples. Stops when `BUFFER_FULL` (data count maxed or address maxed).
+  - **Waveform recorder mode** (MODE=1): same dual-port structure but records time-ordered samples. `DATA_AVERAGE[15:0]` = average of all data (recorder mode) or index of peak (histogram mode).
+  - Status outputs: `LAST_A_DATA[15:0]`, `MAX_A_VAL[15:0]`, `MIN_A_VAL[15:0]`, `DATA_COUNT[15:0]`, `BUFFER_ACTIVE`, `BUFFER_FULL`. `SHIFT_CTL[2:0]` controls write behavior.
+- `LTC1660_controller.vhd` — DAC controller (LTC1660: 8-ch 10-bit DAC) ✅ verified 2026-04-16 — `LTC1660_controller.vhd:L127-134` (DAC A–H = 8 ch, 10-bit data `LATCHED_PI_DATA(9 downto 0)`)
+- `I2C_STARTUP_ROM.vhd` / `Scanner_ROMs.vhd` — I2C startup ROM sequencer (Pickoff_Startup_ROM: 12-bit address, 4-bit data out) and scanner ROM tables
+- `sync_capture_controller.vhd` / `sync_capture_counter.vhd` — synchronous capture logic (120 + 93 lines)
+- `mult_count.vhd` — multiplied counter utility
+- `SlopeBoxScan.vhd` (813 lines) — main slope box scanning implementation
+- **FIFOs**: `Command_buffer_fifo` (24-bit, dual-clock), `Scanner2Arbiter_FIFO` (26-bit, dual-clock), `FIFO_FWFT_1Kx16` (16-bit FWFT 1K), `Single_bit_FIFO` (1-bit dual-clock)
+- **ChipScope**: Multiple ILA variants (1024×17, 2048×17, 4096×17, 16384×17, 8192×34, 4K×89), VIO variants (7-bit addr, 1RW, 1GO, 16/24-bit in/out), ICON2/3
 
 **SBX Interface Revision B** (`PickoffCard_SBX_Interface/Revision_B/Source/SlopeBoxInt_TopLevel_RevB.vhd`): ✅ verified 2026-04-19 — top-level entity + architecture signals read in full
 - Target device: **Spartan-6 XC6SLX4-2TQG144** (same as Revision A), toolchain ISE 14.7, created 2018-06-22
