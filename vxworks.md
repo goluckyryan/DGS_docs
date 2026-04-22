@@ -600,6 +600,136 @@ These registers match the VME FPGA firmware register map for flash access — us
 
 ---
 
+### outLoop.st — Data Validation and Buffer Routing State Machine
+
+_Source: `dgsDrivers/dgsDriverApp/src/outLoop.st` (490 lines, EPICS State Notation Language)_ ✅ verified 2026-04-22 — full read
+
+**Purpose:** The middle layer of the three-machine pipeline (inLoop → outLoop → MiniSender). Takes data buffers filled by `inLoop.st` from the **written queue** (`QWritten`), validates them (event headers, timestamps, consistency), then moves them to the **send queue** (`QSend`) for `MiniSender.st` to transmit to `tcpReceiverMT`.
+
+**Two concurrent state sets:**
+1. `ss outLoop` — main control flow (run/stop, buffer movement)
+2. `ss outLoopTraceMon` — PV refresh timer (runs every 0.5 s in parallel)
+
+#### Main State Machine (`ss outLoop`)
+
+| State | Trigger | Action |
+|-------|---------|--------|
+| `INIT` | Entry | Set task priority 190; print idle message; `msgFilter=0`, `pvRefreshReady=0` |
+| `INIT` | `AcqRun == 1` | Call `ResetStats()` → go to `CHECK_FOR_DATA` |
+| `INIT` | `delay(0.5)` | Service trace/PV refresh if flagged; stay in `INIT` |
+| `CHECK_FOR_DATA` | `!AcqRun && !Running` | Go to `CHECK_FOR_EMPTY_WRITTEN_Q` (drain remaining buffers) |
+| `CHECK_FOR_DATA` | `written_bufs > 0` | Go to `PROCESS_DATA` |
+| `CHECK_FOR_DATA` | `delay(0.05)` | Poll `getWrittenBufCount()` / `getSenderBufCount()`; log AcqRun/Running mismatch (rate-limited); stay in `CHECK_FOR_DATA` |
+| `PROCESS_DATA` | Entry | Call `CheckAndMoveBuffers(written_bufs, send_bufs, sendEnable)`; accumulate `send_bufs += written_bufs`; reset `written_bufs=0`; go to `CHECK_FOR_DATA` |
+| `CHECK_FOR_EMPTY_WRITTEN_Q` | Entry | Update buffer counts; log flush message |
+| `CHECK_FOR_EMPTY_WRITTEN_Q` | `written_bufs > 0` | Go to `PROCESS_DATA` (drain last buffers) |
+| `CHECK_FOR_EMPTY_WRITTEN_Q` | else | Go to `INIT` (run done) |
+
+**Key monitored PVs:**
+
+| PV | Variable | Function |
+|----|----------|----------|
+| `Online_CS_SaveData` | `sendEnable` | 1 = save data; 0 = discard (no-save run); passed to `CheckAndMoveBuffers()` |
+| `Online_CS_StartStop` | `AcqRun` | Master run/stop from GUI — triggers INIT→run transition |
+| `DAQC{CRATE}:inLoop_Running` | `Running` | inLoop handshake — 1 when inLoop is actively running |
+| `DAQC{CRATE}_CS_TraceBd/TraceChan/TraceHorns` | `traceBoard/Chan/Horns` | Selects which board/channel to capture waveform trace |
+| `DAQC{CRATE}_OL_HeaderCheckEnable` | `outLoopHeaderCheckEnable` | Enable event header validation |
+| `DAQC{CRATE}_OL_TimestampCheckEnable` | `outLoopTimestampCheckEnable` | Enable timestamp consistency check |
+| `DAQC{CRATE}_OL_DeepCheckEnable` | `outLoopDeepCheckEnable` | Enable deeper data integrity checks |
+| `DAQC{CRATE}_OL_HeaderSummaryEnable` | `outLoopHeaderSummaryEnable` | Enable periodic header dumps to console |
+| `DAQC{CRATE}_OL_HeaderSummaryPrescale` | `outLoopHeaderSummaryPrescale` | Prescale for header dumps (default 0x1000) |
+
+**Check control flow (via `outLoopTraceMon`):** Every 0.5 s, the monitor state set copies check-control PVs to global C variables (`OL_Hdr_Chk_En`, `OL_TS_Chk_En`, `OL_Deep_Chk_En`, `OL_Hdr_Summ_En`, etc.) readable from `outLoopSupport.c`.
+
+**Reported PVs (updated every 0.5 s by `outLoopTraceMon`):**
+
+| PV | Description |
+|----|-------------|
+| `DAQC{CRATE}_CV_OutLoop0–6` | Per-board error counts (repurposed; was DataLost in KB) |
+| `DAQC{CRATE}_OL_DataRate0–6` | Per-board read rate in KB/s |
+| `DAQC{CRATE}_OL_Data0–6` | Per-board cumulative data in MB |
+| `DAQC{CRATE}_OL_NumFreeBuffers` | Current count of free buffers in pool |
+| `DAQC{CRATE}_OL_NumWrittenBuffers` | Current count of written buffers (ready for validation) |
+| `DAQC{CRATE}_OL_NumSendBuffers` | Current count of send buffers (ready for MiniSender) |
+| `DAQC{CRATE}_OL_TotalBufsWritten` | Total buffers written since run start |
+| `DAQC{CRATE}_OL_TotalFBufsWritten` | Total "flush" buffers written |
+| `DAQC{CRATE}_OL_TotalBufsLost` | Total buffers lost/dropped |
+| `DAQC{CRATE}_OL_BufLostPerecnt` | Lost-buffer percentage (note: original typo in PV name) |
+| `DAQC{CRATE}_CV_SendRate` | Send data rate in KB/s |
+| `DAQC{CRATE}_CV_TraceLen` / `DAQC{CRATE}_CV_Trace` | Waveform trace length + data (1024-sample array) |
+| `DAQC{CRATE}_CV_BuffersAvail` / `DAQC{CRATE}_CV_NumSendBuffers` | Legacy compatibility copies of buffer counts |
+
+**Key C support functions (from `outLoopSupport.c`):**
+
+| Function | Description |
+|----------|-------------|
+| `ResetStats()` | Zero all stats at run start |
+| `CheckAndMoveBuffers(written, send, enable)` | Core function: validate buffers from `QWritten`, move valid ones to `QSend` (if `enable=1`) or discard |
+| `UpdateDataRates()` | Recalculate per-board throughput rates |
+| `GetTrace(buf, board, ch)` | Copy waveform trace for board/channel into caller buffer; returns length |
+| `GetDataRate(board)` | Per-board throughput in Bytes/s |
+| `GetDataTotal(board)` | Cumulative per-board data in KB |
+| `GetErrorCount(board)` | Per-board error event count |
+| `GetErrorData(board, idx)` | Per-board raw error diagnostic data (idx 0–6) |
+| `GetTotalBuffers_Written()` | Total buffer write count |
+| `GetTotalBuffers_Lost()` | Total buffer loss count |
+| `GetTotalFBuffers_Written()` | Total flush buffer count |
+| `GetSendDataRate()` | Aggregate send rate in Bytes/s |
+
+---
+
+### MiniSender.st — Network Send State Machine
+
+_Source: `dgsDrivers/dgsDriverApp/src/MiniSender.st` (231 lines, EPICS State Notation Language)_ ✅ verified 2026-04-22 — full read
+
+**Purpose:** The final stage of the pipeline — takes validated send buffers from `QSend` and transmits them over TCP to `tcpReceiverMT` running on the DAQ host. One instance per VME crate. Uses `SendReceiveSupport.c` for all socket I/O.
+
+**Single state set:** `ss ReceiveRequest` (runs as task priority 190)
+
+| State | Trigger | Action |
+|-------|---------|--------|
+| `init` | Entry | Set priority 190; `SenderRunning=0` |
+| `init` | `RunStopButton==1 && Save_NoSave_Button==1` | Call `InitRequestSocket()` (opens TCP server socket); `RequestMsgStatus=1`, `ConnectionAccepted=0`; go to `DelayAfterStart` |
+| `init` | `delay(1)` | Call `FlushAllBuffers()`; stay in `init` |
+| `DelayAfterStart` | `delay(2)` | Wait 2 s after run start (let inLoop/outLoop initialize); go to `WaitForConnection` |
+| `WaitForConnection` | Entry (every time, `-e`) | Call `AcceptConnection()` — blocks until `tcpReceiverMT` connects |
+| `WaitForConnection` | `!RunStopButton or !Save_NoSave_Button` | Go to `cleanup` |
+| `WaitForConnection` | `ConnectionAccepted > 0` | Call `FlushAllBuffers()` (start clean); `SenderRunning=1`; go to `HandleRequests` |
+| `WaitForConnection` | `delay(0.05)` | Retry `AcceptConnection()` |
+| `HandleRequests` | Entry (every time, `-e`) | Profile counter #4 start; call `getReceiverRequest()` (polls socket for request from receiver); profile stop |
+| `HandleRequests` | `RequestMsgStatus==0` (message received) | Go to `ProcessRequest` |
+| `HandleRequests` | `RequestMsgStatus==1` (no message yet) | Stay in `HandleRequests` |
+| `HandleRequests` | `!RunStopButton` | Go to `cleanup` |
+| `ProcessRequest` | Entry | Profile counter #5 start; call `sendServerResponse()` — responds to receiver with data-available count; profile stop; `NumBufsAvailable` = result |
+| `ProcessRequest` | `NumBufsAvailable==0` | No data ready; go to `HandleRequests` |
+| `ProcessRequest` | `NumBufsAvailable>0` | Profile counter #6 start; call `sendDataBuffer()` — send one buffer; profile stop; go to `HandleRequests` |
+| `cleanup` | Entry | Log; drain `QSend` via `FlushAllBuffers()`; call `CloseAllSockets()`; go to `init` |
+
+**Key C functions (from `SendReceiveSupport.c`):**
+
+| Function | Description |
+|----------|-------------|
+| `InitRequestSocket()` | Open TCP server socket, bind, listen — waits for `tcpReceiverMT` to connect |
+| `AcceptConnection()` | Accept incoming TCP connection from `tcpReceiverMT`; returns >0 on success |
+| `getReceiverRequest()` | Poll socket for a request message from receiver; returns 0=message, 1=no message, negative=error |
+| `sendServerResponse()` | Send response header to receiver indicating how many buffers are available; fetches first buffer from `QSend` if available; returns buffer count |
+| `sendDataBuffer()` | Send one data buffer (already fetched by `sendServerResponse`) to receiver over TCP |
+| `FlushAllBuffers()` | Discard all pending send buffers (called at cleanup or no-save mode) |
+| `CloseAllSockets()` | Close TCP socket(s) after run ends |
+
+**Profile counters used (from `profile.h`):**
+- Counter 4: `PROF_MS_GET_RECEIVER_REQUEST` — time spent in `getReceiverRequest()`
+- Counter 5: `PROF_MS_SEND_SERVER_RESPONCE` — time spent in `sendServerResponse()`
+- Counter 6: `PROF_MS_SEND_DATA_BUFFER` — time spent in `sendDataBuffer()`
+
+**Run/no-save behavior:**
+- `Save_NoSave_Button == 0` (no-save): MiniSender stays in `init`; `FlushAllBuffers()` drains without TCP send. Data is counted by outLoop but never transmitted.
+- `Save_NoSave_Button == 1` (save): normal TCP send path activates.
+
+**Cross-reference:** `ANLDAQ_tcpReceiver.md` — `tcpReceiverMT` protocol details; how it connects, sends requests, and receives data from MiniSender.
+
+---
+
 ## Port 9010 On-Demand FIFO Grabber (Planned — Not Implemented)
 
 > ⚠️ Design plan only as of 2026-04-18. `fifoGrabber.c` does not exist. No VxWorks build changes made.
@@ -619,4 +749,4 @@ These registers match the VME FPGA firmware register map for flash access — us
 - `knowledgeBase/VME_registers.md` — VME register addresses used by the IOC driver
 - `knowledgeBase/fpga.md` — FPGA firmware overview; the firmware binaries loaded by VxWorks
 
-*Created: 2026-04-05 | Last reviewed: 2026-04-20*
+*Created: 2026-04-05 | Last reviewed: 2026-04-22*
