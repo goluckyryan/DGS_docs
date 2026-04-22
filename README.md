@@ -127,6 +127,8 @@ Detailed plain-English summaries of key FPGA VHDL source files. Generated 2026-0
 | [vhdl/MTRG_calc_total_sum.md](vhdl/MTRG_calc_total_sum.md) | `calc_total_sum.vhd` | MTRG: final multiplicity sum and trigger decision comparator |
 | [vhdl/MTRG_MYRIAD_RCV_MACH.md](vhdl/MTRG_MYRIAD_RCV_MACH.md) | `MYRIAD_RCV_MACH.vhd` | MTRG: MγRIAD receiver state machine — locks onto 5-word SERDES frame from Link U, extracts NIM/ECL/FERA states and raw/gated trigger bits |
 | [vhdl/MTRG_MYRIAD_TRIGGER.md](vhdl/MTRG_MYRIAD_TRIGGER.md) | `MYRIAD_TRIGGER.vhd` | MTRG: MγRIAD trigger algorithm — programmable delay line, optional coincidence with other algorithms, selectable timestamp mode, subtypes 0x78/0x79 |
+| [vhdl/MTRG_mstr_mach.md](vhdl/MTRG_mstr_mach.md) | `mstr_mach.vhd` | MTRG: Master State Machine — continuously emits the 20-frame TTCL command cycle (SYNC, trigger decisions, Frame 12/13/14/15/16 control), local and remote-master modes, FIFO pipelining, monitor FIFO controls |
+| [vhdl/MTRG_local_trig_coinc.md](vhdl/MTRG_local_trig_coinc.md) | `local_trig_coinc.vhd` | MTRG: Local-vs-local coincidence trigger algorithm — dual-mask OR selects any two algorithm acks, overlap_mach enforces coincidence window, feeds trig_algo_support for standard FIFO/prescale/holdoff handling |
 | [vhdl/PROGRESS.md](vhdl/PROGRESS.md) | — | Checklist of VHDL files summarized (RTRG + MTRG) |
 
 ### Liquid Nitrogen

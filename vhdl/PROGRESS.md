@@ -15,3 +15,5 @@
 - [x] calc_total_sum.vhd → MTRG_calc_total_sum.md
 - [x] MYRIAD_RCV_MACH.vhd → MTRG_MYRIAD_RCV_MACH.md  (tag 20220705)
 - [x] MYRIAD_TRIGGER.vhd → MTRG_MYRIAD_TRIGGER.md     (tag 20220705)
+- [x] mstr_mach.vhd → MTRG_mstr_mach.md               (Master State Machine, full 20-frame TTCL output)
+- [x] local_trig_coinc.vhd → MTRG_local_trig_coinc.md (Local-vs-local trigger coincidence algorithm)
