@@ -108,12 +108,12 @@ This is why a fully custom EPICS device support layer was written from scratch.
 
 Scripts for reading BGO scintillator counter rates via EPICS PVs:
 
-- `Avg_all_BGO_count` — reads 8 PVs (`GS000_BGO1_counter` through `GS000_BGOSum_counter`), averaging each N times
-- `caget_avg` — bash script: calls `caget` N times, strips PV name (first 25 chars), extracts numeric value, computes average
+- `Avg_all_BGO_count` — reads 8 PVs (`GS000_BGO1_counter` through `GS000_BGOSum_counter`), averaging each N times ✅ verified 2026-04-22 — `slopebox_scripts/Avg_all_BGO_count:L3-10` (8 caget_avg calls: BGO1–7 + BGOSum)
+- `caget_avg` — bash script: calls `caget` N times, strips PV name (first 25 chars), extracts numeric value, computes average ✅ verified 2026-04-22 — `slopebox_scripts/caget_avg:L11-13` (`NEW_VAL2=${NEW_VAL:25}`, `tr -dc '0-9'`, accumulate)
 - `BGO_counter_sweep.ods` — ODS spreadsheet (analysis)
 - `BGO_Sweep_test` — BGO sweep test script
 
-BGO PV naming pattern: `GS000_BGO<N>_counter` (N=1–7, plus BGOSum)
+BGO PV naming pattern: `GS000_BGO<N>_counter` (N=1–7, plus BGOSum) ✅ verified 2026-04-22 — `slopebox_scripts/Avg_all_BGO_count:L3-10`
 
 ---
 
