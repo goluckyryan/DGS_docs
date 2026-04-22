@@ -70,11 +70,11 @@ Pattern: `VME{CC}:{MDIG1|SDIG1|...}:{register}`
 | `live_timestamp_lsb_RBV` | — | longin | Live timestamp LSB |
 | `live_timestamp_msb_RBV` | — | longin | Live timestamp MSB |
 | `CV_LiveTS` | — | longin | Live timestamp (combined) |
-| `cfd_mode` | ✓ | mbbo | CFD mode (board-wide) |
+| `cfd_mode` | ✓ | bo | CFD mode (board-wide) | ✅ verified 2026-04-21 — `MDigUser.template:L6930`
 | `veto_enable` | ✓ | bo | Enable veto input |
-| `veto_gate_width` | ✓ | ao | Veto gate width |
+| `veto_gate_width` | ✓ | longout | Veto gate width | ✅ verified 2026-04-21 — `MDigUser.template:L11254`
 | `counter_inhibit` | ✓ | bo | Inhibit all counters |
-| `counter_mode` | ✓ | mbbo | Counter mode |
+| `counter_mode` | ✓ | bo | Counter mode | ✅ verified 2026-04-21 — `MDigUser.template:L6890`
 | `FIFO_Prog_Thresh` | ✓ | ao | FIFO programmable threshold |
 | `win_comp_min` | ✓ | ao | Window comparator minimum |
 | `win_comp_max` | ✓ | ao | Window comparator maximum |
@@ -83,14 +83,14 @@ Pattern: `VME{CC}:{MDIG1|SDIG1|...}:{register}`
 | `holdoff_time` | ✓ | ao | Global holdoff time |
 | `delay` | ✓ | ao | Global delay |
 | `peak_sensitivity` | ✓ | ao | Peak sensitivity |
-| `tracking_speed` | ✓ | mbbo | Phase tracking speed |
+| `tracking_speed` | ✓ | longout | Phase tracking speed | ✅ verified 2026-04-21 — `MDigUser.template:L11219`
 | `stop_ho_at_peak` | ✓ | bo | Stop holdoff at peak |
-| `downsample_holdoff` | ✓ | mbbo | Downsample holdoff |
+| `downsample_holdoff` | ✓ | longout | Downsample holdoff | ✅ verified 2026-04-21 — `MDigUser.template:L11247`
 | `dc_balance_enable` | ✓ | bo | DC balance enable |
 | `phase_hunt` | — | bo | Start phase hunt |
 | `load_baseline` | — | bo | Load baseline |
 | `load_delays` | — | bo | Load delay values |
-| `BGO_discbit_select` | ✓ | mbbo | BGO discriminator bit select |
+| `BGO_discbit_select` | ✓ | bo | BGO discriminator bit select | ✅ verified 2026-04-21 — `MDigUser.template:L6910`
 | `rj45_discbit_mode` | ✓ | mbbo | RJ45 discbit mode |
 | `rj45_throttle_mode` | ✓ | mbbo | RJ45 throttle mode |
 | `aux_output_mode` | ✓ | mbbo | Aux output mode |
@@ -107,12 +107,12 @@ Pattern: `VME{CC}:{MDIG1|SDIG1|...}:{register}`
 | `diag_input` | ✓ | ao | Diagnostic input |
 | `diag_input_en` | ✓ | bo | Diagnostic input enable |
 | `diag_isync` | ✓ | bo | Diagnostic isync |
-| `DIAG_DISC_SEL` | ✓ | mbbo | Diagnostic discriminator select |
+| `DIAG_DISC_SEL` | ✓ | bo | Diagnostic discriminator bit select | ✅ verified 2026-04-21 — `MDigUser.template:L6770`
 | `DIAG_WAVE_SEL` | ✓ | mbbo | Diagnostic waveform select |
 | `sd_sync` | ✓ | bo | SERDES sync |
 | `sd_pem` | ✓ | mbbo | SERDES PEM mode |
-| `sd_tx_pwr` | ✓ | mbbo | SERDES TX power |
-| `sd_rx_pwr` | ✓ | mbbo | SERDES RX power |
+| `sd_tx_pwr` | ✓ | bo | SERDES TX power | ✅ verified 2026-04-21 — `MDigUser.template:L6990`
+| `sd_rx_pwr` | ✓ | bo | SERDES RX power | ✅ verified 2026-04-21 — `MDigUser.template:L6970`
 | `sd_sm_lost_lock_flag_rst` | ✓ | bo | SERDES SM lost lock flag reset |
 | `sd_sm_stringent_lock` | ✓ | bo | SERDES stringent lock mode |
 | `sd_line_loopback_en` | ✓ | bo | SERDES line loopback enable |

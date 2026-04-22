@@ -50,15 +50,15 @@ Ports related to time-windowed energy sum (`LATCHED_TIMESTAMP`, `SHIFT_FACTOR_RE
 - **Note**: HIT_PATTERN, CC_ENERGY, HIT_TIMESTAMP, GROUP_ENERGY_SUM, and PATTERN_MATCH_MAP ports exist in the component but are commented out — not used in this implementation
 
 ### Masking logic (maskblock, for i in 1 to 8)
-- If `CHANNEL_MASK='1'`: CHANNEL_ID(i) ← 0x00, SPARE_A/B(i) ← 0x00
-- If `DIGVALID(i)='0'` (invalid): CHANNEL_ID(i) ← 0xFF, SPARE_A/B(i) ← 0x00
+- If `CHANNEL_MASK='1'`: CHANNEL_ID(i) ← 0x00, SPARE_A/B(i) ← 0x00 ✅ verified 2026-04-22 — `mt_input_channel.vhd:L199,211,214`
+- If `DIGVALID(i)='0'` (invalid): CHANNEL_ID(i) ← 0xFF, SPARE_A/B(i) ← 0x00 ✅ verified 2026-04-22 — `mt_input_channel.vhd:L200,212,215`
 - Else: pass through unmasked values
 
 ### MULTIPLICITY extraction
-`MULTIPLICITY <= UNBAL_ROUTER_DATA(15 downto 12) when CHANNEL_MASK='0' else "0000"`  
+`MULTIPLICITY <= UNBAL_ROUTER_DATA(15 downto 12) when CHANNEL_MASK='0' else "0000"` ✅ verified 2026-04-22 — `mt_input_channel.vhd:L183`  
 This extracts the top 4 bits of the recovered 16-bit Router word. Based on the RTRG link-L word format, bits [15:12] = throttle bit + Y-plane sum bits [14:12], suggesting the MULTIPLICITY extraction here reflects the older 4-bit Router data format that may pre-date the current 7+7 X/Y sum format.
 
-`THROTTLE_REQUEST <= '0' when CHANNEL_MASK='1' else INTERNAL_THROTTLE_REQUEST`
+`THROTTLE_REQUEST <= '0' when CHANNEL_MASK='1' else INTERNAL_THROTTLE_REQUEST` ✅ verified 2026-04-22 — `mt_input_channel.vhd:L228`
 
 ## Key Constants / Parameters
 - System data cycle: ~2 µs (driven by Router framing)

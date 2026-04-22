@@ -333,7 +333,7 @@ dgs-pz-cal  working/dgs_pz.cal    # pole-zero constants
 dgs-ehi-cal working/dgs_gain.cal  # energy gain/offset
 dgs-MM      350                    # trapezoid M window (register units)
 dgs-KK      131                    # trapezoid K window (register units)
-dgs-beta    0.025                  # decay constant for SZ algo
+dgs-beta    0.025                  # decay constant for SZ algo ✅ verified 2026-04-21 — `PQDecode.chat:L43`
 dgs-algo    1                      # 0=algo0, 1=SZ_1, 2=SZ_2
 ```
 
@@ -345,8 +345,8 @@ dgs-algo    1                      # 0=algo0, 1=SZ_1, 2=SZ_2
 | 2 | SZ_2 | High-rate variant (SAMPLED_BASELINE extrapolation) |
 
 **SZ_1 implementation** (`dgs_decode_lib.cpp:L454`) ✅ verified 2026-04-12:
-- Baseline update: `base = base × (1 - α) + S1_norm × α` where **α = `BASE_ALPHA` = 0.01**
-- Update only when inter-event time `dtev ≥ 250` (= 2.5 µs at 10 ns/tick) — avoids pile-up contaminating baseline
+- Baseline update: `base = base × (1 - α) + S1_norm × α` where **α = `BASE_ALPHA` = 0.01** ✅ verified 2026-04-21 — `dgs_decode_lib.cpp:L32` (`static constexpr double BASE_ALPHA = 0.01`)
+- Update only when inter-event time `dtev ≥ 250` (= 2.5 µs at 10 ns/tick) — avoids pile-up contaminating baseline ✅ verified 2026-04-21 — `dgs_decode_lib.cpp:L455` (`if ((double)dtev >= 250.0)`)
 - Energy: `e_raw = S2_norm - S1_norm × pz1 - base × (1 - pz1)` (requires `base > 10.0` to be valid)
 - `pz1` = per-sample PZ coefficient from `.cal` file; `S1_norm = sum1 / M`, `S2_norm = sum2 / M`
 

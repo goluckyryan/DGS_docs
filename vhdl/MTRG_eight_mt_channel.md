@@ -1,6 +1,6 @@
 # eight_mt_channel.vhd — Plain English Summary
 _Source: ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/eight_mt_channel.vhd_
-_Summarized: 2026-04-15_
+_Summarized: 2026-04-15 | Last verified: 2026-04-22_
 
 ## Purpose
 Aggregates eight `mt_input_channel` instances (one per Router, links A–H) and one `calc_total_sum` instance into a single block, keeping top.vhd clean. Produces the detector-wide X-plane and Y-plane totals (`GLOBAL_X_TOTAL`, `GLOBAL_Y_TOTAL`) and the global throttle request. This is the direct feeder into the trigger algorithm layer.
@@ -12,8 +12,8 @@ Aggregates eight `mt_input_channel` instances (one per Router, links A–H) and 
 | `xLINKA_RCLK..xLINKH_RCLK` | in | 8 | Per-link SERDES receive clocks |
 | `xLINKA_LOCK..xLINKH_LOCK` | in | 8 | Per-link SERDES LOCK* status |
 | `INPUT_LINK_MASK_REG` | in | 16 | [7:0] = per-channel mask bits |
-| `GLOBAL_X_TOTAL` | out | 11 | Total X-plane multiplicity across all 8 Routers |
-| `GLOBAL_Y_TOTAL` | out | 11 | Total Y-plane multiplicity across all 8 Routers |
+| `GLOBAL_X_TOTAL` | out | 16 | Total X-plane multiplicity across all 8 Routers ✅ verified 2026-04-22 — eight_mt_channel.vhd:L57 (15 downto 0) |
+| `GLOBAL_Y_TOTAL` | out | 16 | Total Y-plane multiplicity across all 8 Routers ✅ verified 2026-04-22 — eight_mt_channel.vhd:L58 (15 downto 0) |
 | `GLOBAL_THROTTLE_REQUEST` | out | 1 | '1' if any Router is requesting throttle |
 | `ROUTER_THROTTLE_REQUESTS` | out | 8 | Per-Router throttle request bits |
 | `CHANNEL_STATUS` | out | 16 | [15:8]=throttle requests, [7:0]=LOAD_ERR flags |
@@ -40,7 +40,7 @@ If `xROUTER_THROTTLE_REQUESTS /= "00000000"` → '1', else '0'.
 
 ### CALC_TOTALS — calc_total_sum instance
 - Receives: `RTR_SUM_OF_X(1..8)` and `RTR_SUM_OF_Y(1..8)`
-- Produces: `GLOBAL_X_TOTAL` (11-bit), `GLOBAL_Y_TOTAL` (11-bit) via 3-stage pipelined adder tree
+- Produces: `GLOBAL_X_TOTAL` (16-bit), `GLOBAL_Y_TOTAL` (16-bit) via 3-stage pipelined adder tree ✅ verified 2026-04-22 — calc_total_sum.vhd:L22-23,L68-123 (SUMPROC1/2/3, X_TOTAL 15 downto 0)
 
 ### CHANNEL_STATUS assembly
 - `[15:8]` ← `xROUTER_THROTTLE_REQUESTS(8:1)` (throttle requests per Router)
@@ -51,8 +51,8 @@ The 8 individual xLINKx_RX/RCLK/LOCK ports are aggregated into JTA_8X18 and slv(
 
 ## Key Constants / Parameters
 - 8 Router channels (links A–H, for i in 1 to 8)
-- RTR_SUM_OF_X/Y: 8-bit per Router (accommodates max 80 hits per Router with 8 × 10 disc bits)
-- GLOBAL totals: 11-bit (max 640 across 8 Routers)
+- RTR_SUM_OF_X/Y: 8-bit per Router (std_logic_vector(7 downto 0)) ✅ verified 2026-04-22 — eight_mt_channel.vhd:L81-82
+- GLOBAL totals: 16-bit (std_logic_vector(15 downto 0)) ✅ verified 2026-04-22 — calc_total_sum.vhd:L22-23; eight_mt_channel.vhd:L57-58 (⚠️ note: previous doc stated 11-bit — corrected)
 
 ## Connections to Other Modules
 - **Instantiates**: mt_input_channel × 8 (DSSD/trunk variant), calc_total_sum × 1

@@ -19,6 +19,9 @@
 - [Data Format: GEB](#data-format-geb-gretina-event-builder)
 - [Connections to Other Subsystems](#connections-to-other-subsystems)
 - [EventBuilder_PQ Benchmark Results](#eventbuilder_pq-benchmark-results)
+- [Notes](#notes)
+- [Cross-References](#cross-references)
+- [analyzer_*.cpp — ROOT Analysis Scripts](#analyzercpp--root-analysis-scripts)
 
 ---
 

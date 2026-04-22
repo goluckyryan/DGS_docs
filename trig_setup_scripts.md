@@ -131,7 +131,7 @@ Links G, H, R, U are unused (`X`) in this config. Link L of each RTRG connects b
 - **4B:** Pulse `RESET_LINK_INIT` on all RTRGs (so RTRGs can re-establish lock with DIGs now driving SYNC).
 - Wait 2 seconds.
 - **4C+:** Verify all RTRG active links (A–H) are locked (`caget ${RTR}:LOCK_{link}_RBV`). Fail if any unlocked active link found.
-- **Clock switch:** Flip each DIG to the desired clock source (`clk_select=DIG_CLOCK_SEL`). In the Gammasphere config `DIG_CLOCK_SEL=1` (Serdes = link clock from RTRG). All DIGs now derive their timing from the RTRG → MTRG chain. ✅ verified 2026-04-19 — `SYSTEM_DEFINES.sh:L66-69` (clock enum: 0=AUX, 1=Serdes, 2=OSC, 3=Serdes), `trig_setup_Stage4.sh:L163` (echo confirms 1=internal/Serdes)
+- **Clock switch:** Flip each DIG to the desired clock source (`clk_select=DIG_CLOCK_SEL`). In the Gammasphere config `DIG_CLOCK_SEL=1` (Serdes = link clock from RTRG). All DIGs now derive their timing from the RTRG → MTRG chain. ✅ verified 2026-04-21 — `SYSTEM_DEFINES.sh:L116-120` (clock enum: 0=AUX, 1=Serdes, 2=Oscillator, 3=Serdes); `trig_setup_Stage4.sh:L163` echo says "0=Serdes, 1=internal" — stale comment, `SYSTEM_DEFINES.sh` is authoritative
 - **Second IMP_SYNC:** Assert then immediately clear `IMP_SYNC` (set=1 then set=0). This resets all DIG timestamp counters simultaneously with all RTRG and MTRG counters — completing full three-tier timestamp alignment. ✅ verified 2026-04-17 — `trig_setup_Stage4.sh:L240-241`
 
 **End state:** All DIGs driving SYNC → RTRGs; all links DIG→RTRG→MTRG locked; all boards on MTRG-derived clock with aligned timestamps.

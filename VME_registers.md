@@ -407,8 +407,8 @@ EPICS PV prefix: `VME<CRATE>:<BOARD>:` (e.g. `VME66:MTRG:`)
 | `0x02BC` | `reg_LOCAL_TRIG_DELAY_U` | R/W | Local trigger delay (Link U) |
 | `0x02C0` | `reg_X_PLANE_LINK_MASK` | R/W | X-plane link mask — 16-bit, bit N=1 excludes link N from X-plane multiplicity sum (Sum-X, algo 2). Bit-PVs: `XLM_A`–`XLM_H` (bits 0–7). External/remote links (PIXIE/DFMA/DUB/DXA) are masked here; links L/R/U excluded from this register. ✅ verified 2026-04-15 — `registers.vhd:L166,L342` (addr 0x02C0); `mt_input_channel.vhd:L121` |
 | `0x02C4` | `reg_Y_PLANE_LINK_MASK` | R/W | Y-plane link mask — 16-bit, bit N=1 excludes link N from Y-plane multiplicity sum (Sum-Y, algo 3). Bit-PVs: `YLM_A`–`YLM_H` (bits 0–7). Same policy as XLM. ✅ verified 2026-04-15 — `registers.vhd:L167,L343` (addr 0x02C4); `mt_input_channel.vhd:L131` |
-| `0x02C8` | `reg_TRIGGER_HOLDOFF` | R/W | Trigger hold-off window |
-| `0x02CC` | `reg_UNUSED_2CC` | — | Unused / reserved |
+| `0x02C8` | `reg_TRIGGER_HOLDOFF` | R/W | Trigger hold-off window ✅ verified 2026-04-21 — `asynMTrigParams.c:L832` (`setAddress(reg_TRIGGER_HOLDOFF,0x02C8)`) |
+| `0x02CC` | `reg_UNUSED_2CC` | — | Unused / reserved ✅ verified 2026-04-21 — `asynMTrigParams.c:L833` (`setAddress(reg_UNUSED_2CC,0x02CC)`) |
 
 ### 0x0300–0x05FC: RAM Blocks
 
@@ -430,12 +430,12 @@ Eight trigger algorithm pairs (prescaled + raw), each 32+32 bits:
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x0600 + N×8` | `reg_TRIG_RATE_COUNTER_<N>_LOW` | Trigger rate counter N, low 32 bits (N=1–8) |
-| `0x0604 + N×8` | `reg_TRIG_RATE_COUNTER_<N>_HIGH` | Trigger rate counter N, high 32 bits |
-| `0x0640 + N×8` | `reg_RAW_TRIG_RATE_COUNTER_<N>_LOW` | Raw (pre-prescale) rate counter N low |
-| `0x0644 + N×8` | `reg_RAW_TRIG_RATE_COUNTER_<N>_HIGH` | Raw rate counter N high |
+| `0x0600 + (N-1)×8` | `reg_TRIG_RATE_COUNTER_<N>_LOW` | Trigger rate counter N, low 32 bits (N=1–8; N=1 @ 0x0600) ✅ verified 2026-04-21 — `asynMTrigParams.c:L1066` (`setAddress(reg_TRIG_RATE_COUNTER_1_LOW,0x0600)`) |
+| `0x0604 + (N-1)×8` | `reg_TRIG_RATE_COUNTER_<N>_HIGH` | Trigger rate counter N, high 32 bits ✅ verified 2026-04-21 — `asynMTrigParams.c:L1067` |
+| `0x0640 + (N-1)×8` | `reg_RAW_TRIG_RATE_COUNTER_<N>_LOW` | Raw (pre-prescale) rate counter N low (N=1 @ 0x0640) ✅ verified 2026-04-21 — `asynMTrigParams.c:L1082` |
+| `0x0644 + (N-1)×8` | `reg_RAW_TRIG_RATE_COUNTER_<N>_HIGH` | Raw rate counter N high ✅ verified 2026-04-21 — `asynMTrigParams.c:L1083` |
 
-Range: `0x0600–0x063C` (prescaled 1–8) and `0x0640–0x067C` (raw 1–8).
+Range: `0x0600–0x063C` (prescaled 1–8) and `0x0640–0x067C` (raw 1–8). *(Formula corrected 2026-04-21: was N×8, should be (N-1)×8 — N=1 starts at base, not base+8.)*
 
 ### 0x0800–0x08F0: I/O and Control
 

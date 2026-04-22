@@ -167,8 +167,6 @@
 
 ## Visited Pages Log
 
-All known wiki pages have been visited as of 2026-04-17. Summary:
-
 | Page | Visited | Outcome |
 |------|---------|--------|
 | `/gsdaq/Triggers_and_digitizers` | 2026-04-05 | Setup procedure → `wiki_gsdaq.md` § Trigger Setup |
@@ -185,13 +183,14 @@ All known wiki pages have been visited as of 2026-04-17. Summary:
 | `/gsdaq/The_Slope_Box_Extension` | 2026-04-05 | → `sbx.md` |
 | `/gsdaq/VME_Crates` | 2026-04-17 | Crate structure (3 backplanes, 4 DIGs each, fiber expander, VXI history) → `hardware_architecture.md` § VME Crate Structure |
 | `/gsdaq/Digitizers` | 2026-04-17 | GRETINA-origin HW; 14-bit @ 100 MHz; Center/Sum vs Side/Pattern DIG roles; SBX replaced old pickoff 2023 → `hardware_architecture.md` § Digitizer Hardware Origin |
-
-**No pending wiki pages.** If new pages appear on the wiki, add them here.
-
 | `/gsdaq/Triggers` | 2026-04-20 | Trigger as "decision makers"; 1 MTRG + 4 RTRG for GS; VME Fiber Expander connects external systems (AGFA) to MTRG; Electric Honeycomb requires 13 bits/detector (7 BGO segs + 6 face-to-face BGO) → 110 scatter bits to trigger — all already in KB |
 | `/gsdaq/IOC` | 2026-04-20 | Empty page — no content |
 | `/gsdaq/Argonne_Gas-Filled_Analyzer` | 2026-04-20 | Stub only — AGFA is gas-filled separator at ATLAS for heavy nuclei studies; links external |
 | `/gsdaq/DGS_Commander_EDM_Screens` | 2026-04-20 | Interactive image map of EDM GUI; 7 main sections: Run Control (Start/Stop/Save/NoSave), Main Controller (waveforms/HW/timing), Main Controller Side Panel, VXI Heartbeat (obsolete), Temperatures, LN Main, Setup Script State — added to `run_procedures.md` |
+| `/gsdaq/The_Pickoff_Card` | 2026-04-16 | Corrected `sbx.md`: Pickoff Card is FPGA-based (not analog PCB); added full feature list and background scanning description |
+| `/gsdaq/Updating_Firmware_in_Digitizers_and_Triggers` | 2026-04-18 | Added to `ioc.md`: GLBL:DIG:config_main_fpga PV, 2024 ODT flash procedure reference, full old Java fpgasender API docs |
+
+**All known wiki pages have been visited as of 2026-04-20 (The_Pickoff_Card: 2026-04-16; Updating_Firmware: 2026-04-18).** If new pages appear on the wiki, add them here.
 
 ---
 

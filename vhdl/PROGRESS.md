@@ -13,3 +13,5 @@
 - [x] mt_input_channel.vhd → MTRG_mt_input_channel.md  (NOTE: at ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/mt_input_channel.vhd)
 - [x] sum_hits_X.vhd → MTRG_sum_hits_X.md
 - [x] calc_total_sum.vhd → MTRG_calc_total_sum.md
+- [x] MYRIAD_RCV_MACH.vhd → MTRG_MYRIAD_RCV_MACH.md  (tag 20220705)
+- [x] MYRIAD_TRIGGER.vhd → MTRG_MYRIAD_TRIGGER.md     (tag 20220705)

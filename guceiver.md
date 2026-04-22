@@ -48,8 +48,8 @@ Guceiver.py (QMainWindow)
 - User selects which IOC from a dropdown; connection established on "Start Receiver"
 
 ### EPICS side effects
-On Start: `caput("Online_CS_SaveData", "Save")` + `caput("Online_CS_StartStop", "Start")`
-On Stop: `caput("Online_CS_StartStop", "Stop")` + `caput("Online_CS_SaveData", "No Save")`
+On Start: `caput("Online_CS_SaveData", "Save")` + `caput("Online_CS_StartStop", "Start")` ✅ verified 2026-04-21 — `Guceiver.py:L172-173`
+On Stop: `caput("Online_CS_StartStop", "Stop")` + `caput("Online_CS_SaveData", "No Save")` ✅ verified 2026-04-21 — `Guceiver.py:L210-211`
 
 These PVs control the online data-saving state in the IOC.
 
@@ -64,7 +64,7 @@ The receiver identifies packet type by the first word (magic):
 | `0xAAAAAAAA` | Digitizer (DIG) event ✅ verified 2026-04-08 — `class_Receiver.py:L145` |
 | `0x0000AAAA` | TAC-II event ✅ verified 2026-04-08 — `class_Receiver.py:L147` |
 
-Packets that don't match header types 7 or 8 are discarded (except `channel_id == 0xD` = "Type D" end-of-run sentinel → stops acquisition).
+Packets that don't match header types 7 or 8 are discarded (except `channel_id == 0xD` = "Type D" end-of-run sentinel → stops acquisition). ✅ verified 2026-04-21 — `class_Receiver.py:L160-162` (`if channel_id == 0xD: print("Type D data received, stopping data taking.")`)
 
 Packet length is extracted from word[1] bits `[26:16]` (`payloadMaxIndex` in 32-bit words, includes header + waveform).
 
@@ -83,7 +83,7 @@ Decodes header type 7 (LED) and type 8 (CFD) packets. Parsed fields:
 | `HEADER_TYPE` | 7 = LED, 8 = CFD |
 | `EVENT_TYPE` | Readout mode (0–10, see DIG_firmware_expert.md) |
 | `PACKET_LENGTH` | Total packet size in 32-bit words |
-| `HEADER_LENGTH` | Header size in 32-bit words (14) |
+| `HEADER_LENGTH` | Header size in 32-bit words (14) ✅ verified 2026-04-21 — `class_DIG.py:L212` (comment: "word 14 and beyound are waveform data", i.e. words 0–13 = 14-word header) |
 
 ### Timestamps (all in 10 ns units unless noted)
 | Field | Description |
@@ -126,7 +126,7 @@ Energy = `POST_RISE_ENERGY - PRE_RISE_ENERGY` (baseline-subtracted). Pole-zero c
 
 Decodes TAC-II TDC packets (magic `0x0000AAAA`). The TAC-II provides fine-timing (vernier interpolation) for coincidence analysis.
 
-### Packet layout (16-word payload)
+### Packet layout (16-word payload) ✅ verified 2026-04-21 — `class_Receiver.py:L199` (`payloadMaxIndex = 15` → fixed 16 words for TAC-II)
 
 | Word index | Field |
 |---|---|

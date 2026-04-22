@@ -75,7 +75,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [VME_registers.md](VME_registers.md) | Complete VME register address map for DIG, MTRG, and RTRG main FPGAs + VME FPGA + flash; address patterns, bit-field notes, IOC shell usage examples |
 | [EPICS.md](EPICS.md) | EPICS primer: record types, tools, Python integration for DGS |
 | [EPICS_asyn.md](EPICS_asyn.md) | asyn driver support: caput flow diagram, port concept, worker threads, bulk writes, passive hardware callbacks |
-| [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary, legacy `devGData.c`, Port 9010 FIFO grabber design |
+| [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary, legacy `devGData.c`, Port 9010 FIFO grabber design, `MergedAsynDigParams.c` DIG param registration (222 params, all groups documented), `FlashMaintenance.c`, `profile.c` |
 | [vxworks_fifo_readout.md](vxworks_fifo_readout.md) | DMA buffer architecture, trigger FIFO readout (`readTrigFIFO.c`, `CheckAndReadTrigger`), Type-F synthetic headers (trigger + digitizer), FIFO index map, DMA chunking |
 | [vxworks_migration.md](vxworks_migration.md) | Migration notes from con6 (Solaris) to Ubuntu 24 |
 
@@ -88,6 +88,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [collectorbox_PVs.md](collectorbox_PVs.md) | CollectorBox PV list: 1,431 records/detector; GS/MOD/VME_GS/Ge_ID numbering explained |
 | [collectorbox_devicesupport.md](collectorbox_devicesupport.md) | EPICS device support internals: SPI driver, CAMAC_IO link, conversion coefficients |
 | [gammasphere_geometry.md](gammasphere_geometry.md) | Gammasphere array geometry: 110 GS holes, 17 rings, θ angles per hole, full hole→angle map |
+| [n126_target_wheel.md](n126_target_wheel.md) | N=126 target wheel encoder interface: FPGA (Spartan-6), Raspberry Pi EPICS IOC, DRV8824 stepper, L6203 DC motor, quadrature encoder, 8-ch DAC, I²C power board and LED display (auxiliary experiment device, not in main DAQ trigger chain) |
 
 ### Process Variables (PVs)
 
@@ -102,7 +103,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 | File | Description |
 |------|-------------|
-| [sbx.md](sbx.md) | Slope Box + SBX: HV generation, signal conditioning, BGO pattern/sum, pickoff card (hardwired routing), GS_ID dongle, Pi IOC (SPI/GPIO); no FPGA |
+| [sbx.md](sbx.md) | Slope Box + SBX: HV generation, signal conditioning, BGO pattern/sum, pickoff card (FPGA-based: programmable gain/offset/BGO discrimination/background scanning), GS_ID dongle, Pi IOC (SPI/GPIO), I2C opcode engine |
 | [slope_box_interface.md](slope_box_interface.md) | SlopeBox EPICS IOC software (SVN): PickoffApp device support, CAMAC_IO link type repurposing for SPI/GPIO, transaction format, why asyn was rejected, BGO counter scripts, original BASIC control programs (1997) |
 | [myriad.md](myriad.md) | MγRIAD module: aux detector interface, NIM I/O pinout, ECL connectors, TTCL link, DGS usage |
 | [digitizer_tester.md](digitizer_tester.md) | Digitizer Tester: dual 200 MHz 16-bit DAC, analog switch matrix (10ch), TTCL link, waveform generation |
@@ -124,6 +125,8 @@ Detailed plain-English summaries of key FPGA VHDL source files. Generated 2026-0
 | [vhdl/MTRG_mt_input_channel.md](vhdl/MTRG_mt_input_channel.md) | `mt_input_channel.vhd` | MTRG: per-Router input channel: SERDES receiver, hit extraction, multiplicity contribution |
 | [vhdl/MTRG_sum_hits_X.md](vhdl/MTRG_sum_hits_X.md) | `sum_hits_X.vhd` | MTRG: summing hit counts across X-plane (north/south hemisphere aggregation) |
 | [vhdl/MTRG_calc_total_sum.md](vhdl/MTRG_calc_total_sum.md) | `calc_total_sum.vhd` | MTRG: final multiplicity sum and trigger decision comparator |
+| [vhdl/MTRG_MYRIAD_RCV_MACH.md](vhdl/MTRG_MYRIAD_RCV_MACH.md) | `MYRIAD_RCV_MACH.vhd` | MTRG: MγRIAD receiver state machine — locks onto 5-word SERDES frame from Link U, extracts NIM/ECL/FERA states and raw/gated trigger bits |
+| [vhdl/MTRG_MYRIAD_TRIGGER.md](vhdl/MTRG_MYRIAD_TRIGGER.md) | `MYRIAD_TRIGGER.vhd` | MTRG: MγRIAD trigger algorithm — programmable delay line, optional coincidence with other algorithms, selectable timestamp mode, subtypes 0x78/0x79 |
 | [vhdl/PROGRESS.md](vhdl/PROGRESS.md) | — | Checklist of VHDL files summarized (RTRG + MTRG) |
 
 ### Liquid Nitrogen
@@ -139,7 +142,7 @@ Detailed plain-English summaries of key FPGA VHDL source files. Generated 2026-0
 | File | Description |
 |------|-------------|
 | [nfs_layout.md](nfs_layout.md) | NFS mount layout on DCS2: vol2–vol5, fs1/vol2, fs2/vol3, piserver; full directory inventory (experiment data, IOC py_scripts, gamln.db PV structure, legacy lnfill, EDM screens, GEBSort binaries, sbx2022tuning); collector box PXE MAC map |
-| [utility_scripts.md](utility_scripts.md) | BGO HV tuning script, PV discovery scripts, data0 space monitor |
+| [utility_scripts.md](utility_scripts.md) | BGO HV tuning scripts (NS_scripts/slopebox_scripts), PV discovery scripts, ANLDAQ GUI helper scripts (basic_settings_LED.py, terminals); data0 space monitor (deleted — does not exist) |
 | [snapshot_pv.md](snapshot_pv.md) | snapshot_pv repo: PV snapshot & watchdog utilities (Python/pyepics) |
 | [influxdb_grafana.md](influxdb_grafana.md) | InfluxDB 3 + Grafana monitoring on DCS2 (192.168.203.56) |
 

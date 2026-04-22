@@ -346,6 +346,68 @@ export EPICS_CA_AUTO_ADDR_LIST=YES
 # ✅ verified 2026-04-13 — ANLDAQ/EPICS_para.sh:L14,L43 (DGS=empty), L34 (SBX=192.168.203.28+vme99.onenet)
 ```
 
+### dgsSoftIOC — DGS Central Soft IOC (DFMA host)
+
+The **dgsSoftIOC** is a Linux-process IOC that runs on the DFMA host machine alongside `commander.py`. It is not a VME hardware IOC — it hosts software-only PVs that the GUI and setup scripts depend on.
+
+**Location:** `ANLDAQ/EPICS/softIOC/` ✅ verified 2026-04-21 — directory listing
+
+**Boot command:** `ANLDAQ/EPICS/softIOC/iocBoot/iocdgsSoftIOC/dgsSoftIoc.cmd` ✅ verified 2026-04-21 — `dgsSoftIoc.cmd` contents
+```
+dbLoadRecords "db/JustGlobals.db"
+dbLoadRecords "db/dgsSupport.db"
+iocInit
+```
+
+**Auto-spawn:** `commander.py` tries `caget Online_CS_StartStop` on startup; if unreachable (3 retries), spawns the softIOC in a `gnome-terminal`. Checks `ps ax` first to avoid double-spawn. ✅ verified 2026-04-17 — `commander.py:L751-798`
+
+**CA port:** 5064/5065 (shared with DGS system — same subnet broadcast)
+
+#### dgsSupport.db — Run Control PVs
+
+235-line file. Key PVs: ✅ verified 2026-04-21 — `softIOC/db/dgsSupport.db` contents
+
+| PV | Type | Purpose |
+|----|------|---------|
+| `RunNum` | `longout` | Current run ID number (added by Ryan 2025-03-23) |
+| `Online_CS_StartStop` | `bo` | Main run/stop control (big red button). `0=Stop`, `1=Start` |
+| `Online_CS_SaveData` | `bo` | Data save toggle. `0=No Save`, `1=Save` |
+| `Setup_Script_State` | `mbbo` | Setup script state machine: `UNKNOWN/TRIG OK/DIG OK/OTHER/TRIG ERROR/DIG ERROR/OTHER ERROR/SCRIPT RUNNING` (8 states) |
+| `ScriptStage` | `ao` | Stage counter shown during long setup scripts (progress indicator for users) |
+| `VME10:MTRG:TIMESTAMP_RBV` | `calcout` | 32-bit MTRG timestamp: `(B<<16)+C` from `_A/_B/_C` registers, scanned 0.1 s |
+| `VME10:MTRG:TRIG_RATE_COUNTER_1–8_RBV` | `calcout` | 32-bit trigger rate counters (post-filter): `(B<<16)+A` from high/low halves, scanned 1 s |
+| `VME10:MTRG:RAW_TRIG_RATE_COUNTER_1–8_RBV` | `calcout` | Same but raw (pre-filter) trigger rates |
+
+#### JustGlobals.db — Global Fanout PVs
+
+14,248-line file containing **2,124 `dfanout` records** that broadcast global settings to all VME crates. ✅ verified 2026-04-21 — `wc -l JustGlobals.db`, `grep -c "^record(dfanout"` count
+
+**Fanout pattern:** Chained `dfanout` records cascade writes from a single root PV to all 12 VME crates:
+```
+caput GLBL:DIG:F00:master_fifo_reset 1
+  → GLBL:DIG:01:master_fifo_reset → VME01:GLBL:master_fifo_reset
+  → GLBL:DIG:02:master_fifo_reset → VME02:GLBL:master_fifo_reset
+  → ...chain continues...
+  → GLBL:DIG:11:master_fifo_reset → VME12:GLBL:master_fifo_reset
+```
+Each link fans to one next-in-chain record AND one VME crate (`PP NMS` — Process Passively, No Maximize Severity).
+
+**Fanout target groups (177 unique PV suffixes broadcast):**
+- `master_fifo_reset`, `BGOs_ext_disc_src` — basic DIG control
+- `BGOp_*` / `BGOs_*` — BGO plastic/shield digitizer settings (~35 params each): CFD fraction, thresholds, windows, channel enable, preamp reset, write flags, etc.
+- `GeC_*` — Ge crystal digitizer settings (same parameter set)
+- `holdoff_time`, `veto_enable`, `peak_sensitivity`, `stop_ho_at_peak` — trigger/pileup control
+- `sd_*` — SerDes link parameters: `sd_sync`, `sd_pem`, `sd_rx_pwr`, `sd_tx_pwr`, `sd_sm_lost_lock_flag_rst`, `sd_sm_stringent_lock`, `sd_line_loopback_en`, `sd_local_loopback_en`
+- `trigger_mux_select`, `EXT_DISC_REQ`, `ext_disc_ts_sel` — trigger routing
+- `ts_counter_mode`, `ts_counter_reset` — timestamp counter control
+- `clk_select`, `cfd_mode`, `counter_mode` — digitizer mode settings
+- `dac_attenuation`, `dac_channel_select` — DAC control
+- `DIAG_DISC_SEL`, `DIAG_WAVE_SEL`, `diag_input`, `diag_input_en`, `diag_mux_control` — diagnostics
+- `FIFO_Prog_Thresh`, `lfsr_rate_sel`, `lfsr_seed`, `load_delays`, `rj45_throttle_mode` — misc
+- `win_comp_max`, `win_comp_min` — window comparator
+
+**Why dfanout?** The VME IOC `asynUInt32Digital` records don't chain natively. The soft IOC acts as a broadcast hub: one `caput` to a `GLBL:` PV cascades to all crates. Used by setup scripts and the GUI's "apply global setting" operations.
+
 ### Collector box (softIOC on Pi)
 Each Raspberry Pi runs a softIOC for one detector. The IOC:
 1. Loads DB templates from `CollectorBox_RevA/db/`

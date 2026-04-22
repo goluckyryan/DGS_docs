@@ -88,4 +88,4 @@
 - `knowledgeBase/ttcl.md` — TTCL spec; the Digitizer Tester generates compatible discriminator bit patterns
 - `knowledgeBase/connectors.md` — RJ45 pinout (same connector as digitizer); MTRG/RTRG 125-pin SERDES links the Tester connects to
 - `knowledgeBase/DIG_firmware_expert.md` — digitizer firmware being tested
-- `knowledgeBase/troubleshooting.md` — Using the Digitizer Tester for system diagnostics
+- `knowledgeBase/troubleshooting.md` — General DGS troubleshooting guide (no specific Digitizer Tester section; commissioning use is undocumented)

@@ -134,14 +134,16 @@ Word  Bits    Field                Notes
 
 | Value | Mode | Description |
 |-------|------|-------------|
-| 1 | LED minimal | LED discriminator, minimal header |
-| 2 | LED minimal+trace | LED + waveform trace |
-| 3 | LED full | LED + full timing data |
-| 4 | LED full+trace | LED + full timing + trace |
-| 5 | LED+E | LED + energy sums |
-| 6 | LED+E+trace | LED + energy sums + trace |
-| 7 | LED standard | Standard LED mode (most common) |
-| 8 | CFD standard | Standard CFD mode |
+| 1 | Old LED | Old LED header (legacy) |
+| 2 | Old CFD | Old CFD header (legacy) |
+| 3 | New LED | New LED header |
+| 4 | New CFD | New CFD header |
+| 5 | LED+Pileup | LED header with pileup info |
+| 6 | CFD+Pileup | CFD header with pileup info |
+| 7 | DIG LED | Current DIG LED header (most common) |
+| 8 | DIG CFD | Current DIG CFD header |
+
+> **Correction note (2026-04-22):** Prior table incorrectly described types 1–6 as "LED minimal/trace/full/E" variants. `class_DIG.h:L213-228` confirms actual labels: 1=Old LED, 2=Old CFD, 3=New LED, 4=New CFD, 5=LED+Pileup, 6=CFD+Pileup, 7=DIG LED, 8=DIG CFD. ✅ verified 2026-04-22 — class_DIG.h:L213-228
 
 ### Word 4 — Flag Word
 
@@ -260,7 +262,7 @@ Saved file: GEBHeader + repacked TAC2 packet (10 words)
 │  Word 9: [31:28] vernierByte [27:16] vernierAB [11:0] vernierCD │
 └─────────────────────────────────────────────────────────────────┘
   Source: `tcpReceiverMT.cpp` / `receiver.h:L447–524`
-  Note: board_id=99, CH_ID=0xA, header_Type=0xE are sentinel values identifying this as trigger data.
+  Note: board_id=99, CH_ID=0xA, header_Type=0xE are sentinel values identifying this as trigger data. ✅ verified 2026-04-22 — receiver.h:L462-464
 ```
 
 The MTRG TAC-II TDC produces trigger timing data decoded into the `TDC` class:

@@ -140,8 +140,8 @@ CFLAGS  = -B$(APPL)/vw/`arch`.68k/lib/gcc- -c -O -W -DV5_vxWorks -DCPU=MC68040 -
 **SSH flags required:** `-o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa`  
 **OS:** Fedora 12  
 
-ln2con is the **NFS boot host** for the lnfill VxWorks IOC (`192.168.203.121`, Motorola MVME167):
-- Exports `/export/home/lncon` via NFS to the VxWorks IOC
+ln2con is the **NFS boot host** for the lnfill VxWorks IOC (`192.168.203.121`, Motorola MVME167) ✅ verified 2026-04-21 — `ln2con/Plan.md:L10,L172` (inet on ethernet: 192.168.203.121; MVME167):
+- Exports `/export/home/lncon` via NFS to the VxWorks IOC ✅ verified 2026-04-21 — `ln2con/Plan.md:L134` (`/export/home/lncon  192.168.203.121(rw,no_root_squash,sync)`)
 - Hosts the active IOC boot tree at `/home/lncon/prod/lnfill/Rev6-01-04/`
 - Hosts fill log archive and log processing tools
 
@@ -153,9 +153,9 @@ Local archive at `DGS_tools_pack/ln2con/` (key files only):
 
 | File | Source on ln2con | Description |
 |------|-----------------|-------------|
-| `startup.cmd` | `Rev6-01-04/startup.cmd` | Active VxWorks IOC startup script |
+| `startup.cmd` | `Rev6-01-04/startup.cmd` | Active VxWorks IOC startup script ✅ verified 2026-04-21 — `ln2con/startup.cmd:L18-30` (loads from `targetmv167/` dirs, confirming MVME167 CPU) |
 | `startup.prod` | `Rev6-01-04/startup.prod` | Production copy of startup |
-| `rtdb/gamln.db` | `Rev6-01-04/rtdb/gamln.db` | EPICS records (23,078 lines, 1357 records) |
+| `rtdb/gamln.db` | `Rev6-01-04/rtdb/gamln.db` | EPICS records (23,078 lines, 1357 records) ✅ verified 2026-04-21 — `wc -l` = 23,078; `grep -c 'record('` = 1,357 |
 | `rtdb/tempmon.db` | `Rev6-01-04/rtdb/tempmon.db` | Temperature monitoring EPICS records |
 | `local/vx_mounts` | `local/vx_mounts` | VxWorks NFS mount script |
 | `local/resource.def.R312` | `local/resource.def.R312` | EPICS IOC resource definitions (CA timeouts, log server) |

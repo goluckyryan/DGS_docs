@@ -491,6 +491,83 @@ A VxWorks-specific CPU time profiling library for measuring how long different c
 - Used in the IOC to measure timing of inLoop/outLoop data path sections during development/debugging
 - Not directly exposed as EPICS PVs; output via VxWorks console (`printf`)
 
+### MergedAsynDigParams.c — DIG Asyn Parameter Registration
+
+_Source: `dgsDrivers/dgsDriverApp/src/MergedAsynDigParams.c` (672 lines, all `createParam()` calls)_ ✅ verified 2026-04-22 — `MergedAsynDigParams.c:L1-222` (222 `createParam()` calls)
+
+This file is **not a standalone translation unit** — it is `#include`-d directly into the asyn digitizer driver (`drvAsynDigitizer.c`) as a body of `createParam()` calls executed in the driver constructor. It registers every DIG-related PV name with the asyn framework, mapping string names → integer param IDs.
+
+**What it registers:** 222 asyn parameters in total, covering all DIG EPICS PV names. Each `createParam()` call has the form:
+```c
+createParam("reg_led_threshold0", asynParamUInt32Digital, &reg_led_threshold0);
+```
+All parameters use type `asynParamUInt32Digital`.
+
+**Naming conventions:**
+- `reg_<name>N` — writable register, channel N (0–9). E.g. `reg_led_threshold0`–`reg_led_threshold9`
+- `regin_<name>N` — read-back-only (input) register, channel N
+- Board-level (no digit suffix): e.g. `reg_programming_done`, `regin_board_id`, `SERIAL_NUMBER`, `vme_clk_ctrl`
+
+**Parameter groups (unique base names, 35 total):**
+
+| Group | Per-channel? | Purpose |
+|-------|-------------|----------|
+| `reg_channel_control` | ✅ (×10) | Per-channel mode/control bits |
+| `reg_channel_pulsed_control` | ✅ | Pulsed-write channel control |
+| `reg_led_threshold` | ✅ | LED discriminator threshold |
+| `reg_CFD_fraction` | ✅ | CFD fraction (stored as integer ×1000) |
+| `reg_raw_data_delay` | ✅ | Waveform delay (samples) |
+| `reg_raw_data_length` | ✅ | Waveform length (samples) |
+| `reg_d_window` / `reg_k_window` / `reg_m_window` / `reg_d3_window` | ✅ | Trapezoidal filter D/K/M/D3 window |
+| `reg_disc_width` | ✅ | Discriminator pulse width |
+| `reg_baseline_delay` | ✅ | Baseline averaging delay |
+| `reg_downsample_holdoff` | ✅ | Downsample hold-off |
+| `reg_led_control` | ✅ | LED control bits |
+| `reg_holdoff_control` | ✅ | Hold-off control bits |
+| `reg_veto_gate_width` | ✅ | Veto gate width |
+| `reg_p1_window` / `reg_p2_window` | ✅ | Pileup detection windows |
+| `reg_dac` | ✅ | Per-channel DAC |
+| `reg_diag_channel_input` | ✅ | Diagnostic channel input select |
+| `reg_diag_mux_control` | ✅ | Diagnostic mux control |
+| `reg_sd_config` | ✅ | Signal-detect config |
+| `reg_trigger_config` | ✅ | Per-channel trigger config |
+| `reg_external_disc_mode` | ✅ | External discriminator mode |
+| `reg_ila_config` | ✅ | ILA (in-logic analyzer) config |
+| `regin_disc_count` | ✅ | Discriminator event count (readback) |
+| `regin_ahit_count` | ✅ | Accepted-hit count (readback) |
+| `regin_led_state` | ✅ | LED state readback |
+| `regin_hilo_` / `regin_hihilolo_` | ✅ | HiLo / HiHiLoLo alarm readbacks |
+| `regin_phase_offset_a/b/c` | ✅ | SERDES phase offsets |
+| `regin_serdes_phase_value` | ✅ | SERDES phase value |
+| `regin_phase_value` | ✅ | Phase value readback |
+| `regin_phase_errors` | ✅ | Phase error count |
+| `regin_board_id` | board | Board identity register |
+| `regin_code_revision` / `regin_code_date` | board | Firmware version readbacks |
+| `regin_hardware_status` | board | Hardware status bits |
+| `regin_accepted_event_count` | board | Global accepted event counter |
+| `regin_dropped_event_count` | board | Global dropped event counter |
+| `regin_lat_timestamp_lsb/msb` | board | Latched timestamp (split 16-bit) |
+| `regin_live_timestamp_lsb/msb` | board | Live timestamp (split 16-bit) |
+| `regin_ts_err_count` | board | Timestamp error count |
+| `reg_ts_err_count_ctrl` | board | Timestamp error counter control |
+| `reg_master_logic_status` | board | Master logic status register |
+| `reg_programming_done` | board | FPGA programming complete flag |
+| `reg_external_discriminator_src` | board | External discriminator source |
+| `reg_vme_ext_delay` | board | VME extension delay |
+| `reg_user_package_data` | board | User package data |
+| `reg_win_comp_min` / `reg_win_comp_max` | board | Window comparator range |
+| `reg_rj45_spare_dout_control` | board | RJ45 spare digital output |
+| `SERIAL_NUMBER` | board | Board serial number |
+| `vme_clk_ctrl` | board | VME clock control |
+| `vme_gp_ctrl` | board | VME general-purpose control |
+| `VME_MON_STATUS` | board | VME monitor status |
+
+**Role in the driver:** `MergedAsynDigParams.c` is `#include`-d in the `drvAsynDigitizer.c` constructor body, so all 222 params are registered when the driver initializes. The integer handles (e.g. `&reg_led_threshold0`) are member variables of the driver class defined in `asynDigParams.h` / `MergedAsynDigParams.h`. After `createParam()`, the driver's `readInt32`/`writeInt32` dispatch table routes `caput`/`caget` traffic to the matching VME register read/write.
+
+**Cross-reference:** `drvAsynDigitizer.c` → VME register map in `knowledgeBase/VME_registers.md`; PV naming convention in `knowledgeBase/ANLDAQ.md`.
+
+---
+
 ### FlashMaintenance.c — VME Flash Register Constants
 
 _Defines VME register addresses for flash memory access on the MVME5500_ ✅ verified 2026-04-20 — `FlashMaintenance.c:L1-32`

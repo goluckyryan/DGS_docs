@@ -34,7 +34,7 @@ A single VME crate with one MTRG, one RTRG, and two DIGs (BUS_LEFT + BUS_RIGHT p
 | Data channels | 10 (ch 0–9) | 10 (ch 0–9) — second set |
 | Front-bus ribbon cable use | Sends discriminator bits (FRONT_BUS_LEFT=TRUE) ✅ verified 2026-04-13 — `Digitizer.vhd:L987-1125` | Receives discriminator bits (FRONT_BUS_LEFT=FALSE) |
 
-**In a crate:** each MDIG+SDIG pair covers up to 20 detector channels. Connected by front-bus ribbon cable — used **only for discriminator bit exchange** (not clock/trigger since 2022-08-15). Both boards now receive TTCL independently via digitizer fanout board.
+**In a crate:** each MDIG+SDIG pair covers up to 20 detector channels. Connected by front-bus ribbon cable — used **only for discriminator bit exchange** (not clock/trigger since 2022-08-15). Both boards now receive TTCL independently via digitizer fanout board. ✅ verified 2026-04-21 — `FPGA/DIG/MAIN_FPGA/BuildBranches/DGS/Source/Digitizer.vhd:L34-41` (header comment: "front bus cable scheme has been found to no longer work... abandoned in favor of external digitizer fanout board... Center/Sum digitizer will use front bus cable to send discriminator bits to Side/Pattern digitizer"; `FRONT_BUS_LEFT` generic controls send/receive direction)
 
 **Naming:** NFS scripts use `MDIG1/SDIG1/MDIG2/SDIG2` (accurate). ANLDAQ `SYSTEM_DEFINES.sh` uses `MDIG1/MDIG2/MDIG3/MDIG4` (simplified — all called MDIG regardless of role). The IOC boot cmd only configures MDIGs (`asynDigitizerConfig`); SDIGs are accessed via VME but don't need separate SERDES init.
 

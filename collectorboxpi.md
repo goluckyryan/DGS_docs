@@ -387,8 +387,8 @@ Collector boxes use their own CA port — check `collectorBox.sh` for the active
 - **SPI clock speed**: `SPI_DEFAULT_SPEED = 50` → `250 MHz / (2×(50+1)) ≈ 2.45 MHz` ✅ verified 2026-04-07 — `initTrace.c:L44` (changed from 48 on 2024-01-03). Formula: `f = 250MHz / (2×(speed+1))`.
 
 ### DEVSEL Bus (Device Selection)
-- 5-bit GPIO bus selects up to 32 devices (DEVSEL 0–31)
-- GPIO pins: GPIO13(bit0), GPIO23(bit1), GPIO24(bit2), GPIO25(bit3), GPIO26(bit4)
+- 5-bit GPIO bus selects up to 32 devices (DEVSEL 0–31) ✅ verified 2026-04-22 — `DEVSEL_bus.c:L31-35` (comment table: bit 0→GPIO13, bit1→GPIO23, bit2→GPIO24, bit3→GPIO25, bit4→GPIO26; L80-85 shift logic confirmed)
+- GPIO pins: GPIO13(bit0), GPIO23(bit1), GPIO24(bit2), GPIO25(bit3), GPIO26(bit4) ✅ verified 2026-04-22 — `DEVSEL_bus.c:L31-35,L80-85`
 - `Set_DEVSEL(Bidx)` asserts the correct GPIO pattern before each transaction
 - DEVSEL=0 = no device selected (bus idle)
 
@@ -408,8 +408,8 @@ Collector boxes use their own CA port — check `collectorBox.sh` for the active
 ### Global Data Structure (`CollectorSupport.h`)
 ```c
 typedef struct {
-    unsigned short GLBL_CollectorDataArray[32][1024];   // raw data per device
-    unsigned short GLBL_CollectorControlVals[32][256];  // control values per device
+    unsigned short GLBL_CollectorDataArray[32][1024];   // raw data per device  ✅ verified 2026-04-22 — CollectorSupport.h:L30
+    unsigned short GLBL_CollectorControlVals[32][256];  // control values per device  ✅ verified 2026-04-22 — CollectorSupport.h:L31
     epicsFloat64   GLBL_CollectorFloatVals[32][256];    // float mailboxes
     unsigned short *GLBL_CollectorArrayPtr[32];         // walking pointers
     epicsFloat64   GLBL_ConversionCoefficients[64][2]; // m,b for 64 conversions

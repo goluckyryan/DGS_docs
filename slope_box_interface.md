@@ -28,7 +28,7 @@ Raspberry Pi  ──SPI/GPIO──►  Pickoff Card FPGA  ──serial bus──
 
 ## SPI Transaction Format (Pickoff Card)
 
-Total transaction: **24 bits**
+Total transaction: **24 bits** ✅ verified 2026-04-21 — `PickoffSupport.c:L41-47`
 
 | Bits | Meaning |
 |------|---------|
@@ -86,7 +86,7 @@ The `DTYP` field in each PV must be `"PickoffLocalSerial"` to activate this driv
 | `PickoffSupport.dbd` | DBD device() declaration |
 | `Db/user.substitutions` | Example substitutions (not production) |
 
-**Note:** The `write_ao` function in the current SVN snapshot is a stub (`return 0;`) — the actual SPI transaction logic was either in progress or kept elsewhere. `init_record_ao` correctly parses the CAMAC_IO fields and prints them on IOC init.
+**Note:** The `write_ao` function in the current SVN snapshot is a stub (`return 0;`) ✅ verified 2026-04-21 — `PickoffSupport.c:L617-619` — the actual SPI transaction logic was either in progress or kept elsewhere. `init_ao` (not `init_record_ao`) prints `"initializing ao\n"` on IOC init ✅ verified 2026-04-21 — `PickoffSupport.c:L622-624`.
 
 ---
 

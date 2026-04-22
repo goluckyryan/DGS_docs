@@ -126,6 +126,52 @@ Key issues documented:
 
 ---
 
+## Problem: InfluxDB Detector Temperatures Stale / pi5-lnFill SSH Failure
+
+**Symptom:** Grafana temperature dashboard shows stale data (no new points for many hours). InfluxDB query returns data timestamped hours ago. General DGS heartbeat reports `⚠️ InfluxDB data stale`.
+
+**Root cause:** `SaveTemp.sh` runs every 10 minutes on **pi5-lnFill** (`192.168.203.58`). If pi5-lnFill is unreachable (SSH refusing connections, crashed, or OS-stuck), temperature writes to InfluxDB stop. Meanwhile DCS2 (`LNFill_ping_cron.sh`) detects the SSH failure and alerts Discord: `"⚠️ pi5-lnFill (192.168.203.58) is unreachable via SSH"`.
+
+**Diagnosis:**
+```bash
+# From spark-ca9f or any host on onenet:
+ssh dgs@192.168.203.58
+
+# Check last InfluxDB write (via spark-ca9f):
+TOKEN=$(grep '^Token:' ~/workspace/secrets/influx3_read.token | awk '{print $2}')
+curl -s "http://192.168.203.56:8181/api/v3/query_sql" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"db":"HPGeTemp","q":"SELECT time,value FROM \"Temperature\" ORDER BY time DESC LIMIT 1"}'
+```
+
+**Recovery (if pi5-lnFill SSH is available):**
+```bash
+ssh dgs@192.168.203.58
+# Check if SaveTemp.sh is running:
+pgrep -f SaveTemp.sh
+
+# Trigger a manual temperature collection:
+cd /home/dgs/lnFill
+bash SaveTemp.sh
+```
+
+**Recovery (if pi5-lnFill is completely unreachable — power cycle or crash):**
+1. Physically power-cycle pi5-lnFill at the rack
+2. After reboot, cron restarts automatically — temperatures resume within 10 minutes
+3. Verify SSH access is restored: `ssh dgs@192.168.203.58`
+4. Check `journalctl -b` (on pi5) for crash cause (persistent journal enabled 2026-04-21)
+5. DCS2 backup fill watchdog covers fills in the meantime (no manual fill action needed)
+
+**Note:** Temperatures stale for <30 min = transient hiccup (SaveTemp.sh can hang occasionally). Stale for >1 hour + SSH failure = genuine pi5 problem requiring action.
+
+**See also:** `lnfill.md` — System Roles + Emergency Fallback sections; `influxdb_grafana.md` — InfluxDB query API.
+
+*(Documented: 2026-04-21 — based on incident where pi5-lnFill SSH was refusing connections for 9+ hours)*
+
+---
+
 ## Useful PVs for Diagnostics
 
 | PV | What It Shows |
@@ -156,6 +202,8 @@ Key issues documented:
 - `knowledgeBase/EPICS.md` — EPICS CA tools for PV inspection
 - `knowledgeBase/VME_registers.md` — VME register addresses for low-level hardware inspection
 - `knowledgeBase/run_procedures.md` — Standard run start/stop procedures
+- `knowledgeBase/lnfill.md` — LN2 fill system: pi5-lnFill roles, emergency fallback (DCS2 backup watchdog), fill script locations
+- `knowledgeBase/influxdb_grafana.md` — InfluxDB 3 on DCS2: query API, detector temperature database (HPGeTemp)
 
 ---
 

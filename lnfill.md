@@ -87,7 +87,7 @@ Automated control system for filling germanium detector **dewars** with liquid n
 | `setTNF.sh` | **Set Time of Next Fill** — writes `LN_TTNF:XC` PV with the next scheduled fill time. Called by `LNFill_cron.sh` after each fill. Logic: if current hour >10 → next fill is 12h earlier (morning→evening or evening→morning); if arg given, uses that hour directly. Format: `HH:01`. ✅ verified 2026-04-13 — `setTNF.sh:L7-29` |
 | `epics_cron.sh` | **EPICS environment for cron** — sets `EPICS_BASE`, `PYEPICS_USE_SYSTEM_LIBS`, `PYEPICS_LIBCA/COM`, and `LD_LIBRARY_PATH` for aarch64 Pi. Sourced by cron jobs that need pyepics. ✅ verified 2026-04-13 — `epics_cron.sh:L2-6` |
 | `clean.sh` | **Log file cleanup** — deletes fill log files under 80 bytes (aborted/empty runs) and removes stray `core.*` dump files from `~/` and `logs/`. ✅ verified 2026-04-13 — `clean.sh:L4-8` |
-| `archive_cron_log.sh` | **Weekly log archiver for `LNFill_cron.log`** — copies `LNFill_cron.log` to `logs/archive/LNFill_cron_YYYYMMDD.log` (Sunday date) and truncates the original if non-empty. Run via cron every Sunday at midnight (`0 0 * * 0`). ✅ verified 2026-04-18 — `lnfill/archive_cron_log.sh` (commit 26a7865); crontab entry confirmed on pi5-lnFill |
+| `archive_cron_log.sh` | **Weekly log archiver for `LNFill_cron.log` and `LNFill_Auto_EFill_cron.log`** — copies both logs to `logs/archive/` with Sunday-date suffix and truncates originals if non-empty. Run via cron every Sunday at midnight (`0 0 * * 0`). ✅ verified 2026-04-18 — `lnfill/archive_cron_log.sh` (commit 26a7865); updated 2026-04-21 (commit 2a527d5) to also archive EFill cron log |
 
 ---
 
@@ -167,7 +167,26 @@ During M-fill startup, `CheckTemps()` runs *before* the instance kill check — 
 5 6,18 * * *     LNFill_cron.sh                  # DCS2 WATCHDOG: backup fill at 6:05am/pm if pi5 failed (ACTIVE) ✅ added 2026-04-21
 ```
 
-> **DCS2 backup fill watchdog (added 2026-04-21):** `LNFill_cron.sh` now runs at **6:05 AM and 6:05 PM** on DCS2 as an automatic backup. If pi5-lnFill ran the fill at 6:00, the manifold valves will already be open and the watchdog check at the top of `LNFill_cron.sh` exits silently. If pi5 failed, DCS2 proceeds with a full fill. This makes DCS2 a self-healing fallback with no manual intervention needed.
+> **DCS2 backup fill watchdog (added 2026-04-21):** `LNFill_cron.sh` now runs at **6:05 AM and 6:05 PM** on DCS2 as an automatic backup. If pi5-lnFill ran the fill at 6:00, DCS2 sees `LN_FILL_MODE:XC = 3` and exits. If pi5 failed, DCS2 proceeds with a full fill. This makes DCS2 a self-healing fallback with no manual intervention needed.
+
+### LN2 PV Watchdog (`lnfill_watchdog.py`, on DCS2) ✅ added 2026-04-21 — `lnfill` commit `061b1f1`
+Daemon that monitors 16 LN2-related EPICS PVs via CA subscriptions and logs state changes to `watchdog.log`.
+
+**Monitored PVs:**
+| PV | Description |
+|----|-------------|
+| `LN_MODE:XC` | Current fill mode (Ready/Filling Dets/Filling Tanks/etc.) — set by VxWorks sequencer on ln2con |
+| `LN_FILL_MODE:XC` | Fill mode selection (0=Manual, 1=Auto Det, 2=Auto Tank+Det, 3=Cron fill in progress) |
+| `LN_TTNF:XC` | Time of Next Fill |
+| `LN_TLFF:XC` | Time Last Det Fill Finished |
+| `LN_TSFS:XC` | Duration of last det fill |
+| `LNM1-4_FV:VM` | Manifold 1-4 fill valves (Open/Closed/Auto/Disable) |
+| `LNS1-2_VV:VM` | Supply valves station 1 (north) and 2 (south) |
+| `LNT1-2_FV:VM` | Tank 1-2 fill valves |
+| `LNT1-2_VV:VM` | Tank 1-2 vent valves |
+| `LNH1-20_FV:EN` | Hose 1-20 enable (normally disabled) |
+
+**Key insight from watchdog:** `LN_MODE:XC` is set by the **VxWorks sequencer on ln2con** (not by `LNFill_App.py`). `LN_FILL_MODE:XC` is set by `LNFill_cron.sh` (value 3 = cron fill in progress, 0 = manual/idle). These are two different PVs with different purposes.
 
 ---
 
@@ -420,9 +439,11 @@ Tries pi5-lnFill SSH first, falls back to DCS2. Reports which machine started th
 
 ### DCS2 Fallback Setup (already applied 2026-04-21)
 - **`LNFill_App.py`** — patched to auto-detect libca path and `BASE_DIR` (works on x86_64 DCS2 and aarch64 pi5). Uses `ctypes.util.find_library()` with explicit fallbacks for `/usr/lib/aarch64-linux-gnu/` (Pi5), `/usr/lib/x86_64-linux-gnu/` (DCS2/Spark), and `/usr/local/lib/` (custom EPICS builds). `BASE_DIR` tries `/home/dgs/lnFill` → `/home/phy/dcsu/lnFill` → script directory. ✅ committed 2026-04-21 — `lnfill` commit `0ce799b`
-- **`LNFill_cron.sh` — manifold watchdog guard** — before starting a fill, checks all 4 manifold fill valves (`LNM1_FV:VM` … `LNM4_FV:VM`). If any valve is `Open` → fill already in progress on pi5-lnFill → DCS2 skips its watchdog fill and exits. Prevents duplicate concurrent fills. ✅ committed 2026-04-21 — `lnfill` commit `4d33976`
+- **`LNFill_cron.sh` — dual-layer fill guard:**
+  1. **`LN_FILL_MODE:XC` PV guard** — reads `LN_FILL_MODE:XC` at startup; if value is `3`, another fill is in progress → exit. On proceed, sets it to `3` before filling and back to `0` when done. This is the primary coordination mechanism between pi5 and DCS2. ✅ committed 2026-04-21 — `lnfill` commits `5e4ad5b`, `e344b6e`
+  2. **Manifold valve guard** — also checks all 4 manifold fill valves (`LNM1_FV:VM` … `LNM4_FV:VM`). If any valve is `Open` → fill already in progress → exit. Extra protection in case the PV guard is stale. ✅ committed 2026-04-21 — `lnfill` commit `e344b6e`
 - **`discord.WebHook`** — symlinked to `discord_anomaly.WebHook` on DCS2 (fill messages go to #anomaly temporarily)
-- **`WriteDiscordMessage.py`** — prefixes all messages with `[DCS2]` via `socket.gethostname()` (hostname auto-detected). ✅ committed 2026-04-21 — `lnfill` commit `0ce799b`
+- **`WriteDiscordMessage.py`** — prefixes all messages with `[DCS2]` via `socket.gethostname()` (hostname auto-detected). ✅ committed 2026-04-21 — `lnfill` commit `0ce799b`. **Bugfix (commit `abc2b4e`, 2026-04-21):** Fixed `SyntaxError` caused by bad string quoting in the `os.system()` curl call; f-string with embedded braces replaced with `.format()`; payload now properly escaped; both curl calls use `-s` (silent mode).
 - **`enablePost2Discord`** — set to `false` in `LNFill_ping_cron.sh` to suppress false SSH-unreachable alerts while pi5-lnFill is down
 
 ### Restore Checklist (when pi5-lnFill is back)
@@ -433,8 +454,8 @@ Tries pi5-lnFill SSH first, falls back to DCS2. Reports which machine started th
 
 ### Known Limitations (pending NFS fix)
 - DCS2 writes fill logs to its own local `logs/` — separate from pi5's log
-- The `LNFill_cron.sh` watchdog check (manifold valves) works reliably, but a shared NFS log folder would be cleaner (in QUEUE.md)
 - `discord.WebHook` on DCS2 posts to #anomaly instead of the normal fill channel until proper webhook is copied
+- **Race condition (2026-04-21):** if fill is started manually via `LNFill_App.py` directly (bypassing `LNFill_cron.sh`), the `LN_FILL_MODE:XC` guard is not set. DCS2 cron can then start a concurrent fill. Fix: always use `LNFill_cron.sh` for fills, or manually `caput LN_FILL_MODE:XC 3` before running `LNFill_App.py`.
 
 ---
 
@@ -449,8 +470,9 @@ Each fill run creates `fill_YYYYMMDD_HHMM.log` — already organized, no rotatio
 - Archives to: `~/lnFill/logs/archive/LNFill_cron_YYYYMMDD.log` (Sunday date)
 - Truncates original after archiving (uses `truncate -s 0` to preserve any open file handles)
 
-### LNFill_Auto_EFill_cron.log — Monthly Archive
+### LNFill_Auto_EFill_cron.log — Weekly + Monthly Archive
 - Grows at ~96 entries/day (every 15 min)
+- **Weekly rotation (added 2026-04-21):** `archive_cron_log.sh` now also archives this log every Sunday midnight — copies to `~/lnFill/logs/archive/LNFill_Auto_EFill_cron_YYYYMMDD.log` and truncates original. ✅ verified 2026-04-21 — `lnfill/archive_cron_log.sh` commit 2a527d5
 - **Monthly rotation:** handled inside `LNFill_Auto_EFill_cron.sh` itself, at the top of the script
 - On 1st of each month: archives to `~/lnFill/logs/archive/LNFill_Auto_EFill_cron_YYYYMM.log`
 - Only archives if file doesn't already exist (prevents duplicate runs on the 1st)

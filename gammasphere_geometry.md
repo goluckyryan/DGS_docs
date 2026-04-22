@@ -26,9 +26,9 @@ Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 
 | 12 | 110.2° | 10 | GS069, GS071, GS073, GS074, GS075, GS076, GS077, GS078, GS080, GS082 | ✅ verified 2026-04-20 — `angtheta.dat` lines 69,71,73–78,80,82 all = 110.2
 | 13 | 121.7° | 5 | GS079, GS081, GS083, GS084, GS086 | ✅ verified 2026-04-20 — `angtheta.dat` lines 79,81,83,84,86 all = 121.7
 | 14 | 129.9° | 10 | GS085, GS087, GS088, GS089, GS090, GS091, GS092, GS093, GS094, GS096 | ✅ verified 2026-04-20 — `angtheta.dat` lines 85,87–94,96 all = 129.9
-| 15 | 142.6° | 5 | GS095, GS097, GS098, GS099, GS100 |
+| 15 | 142.6° | 5 | GS095, GS097, GS098, GS099, GS100 | ✅ verified 2026-04-21 — `angtheta.dat` lines 95,97–100 all = 142.6
 | 16 | 148.3° | 5 | GS101, GS102, GS103, GS104, GS106 | ✅ verified 2026-04-20 — `angtheta.dat` lines 101–104,106 all = 148.3
-| 17 | 162.7° | 5 | GS105, GS107, GS108, GS109, GS110 |
+| 17 | 162.7° | 5 | GS105, GS107, GS108, GS109, GS110 | ✅ verified 2026-04-21 — `angtheta.dat` lines 105,107–110 all = 162.7
 
 **Total: 110 detectors, 17 rings** ✅ verified 2026-04-18 — `angtheta.dat` (110 entries, 17 distinct polar angles)
 

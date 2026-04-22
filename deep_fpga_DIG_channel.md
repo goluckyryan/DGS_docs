@@ -155,25 +155,30 @@ In CFD mode with `CFD_ESUM_MODE = '1'`, the energy integration start is deferred
 
 ### Pileup Detection
 
-The **pileup processor** (`pileup_processor.vhd`) tracks how many events are in-flight (discriminator fired but not yet readout-complete). It uses a 4-bit counter and an 8-state machine:
+The **pileup processor** (`pileup_processor.vhd`) tracks how many events are in-flight (discriminator fired but not yet readout-complete). It uses a 4-bit counter (`PILEUP_COUNT[3:0]`) and an 8-state machine: ✅ verified 2026-04-21 — `pileup_processor.vhd:L50,L54` (20230809 tag): 4-bit `PILEUP_COUNT`; 8 states: `CHECK_DISABLE, REJ_NO_HIT, REJ_ONE_HIT, REJ_MANY_HIT, OVERFLOW, ACC_NO_HIT, ACC_ONE_HIT, ACC_MANY_HIT`
 
 ```
-States: IDLE → ONE_HIT → MANY_HIT → OVERFLOW
-        (each with ACC or REJ variant)
+States (actual VHDL names):
+    CHECK_DISABLE                  ← entry point; checks PILEUP_DISABLE register
+    REJ_NO_HIT / ACC_NO_HIT       ← idle (no in-flight events)
+    REJ_ONE_HIT / ACC_ONE_HIT     ← one event in-flight
+    REJ_MANY_HIT / ACC_MANY_HIT   ← multiple events in-flight
+    OVERFLOW                       ← counter saturated (fatal error)
 
 Counter increments: on each THRESH_DISC_FLAG
 Counter decrements: on PILE_RELEASE_DLYD (end-of-event holdoff pulse)
 
 PILEUP_DISABLE register:
-    0 → reject second and subsequent pileup hits (standard spectroscopy)
-    1 → accept all hits (pileup recording mode)
+    0 → reject second and subsequent pileup hits (standard spectroscopy) → REJ_* states
+    1 → accept all hits (pileup recording mode) → ACC_* states
 
 Outputs per event:
-    ACCEPTED_HIT   — first hit (or any hit in accept-all mode)
-    EXTENDED_EVENT — subsequent pileup hits (accept-all mode only)
-    PILEUP_FLAG    — level: counter > 0
-    OVERFLOW_FLAG  — counter saturated at 15
-    PU_TOO_SHORT   — pileup interval shorter than retrigger holdoff; event invalid
+    ACCEPTED_HIT   — first hit (or any hit in accept-all mode); blocked if PU_TOO_SHORT
+    EXTENDED_EVENT — subsequent pileup hits (accept-all mode only); blocked if PU_TOO_SHORT
+    PILEUP_FLAG    — level: counter > 0 (rejection states only)
+    OVERFLOW_FLAG  — counter saturated at 15 (4-bit overflow)
+    PU_TOO_SHORT   — pileup interval shorter than retrigger holdoff; blocks ACCEPTED_HIT + EXTENDED_EVENT
+    MARK_EXTENDED_AS_ACCEPTED — if set, all pileup hits become ACCEPTED_HIT (no EXTENDED_EVENT)
 ```
 
 The holdoff time (`reg_holdoff_control[8:0]`) controls both the minimum inter-event spacing and the peak-finding window; it is shared between the threshold discriminator and the pileup counter.

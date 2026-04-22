@@ -5,6 +5,19 @@
 
 ---
 
+## Table of Contents
+
+1. [Overview](#1-overview)
+2. [Physical Specification](#2-physical-specification)
+3. [Electrical Specification](#3-electrical-specification)
+4. [Systems That Use the TTCL](#4-systems-that-use-the-ttcl)
+5. [Theory of Operation](#5-theory-of-operation)
+6. [Protocol Specification](#6-protocol-specification)
+7. [Frame Specification](#7-frame-specification)
+8. [Initialization Considerations](#8-initialization-considerations)
+
+---
+
 ## 1. Overview
 
 The **Trigger Timing and Control Link (TTCL)** carries timestamps, trigger messages, and system-wide commands between trigger and digitizer modules in GRETINA, Digital Gammasphere (DGS), DFMA, and MAJORANA systems.
@@ -584,7 +597,7 @@ Pulse Delay units: 100s of ns (time from end of pulse n to beginning of pulse n+
 ---
 
 *Documented from: 20160418 trig command link.pdf, v2.1*
-*Written to memory: 2026-04-05 | Last reviewed: 2026-04-19*
+*Written to memory: 2026-04-05 | Last reviewed: 2026-04-22*
 
 ## Cross-References
 

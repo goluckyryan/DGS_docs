@@ -142,8 +142,8 @@ Two webhook files required:
 **`Rev6-01-04/` boot tree structure:**
 - `startup.cmd` — VxWorks startup script (loads all modules, DBs, starts fill sequencer)
 - `vx68040/lnfiller.vx` — **compiled fill application** (contains `dfill_sub_init` which sets hose→detID mapping)
-- `rtdb/gamln.db` — EPICS records (1357 records: valves, manifolds, sensors)
-- `rtdb/tempmon.db` — Temperature monitoring records (429 records)
+- `rtdb/gamln.db` — EPICS records (1357 records: valves, manifolds, sensors) ✅ verified 2026-04-21 — `grep -c 'record(' gamln.db` via DCS2 NFS: 1357
+- `rtdb/tempmon.db` — Temperature monitoring records (43 records) ✅ verified 2026-04-21 — `grep -c 'record' tempmon.db` via DCS2 NFS: 43 (previously incorrect as 429)
 - `default.dctsdr` — VxWorks DCT database (binary)
 - `targetmv167/` — MVME167-specific object files (iocCore, drvSup, recSup, devSup, seq)
 
@@ -391,7 +391,7 @@ _Documented 2026-04-21 — code-verified from `DGS_tools_pack/lnfill/`._
 
 **Alert format:** `"Last Fill Duration Alert: <N> minutes @ <begin_ts>"`
 
-**Called by:** Presumably from DCS2 cron after each fill cycle.
+**Called by:** `LNFill_cron.sh` — sourced at L55 after the fill completes (`source LNFill_check.sh`). Runs on pi5-lnFill as part of the normal fill cron cycle. ✅ verified 2026-04-22 — `LNFill_cron.sh:L55`
 
 ---
 
@@ -399,7 +399,7 @@ _Documented 2026-04-21 — code-verified from `DGS_tools_pack/lnfill/`._
 
 **Purpose:** Rotates `LNFill_cron.log` — copies it to `logs/archive/LNFill_cron_YYYYMMDD.log` then truncates the live log to zero. Prevents unbounded growth.
 
-**Called by:** DCS2 cron (presumably weekly or monthly).
+**Called by:** pi5-lnFill crontab — every Sunday at midnight (`0 0 * * 0`). ✅ verified 2026-04-22 — cross-referenced with `knowledgeBase/lnfill.md:L159` (live pi5-lnFill crontab entry)
 
 ---
 
