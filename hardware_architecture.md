@@ -208,10 +208,11 @@ Gammasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
 - `collector_fpga.md` — Collector box FPGA firmware: CtrlFPGA, StripeFPGA, pickoff card FPGAs
 - `ioc.md` — EPICS IOC configuration (MVME5500 boot, firmware versions, VME setup)
 - `sbx.md` — Slope Box Extension (SBX): signal conversion, BGO pattern/sum, GS_ID dongle, HV map
+- `sbxPi_ioc.md` — SBX Pi standalone IOC (PickoffApp_RevC): SPI1 24-bit transactions, CAMAC_IO device support, global mailboxes, I2C command FIFO protocol, HV ramp logic
 - `myriad.md` — MγRIAD auxiliary detector interface: NIM I/O, ECL, TTCL, DGS link U
 - `gammasphere_geometry.md` — 110 GS detector holes, 17 rings, θ/φ angles, collector box assignments
 - `connectors.md` — All hardware connector pinouts (DIG RJ45, MTRG/RTRG 125-pin SERDES, NIM I/O)
 
 ---
 
-*Source: DGS_tools_pack code exploration, link_sys_analysis.md, nfs_layout.md. Created: 2026-04-05. Updated: 2026-04-17 (table cleanup, wiki-only citation flagged).*
+*Source: DGS_tools_pack code exploration, link_sys_analysis.md, nfs_layout.md. Created: 2026-04-05. Updated: 2026-04-22 (added sbxPi_ioc.md to See Also; updated last-modified date).*
