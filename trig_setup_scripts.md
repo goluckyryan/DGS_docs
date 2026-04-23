@@ -1,5 +1,7 @@
 # Trigger Setup Scripts — ANLDAQ GUI
 
+Stability: C2 - Active / semi-stable
+
 **Source:** `DGS_tools_pack/ANLDAQ/gui/scripts/trig_setup_Stage{1-5}.sh`  
 **Config:** `DGS_tools_pack/ANLDAQ/gui/scripts/SYSTEM_DEFINES.sh`  
 **Documented:** 2026-04-17

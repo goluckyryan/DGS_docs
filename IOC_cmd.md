@@ -1,5 +1,7 @@
 # IOC Shell Commands
 
+Stability: C2 - Active / semi-stable
+
 Commands available in the DGS VxWorks IOC shell (EPICS 3.14.12.1 + asyn 4.17).
 
 Access via terminal server: `telnet <ts-ip> <port>` — see `ANLDAQ/EPICS_para.sh` for per-system IPs/ports.
@@ -107,7 +109,7 @@ Read and dump the DIG data FIFO to console. **Destructive** (pops data off FIFO)
 |-----|-------|---------|
 | `board` | cardno | Board index (`asynDigitizerConfig` 2nd arg) |
 | `numwords` | N | Number of 32-bit words to pop and print |
-| | `-1` | Auto-read: reads current FIFO depth from `reg_programming_done[18:0]` (reg 0x0004), then reads that many words |
+| | `-1` | Auto-read: reads current FIFO depth from `reg_programming_done[18:0]` (reg 0x0004), then reads that many words ✅ verified 2026-04-23 — `readDigFIFO.c:L555-559` (`base32 + (0x004/4)`, mask `0x007FFFF` = bits [18:0]) |
 | `mode` | `1` | Use VME DMA (`sysVmeDmaV2LCopy`) — faster |
 | | `0` | Word-by-word PIO loop |
 

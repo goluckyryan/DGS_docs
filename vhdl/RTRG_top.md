@@ -2,6 +2,7 @@
 _Source: ~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/TOP.VHD_
 _Summarized: 2026-04-15_
 _Note: 3094-line file; summary covers trigger-chain sections only (SerDes init, clock management, VME bus, and diagnostic counter sections omitted)._
+Stability: C3 - Structural / stable
 
 ## Purpose
 Top-level VHDL for the RTRG (Router Trigger) FPGA board. Wires together: the 8-channel data path (ROUTER_DATA_PATH), the master-trigger communications state machine (router_main_mach), throttle logic, downlink veto insertion, DC balance encoding for all 8 digitizer output links, and the CPLD coarse-Ge-sum interface. Entity name: `router_top`.

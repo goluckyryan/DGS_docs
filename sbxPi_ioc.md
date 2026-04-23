@@ -1,5 +1,7 @@
 # SBX Pi IOC — PickoffApp_RevC
 
+Stability: C2 - Active / semi-stable
+
 **Source:** `DGS_tools_pack/sbxPi/PickoffApp_RevC/`  
 **Last updated:** 2026-04-22  
 **See also:** [`sbx.md`](sbx.md) — SBX hardware + Collector Box Pi IOC overview
@@ -100,7 +102,7 @@ The IOC maintains two global arrays shared across all device support modules:
 |-------|------|------|-----|
 | `GLBL_PickoffControlVals[256]` | 256 shorts | `unsigned short` | Integer mailboxes — alarm enable flags, mode selects, inter-PV state |
 | `GLBL_PickoffDataArray[1024]` | 1024 shorts | `unsigned short` | Raw ADC scan data from SPI burst reads |
-| `GLBL_PickoffFloatVals[32]` | 32 doubles | `epicsFloat64` | Floating-point mailboxes — converted engineering values (volts, Kelvin, etc.) |
+| `GLBL_PickoffFloatVals[32]` | declared 32, used up to ~157 | `epicsFloat64` | Floating-point mailboxes — converted engineering values (volts, Kelvin, etc.) ⚠️ declared size 32 in `PickoffSupport.h:L37` and `PickoffSupport.c:L589`, but `HV_STEP.db` accesses indices 150–156 via `PickoffStep`/`PickoffSoftControl`. OOB access — works in practice due to adjacent static allocation. |
 | `GLBL_ConversionCoefficients[64][2]` | 64 × {m,b} | `epicsFloat64` | y=mx+b coefficients for 64 different conversion types |
 | `PT100Coefficients[10][2]` | 10 segments | `epicsFloat64` | Piecewise linear PT100 resistance-to-temperature conversion |
 | `PT500Coefficients[10][2]` | 10 segments | `epicsFloat64` | Piecewise linear PT500 resistance-to-temperature conversion |
@@ -119,7 +121,7 @@ The IOC maintains two global arrays shared across all device support modules:
 
 The `PickoffI2CSerial` device support sends I2C commands **indirectly** — the Pi writes a command sequence to the Pickoff FPGA's I2C command FIFO via SPI, and the FPGA executes the I2C bus transaction.
 
-**I2C Command FIFO word format (16-bit):**
+**I2C Command FIFO word format (16-bit):** ✅ verified 2026-04-23 — `PickoffSupport.h:L9-17` (defines: DONE=0x8000, RPTS=0x4000, NACK=0x2000, READ=0x1000, SAVE=0x0800, EXTD=0x0400, LOOP=0x0200, TOGS=0x0100); `PickoffI2C_AI.c:L143-168` (format diagram + bit descriptions). Note: DONE+RPTS form a 2-bit pair; DONE alone (RPTS=0) = stop after ACK; DONE+RPTS = stop without ACK; RPTS alone = repeated start; EXTD overrides LOOP.
 ```
 Bit 15: DONE  — if 1, stop after this byte
 Bit 14: RPTS  — if 1, do Repeated Start after byte
@@ -200,18 +202,28 @@ The Ge HV is not simply written to a DAC — it is **ramped step-by-step** via a
 2. `GS${DetNbr}_Conv_GeHV` (PickoffCalc) → converts ADC counts to volts → stores in `GLBL_PickoffFloatVals[154]` → triggers `GS${DetNbr}_StepInterlock1`
 3. `GS${DetNbr}_StepInterlock1` → evaluates interlock conditions → writes to mailbox 125 → triggers `GS${DetNbr}_StepInterlock2`
 4. `GS${DetNbr}_StepInterlock2` → evaluates more interlocks → chains to step PV
-5. `GS${DetNbr}_Adjust_HV_DAC` (PickoffStep) → reads demand (from `MOD${DetNbr}_DS_GEHV`), current (mailbox 154), and interlock state (mailbox 125) → computes one step → writes new DAC value
+5. `GS${DetNbr}_Adjust_HV_DAC` (PickoffStep) → reads demand from `GLBL_PickoffFloatVals[150]` (set by `GS${DetNbr}_GE_HV_DEMAND_VOLTS`), stepsize from [151], hysteresis from [152], absmax from [153], actual HV from [154]; interlock disable from `GLBL_PickoffControlVals[125]` (F mask 0xFFFF = any bit stops stepping) → computes one step → stores new voltage value → triggers `GS${DetNbr}_GE_HV_DEMAND_DAC` (converts volts→DAC counts via conversion set 27) → triggers `GS${DetNbr}_MANUAL_GE_HV_DEMAND` → writes DAC at SPI register 84 ✅ verified 2026-04-23 — `HV_STEP.db:L78` (`INP #B0 C0x8096 N0 A0x007D F0xFFFF @X`; Cidx=0x96=150, Aidx=0x7D=125); `PickoffStep_AI.c:L200-205` (FloatVals[Cidx..Cidx+4] layout)
 
-**Interlock behavior:** If mailbox 125 is nonzero → HV adjustment suppressed.
+**Interlock behavior:** If `GLBL_PickoffControlVals[125]` ANDed with F=0xFFFF is nonzero → HV adjustment suppressed. ✅ verified 2026-04-23 — `PickoffStep_AI.c:L178` (`GLBL_PickoffControlVals[Aidx] & PtrToLinkStruct->f`); Aidx from A=0x007D=125.
+
+**User-settable HV parameters (all in Volts, defaults):**
+| PV | Default | FloatVals index | Description |
+|----|---------|-----------------|-------------|
+| `GS${DetNbr}_GE_HV_DEMAND_VOLTS` | (user sets) | [150] | Desired HV target |
+| `GS${DetNbr}_GE_HV_STEP_SIZE` | 5 V | [151] | Max V change per cycle |
+| `GS${DetNbr}_GE_HV_HYSTERESIS` | 5 V | [152] | Dead-band; no step if \|actual−demand\| < HYSTERESIS |
+| `GS${DetNbr}_GE_HV_ABSMAX` | 3700 V | [153] | Hard ceiling — will not step above this |
+| (actual, written by Conv_GeHV) | — | [154] | Current HV in volts |
 
 ---
 
 ## Detector Specification (`DetSpec.db`)
 
-`MOD${DetNbr}_DS_GEHV` — ao record (type `PickoffSoftControl`):
-- Static demand: default **3700V** (comment notes GS081/sbxY/Ge60 uses 4500V max)
-- Stored to `GLBL_PickoffControlVals[2][3]` AND `GLBL_PickoffFloatVals[13]`
-- Alarm monitoring PV `MOD${DetNbr}_DV_GEHV` reads `GLBL_PickoffFloatVals[14]` (actual HV in volts) and applies alarms: HIHI/LOLO at ±10%, HIGH/LOW at ±5%
+`MOD${DetNbr}_DS_GEHV` — ao record (type `PickoffSoftControl`, OUT `C=0x4203`):
+- Default **3700V** (comment notes GS081/sbxY/Ge60 uses 4500V max)
+- C=0x4203 → `PV_mode=(0x4203 & 0x7000)>>12 = 4`, `Cidx=0x4203 & 0x3F = 3` → writes PV value to `GLBL_ConversionCoefficients[3][0]` (the `m` slope for conversion set 3) ✅ verified 2026-04-23 — `PickoffCtl_AO.c:L224-226` (mode 4: `Cidx = c & 0x003F; ConversionCoefficients[Cidx][0] = PV.val`); `HV_STEP.db:L6` (C=0x4203). Note: the DB comment "save to GLBL_PickoffControlVals[2][3]" is incorrect — mode 4 writes to ConversionCoefficients, not ControlVals.
+- This PV is NOT the demand source for `Adjust_HV_DAC`. The actual demand comes from `GS${DetNbr}_GE_HV_DEMAND_VOLTS` at `GLBL_PickoffFloatVals[150]`.
+- Alarm monitoring PV `MOD${DetNbr}_DV_GEHV` reads `GLBL_PickoffFloatVals[14]` (actual HV in volts) and applies alarms: HIHI/LOLO at ±10%, HIGH/LOW at ±5% ✅ verified 2026-04-23 — `DetSpec.db:L22-38` (INP C=0x800E → bit15 set = float mode, Cidx=14; alarm thresholds hardcoded)
 
 ---
 

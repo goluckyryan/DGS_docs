@@ -1,6 +1,7 @@
 # chan_in.vhd — Plain English Summary
 _Source: ~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/chan_in.vhd_
 _Summarized: 2026-04-15_
+Stability: C3 - Structural / stable
 
 ## Purpose
 Encapsulates one complete Router input channel — everything required to receive 18-bit SERDES data from one digitizer, undo DC balance, apply per-bit timing delays, classify Ge/BGO hit pairs as CLEAN/DIRTY/BGO-only events, and report X-plane and Y-plane hit bitmaps plus multiplicity counts up to the Master Trigger. Supports both DFMA (simple X/Y bit mapping) and DGS (Ge+BGO coincidence classification) modes via a control register. Also handles Clover detector geometry (added 2015-01-19).

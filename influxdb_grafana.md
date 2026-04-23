@@ -1,5 +1,7 @@
 # InfluxDB & Grafana on DCS2
 
+Stability: C2 - Active / semi-stable
+
 _DCS2 (192.168.203.56) runs InfluxDB 3 and Grafana for DGS monitoring._
 
 ---

@@ -1,5 +1,7 @@
 # Digitizer Tester
 
+Stability: C3 - Structural / stable
+
 **Purpose:** Test module for DGS/GRETINA digitizer boards. Generates arbitrary analog waveforms to exercise digitizers without real detector signals.  
 **Source:** `DGS_SVN/dgs/Digitizer_Tester/`  
 **FPGA:** Xilinx Virtex-4 `XC4VLX40-10FFG1148C` (same family as MTRG/RTRG) ✅ verified 2026-04-07 — `Dig_Tester.ucf:L1` (`# FPGA = XC4VLX40-10FFG1148C`)

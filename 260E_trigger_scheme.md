@@ -1,4 +1,5 @@
 # RTRG 0x260E + MTRG Trigger Scheme
+Stability: C3 - Structural / stable
 _Firmware: RTRG 0x260E, MTRG (current trunk)_
 _Example: 2-detector DUO (BGO ch-0 → Ge ch-5, BGO ch-1 → Ge ch-6; Y_MAP=A5/A6)_
 _Source: `DGS_tools_pack/FPGA/` — chan_in.vhd, disc_mach.vhd, router_data_path.vhd, router_top (TOP.VHD), mt_input_channel.vhd, eight_mt_channel.vhd, sum_hits_X.vhd, calc_total_sum.vhd, top.vhd_

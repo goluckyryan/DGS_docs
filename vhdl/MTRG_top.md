@@ -2,6 +2,7 @@
 _Source: ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/top.vhd_
 _Summarized: 2026-04-15_
 _Note: 5068-line file; summary covers trigger-chain sections only._
+Stability: C3 - Structural / stable
 
 ## Purpose
 Top-level VHDL for the MTRG (Master Trigger) FPGA board. Entity: `trigger_top`. Wires together: 8-channel Router data aggregation (`eight_mt_channel`), 8 trigger algorithm slots, a master state machine (`mstr_mach`) that distributes trigger decisions to Routers, per-algorithm veto logic, throttle management, NIM I/O, remote-master interconnects, and the CPLD multiplicity bus.

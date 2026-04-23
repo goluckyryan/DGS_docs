@@ -1,5 +1,7 @@
 # Slope Box Interface — Knowledge Base
 
+Stability: C3 - Structural / stable
+
 **Source:** `DGS_SVN/dgs/SlopeBoxInterface/`, `DGS_SVN/dgs/SlopeBoxExtension/`, `DGS_SVN/dgs/slopebox_scripts/`
 **Date documented:** 2026-04-21
 
@@ -150,9 +152,10 @@ Historical reference only — not used in DGS.
 
 ---
 
-## Current Status (as of 2026-04-21)
+## Current Status (as of 2026-04-23)
 
-- The `PickoffApp` EPICS IOC in SVN appears to be a **prototype/development version** — `write_ao` is a stub
+- The `PickoffApp` EPICS IOC in SVN appears to be a **prototype/development version** — its local `PickoffSupport.c` has a stub `write_ao` (`return 0;`) ✅ verified 2026-04-23 — `DGS_SVN/dgs/SlopeBoxInterface/RaspberryPi/LocalEpics/PickoffApp/src/PickoffSupport.c:L617-L619`
+- A working `write_ao` implementation does exist in the active `collectorboxpi` repo as `CollectorBox_RevA/CollectorApp/src/PickoffSupportBackup.c`; it parses `CAMAC_IO` fields, calls `Do_SPI1_transaction(RWFlag, UsrAddr, UsrData)`, and stores the low 16 bits of the reply into `rbv` ✅ verified 2026-04-23 — `collectorboxpi/CollectorBox_RevA/CollectorApp/src/PickoffSupportBackup.c:L923-L986`
 - It is not clear if this IOC is currently deployed on any Pi or if it has been superseded
 - The slope box hardware itself may still be in use for BGO gain/offset; check with Ryan
 - The `collectorboxpi/` repo (active) handles the Collector Box Pi — separate from the Slope Box Pi

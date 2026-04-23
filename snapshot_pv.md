@@ -1,5 +1,7 @@
 # snapshot_pv — DGS PV Snapshot & Watchdog Utilities
 
+Stability: C2 - Active / semi-stable
+
 **Repo:** `git@gitlab.phy.anl.gov:dgs-tools-pack/snapshot_pv.git`
 **Local path:** `DGS_tools_pack/snapshot_pv/`
 **Language:** Python 3.8+ + pyepics

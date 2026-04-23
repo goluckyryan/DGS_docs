@@ -1,5 +1,7 @@
 # DGS Troubleshooting Guide
 
+Stability: C1 - Operational / volatile
+
 **Sources:** [wiki: Some Problems and Their Solutions](https://wiki.anl.gov/gsdaq/Some_problems_and_their_solutions) + operational experience
 
 ---

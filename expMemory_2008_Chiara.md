@@ -1,5 +1,7 @@
 # Experiment Memory: exp2008_Chiara
 
+Stability: C1 - Operational / volatile
+
 ## Overview
 
 | Field | Value |

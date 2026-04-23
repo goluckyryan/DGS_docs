@@ -1,5 +1,7 @@
 # TAC-II — Time-to-Amplitude Converter (TDC) in the DGS Master Trigger
 
+Stability: C3 - Structural / stable
+
 _Source: `DGS_docs/DGS_System_Documentation/Firmware/Master_Trigger/TAC.docx` — J.T. Anderson, 2016-02-24_
 _Supporting: `LabNotes/20210314_TDC.ods`, `LabNotes/Jitter Analysis/`, `LabNotes/20210831_lab_notes.odt`_
 

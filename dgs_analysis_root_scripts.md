@@ -1,5 +1,7 @@
 # dgs_analysis — ROOT Analysis Scripts (fastEventConstructor)
 
+Stability: C2 - Active / semi-stable
+
 > **Split from `dgs_analysis.md`** (2026-04-18). Full pipeline context: see [`dgs_analysis.md`](dgs_analysis.md).
 
 _Source: `dgs_analysis/armory/fastEventContructor/` — five ROOT CINT/compiled scripts. Documented 2026-04-17._

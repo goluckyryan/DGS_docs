@@ -1,5 +1,7 @@
 # MAIN_FPGA — Master Trigger Main FPGA (ISE)
 
+Stability: C3 - Structural / stable
+
 ## Table of Contents
 
 - [Target Device](#target-device)

@@ -1,5 +1,7 @@
 # X-Array System PV List
 
+Stability: C2 - Active / semi-stable
+
 Generated from: boot/vme32.DXA.cmd, vme01.4MDIG.cmd, vme02.4MDIG.cmd (ioc branch: X-array)
 EPICS CA port: 5072/5073 | IOC IPs: 192.168.203.212, .213, .214 ✅ verified 2026-04-21 — EPICS_para.sh:L22-28 (.212/.213), overview_SmallSystem.md:L129 (.214/xa_ioc3)
 Total PVs: 13887

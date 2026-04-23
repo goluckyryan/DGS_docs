@@ -1,5 +1,7 @@
 # link_sys.py — System Link & Time Sync Analysis
 
+Stability: C2 - Active / semi-stable
+
 Source: `DGS_tools_pack/ANLDAQ/gui/link_sys.py`
 
 ---

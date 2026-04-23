@@ -1,4 +1,5 @@
 # MTRG: `MYRIAD_RCV_MACH.vhd` — MγRIAD Receive State Machine
+Stability: C3 - Structural / stable
 
 **Module:** `MYRIAD_RCV_MACH`  
 **File:** `FPGA/Firmware_Tags/MasterTrigger/20220705/Source/MYRIAD_RCV_MACH.vhd`  

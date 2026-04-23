@@ -1,4 +1,7 @@
 # VIVADO_MAIN_FPGA — Master Trigger Main FPGA (Vivado)
+
+Stability: C3 - Structural / stable
+
 _Source: `DGS_tools_pack/raw_FPGA/MTRG/Firmware/VIVADO_MAIN_FPGA/`. Created: 2026-04-05._
 
 ## Table of Contents

@@ -1,4 +1,5 @@
 # MTRG: `MYRIAD_TRIGGER.vhd` — MγRIAD Trigger Algorithm
+Stability: C3 - Structural / stable
 
 **Module:** `MYRIAD_TRIGGER`  
 **File:** `FPGA/Firmware_Tags/MasterTrigger/20220705/Source/MYRIAD_TRIGGER.vhd`  

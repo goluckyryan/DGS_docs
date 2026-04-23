@@ -1,5 +1,7 @@
 # Guceiver — GUI Receiver for Live DIG/TAC-II Monitoring
 
+Stability: C2 - Active / semi-stable
+
 _Source: `DGS_tools_pack/ANLDAQ/gui/Guceiver/` (local repo)_
 _Explored: 2026-04-07_
 

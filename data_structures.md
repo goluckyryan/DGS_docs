@@ -1,5 +1,7 @@
 # DGS Data Structures — Binary Output Format
 
+Stability: C3 - Structural / stable
+
 _Source: `dgs_analysis/armory/fastEventContructor/class_Hit.h`, `class_DIG.h`, `class_TDC.h`_
 
 The IOC sender (`tcpReceiverMT`) writes raw binary files in **GEB (GRETINA Event Builder) format**. Each event = one `GEBHeader` + payload.

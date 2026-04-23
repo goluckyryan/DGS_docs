@@ -1,4 +1,7 @@
 # Building the Firmware
+
+Stability: C2 - Active / semi-stable
+
 _Source: `DGS_tools_pack/raw_FPGA/` + `DGS_tools_pack/fpga/` repos. Created: 2026-04-05._
 
 ## Toolchain Summary

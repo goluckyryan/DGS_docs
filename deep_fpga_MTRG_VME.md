@@ -1,4 +1,7 @@
 # VME_FPGA — VME Interface and Configuration FPGA
+
+Stability: C3 - Structural / stable
+
 _Source: `DGS_tools_pack/raw_FPGA/MTRG/Firmware/VME_FPGA/A32D32_VME_FPGA/`. Created: 2026-04-05._
 
 ## Table of Contents

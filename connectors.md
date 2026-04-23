@@ -1,9 +1,30 @@
 # DGS Connector Pinouts
 
-_Created: 2026-04-05. Last updated: 2026-04-18._
+Stability: C3 - Structural / stable
+
+_Created: 2026-04-05. Last updated: 2026-04-23._
 
 ---
 
+## Table of Contents
+
+### Digitizer (DIG) Connectors
+1. [RJ45 — SER/DES (TTCL) Interface](#1-rj45--serdes-ttcl-interface)
+2. [Auxiliary I/O — 36-Pin Front Panel Header](#2-auxiliary-io--36-pin-front-panel-header)
+3. [Front Bus Ribbon Cable — Inter-Digitizer (Intra-Crate)](#3-front-bus-ribbon-cable--inter-digitizer-intra-crate)
+4. [IEC 61076-4-101 Connector — Router Trigger (RTRG) Side](#4-iec-61076-4-101-connector--router-trigger-rtrg-side)
+
+### Trigger Module (MTRG/RTRG) Connectors
+1. [SERDES Link Connector — 125-pin, 2mm × 2mm Hard Metric](#1-serdes-link-connector--125-pin-2mm--2mm-hard-metric)
+2. [Master-to-Router Cabling](#2-master-to-router-cabling)
+3. [NIM I/O — Front Panel (Master Trigger only)](#3-nim-io--front-panel-master-trigger-only)
+4. [CPLD Ribbon Cable Connectors](#4-cpld-ribbon-cable-connectors)
+5. [Auxiliary I/O Header (Trigger Module)](#5-auxiliary-io-header-trigger-module)
+6. [ECL Differential Outputs](#6-ecl-differential-outputs)
+
+---
+
+## Digitizer (DIG) Connectors
 
 **Source:** Digitizer-Specification-RevA-v2.0.pdf (GRETINA/DGS Digitizer board)
 
@@ -152,7 +173,7 @@ Each row = one digitizer connection. Signals are LVDS differential pairs.
 
 ---
 
-## References
+## Digitizer Connector References
 
 - `Digitizer-Specification-RevA-v2.0.pdf` — Section 2.2.7 (SER/DES), 2.2.8 (Auxiliary I/O)
 - `ANL Digitizer Firmware for Experts.pdf` — Section on external discriminator source matrix
@@ -161,10 +182,7 @@ Each row = one digitizer connection. Signals are LVDS differential pairs.
 
 ---
 
-*Created: 2026-04-05*
-
----
-
+## Trigger Module (MTRG/RTRG) Connectors
 
 **Source:** Trigger user manual 20140901.pdf  
 **Boards:** Master Trigger (MTRG) and Router Trigger (RTRG) — same physical board, different firmware.
@@ -335,10 +353,9 @@ Two differential ECL output signals provided alongside the Auxiliary I/O connect
 | CPLD sum logic | `/home/dgsspark/DGS_tools_pack/DGS_docs/DGS_System_Documentation/Firmware/Master_Trigger/CPLD_sum_logic.pdf` | CPLD fast strobe logic |
 | MTrigUser.template (EPICS) | `/home/dgsspark/DGS_tools_pack/ANLDAQ/ioc/db/MTrigUser.template` | NIM PV definitions: EN_NIM_AUX, ENBL_NIM_VETO, EN_NIM1_DELAY, EN_NIM2_DELAY, NIMSrc1/2, NIM1/2_SubSelect |
 
-**Related memory docs:**
+**Related knowledge base docs:**
 - `deep_fpga_MTRG_MAIN.md` — MTRG main FPGA firmware (TAC-II TDC uses NIM_IN2)
 - `deep_fpga_MTRG_CPLD.md` — CPLD fast multiplicity logic
-- `connectors.md` — Digitizer-side connector pinouts (RJ45, Aux I/O)
 
 ---
 

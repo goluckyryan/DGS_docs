@@ -1,6 +1,7 @@
 # calc_total_sum.vhd — Plain English Summary
 _Source: ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/calc_total_sum.vhd_
 _Summarized: 2026-04-15_
+Stability: C3 - Structural / stable
 
 ## Purpose
 Sums X-plane and Y-plane multiplicity counts from up to 8 Routers into single detector-wide totals. Uses a 3-stage pipelined adder tree (3-clock latency) to produce X_TOTAL and Y_TOTAL, which feed the `sum_hits_x` trigger algorithm (and presumably a Y-plane equivalent). This is the aggregation stage between per-Router link decoding and the threshold comparison in the trigger algorithm.

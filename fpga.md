@@ -1,5 +1,7 @@
 # DGS FPGA Firmware
 
+Stability: C3 - Structural / stable
+
 This repository contains FPGA firmware for the DGS (Digital Gamma-ray Spectrometer) trigger and readout system, developed at Argonne National Laboratory. The system digitizes signals from germanium gamma-ray detectors and makes real-time trigger decisions to select physics events of interest.
 
 > **Two firmware trees exist:** `fpga/` (active development, more recent) and `FPGA/` (raw upstream/unmodified reference). Architecture is identical; `FPGA/` was last modified a few days before `fpga/`. Use `fpga/` for building production firmware; use `FPGA/` for comparison against unmodified upstream.

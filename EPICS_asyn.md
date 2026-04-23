@@ -1,5 +1,7 @@
 # EPICS asyn — Asynchronous Driver Support
 
+Stability: C3 - Structural / stable
+
 _How asyn works under the hood, with DGS context._
 
 ---

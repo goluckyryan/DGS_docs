@@ -1,5 +1,7 @@
 # lnfill — IOC Internals, Communications & Fill Data Flow
 
+Stability: C2 - Active / semi-stable
+
 Deep technical reference for the LN2 fill system's IOC, data flows, and software internals.
 For operational overview, cron jobs, and troubleshooting: see [`lnfill.md`](lnfill.md).
 

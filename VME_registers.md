@@ -1,5 +1,7 @@
 # DGS VME Register Map
 
+Stability: C3 - Structural / stable
+
 Complete VME register addresses for all DGS FPGA boards, extracted from asyn driver source code.
 
 **Source files:**
@@ -89,17 +91,19 @@ EPICS PV prefix: `VME<CRATE>:<BOARD>:` (e.g. `VME66:MDIG1:`)
 | `0x0028` | `reg_win_comp_min` | R/W | Window comparator minimum |
 | `0x002C` | `reg_win_comp_max` | R/W | Window comparator maximum |
 
-**`reg_programming_done` FIFO status bits** (read after all board firmware loads):
+**`reg_programming_done` FIFO status bits** (read after all board firmware loads): ✅ verified 2026-04-23 — `inLoopSupport.c:L468-476` (VHDL signal assignment comments); `readDigFIFO.c:L557` (mask `0x007FFFF`); `inLoopSupport.c:L483` (mask `0x7FFFF`, longwords)
 
 | Bits | Field | Meaning |
 |------|-------|---------|
-| `[18:0]` | depth | FIFO occupancy (words) |
-| `[19]` | PROG_FULL | FIFO prog-full threshold reached |
-| `[20:21]` | EMPTY | FIFO empty flags |
-| `[22]` | ALMOST_EMPTY | Below almost-empty threshold |
-| `[23]` | HALF_FULL | FIFO half full |
-| `[24]` | ALMOST_FULL | Above almost-full threshold |
-| `[25:26]` | ALL_FULL | FIFO completely full |
+| `[18:0]` | depth | FIFO occupancy (longwords) — mask `0x7FFFF` |
+| `[19]` | PROG_FULL | Programmable-full flag (added 2016-05-20) |
+| `[20]` | EMPTY[0] | ext_fifo_empty(0) |
+| `[21]` | EMPTY[1] | ext_fifo_empty(1) — both [20]+[21] set = fully empty |
+| `[22]` | ALMOST_EMPTY | Below almost-empty threshold (valid only when not empty/almost-full/full) |
+| `[23]` | HALF_FULL | FIFO ≥ half full (valid only when not almost-full or full) |
+| `[24]` | ALMOST_FULL | Above almost-full threshold (valid only when not full) |
+| `[25]` | FULL[0] | ext_fifo_full(0) |
+| `[26]` | FULL[1] | ext_fifo_full(1) — both [25]+[26] set = completely full |
 
 ### 0x0040–0x0064: Per-Channel Control
 
@@ -289,17 +293,19 @@ The DIG data FIFO is **not a memory range** — it is a single read port. Every 
 
 **Board detection:** Reading from `0x1000` without a bus error confirms the board is an ANL digitizer (used in `devAsynDigCardInit`).
 
-**FIFO depth from `reg_programming_done` (0x0004):**
+**FIFO depth from `reg_programming_done` (0x0004):** ✅ verified 2026-04-23 — `inLoopSupport.c:L468-476` (VHDL signal comments)
 
 | Bits | Field | Meaning |
 |------|-------|---------|
-| `[18:0]` | depth | Words currently in FIFO |
-| `[19]` | PROG_FULL | Programmable full threshold crossed |
-| `[21:20]` | EMPTY | FIFO empty flags (both bits set = empty) |
-| `[22]` | ALMOST_EMPTY | Below almost-empty threshold |
-| `[23]` | HALF_FULL | FIFO half full |
-| `[24]` | ALMOST_FULL | Above almost-full threshold |
-| `[25:26]` | ALL_FULL | FIFO completely full |
+| `[18:0]` | depth | Longwords in FIFO (mask `0x7FFFF`) |
+| `[19]` | PROG_FULL | Programmable-full flag (added 2016-05-20) |
+| `[20]` | EMPTY[0] | ext_fifo_empty(0) |
+| `[21]` | EMPTY[1] | ext_fifo_empty(1) — both [20]+[21] set = fully empty |
+| `[22]` | ALMOST_EMPTY | Below almost-empty threshold (valid only when not empty/almost-full/full) |
+| `[23]` | HALF_FULL | FIFO ≥ half full (valid only when not almost-full or full) |
+| `[24]` | ALMOST_FULL | Above almost-full threshold (valid only when not full) |
+| `[25]` | FULL[0] | ext_fifo_full(0) |
+| `[26]` | FULL[1] | ext_fifo_full(1) — both [25]+[26] = completely full |
 
 **Normal readout path:** The `inLoop` task continuously polls `reg_programming_done` for depth, then bulk-reads the FIFO via VME DMA (`sysVmeDmaV2LCopy`) into a 1 MB IOC buffer, then forwards the data to the TCP sender (port 9001) for the data host.
 

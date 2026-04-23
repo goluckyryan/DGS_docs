@@ -1,6 +1,7 @@
 # router_data_path.vhd — Plain English Summary
 _Source: ~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/router_data_path.vhd_
 _Summarized: 2026-04-15_
+Stability: C3 - Structural / stable
 
 ## Purpose
 Aggregates all eight Router input channels into a single 16-bit word sent to the Master Trigger via SerDes link L. Instantiates eight `chan_in` instances (one per digitizer), sums their X-plane and Y-plane hit counts via a 3-stage pipelined adder tree, builds the link-L output word, and routes per-channel data into diagnostic FIFOs. Also aggregates the 8-channel coarse Ge sum.

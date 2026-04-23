@@ -1,5 +1,7 @@
 # lnfill — Liquid Nitrogen Filling System
 
+Stability: C2 - Active / semi-stable
+
 ## Table of Contents
 - [What It Is](#what-it-is)
 - [Physical System](#physical-system)

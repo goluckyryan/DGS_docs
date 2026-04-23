@@ -1,5 +1,7 @@
 # Pole-Zero Correction — DGS HPGe Detectors
 
+Stability: C2 - Active / semi-stable
+
 _Source: `dgs_analysis/working/pz_from_parquet.py`, `armory/gray_apps/src/Fitter/grayfit/pole_zero_fitter.py`, `working/README.md`_
 _Reference paper: Begley, Zhu, Carpenter et al., NIM A 1040 (2022) 167113 — "Algorithms of pulse shape analysis for Gammasphere under high count rate conditions"_
 
@@ -409,7 +411,7 @@ python working/gain_from_parquet.py \
 | `vdc` | float | DC baseline level (V_dc) used for S1 gating |
 | `pz_coarse` | float | Best PZ from coarse grid scan |
 | `pz_refined` | float | Best PZ after fine-scan refinement (use this) |
-| `axis_choice` | str | Which 2D axis was treated as S1 (auto-detected): `"native"` or `"transposed"` |
+| `axis_choice` | str | Which 2D axis was treated as S1. Four possible values: `"NATIVE"`, `"TRANSPOSE"`, `"AUTO_NATIVE"`, `"AUTO_TRANSPOSE"` — always uppercase. ✅ verified 2026-04-23 — `pole_zero_fitter.py:L249,L251,L257,L258` (`_select_axis_orientation` return values) |
 | `chi2_curve` | ndarray | χ² vs PZ grid (diagnostic) |
 | `pz_grid` | ndarray | PZ values tested (matches chi2_curve) |
 | `eref` / `ehi` / `eall` | ndarray | 1D energy spectra at reference, high-S1, and all events |

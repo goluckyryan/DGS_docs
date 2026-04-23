@@ -1,5 +1,29 @@
 # DGS Hardware Architecture
 
+Stability: C3 - Structural / stable
+
+## Table of Contents
+
+- [Minimal System — DuoGe (DUO)](#minimal-system--duoge-duo)
+  - [Required Hardware](#required-hardware)
+  - [MDIG vs SDIG — Master and Slave Digitizers](#mdig-vs-sdig--master-and-slave-digitizers)
+  - [Minimal Crate Layout (vme66 example)](#minimal-crate-layout-vme66-example)
+  - [Networking](#networking)
+  - [VME Crate Structure](#vme-crate-structure)
+  - [VME Backplane](#vme-backplane)
+  - [Signal Chain](#signal-chain)
+  - [EPICS Control](#epics-control)
+- [Full System — DGS](#full-system--dgs)
+  - [Physical Scale](#physical-scale)
+  - [Distributed Trigger Topology](#distributed-trigger-topology)
+  - [Network Topology](#network-topology)
+  - [Timing and Trigger Distribution](#timing-and-trigger-distribution)
+  - [Data Paths](#data-paths)
+  - [Auxiliary Systems](#auxiliary-systems)
+  - [Terminal Servers / Console Access](#terminal-servers--console-access)
+  - [VME Crate Power PDUs](#vme-crate-power-pdus)
+- [See Also](#see-also)
+
 ## Minimal System — DuoGe (DUO)
 
 A single VME crate with one MTRG, one RTRG, and two DIGs (BUS_LEFT + BUS_RIGHT pair).
@@ -158,6 +182,22 @@ All systems share the **same physical network (onenet, 192.168.203.x)** but are 
 
 ✅ All CA ports verified 2026-04-05/07 — `ANLDAQ/EPICS_para.sh` (DGS:L45-46, DXA:L23-24, DUO:L16-17, DFMA:L5, SlopeBox:L36-37, DUB:L8)
 
+### VME Crate Power PDUs
+
+Three network-accessible power distribution units (PDUs) were installed June/July 2020 to allow remote power-cycling of VME crates. Each PDU has individually controllable outlets. Access requires being on the onenet network (including sonata); credentials: `localadmin` / `localadmin`.
+
+| PDU | IP | Hostname | Controls |
+|-----|----|----------|----------|
+| vmepdu3 | 192.168.203.9 | vmepdu3 | Load A: VME32, VME07, VME08 — Load B: VME09, VME10, VME11 |
+| vmepdu1 | 192.168.203.64 | vmepdu1 | Load A: VME04, VME05, VME06 — Load B: VME01, VME02, VME03 |
+| vmepdu2 | 192.168.203.8 | vmepdu2 | Load 1: unused — Load 2: Microball/neutron detector VME crate |
+
+**Web UI:** `http://<ip>/mainWK.html#/app/loads`  
+**Operation:** Click the slider to change load state (off → on or on → off); confirm the popup.  
+**VME32** is the master trigger crate (MTRG + RTR3); the other VMEs are digitizer/RTRG crates.
+
+*Source: [wiki.anl.gov/gsdaq/Network_Accessible_Power_Control_Units_of_DGS](https://wiki.anl.gov/gsdaq/Network_Accessible_Power_Control_Units_of_DGS) — JTA, 2020-07-02. Visited 2026-04-23.*
+
 ---
 
 ## Hardware Summary Comparison
@@ -215,4 +255,4 @@ Gammasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
 
 ---
 
-*Source: DGS_tools_pack code exploration, link_sys_analysis.md, nfs_layout.md. Created: 2026-04-05. Updated: 2026-04-22 (added sbxPi_ioc.md to See Also; updated last-modified date).*
+*Source: DGS_tools_pack code exploration, link_sys_analysis.md, nfs_layout.md. Created: 2026-04-05. Updated: 2026-04-23 (added VME Crate Power PDUs section from wiki; previous update: 2026-04-22 added Table of Contents, sbxPi_ioc.md to See Also).*

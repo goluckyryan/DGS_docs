@@ -1,4 +1,5 @@
 # MTRG Master State Machine — `mstr_mach.vhd`
+Stability: C3 - Structural / stable
 
 **Source:** `~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/mstr_mach.vhd`  
 **Author:** John T. Anderson (ANL)  

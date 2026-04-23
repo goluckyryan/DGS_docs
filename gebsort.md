@@ -1,5 +1,7 @@
 # GEBSort — GRETINA/DGS Event Builder and Sorter
 
+Stability: C2 - Active / semi-stable
+
 _Source: `DGS_tools_pack/gebsort/` (cloned from `https://gitlab.phy.anl.gov/tlauritsen/gebsort`)_
 _Author: T. Lauritsen (ANL). Used by DGS, GRETINA, X-Array, DUO, and other detector systems._
 

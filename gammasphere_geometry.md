@@ -1,5 +1,7 @@
 # Gammasphere Detector Geometry
 
+Stability: C3 - Structural / stable
+
 **Source:** `DGS_tools_pack/dgs_analysis/armory/parquet_pysort/angtheta.dat`
 
 Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 rings** at fixed polar angles θ from the beam axis. GS numbers are fixed — they identify the physical position in the array, not the crystal installed there. ✅ verified 2026-04-18 — `dgs_analysis/armory/parquet_pysort/angtheta.dat` (110 lines, 17 unique θ values: 17.3°–162.7°)

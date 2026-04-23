@@ -1,5 +1,7 @@
 # DUO System PV List (VME66)
 
+Stability: C2 - Active / semi-stable
+
 Generated from: `boot/vme66.cmd` | EPICS CA port: 5080/5081 | IOC: 192.168.203.81
 Total PVs: 6901
 

@@ -1,5 +1,7 @@
 # dgs_analysis — DGS Analysis Code Collection
 
+Stability: C2 - Active / semi-stable
+
 ## Table of Contents
 - [What It Is](#what-it-is)
 - [Repository](#repository)
@@ -20,6 +22,8 @@
 - [Connections to Other Subsystems](#connections-to-other-subsystems)
 - [EventBuilder_PQ Benchmark Results](#eventbuilder_pq-benchmark-results)
 - [Notes](#notes)
+- [`misc.h` — Shared Utility Functions](#misch--shared-utility-functions)
+- [`EventBuilder_XR` — Parallel k-way Merge → ROOT TTree Output](#eventbuilder_xr--parallel-k-way-merge--root-ttree-output)
 - [Cross-References](#cross-references)
 - [analyzer_*.cpp — ROOT Analysis Scripts](#analyzercpp--root-analysis-scripts)
 
@@ -67,6 +71,7 @@ git clone --recursive git@gitlab.phy.anl.gov:dgs-tools-pack/dgs_analysis.git
 | `EventBuilder_Q` | Async double-buffered k-way merge; batch pre-decoding; pipelined ROOT writers | Fast I/O, large datasets |
 | `EventBuilder_PQ` | Parallel k-way merge with sector partitioning; N parallel threads | Maximum throughput, multi-core |
 | `EventBuilder_X` | Same engine as PQ, **Parquet output** (no ROOT dependency) | **Primary pipeline** — used by `ProcessRUN` |
+| `EventBuilder_XR` | Same engine as PQ/X, **ROOT TTree output**, optional GSL trace fitting + PZ correction | When ROOT output needed without Arrow/Parquet build dependency |
 
 **EventBuilder_S details:**
 - **Parallel scan pre-pass**: all input files are scanned in parallel threads (one thread per file) via `BinaryReader::Scan(true)`; reports hit counts, file sizes, and global timestamp range (earliest + latest) ✅ verified 2026-04-17 — `EventBuilder_S.cpp:L342-360`
@@ -659,6 +664,107 @@ Key improvements with ReadPool (vs without):
 - `angtheta.dat` and `map.dat` are geometry files mapping detector IDs to physical positions
 
 ---
+
+## `misc.h` — Shared Utility Functions
+
+_Source: `dgs_analysis/armory/fastEventContructor/misc.h` (303 lines, code-read 2026-04-23)_
+
+Header-only file included by `EventBuilder`, `EventBuilder_X`, `EventBuilder_XR`, and the ROOT analyzer scripts. Defines global state (channel/energy/PZ maps) and the complete pole-zero correction pipeline.
+
+### Global State
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `channelMap` | `map<ushort, map<ushort, short>>` | `boardID → channelID → detID` (positive=HPGe, negative=BGO) |
+| `VMEDIGtoBoard` | `map<ushort, map<ushort, ushort>>` | `VME → digID → boardID` |
+| `numberValidDetectors` | `ushort` | Total valid HPGe detectors loaded |
+| `energyCalSlope` / `energyCalIntercept` | `map<ushort, float>` | Per-detector energy calibration |
+| `pzCal` | `map<short, float>` | Per-detID PZ constant (from `dgs_pz.cal`) |
+| `pzCorrectExp` | `map<ushort, float>` | Per-detector exponential decay term `e^(-λ·M)` (from `GS_pz_correct_exp.txt`) |
+| `pzCorrectFactor` | `map<ushort, float>` | Per-detector slope from Vdc vs. S1 plot (from `GS_pz_correct_factor.txt`) |
+| `pre_rise_energy_last` | `map<ushort, uint>` | Last S1 (pre-rise energy) per detector — used by Algo 2 high-rate extrapolation |
+| `vdc_last` | `map<ushort, float>` | Last computed Vdc per detector — used by both Algo 1 and Algo 2 |
+| `timestamp_last` | `map<ushort, ullong>` | Last event timestamp per detector — used by Algo 1 |
+
+### Loader Functions
+
+| Function | Input File | Description |
+|----------|-----------|-------------|
+| `LoadChannelMapFromFile()` | `GS_channel_map.txt` | Loads `boardID/chID → detID` map; skips 2 header rows; `chID+5` for HPGe, `chID` for BGO (negative detID) |
+| `LoadEnergyCalFromFile()` | `GS_energy_cal.txt` | Per-detector `intercept slope` lines → `energyCalSlope`/`energyCalIntercept` |
+| `LoadPZCalFromFile()` | `dgs_pz.cal` | Per-detector PZ constant; skips `#`/`/`/blank lines; returns `false` if file absent (e_raw = S2−S1) |
+| `LoadPZCorrectionFromFile()` | `GS_pz_correct_exp.txt` + `GS_pz_correct_factor.txt` | Loads per-detector exp + factor maps for Algo 2 |
+
+### Lookup Functions
+
+| Function | Description |
+|----------|-------------|
+| `FindVMEDIGFromBoardID(boardID)` | Reverse lookup: `boardID → (VME, digID)` pair |
+| `FindBoardIDFromDetID(detID)` | Returns all `boardID`s associated with a `detID` |
+| `FindVMEDIGCHFromDetID(detID)` | Returns flat `[VME, DIG, CH, ...]` list for all hits mapping to `detID` |
+
+### Pole-Zero Correction Functions
+
+**`CalculateVdcAlgo1(pre_rise_energy, event_timestamp, detID) → float`**
+- Simple time-gap approach: if `Δt ≥ 450 µs` since last event for this detector, assume signal has fully decayed; compute `vdc = S1 / M` where `M=350` (sample time in ticks). If `Δt < 450 µs`, reuse cached `vdc_last[detID]`.
+- Updates `timestamp_last[detID]` and `vdc_last[detID]` on each call.
+- **Weakness:** coarse — uses only inter-event timing, no baseline sample. ✅ verified 2026-04-23 — `misc.h:L212-236`
+
+**`CalculateVdcAlgo2(pre_rise_energy, baseline, deltaT, detID) → float`**  _(default, `PZ_ALGO=2`)_
+- Two-regime approach using sampled baseline (`SAMPLED_BASELINE` from DIG) and `deltaT` (time since last discriminator in µs):
+  - **Normal rate** (`Δt ≥ 20 µs`): computes `vdc` analytically using `pzExp` (`e^(-λ·M)`) and `pzFactor` from the calibration files. Full formula: `vdc = ((baseline + S1)·(1-pzExp^(m/M)) - baseline·(1-pzExp^((M+m)/M))) / ((M+m)·(1-pzExp^(m/M)) - m·(1-pzExp^((M+m)/M)))` where `M=350` (pre-rise sample time), `m=1024` (baseline sample time).
+  - **High rate** (`Δt < 20 µs`): extrapolates: `vdc = vdc_last + pzFactor × (S1 - S1_last)` using cached values.
+  - Saves `vdc_last`/`S1_last` when `20 µs ≤ Δt ≤ 50 µs` (for future high-rate extrapolation).
+- ✅ verified 2026-04-23 — `misc.h:L238-273`
+
+**`PoleZeroCorrection(pre_rise_energy, post_rise_energy, vdc, detID) → float`**
+- Applies the correction once `vdc` is known: `energy = (1/M)·(S2 - S1·pzExp^((M+K)/M)) - (1-pzExp^((M+K)/M))·vdc` where `M=350`, `K=141` (rise time), `pzExp = pzCorrectExp[detID]`.
+- Returns `0` if `vdc ≤ 10` (unphysical baseline; correction skipped).
+- ✅ verified 2026-04-23 — `misc.h:L276-303`
+
+> **Which algorithm is active?** Controlled by `#define PZ_ALGO` in each EventBuilder: currently `PZ_ALGO=2` (Algo2) in `EventBuilder_X.cpp`, `EventBuilder_XR.cpp`, and `EventBuilder.cpp`. `PZ_ALGO=1` selects Algo1; any other value uses raw `SAMPLED_BASELINE` directly as Vdc.
+
+## `EventBuilder_XR` — Parallel k-way Merge → ROOT TTree Output
+
+_Source: `dgs_analysis/armory/fastEventContructor/EventBuilder_XR.cpp` (960 lines, code-read 2026-04-23)_
+
+Same parallel-sector engine as `EventBuilder_X` (QuickBounds pre-scan, ghost regions, double-buffered `ReadPool` per sector), but outputs a **ROOT TTree** instead of Apache Parquet. No Arrow/Parquet build dependency required.
+
+**TTree branches (one entry per event):**
+
+| Branch | Type | Description |
+|--------|------|-------------|
+| `evID` | `UInt_t` | Event ID (sequential per sector, with per-sector base offset) |
+| `NumHits` | `UInt_t` | Number of hits in this event |
+| `id[NumHits]` | `UShort_t[]` | Raw digitizer ID (`boardID*100 + channel`) |
+| `detID[NumHits]` | `Short_t[]` | Mapped detector ID (999=trigger, negative=BGO, 0=unmapped) |
+| `sum1[NumHits]` | `UInt_t[]` | Pre-rise trapezoidal sum (S1), full 24-bit |
+| `sum2[NumHits]` | `UInt_t[]` | Post-rise trapezoidal sum (S2), full 24-bit |
+| `e_raw[NumHits]` | `Float_t[]` | PZ-corrected energy from `CalculateVdcAlgo2 + PoleZeroCorrection` (ADC counts) |
+| `baseline[NumHits]` | `UInt_t[]` | `SAMPLED_BASELINE` from DIG packet |
+| `eventTS[NumHits]` | `ULong64_t[]` | `EVENT_TIMESTAMP` in ticks |
+| `trigTS[NumHits]` | `ULong64_t[]` | `TS_OF_TRIGGER_FULL` in ticks |
+| `deltaT[NumHits]` | `Double_t[]` | Time since last discriminator (µs); `(EVENT_TIMESTAMP - LAST_DISC_TIMESTAMP) / 100` |
+| `traceCount` | `UShort_t` | Number of traces saved (when `saveTrace=1`) |
+| `traceDetID[traceCount]` | `UShort_t[]` | Det ID per trace |
+| `traceLen[traceCount]` | `UShort_t[]` | Length of each trace |
+| `trace[traceCount][1250]` | `UShort_t[][]` | Waveform samples (max 1250 per trace) |
+| `tracePara[traceCount][4]` | `Float_t[][]` | GSL sigmoid fit: [A, T0, riseTime, B] |
+| `traceChi2[traceCount]` | `Float_t[]` | Chi² residual of sigmoid fit |
+
+**Key differences vs `EventBuilder_X` (Parquet):**
+- ROOT TTree output (requires ROOT; no Arrow/Parquet)
+- Includes `e_raw` (PZ-corrected energy, `PZ_ALGO=2`) + raw `baseline` + `deltaT` — richer per-hit data than Parquet schema
+- Sector output files written to `/dev/shm` (same as X), merged with `TFileMerger` at end
+- Optional GSL sigmoid trace fitting (same model as EventBuilder_S/X)
+
+**Usage:** `./EventBuilder_XR [outfile] [timeWindow] [useTrigTS] [saveTrace] [nMerge] [file-1] [file-2] ...`
+- `timeWindow` — coincidence window in ticks (10 ns each)
+- `useTrigTS` — 0=use EVENT_TIMESTAMP, 1=use TS_OF_TRIGGER_FULL for coincidence
+- `saveTrace` — 0=no traces, 1=save waveform traces
+- `nMerge` — number of parallel sector threads
+
+**When to use:** When the EventBuilder_X parallel-sector speed is needed but downstream tools require ROOT TTree format (not Parquet), and the build environment doesn't have Arrow installed. ✅ verified 2026-04-23 — `EventBuilder_XR.cpp:L1-30,L497-535,L787-797`
 
 ## Cross-References
 

@@ -1,5 +1,7 @@
 # DGS Reference Index — Register Maps & Hardware Drawings
 
+Stability: C3 - Structural / stable
+
 _Created: 2026-04-04. Last updated: 2026-04-07. For lookups, use `grep` on the CSV files._
 
 ---

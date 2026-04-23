@@ -1,9 +1,12 @@
 # ANLDAQ — Front-End DAQ GUI & Data Receiver
 
+Stability: C2 - Active / semi-stable
+
 ## Table of Contents
 - [What It Is](#what-it-is)
 - [Key Files & Roles](#key-files--roles)
 - [GUI Internals](#gui-internals)
+  - [CollectorBox PV Utilities](#collectorbox-pv-utilities-collectorbox)
 - [Architecture](#architecture)
 - [EPICS System Configurations](#epics-system-configurations-from-epics_parash)
 - [How to Use](#how-to-use)
@@ -128,6 +131,51 @@ Run once (manually or at build time) to regenerate `All_PV.json` after any IOC b
 `All_PV.json` is ~113k lines for a full Gammasphere config (all VME crates × all boards × all channels). ✅ verified 2026-04-08 — `ioc/All_PV.json`: 113,059 lines
 
 > 🔧 **Planned simplification:** Replace template-parsing approach with a static per-firmware suffix list + active board config. Design doc: `workspace/GUI_simplify.md`. See QUEUE.md: "ANLDAQ GUI — simplify PV generation".
+
+---
+
+### CollectorBox PV Utilities (`collectorBox/`)
+
+Three files in `ANLDAQ/collectorBox/` handle CollectorBox PV generation, download, and GUI loading:
+
+#### `collectorBox/findAllPV.py` — CollectorBox PV List Generator
+_Source: `DGS_tools_pack/ANLDAQ/collectorBox/findAllPV.py` (178 lines). Code-read 2026-04-23._ ✅ verified 2026-04-23
+
+CollectorBox-specific variant of `ioc/findAllPV.py`. Parses `.cmd` boot files and `.db` templates from the CollectorBox IOC to generate `CollectorBox_PV.json`.
+
+**Key differences from `ioc/findAllPV.py`:**
+- DB files are **flat** in the same directory as the script (no subdirectory); `db/foo.db` maps to `./foo.db` ✅ verified 2026-04-23 — `collectorBox/findAllPV.py:L138-141`
+- Supports **both** `$(Macro)` and `${Macro}` substitution styles (CollectorBox EPICS templates use both) ✅ verified 2026-04-23 — `collectorBox/findAllPV.py:L39-42` (`substitute_macros`)
+- Skips `unused_*.db` files — these are placeholder records for disconnected detector slots; excluding them keeps those DetNbr values out of the PV list so the GUI correctly treats them as unavailable ✅ verified 2026-04-23 — `collectorBox/findAllPV.py:L146-148`
+- Deduplicates `(db_path, macros)` pairs across multiple cmd files using a `seen` set ✅ verified 2026-04-23 — `collectorBox/findAllPV.py:L151-153`
+
+**Workflow:**
+1. Reads `bootFiles.txt` — currently contains `st_201.cmd` (single collector box) ✅ verified 2026-04-23 — `collectorBox/bootFiles.txt`
+2. `parse_dbloadrecords()` — same as ioc version: scans for `dbLoadRecords("db/foo.db", "MACRO=VAL,...")` lines
+3. `parse_template_with_macros()` — per-record macro substitution + field extraction; same `ignore_fields` set as ioc version; merges `_RBV` suffix records
+4. Outputs `CollectorBox_PV.json` as `[["GS201_ctl_reset_startup_rom", {field_dict}], ...]`
+
+**PV naming convention:** `GS<DetNbr>_<pvname>` (e.g. `GS201_ctl_reset_startup_rom`). Only prefixes starting with `GS` or `MOD` are kept; others are silently skipped ✅ verified 2026-04-23 — `collectorBox/findAllPV.py:L35-37`
+
+#### `collectorBox/rsyncDB.sh` — Download CollectorBox DB Files
+_Source: `DGS_tools_pack/ANLDAQ/collectorBox/rsyncDB.sh` (15 lines). Code-read 2026-04-23._ ✅ verified 2026-04-23
+
+One-shot sync script to download the live CollectorBox DB and cmd files from the running IOC host:
+- Requires `ANLDAQ_DIR` environment variable (set by `EPICS_para.sh`); exits with error if absent ✅ verified 2026-04-23 — `rsyncDB.sh:L3-6`
+- Target host: **192.168.203.42** (CollectorBox IOC host); user: `dgs`; key: `~/.ssh/id_ed25519` ✅ verified 2026-04-23 — `rsyncDB.sh:L11-14`
+- Downloads: `db/*.db` and `iocBoot/iocCollectorApp/*.cmd` from `/shared/EPICS/CollectorBox_RevA/` on the remote ✅ verified 2026-04-23 — `rsyncDB.sh:L13-14`
+- Run after deploying a new CollectorBox firmware/IOC to refresh the local templates before re-running `findAllPV.py`
+
+#### `collectorBox/cb_json2pv.py` — CollectorBox PV Loader (GUI)
+_Source: `DGS_tools_pack/ANLDAQ/gui/cb_json2pv.py` (65 lines). Code-read 2026-04-23._ ✅ verified 2026-04-23
+
+Loads `CollectorBox_PV.json` into `PV` objects for the commander GUI. Called at startup with graceful fallback.
+
+**`LoadCollectorBoxPVs(file_path)`** — single public function:
+1. Reads JSON; skips entries without `_` in name or not prefixed with `GS`/`MOD` ✅ verified 2026-04-23 — `cb_json2pv.py:L29-37`
+2. Creates `PV` objects via `SetName()`, populates enum state strings from `_STATE_FIELDS` set (ZNAM/ONAM + all ZRST…FFST variants) ✅ verified 2026-04-23 — `cb_json2pv.py:L4-10,L39-42`
+3. Sets `ReadONLY=True` if `RBV==ONLY`; `RBVExist=True` if `RBV==Exist`; neither if no RBV field ✅ verified 2026-04-23 — `cb_json2pv.py:L44-52`
+4. Returns `(pv_list, board_set)` — `pv_list` sorted by PV name; `board_set` sorted list of unique detector prefixes (e.g. `['GS022', 'GS042', ...]`) ✅ verified 2026-04-23 — `cb_json2pv.py:L54-57`
 
 ---
 
@@ -514,6 +562,9 @@ Key facts:
   - **Data size polling:** every 15 s during a run, `du -sh <data_folder>/<run_name>/` via SSH
   - **Progress mapping:** `START_MSGS`/`STOP_MSGS` dicts map raw script output substrings to friendly status messages (e.g. "tcpReceiverMT" → "Opening receiver (MT)...", "is running" → "DAQ started!")
   - **Threading:** all SSH calls run in daemon threads; GUI updates posted via `self.after(0, ...)`
+  - **Comment handling:** blank comment becomes `"no comment"`; non-empty comment is passed through unchanged after `strip()` ✅ verified 2026-04-22 — `run_control_gui.py:L259-260`
+  - **Run folder size path:** polled path is `<dataFolder>/<expName>_<NEXT_RUN-1 padded to 3 digits>/` (for the active run, not NEXT_RUN) ✅ verified 2026-04-22 — `run_control_gui.py:L241-244`
+  - **Error handling:** any SSH/parse exception appends `ERROR: ...`, updates the status label, and returns UI state to idle ✅ verified 2026-04-22 — `run_control_gui.py:L321-324`
 - `basic_settings_DGS.sh` — sets all 44 DIG boards (VME01–12, 2–4 DIGs each, ch 5–9) to a known-good CFD baseline; see details below
 - `basic_settings_TACII.sh` — minimal single-VME (VME10) TACII test bench setup; enables MTRG CS + SYSMON, enables MDIG1, sets `EN_MAN_AUX on`, clears veto
 - `gui/scripts/basic_settings_LED.py` — Python equivalent of basic_settings_DGS.sh for LED mode (currently hardcoded VME66 = test stand; threshold=300) ✅ verified 2026-04-17 — `basic_settings_LED.py:L12` (`THRESHOLD=300`), `L27` (`VME_RANGE = range(66, 67)  # VME66`)

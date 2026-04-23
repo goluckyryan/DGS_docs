@@ -84,7 +84,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | File | Description |
 |------|-------------|
 | [collector_fpga.md](collector_fpga.md) | Collector box FPGA firmware: CtrlFPGA (housekeeping/monitoring), StripeFPGA (relay/stripe/LED), pickoff card FPGAs (SBX Interface + Extension) |
-| [collectorboxpi.md](collectorboxpi.md) | Collector box soft IOC on Raspberry Pi; HV control; PXE boot setup |
+| [collectorboxpi.md](collectorboxpi.md) | Collector box EPICS soft IOC on Raspberry Pi (aarch64/Debian 13): PXE boot (fs2.onenet), pi0–pi3 MAC map, st_201–204.cmd generation (GenerateCmdFile.py), Pre_EPICS_Collector SPI scan libs (NonEPICS_SPI_lib.c, NonEPICS_Collector_lib.c, DPRAM_access.c), HV PVs, db/ templates (18 types), commissioning workflow (Add_Remove_Detectors.sh), systemd service, Discord integration, GS hole→pi assignments |
 | [collectorbox_PVs.md](collectorbox_PVs.md) | CollectorBox PV list: 1,431 records/detector; GS/MOD/VME_GS/Ge_ID numbering explained |
 | [collectorbox_devicesupport.md](collectorbox_devicesupport.md) | EPICS device support internals: SPI driver, CAMAC_IO link, conversion coefficients |
 | [gammasphere_geometry.md](gammasphere_geometry.md) | Gammasphere array geometry: 110 GS holes, 17 rings, θ angles per hole, full hole→angle map |
@@ -171,6 +171,45 @@ Detailed plain-English summaries of key FPGA VHDL source files. Generated 2026-0
 - **IOC crates:** 12 VME (192.168.203.141–145, 177–183)
 - **Admin host:** spark-ca9f / DGX Spark (192.168.203.132) — replaced pi5-dgs as General DGS host 2026-04-15
 - **Data host:** DCS2 (`dcsu@DCS2.onenet`)
+
+---
+
+## Stability Classes
+
+Knowledge Base files should carry a stability label near the top of the file:
+
+- `Stability: C1 - Operational / volatile`
+- `Stability: C2 - Active / semi-stable`
+- `Stability: C3 - Structural / stable`
+
+Meaning:
+
+- **C1 — Operational / volatile**
+  - Facts likely to change day-to-day or week-to-week
+  - Examples: current machine state, temporary workarounds, live operational status, recent outages, procedures actively being adjusted
+
+- **C2 — Active / semi-stable**
+  - Facts likely to change month-to-month
+  - Examples: current scripts, deployed workflows, active system roles, implementation details that may drift over time
+
+- **C3 — Structural / stable**
+  - Facts expected to remain valid for 6+ months
+  - Examples: hardware architecture, wiring, geometry, protocols, register maps, packet/data formats
+
+How to use these:
+
+- Stability is a **relevance hint**, not a truth ranking.
+- For questions about **current status / latest state / what is happening now**, C1 is often most relevant.
+- For questions about **current implementation or workflow**, C2 is often most relevant.
+- For questions about **architecture, mapping, protocol, or long-term design facts**, C3 is often most relevant.
+- If a C1 operational note conflicts with a C3 structural fact, surface the conflict explicitly instead of silently preferring one.
+
+Important:
+
+- **Stability is separate from verification.**
+- A C3 fact can still be wrong.
+- A C1 fact can still be the most relevant answer.
+- Keep verification tags, sources, and review dates separate from the stability class.
 
 ---
 

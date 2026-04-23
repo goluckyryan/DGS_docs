@@ -1,4 +1,5 @@
 # Collector Box FPGA Firmware
+Stability: C3 - Structural / stable
 _Source: `DGS_tools_pack/collector_FPGA/` (local repo)_
 _Explored: 2026-04-06_
 
@@ -199,7 +200,7 @@ Note: Slots are addressed in the order S1, S3, S5, S2, S4, S6 (odd slots first).
 
 ### Register Map Summary
 
-Per-slot registers at addresses 64–111 (8 registers × 6 slots, base 64 + slot_offset×8): ✅ verified 2026-04-18 — `collectorboxpi/Pre_EPICS_Collector/SPI_Address.md` (Stripe FPGA Register Map)
+Per-slot registers at addresses 64–111 (8 registers × 6 slots, base 64 + slot_offset×8): ✅ verified 2026-04-23 — `collectorboxpi/Pre_EPICS_Collector/SPI_Address.md:L190-L239`, `FPGA/collectorBox/CollectorBox_StripeFPGA/StrpFPGA_register_instantiation.vhd:L6-L23,L60-L83` (register names, slot bases, LED/sandbox asymmetry, reserved/code_revision mapping)
 
 | Offset | Name | Function |
 |--------|------|----------|
@@ -292,4 +293,9 @@ See: `knowledgeBase/collectorboxpi.md`, `knowledgeBase/collectorbox_devicesuppor
 - `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC, PXE boot, HV control
 - `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector ✅ verified 2026-04-16)
 - `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support internals, SPI driver, CAMAC_IO
+- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC, PXE boot, HV control
 - `knowledgeBase/sbx.md` — Slope Box Extension hardware, BGO HV, GS_ID dongle
+
+---
+
+_Last reviewed: 2026-04-23_

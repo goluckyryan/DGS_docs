@@ -1,5 +1,7 @@
 # ANLDAQ — GUI Window Reference
 
+Stability: C2 - Active / semi-stable
+
 _Split from `ANLDAQ.md` on 2026-04-16. Covers all board/subsystem window modules + trigger setup scripts._  
 _Source: `DGS_tools_pack/ANLDAQ/gui/`._
 

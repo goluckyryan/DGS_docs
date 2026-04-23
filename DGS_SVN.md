@@ -1,5 +1,7 @@
 # DGS_SVN — Legacy SVN Repository Mirror
 
+Stability: C3 - Structural / stable
+
 ## What It Is
 
 A mirror/checkout of the DGS legacy **SVN (Subversion)** repository. This is the historical source of DGS code before the migration to Git.
@@ -141,7 +143,7 @@ Useful for:
 | SBX/SlopeBox: GS_ID dongle, BGO HV map, pickoff card | [`sbx.md`](sbx.md) |
 | ANLDAQ/tcpReceiverMT — supersedes legacy `gtReceiver/` in SVN | [`ANLDAQ.md`](ANLDAQ.md) |
 | MγRIAD hardware documentation (PDF manual, memory map) | [`myriad.md`](myriad.md) |
-| PSG auto-DB generation tool (used CSV register maps; see `psg/`) | [`QUEUE.md`](../../workspace/QUEUE.md) (pending task) |
+| PSG auto-DB generation tool (used CSV register maps; see `psg/`) | Not yet documented — see `DGS_SVN/psg/` in local SVN checkout |
 | PDF index — includes many docs referenced from this SVN | [`PDF_index.md`](PDF_index.md) |
 | Hardware drawings / reference index | [`reference_index.md`](reference_index.md) |
 | Data structures: GEB header formats (GEB_TYPE_DGS=14, DGSTRIG=15) | [`data_structures.md`](data_structures.md) |

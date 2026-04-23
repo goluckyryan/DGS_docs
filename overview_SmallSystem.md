@@ -1,5 +1,7 @@
 # DGS Small Systems Overview — DuoGe (DUO) and X-Array (DXA)
 
+Stability: C2 - Active / semi-stable
+
 > These are smaller, standalone HPGe DAQ systems that share the onenet network
 > (192.168.203.x) and the same ANLDAQ software as the full Gammasphere DGS,
 > but run independently with their own EPICS CA ports and VME IOCs.

@@ -1,5 +1,7 @@
 # Typical DGS Run Procedures
 
+Stability: C2 - Active / semi-stable
+
 **Source:** https://wiki.anl.gov/gsdaq/Typical_DGS_run_procedures  
 **Note:** This page describes legacy (pre-ANLDAQ) procedures using GEBSort. Current experiment (exp2008_Chiara) uses `start_run.sh`/`stop_run.sh` from ANLDAQ. Cross-check with `expMemory_2008_Chiara.md` for current setup.
 

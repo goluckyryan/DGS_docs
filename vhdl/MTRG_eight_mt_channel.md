@@ -1,6 +1,7 @@
 # eight_mt_channel.vhd — Plain English Summary
 _Source: ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/eight_mt_channel.vhd_
 _Summarized: 2026-04-15 | Last verified: 2026-04-22_
+Stability: C3 - Structural / stable
 
 ## Purpose
 Aggregates eight `mt_input_channel` instances (one per Router, links A–H) and one `calc_total_sum` instance into a single block, keeping top.vhd clean. Produces the detector-wide X-plane and Y-plane totals (`GLOBAL_X_TOTAL`, `GLOBAL_Y_TOTAL`) and the global throttle request. This is the direct feeder into the trigger algorithm layer.

@@ -1,5 +1,7 @@
 # RTRG — Router Firmware
 
+Stability: C3 - Structural / stable
+
 ## Table of Contents
 
 - [Target Device](#target-device)

@@ -1,5 +1,7 @@
 # DIG Firmware — Per-Channel Signal Processing
 
+Stability: C3 - Structural / stable
+
 _Split from `deep_fpga_DIG.md` on 2026-04-10 (file exceeded 1200 lines)._
 _Source: `DGS_tools_pack/raw_FPGA/Dig*/` — `jta_channel.vhd`, `thresh_disc.vhd`, `Digitizer.vhd`. PDF: `ANL Digitizer Firmware for Experts.pdf`._
 

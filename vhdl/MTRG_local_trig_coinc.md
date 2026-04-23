@@ -1,4 +1,5 @@
 # MTRG Local Trigger Coincidence — `local_trig_coinc.vhd`
+Stability: C3 - Structural / stable
 
 **Source:** `~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/local_trig_coinc.vhd`  
 **Author:** ANL (John T. Anderson)  

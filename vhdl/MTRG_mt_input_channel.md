@@ -1,6 +1,7 @@
 # mt_input_channel.vhd — Plain English Summary
 _Source: ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/mt_input_channel.vhd_
 _Summarized: 2026-04-15_
+Stability: C3 - Structural / stable
 
 ## Purpose
 Encapsulates one complete Master Trigger input block for one Router. Bundles DC-balance recovery (DCBAL_IN) and Router data stream parsing (mt_pipeline) into a single entity, applies channel masking, and exposes per-digitizer data plus aggregate status maps. Eight of these are instantiated (one per Router connection) in `eight_mt_channel.vhd`.

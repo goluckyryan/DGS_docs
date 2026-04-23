@@ -1,5 +1,7 @@
 # N=126 Target Wheel — Encoder Interface System
 
+Stability: C3 - Structural / stable
+
 **Source:** `DGS_tools_pack/DGS_SVN/psg/N126_target_wheel/` (SVN archive)  
 **FPGA firmware:** `DGS_SVN/psg/N126_target_wheel/Firmware/source/` (ISE 14.7, Xilinx XC6SLX9-2TQG144)  
 **EPICS IOC (Pi):** `DGS_SVN/psg/N126_target_wheel/RaspberryPi/N126App_RevA/`  

@@ -1,5 +1,7 @@
 # CollectorBox Device Support — EPICS Driver Internals
 
+Stability: C2 - Active / semi-stable
+
 Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/CollectorApp/src/`
 ✅ Key claims verified 2026-04-06 against `CollectorSupport.c` (lines 30–326): 24-bit SPI transactions, CAMAC_IO/camacio link structure, asyn rejection rationale.
 
@@ -50,9 +52,9 @@ Uses the **camacio** EPICS link structure (not VME_IO) to embed SPI transaction 
 struct camacio {
     short b;    // DEVSEL (GPIO bus value) — which device to select
     short c;    // transaction length in bits (always 24)
-    short n;    // bits 7:0 = register address; bit 7 = R/W flag
-    short a;    // AND mask (for bi/bo/mbbi/mbbo bit extraction)
-    short f;    // OR mask / shift
+    short n;    // register address field; support code masks it to 7 bits with `n & 0x007F`
+    short a;    // AND mask (or, for some AO write-only cases, an OR mask) for bit extraction/update
+    short f;    // shift factor / bit index (often masked with `f & 0x000F` in BI support)
     char  *parm;
 };
 ```
@@ -61,7 +63,7 @@ In `.db` files this appears as:
 ```
 field(OUT, "#<b> <c> <n> <a> <f> @")
 ```
-Example: `OUT("#5 24 20 0 0 @")` → DEVSEL=5, 24-bit, addr=20, write
+Example: `OUT("#5 24 20 0 0 @")` → DEVSEL=5, 24-bit, addr=20, write ✅ verified 2026-04-22 — `CollectorSupport.c:L288-L315`
 
 ### Record Init Flow
 1. `init_record_xxx()` called once at IOC load
@@ -74,7 +76,7 @@ Example: `OUT("#5 24 20 0 0 @")` → DEVSEL=5, 24-bit, addr=20, write
 2. Sets DEVSEL via `Set_DEVSEL(b)`
 3. Calls `Do_SPI1_transaction(RWflag, addr, data)`
 4. For reads: stores result back into PV's `rval`/`val` field
-5. For bi/bo/mbbi/mbbo: applies AND/OR masks to extract/set individual bits
+5. For bi/bo/mbbi/mbbo: applies masks and shift factors to extract/set individual bits ✅ verified 2026-04-22 — `CollectorSupport_BI.c:L148-L156`, `CollectorSupport_BO.c:L118-L121`, `CollectorSupport_MBBO.c:L132-L152`
 
 ---
 

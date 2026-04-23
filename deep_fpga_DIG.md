@@ -1,5 +1,7 @@
 # DIG — Digitizer Firmware
 
+Stability: C3 - Structural / stable
+
 ## Table of Contents
 
 - [Target Devices](#target-devices)

@@ -1,4 +1,7 @@
 # DIG Firmware Expert Reference
+
+Stability: C3 - Structural / stable
+
 _Source: ANL Digitizer Firmware for Experts PDF (SVN rev #6185, Sept 13 2021, J. Anderson)_
 _72 pages. Intended for users working directly with firmware parameters._
 

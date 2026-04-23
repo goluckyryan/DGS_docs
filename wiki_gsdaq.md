@@ -1,5 +1,7 @@
 # GS DAQ Wiki — Index & Key Notes
 
+Stability: C1 - Operational / volatile
+
 **URL:** https://wiki.anl.gov/gsdaq  
 **Status:** Official ANL wiki for Gammasphere/DGS DAQ. May be outdated — check page edit dates when relying on specifics.
 
@@ -35,7 +37,7 @@
 
 ### Support Devices
 - [Crate and Board Mapping](https://wiki.anl.gov/gsdaq/CrateAndBoardMapping) — VME crate naming (VME01–VME11 + VME32=trigger crate)
-- [Network Accessible Power Control Units](https://wiki.anl.gov/gsdaq/Network_Accessible_Power_Control_Units_of_DGS) — PDU control
+- [Network Accessible Power Control Units](https://wiki.anl.gov/gsdaq/Network_Accessible_Power_Control_Units_of_DGS) — PDU control ✅ visited 2026-04-23 → added VME PDU section to `hardware_architecture.md`: 3 PDUs (vmepdu1/2/3), IPs 203.9/203.64/203.8, crate-to-load-group mapping, web UI URL, credentials
 - [MyRIAD User Manual PDF](https://wiki.anl.gov/wiki_gsdaq/images/4/40/MyRIAD_User_Manaual.pdf)
 
 ### On-Site Experts

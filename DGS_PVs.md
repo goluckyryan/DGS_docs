@@ -1,5 +1,7 @@
 # DGS PV Namespace — Pattern Reference
 
+Stability: C2 - Active / semi-stable
+
 Source: `DGS_tools_pack/ioc/db/*.template` + `boot/vme*.cmd`
 EPICS CA: DGS 5064/5065 | DXA 5072/5073 | DUO 5080/5081
 Total raw PVs: ~88,700 VME IOC PVs (DIG+RTR+MTRG) + ~158,000 Collector Box PVs = ~247,000 system-wide (see Section 6 summary)

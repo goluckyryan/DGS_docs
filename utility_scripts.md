@@ -1,5 +1,7 @@
 # DGS Utility Scripts
 
+Stability: C2 - Active / semi-stable
+
 Collection of utility/analysis scripts found in the DGS SVN and tools pack.
 
 > ⚠️ **Legacy caveat:** Most scripts here come from the SVN archive (`DGS_SVN/`) — treat them as historical reference.

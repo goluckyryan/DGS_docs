@@ -1,5 +1,7 @@
 # ioc — EPICS IOC Configuration & Firmware Repository
 
+Stability: C2 - Active / semi-stable
+
 ## What It Is
 
 The **IOC (Input/Output Controller) repository** — contains all files needed to bring up a DGS VME crate:

@@ -1,6 +1,7 @@
 # overlap_mach.vhd — Plain English Summary
 _Source: ~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/overlap_mach.vhd_
 _Summarized: 2026-04-15_
+Stability: C3 - Structural / stable
 
 ## Purpose
 Generic two-signal coincidence detector. Given any two level signals (SIG_A, SIG_B), outputs a one-clock-tick `OVERLAP_OCCURRED` pulse if both signal rising edges arrive within a programmable time window (OVERLAP_DELAY). Symmetric: either signal may arrive first. This is a simpler/more generic version of the same algorithm embedded in disc_mach.vhd — disc_mach also classifies the result as CLEAN/DIRTY/BGO-only, whereas this module only answers "did they overlap?" (yes/no). ✅ verified 2026-04-17 — `overlap_mach.vhd` entity `overlap_machine`

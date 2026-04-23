@@ -1,5 +1,7 @@
 # SBX — Slope Box Extension
 
+Stability: C3 - Structural / stable
+
 **Full name:** Slope Box Extension (SBX)  
 **Also called:** Pickoff Card (in some contexts the pickoff is a sub-board of the SBX)  
 **Source:** `DGS_SVN/dgs/SlopeBoxExtension/`, `DGS_SVN/dgs/SlopeBoxInterface/`, [wiki: The Slope Box Extension](https://wiki.anl.gov/gsdaq/The_Slope_Box_Extension)

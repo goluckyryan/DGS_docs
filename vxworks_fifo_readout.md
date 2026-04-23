@@ -1,5 +1,7 @@
 # VxWorks FIFO Readout Internals
 
+Stability: C2 - Active / semi-stable
+
 Deep-dive documentation for the VME FIFO readout pipeline in the DGS IOC. Covers DMA buffer architecture, trigger FIFO readout (`readTrigFIFO.c`), and Type-F synthetic headers for both digitizer and trigger paths.
 
 _Split from `vxworks.md` on 2026-04-20. Sources: `dgsDrivers/dgsDriverApp/src/`, `DGS_SVN/dgs/Documentation/`_
@@ -17,7 +19,7 @@ _Source: `DGS_SVN/dgs/Documentation/Formal/Software/howTheSenderWorks.docx` (T. 
    - Takes a free buffer from **`qFree`** via `msgQReceive()` (VxWorks message queue, FIFO order).
    - Initiates **DMA transfer** from digitizer VME FIFO directly into IOC memory (no CPU copy).
    - Posts the filled buffer onto **`qWritten`** via `msgQSend()` for the sender to pick up.
-3. **`SendReceiveSupport.c`** drains `qWritten` → sends data to Linux cluster over TCP (port 9001) → returns buffers to `qFree` via `putFreeBuf()`.
+3. **`SendReceiveSupport.c`** drains `qWritten` → sends data to Linux cluster over TCP (port 9001) ✅ verified 2026-04-22 — `SendReceiveSupport.c:L120` (`#define SERVER_PORT 9001 //magic define copied from original psNet.h.`; `SOCK_STREAM` at L134) → returns buffers to `qFree` via `putFreeBuf()`.
 
 **Three VxWorks msgQ queues** (all `MSG_Q_FIFO`, capacity `RAW_Q_SIZE=200`, message size = `sizeof(rawEvt*)` = 4 bytes — they pass *pointers*, not data):
 | Queue | Role |

@@ -1,5 +1,7 @@
 # TTCL — Trigger Timing and Control Link Specification
 
+Stability: C3 - Structural / stable
+
 **Source:** `20160418 trig command link.pdf` (v2.1, last revised Dec 3, 2013)
 **Authors:** J. Anderson / S. Zimmermann (GRETINA originators); all revisions after Aug 4, 2006 by J. Anderson
 

@@ -1,5 +1,7 @@
 # DIG — Event Packet Format
 
+Stability: C3 - Structural / stable
+
 → Part of the DIG Digitizer Firmware documentation. See also **[deep_fpga_DIG.md](deep_fpga_DIG.md)** (architecture, source files, signal flow) and **[deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md)** (per-channel signal processing).
 
 ## Table of Contents

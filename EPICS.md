@@ -1,5 +1,7 @@
 # EPICS — Experimental Physics and Industrial Control System
 
+Stability: C3 - Structural / stable
+
 _A primer for DGS: how EPICS works under the hood, record types, tools, and Python integration._
 
 ---

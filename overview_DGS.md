@@ -1,5 +1,7 @@
 # DGS System Overview — Gammasphere (Full System)
 
+Stability: C2 - Active / semi-stable
+
 > See also: `overview_SmallSystem.md` for DuoGe (DUO) and X-Array (DXA) small systems.
 
 ## What is DGS?

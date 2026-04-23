@@ -1,5 +1,7 @@
 # VxWorks Cross-Compiler for DGS IOC (MVME5500)
 
+Stability: C2 - Active / semi-stable
+
 ## Table of Contents
 
 - [What this project does](#what-this-project-does)

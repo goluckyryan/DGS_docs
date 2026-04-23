@@ -1,4 +1,7 @@
 # con6 & lnfill Build Environment
+
+Stability: C2 - Active / semi-stable
+
 _Source: `DGS_tools_pack/ln2con/Con6_Inventory.md`, `Plan.md`, `Con6_Retirement_Plan.md`_
 _Documented: 2026-04-19 by General DGS_
 
@@ -13,7 +16,7 @@ Still critical today:
 - **VxWorks 5.1.1 68040 cross-compiler** (Solaris/SPARC native — the ONLY toolchain that can rebuild `lnfiller.vx`)
 - **Production lnfill tree** (`Rev6-01-04/`) mirrored from ln2con
 
-⚠️ **con6 must stay alive to rebuild the lnfill IOC binary.** If con6 fails and the source/toolchain are not archived, `lnfiller.vx` cannot be recompiled.
+⚠️ **con6 must stay alive to rebuild the lnfill IOC binary.** If con6 fails and the source/toolchain are not archived, `lnfiller.vx` cannot be recompiled. ✅ verified 2026-04-23 — `ln2con/Con6_Inventory.md` (CVS `lnfill/` source + `vxw_5.1.1/solaris.68k/bin/cc68k` toolchain); `ln2con/Plan.md` (rebuild path uses con6 CVS + `cc68k`, notes Solaris/SPARC-native toolchain)
 
 ✅ verified 2026-04-18 — direct SSH to `dgs@192.168.203.136` + `Con6_Inventory.md` survey
 

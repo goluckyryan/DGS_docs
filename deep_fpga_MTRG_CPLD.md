@@ -1,4 +1,7 @@
 # DGS_CPLD — Fast Strobe CPLD
+
+Stability: C3 - Structural / stable
+
 _Source: `DGS_tools_pack/raw_FPGA/MTRG/Firmware/DGS_CPLD/` + CPLD schematic + `deep_fpga_MTRG_MAIN.md`. Created: 2026-04-06._
 
 ## Table of Contents

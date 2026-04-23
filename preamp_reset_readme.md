@@ -1,5 +1,7 @@
 # Preamp Reset Handling in the DGS Digitizer FPGA
 
+Stability: C3 - Structural / stable
+
 **Source:** `FPGA/DIG/PREAMP_RESET.md` (Ryan Tang, 2026-04-17)  
 **Audience:** Undergraduates / anyone new to the DGS system  
 **Scope:** `thresh_disc.vhd`, `jta_channel.vhd`, `Digitizer.vhd`, `SERDES_RX_Mach.vhd`

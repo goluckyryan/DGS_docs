@@ -1,6 +1,25 @@
 # DGS PDF Document Index
+
+Stability: C2 - Active / semi-stable
+
 _Root: `/home/dgsspark/DGS_tools_pack/DGS_docs/`_
 _Indexed: 2026-04-05_
+_Last organized: 2026-04-22_
+
+---
+
+## Table of Contents
+
+- [Firmware / Digitizer](#firmware--digitizer)
+- [Firmware / Master Trigger](#firmware--master-trigger)
+- [Links (SERDES Protocol Specs)](#links-serdes-protocol-specs)
+- [Modules](#modules)
+- [Cabling](#cabling)
+- [Datasheets (Digitizer Hardware Components)](#datasheets-digitizer-hardware-components)
+- [SBX Extension / Preamp Interface](#sbx-extension--preamp-interface)
+- [Historical System Documentation (SVN Archive)](#historical-system-documentation-svn-archive)
+- [Priority Queue (Suggested Order)](#priority-queue-suggested-order)
+- [Cross-References](#cross-references)
 
 ---
 

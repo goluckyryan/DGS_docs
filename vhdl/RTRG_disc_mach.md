@@ -1,6 +1,7 @@
 # disc_mach.vhd — Plain English Summary
 _Source: ~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/disc_mach.vhd_
 _Summarized: 2026-04-15_
+Stability: C3 - Structural / stable
 
 ## Purpose
 Classifies one Ge+BGO detector pair event as **CLEAN**, **DIRTY**, or **BGO-only** using leading-edge detection and a programmable overlap coincidence window. One instance per Ge/BGO pair; chan_in.vhd instantiates five of these per digitizer channel (plus one for Clover mode). Outputs are one-clock-tick wide pulses; chan_in.vhd stretches them with retriggerable one-shots.

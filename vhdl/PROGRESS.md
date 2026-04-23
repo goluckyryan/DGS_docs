@@ -1,4 +1,7 @@
 # VHDL Summary Progress
+Stability: C2 - Active / semi-stable
+
+Quick checklist/index of detailed VHDL module analysis pages under `knowledgeBase/vhdl/`. This file tracks coverage status rather than firmware behavior details.
 
 ## RTRG (~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/)
 - [x] chan_in.vhd → RTRG_chan_in.md
@@ -17,3 +20,9 @@
 - [x] MYRIAD_TRIGGER.vhd → MTRG_MYRIAD_TRIGGER.md     (tag 20220705)
 - [x] mstr_mach.vhd → MTRG_mstr_mach.md               (Master State Machine, full 20-frame TTCL output)
 - [x] local_trig_coinc.vhd → MTRG_local_trig_coinc.md (Local-vs-local trigger coincidence algorithm)
+
+---
+
+**Last reviewed:** 2026-04-22  
+**Purpose:** Coverage checklist for per-module VHDL notes under `knowledgeBase/vhdl/`  
+**See also:** [fpga.md](../fpga.md), [deep_fpga_RTRG.md](../deep_fpga_RTRG.md), [deep_fpga_MTRG_MAIN.md](../deep_fpga_MTRG_MAIN.md)

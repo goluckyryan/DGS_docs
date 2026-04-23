@@ -1,5 +1,7 @@
 # collectorboxpi — EPICS Soft IOC for Collector Box (Raspberry Pi)
 
+Stability: C2 - Active / semi-stable
+
 > 🔗 **Related:** `sbx.md` — SBX (Slope Box Extension) hardware that this IOC controls | `collectorbox_PVs.md` — full PV list | `gammasphere_geometry.md` — GS hole numbering
 
 ## What It Is
@@ -25,7 +27,7 @@ Compiled against **EPICS 7.0.10** (patch level 1). Self-contained repo: includes
   - `b8:27:eb:39:f2:ce` → pi0 (spare, commented out)
   - `b8:27:eb:df:8c:d6` → pi1 (testing Pi — **active, not commented out**) ✅ verified 2026-04-08 — `rc.local:L11`
   - `b8:27:eb:91:bd:1b` → pi2 (commented out)
-  - **Note:** pi1/pi2/pi3 collector boxes are **not yet implemented** (hardware not deployed). The testing pi1 MAC (`df:8c:d6`) is active in rc.local — if plugged in it claims hostname `pi1`, but this is harmless since there is no production pi1 yet.
+  - ~~**Note:** pi1/pi2/pi3 collector boxes are **not yet implemented** (hardware not deployed).~~ **CORRECTED 2026-04-23:** All 4 pi collector boxes (pi0–pi3) are deployed and running as of commit 2309422 (2026-04-13, "all pi changed to NFS server"). `st_202.cmd`, `st_203.cmd`, and `st_204.cmd` all have full `DetNbr` records (196, 229, 175 entries respectively). Commit was authored from `pi3-0`, confirming pi3 was live. ✅ verified 2026-04-23 — commit 2309422, `st_202.cmd` (196 DbLoadRecords), `st_203.cmd` (229), `st_204.cmd` (175)
   - These 3 also have tftpboot symlink dirs on piserver (→ debian13Boot)
 
 ---
@@ -408,13 +410,13 @@ Collector boxes use their own CA port — check `collectorBox.sh` for the active
 ### Global Data Structure (`CollectorSupport.h`)
 ```c
 typedef struct {
-    unsigned short GLBL_CollectorDataArray[32][1024];   // raw data per device  ✅ verified 2026-04-22 — CollectorSupport.h:L30
-    unsigned short GLBL_CollectorControlVals[32][256];  // control values per device  ✅ verified 2026-04-22 — CollectorSupport.h:L31
-    epicsFloat64   GLBL_CollectorFloatVals[32][256];    // float mailboxes
-    unsigned short *GLBL_CollectorArrayPtr[32];         // walking pointers
-    epicsFloat64   GLBL_ConversionCoefficients[64][2]; // m,b for 64 conversions
-    epicsFloat64   PT100Coefficients[5];               // PT100 temp sensor fit
-    epicsFloat64   PT500Coefficients[5];               // PT500 temp sensor fit
+    unsigned short GLBL_CollectorDataArray[32][1024];   // raw data per device  ✅ verified 2026-04-22 — CollectorSupport.h:L141
+    unsigned short GLBL_CollectorControlVals[32][256];  // control values per device  ✅ verified 2026-04-22 — CollectorSupport.h:L142
+    epicsFloat64   GLBL_CollectorFloatVals[32][256];    // float mailboxes  ✅ verified 2026-04-23 — CollectorSupport.h:L143
+    unsigned short *GLBL_CollectorArrayPtr[32];         // walking pointers  ✅ verified 2026-04-23 — CollectorSupport.h:L144
+    epicsFloat64   GLBL_ConversionCoefficients[64][2]; // m,b for 64 conversions  ✅ verified 2026-04-23 — CollectorSupport.h:L146
+    epicsFloat64   PT100Coefficients[10][2];           // m,b for PT100 temp fitting (10 segments)  ✅ verified 2026-04-23 — CollectorSupport.h:L147
+    epicsFloat64   PT500Coefficients[10][2];           // m,b for PT500 temp fitting (10 segments)  ✅ verified 2026-04-23 — CollectorSupport.h:L148
 } CollectorGlobDataStructure;
 ```
 First index (32) = DEVSEL device number. Second index = register/data slot.
@@ -535,6 +537,48 @@ Standalone C programs that run on the Raspberry Pi **before EPICS is active**. T
 - SpreadsheetSrc: FPGA register maps auto-generated from PSG spreadsheets (StrpFPGA, CtrlFPGA)
 
 ✅ verified 2026-04-17 — `collectorboxpi/Pre_EPICS_Collector/README.md` + `Add_Remove_Detectors.sh`
+
+#### `Src/` — C Library Details
+
+The Pre_EPICS_Collector programs are built from a shared C library (`Src/`). These files are not yet surfaced in the executable-level docs above.
+
+**`NonEPICS_SPI_lib.c` / `NonEPICS_SPI_lib.h`** (480 lines) ✅ verified 2026-04-23 — `wc -l NonEPICS_SPI_lib.c` = 480
+- Implements all SPI and DEVSEL GPIO operations for non-EPICS programs.
+- `SPI1_setup(init_flag, RequestedSpeed)` — initializes BCM2835 SPI1 and DEVSEL GPIO outputs (GPIO 13/23/24/25/26 as binary 5-bit output bus). Drive strength set to 16 mA, slow slew for all connector GPIOs. Samples on rising edge of SCLK (changed 2023-02-17), data out on falling edge, SCLK starts low, MSbit first, 24-bit fixed transaction length.
+- `Set_DEVSEL(DEVSEL)` — asserts a 5-bit binary device select on the 5 GPIO lines. First clears all bits, then asserts the pattern for devices 0–31 via a switch/case with compile-time GPIO masks. 10 µs hold after assert (increased from 3 µs in 2022-12-16 debugging session).
+- `Do_SPI1_transaction(RWflag, Bidx, UsrAddr, UsrData)` — single 24-bit SPI transaction. Sets DEVSEL, writes 3-byte SPI message (R/W | addr | data_hi | data_lo) to TX FIFO, polls BUSY, clears DEVSEL, returns 32-bit result (bits 23:16 = FPGA status, bits 15:0 = data).
+- `Do_Banked_SPI1_transaction(RWflag, Bidx, UsrAddr, UsrData)` — extends above for banked DPRAM: addr ≤127 = bank 0 (direct), addr 128–1023 = banks 1–7 (writes bank# to addr 127 first, then real addr, then resets bank to 0). Addr ≥1024 returns 0xFFFFFFFF (error).
+- `Do_Banked_SPI1_BlockXfr(RWflag, Bidx, StartAddr, Nwords, *data_array)` — block transfer of Nwords from StartAddr; handles bank boundary crossings mid-transfer automatically; resets bank to 0 when done.
+- `Do_Banked_SPI1_RMW(Bidx, UsrAddr, ANDmask, ORMask)` — read-modify-write: reads register, ANDs with ANDmask, ORs ORMask, writes back. Handles banked addresses. 16-entry helper macros: `SET_BIT_nn` / `CLEAR_BIT_nn` for each bit 0–15.
+- `SPI1_exit()` — calls `bcm2835_aux_spi_end()` + `bcm2835_close()` (drops CE2 — only call at full shutdown).
+
+**`NonEPICS_Collector_lib.c`** (477 lines) ✅ verified 2026-04-23 — `wc -l NonEPICS_Collector_lib.c` = 477
+- High-level collector box control functions, built on the SPI library above.
+- **ADC scan loop** — The Control FPGA runs an ADS1158 ADC scanner ROM with 3 programs:
+  - Program 0 (ROM addr 0): slow loop ~530 µs cycle time, all 16 channels + internal ADC values (REF/GAIN/TEMP/VCC/OFFSET)
+  - Program 1 (ROM addr 64): fast loop ~50 µs, only 48V current monitor inputs (ADC ch 5–9)
+  - Program 2 (ROM addr 128): fast loop ~50 µs, all channels
+- `RESET_ADC_SCANNER(Program_Index)` — pauses scanner, selects program (writes ROM start address to CtrlFPGA), releases scanner.
+- `PAUSE_ADC_SCANNER()` / `ENABLE_ADC_SCANNER()` — toggle GPIO `SCANNER_CONTROL_PIN` to halt/resume the ADC scan loop.
+- `DO_ADC_CYCLE(delay1, delay2)` — enables scanner for `delay2` µs then stops it, giving one complete scan cycle.
+- `COLLECT_AVERAGED_ADC_DATA(delay1, delay2, num_avg, enable_tracing)` — runs `num_avg` scan cycles, reads 128 words from DPRAM via block transfer, accumulates min/max/avg per address.
+- **Relay control** — 4 relay types per cable (cables 1–30), each mapped to a bit in the corresponding stripe's `relay_control_sN` register (written to Stripe FPGA device 31):
+  - `ENABLE/DISABLE_POWER(cable)` — bits 14:10 of relay_control_sx (prly = 48V power per cable)
+  - `ENABLE/DISABLE_GNDFAULT_I(cable)` — bits 4:0 (irly = ground fault current injection)
+  - `GROUND_DETECTOR(cable)` / `FLOAT_DETECTOR(cable)` — bits 9:5 (grly = ground fault check relay; GROUND = normal, FLOAT = lifted)
+- `INITIALIZE_ALL_RELAYS()` — zeros relay_control for all 6 stripes (power off, no GFI, no float), then writes 0x0100 to stripe_control_sN for all 6 stripes (sets CRLY on one pole, clears clock/sync enable). Also sets GPIO J8_03 HIGH and J8_05 LOW as status markers.
+- `ENABLE_ALL_COMMS()` — sets bits 4:0 of stripe_control_sN for all 6 stripes (enables clock and sync per cable).
+- `convert_ADC_temp(ADCVAL, F_or_C)` — converts raw ADS1158 temperature reading to °C or °F: V = (ADC/30720)×4.096V; T = ((V_µV − 160000)/563) + 25.0°C. ✅ verified 2026-04-23 — `NonEPICS_Collector_lib.c:L459,L467,L470` (formula confirmed; code comment at L464 has typo `168000` but actual computation uses `160000`)
+
+**`DPRAM_access.c`** (172 lines) ✅ verified 2026-04-23 — `wc -l DPRAM_access.c` = 172
+- Lookup tables (arrays of DPRAM register addresses) used by commissioning utilities.
+- `FPGA_VOLTAGE_ADDR[8][3]` — DPRAM addresses for stripe power supply voltages (12V/25V/33V) for stripes 1–6 plus BGO FPGA. Index 0 unused.
+- `FPGA_IMON_ADDR[31]` — per-cable 48V current monitor DPRAM addresses, indexed by cable number 1–30 (index 0 unused).
+- `FPGA_GFI_ADDR[31]` — per-cable ground fault injection status DPRAM addresses.
+- `ADC_OFFSET_ADDR[7]`, `ADC_VCC_ADDR[7]`, `ADC_TEMP_ADDR[7]`, `ADC_GAIN_ADDR[7]`, `ADC_REF_ADDR[7]` — per-stripe DPRAM addresses for ADS1158 internal ADC self-calibration values (stripes 1–6, index 0 unused).
+
+**`Non_EPICS_Globvars.c`** (572 lines)
+- Definitions of global arrays used across the Non-EPICS programs (DPRAM image, min/max/avg accumulator arrays, etc.).
 
 ---
 

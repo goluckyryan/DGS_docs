@@ -1,5 +1,7 @@
 # Migration Notes: con6 (Solaris SPARC) → Ubuntu 24 (linux-x86_64)
 
+Stability: C1 - Operational / volatile
+
 ## Source System
 
 - **Host**: con6, hostname `192.168.203.136`

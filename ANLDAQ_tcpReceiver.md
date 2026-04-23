@@ -1,5 +1,7 @@
 # ANLDAQ — tcpReceiver Detailed Notes
 
+Stability: C2 - Active / semi-stable
+
 _Split from `ANLDAQ.md` on 2026-04-16. Source: `DGS_tools_pack/ANLDAQ/tcpReceiver/`._
 
 **See also:** [`ANLDAQ.md`](ANLDAQ.md) — parent overview + run control + GUI internals
@@ -47,7 +49,7 @@ connect(instance->recSock, &instance->adr_srvr, ...); // TCP client
 ```
 - Same TCP pattern going back to the oldest known version
 
-> ⚠️ **The wiki (`/gsdaq/DAQ_system`) says "UDP packets" — this is incorrect.** The wiki description (written by J. Anderson, March 2023) is misleading. `SOCK_STREAM` = TCP by definition; UDP would use `SOCK_DGRAM` + no `listen()`/`accept()`. `tcpReceiverUDP` is a separate experimental variant, not the production receiver.
+> ⚠️ **The wiki (`/gsdaq/DAQ_system`) says "UDP packets" — this is incorrect.** The wiki description (written by J. Anderson, March 2023) is misleading. `SOCK_STREAM` = TCP by definition; UDP would use `SOCK_DGRAM` + no `listen()`/`accept()`. `tcpReceiverUDP` is a separate experimental variant, not the production receiver. ✅ verified 2026-04-23 — `vxworks/dgsDrivers/dgsDriverApp/src/SendReceiveSupport.c:L120,L134,L196,L220`; `ANLDAQ/tcpReceiver/receiver.h:L261,L267`
 
 ### Data Flow
 
@@ -183,7 +185,9 @@ ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
 - **Stop Run**: similarly streams `stop_run.sh`; includes Parquet sort + elog post status messages
 - Live displays: wall clock, elapsed run timer, data folder size (polled every 15 s via `du -sh` on dcs2), recent run log (tails `RunTimestamp.txt`) ✅ verified 2026-04-17 — `run_control_gui.py:L257` (`self.after(15000, self._auto_refresh)`)
 - State machine: `idle → starting → running → stopping → idle`; buttons enable/disable accordingly
-- ANSI escape codes stripped from SSH output before display
+- Blank comment auto-expands to `no comment`; otherwise comment text is passed through after `strip()` ✅ verified 2026-04-22 — `run_control_gui.py:L259-260`
+- Data-size polling targets `<dataFolder>/<expName>_<NEXT_RUN-1 padded to 3 digits>/` every 15 s during the run ✅ verified 2026-04-22 — `run_control_gui.py:L241-256`
+- ANSI escape codes stripped from SSH output before display ✅ verified 2026-04-22 — `run_control_gui.py:L16,L44`
 - Script dir on dcs2: `/home/phy/dcsu/ANLDAQ/tcpReceiver/`
 
 **`basic_settings_DGS.sh`** — Sets all DIG channels (CH 5–9) on VME01–VME12 to a known-good starting configuration. Default mode: **CFD** ("Mike CFD values" by M. Carpenter). Key parameters:

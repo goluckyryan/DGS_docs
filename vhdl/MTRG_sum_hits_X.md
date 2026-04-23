@@ -1,6 +1,7 @@
 # sum_hits_X.vhd — Plain English Summary
 _Source: ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/sum_hits_X.vhd_
 _Summarized: 2026-04-15_
+Stability: C3 - Structural / stable
 
 ## Purpose
 One Master Trigger algorithm module: fires when the total X-plane multiplicity sum (across all Routers) exceeds a programmable threshold. Implements leading-edge detection (fires once on threshold crossing, waits for sum to fall before re-arming). Delegates all FIFO management, prescaling, veto, enable, and timestamp capture to the generic `trig_algo_support` sub-component.

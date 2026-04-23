@@ -1,5 +1,7 @@
 # MTRG — Master Trigger Firmware
 
+Stability: C3 - Structural / stable
+
 The Master Trigger (MTRG) is the central trigger decision-maker for the DGS (Digital Gamma-ray Spectrometer) system. It collects detector data from up to 8 Routers via high-speed serial links, runs configurable trigger algorithms, and distributes synchronized trigger decisions back to all Routers every 2 µs (one 20-frame cycle at 50 MHz).
 
 The hardware contains three programmable devices:

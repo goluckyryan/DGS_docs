@@ -1,5 +1,7 @@
 # NFS Layout — DCS2 Mount Points
 
+Stability: C1 - Operational / volatile
+
 Explored via SSH as `dcsu@DCS2.onenet`. All mounts are read-only (ro) except vol5 and piserver which are rw.
 
 *Started: 2026-04-05. Incremental — updated each heartbeat.*
