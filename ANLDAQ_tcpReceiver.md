@@ -254,9 +254,9 @@ The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet for
 | Waveform (W14+) | 2 × 14-bit samples/word | `word & 0x3FFF` + `(word>>16) & 0x3FFF` | ✅ |
 
 **Note on header type encoding:**
-- FPGA hardware: LED = `0100` (4), CFD = `0101` (5)
-- Software/IOC convention: LED = 7, CFD = 8
-- The IOC device support re-encodes the type before sending over TCP.
+- LED = `7` (`0111`), CFD = `8` (`1000`) — encoded **directly by the FPGA** into the packet header (`cHEADER_TYPE_LED = to_unsigned(7,4)`, `cHEADER_TYPE_CFD = to_unsigned(8,4)`) ✅ verified 2026-04-22 — `Event_Header_FIFO.vhd:L101-102,L326,L419`
+- There is **no IOC re-encoding** — the FPGA writes 7/8 directly; the IOC DMA-copies raw VME FIFO data to TCP unchanged. The IOC simply DMA-transfers whatever the FPGA put in its event header FIFO directly onto the wire.
+- Prior note claiming "FPGA hardware: LED=4, CFD=5" and "IOC re-encodes" was incorrect and has been removed.
 
 **TRIG packet:** MTRG sends 16 words raw (`0xAAAA0000` header). Receiver repacks to 10 words. `class_TDC.h::FillTDC()` correctly decodes trigger timestamp, trigger type, wheel, multiplicity, coarse TDC, trigger bitmask, four 4 ns phase counters, and vernier AB/CD — all consistent with the TAC-II data path in the MTRG Main FPGA firmware.
 
