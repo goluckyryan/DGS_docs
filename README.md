@@ -1,5 +1,7 @@
 # DGS Knowledge Base
 
+Stability: C2 - Active / semi-stable
+
 This repository contains technical documentation for the **Digital Gamma-ray Spectrometer (DGS)** system at **Argonne National Laboratory (ANL)**. It is maintained by the DGS AI assistant (General DGS) and serves as a structured, searchable knowledge base for system architecture, firmware, hardware, EPICS control, and operations.
 
 **Official wiki:** https://wiki.anl.gov/gsdaq (may be outdated — cross-check with source code when in doubt)  
@@ -26,9 +28,10 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [ANLDAQ.md](ANLDAQ.md) | DAQ GUI (PyQt6) overview: EPICS CA config, VxWorks data pipeline (inLoop/outLoop/MiniSender), softIOC (JustGlobals.db, dgsSupport.db), class_PV/Board, findAllPV, commander.py |
 | [ANLDAQ_tcpReceiver.md](ANLDAQ_tcpReceiver.md) | tcpReceiver deep-dive: 3 binaries, TCP protocol proof, data flow, GEB header, class_DIG.h/class_TDC.h decoders, run control scripts, legacy receivers, packet consistency table |
 | [ANLDAQ_GUI_windows.md](ANLDAQ_GUI_windows.md) | GUI window reference: gui_MTRG (5 tabs), gui_Det (collector box map), gui_scalar, gui_RTR, gui_Board (generic PV table), gui_CH (per-channel 5-tab), gui_RAM, gui_SYS, gui_LinkSys, gui_DataTaking |
+| [ANLDAQ_commander.md](ANLDAQ_commander.md) | commander.py deep-dive: top-level run control GUI, startup/env, board init, run start/stop flow, duration/repeat modes, SoftIOC auto-spawn, IOC terminal access, script runner, RunTimestamp CSV log |
 | [trig_setup_scripts.md](trig_setup_scripts.md) | 5-stage trigger setup scripts (trig_setup_Stage1–5.sh): full step-by-step MTRG→RTRG→DIG link initialization, SYSTEM_DEFINES.sh GS topology (4 RTRGs, 44 DIGs, MTRG in VME10), DC balance/fiber notes, algorithm reference |
 | [guceiver.md](guceiver.md) | Guceiver: live diagnostic GUI (waveform, spectrum, TAC-II, raw data) — connects to IOC TCP:9001 |
-| [dgs_analysis.md](dgs_analysis.md) | Post-experiment analysis pipeline: EventBuilder variants (Q, PQ — k-way merge, parallel, double-buffered), parquet_pysort, gray_apps summary, parquetCLI, gain_from_parquet.py, pz_from_parquet.py, RunParquet, ProcessRUN, GEB data format |
+| [dgs_analysis.md](dgs_analysis.md) | Post-experiment analysis pipeline: EventBuilder variants (S, Q, PQ, X, XR — k-way merge, parallel, ROOT/Parquet output), `misc.h` shared utility functions (channel/energy/PZ maps, Algo1/Algo2 pole-zero correction), parquet_pysort, gray_apps summary, parquetCLI, gain_from_parquet.py, pz_from_parquet.py, RunParquet, ProcessRUN, GEB data format |
 | [dgs_analysis_grayapps.md](dgs_analysis_grayapps.md) | gray_apps full reference: GrayCAL (HPGe energy calibration GUI, core modules, polezero_dialog), GrayMAN (multi-peak spectrum analysis), grayfit (AutoFitter, FittingRunner, PeakFinder, pole_zero_fitter, FitResult hierarchy) — split from dgs_analysis.md |
 | [dgs_analysis_root_scripts.md](dgs_analysis_root_scripts.md) | ROOT analysis scripts (fastEventConstructor): analyzer.cpp (γ-γ coincidence), analyzer_tac.cpp (TAC-II), analyzer_trace.cpp (waveform/PSD), analyzer_pz_cal.cpp (PZ from traces), Cali_e.C (energy calibration, 110 dets), checkTACFile.cpp (TAC binary validator), findMapping.sh/findGS.sh (GS channel map tools) — split from dgs_analysis.md |
 | [gebsort.md](gebsort.md) | GEBSort: event builder/sorter, GEBMerge, DGS calibration workflow (find_MK, fwhm_onepeak, dgs_ecal), GEBSort.chat config |
@@ -73,9 +76,11 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [ioc.md](ioc.md) | EPICS IOC config, boot scripts, firmware versions, MVME5500 setup |
 | [IOC_cmd.md](IOC_cmd.md) | Full IOC shell command reference: DGS custom (ProgramFlash, VMERead32, asynDigitizerConfig…), EPICS 3.14 (dbl, dbpr, casr…), asyn 4.17; safety classification; terminal server map |
 | [VME_registers.md](VME_registers.md) | Complete VME register address map for DIG, MTRG, and RTRG main FPGAs + VME FPGA + flash; address patterns, bit-field notes, IOC shell usage examples |
+| [EPICS_DB_templates.md](EPICS_DB_templates.md) | EPICS DB templates: all 8 `.template` files (daqCrate, daqSegment2, MDigUser/SDigUser, RTrigUser, MTrigUser, Registers variants), PV naming scheme, record counts, per-crate board instantiation, board-type and FIFO encoding tables |
 | [EPICS.md](EPICS.md) | EPICS primer: record types, tools, Python integration for DGS |
 | [EPICS_asyn.md](EPICS_asyn.md) | asyn driver support: caput flow diagram, port concept, worker threads, bulk writes, passive hardware callbacks |
-| [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary, legacy `devGData.c`, Port 9010 FIFO grabber design, `MergedAsynDigParams.c` DIG param registration (222 params, all groups documented), `FlashMaintenance.c`, `profile.c` |
+| [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary, legacy `devGData.c`, `MergedAsynDigParams.c` DIG param registration (222 params), `FlashMaintenance.c`, `profile.c`, `equalSub.c`, `restoreSub.c` |
+| [vxworks_state_machines.md](vxworks_state_machines.md) | DAQ runtime state machines: `inLoop.st` (FIFO readout, board enable), `outLoop.st` (data validation, buffer routing), `MiniSender.st` (TCP send port 9001), Port 9010 FIFO grabber plan; trigger board drivers (`asynTrigCommonDriver` base, `asynTrigRouterDriver` RTRG 188 params, `asynTrigMasterDriver` MTRG 369 params); `vmeDriverMutex` cross-driver VME bus lock; `QueueManagement.c` three-queue buffer pool |
 | [vxworks_fifo_readout.md](vxworks_fifo_readout.md) | DMA buffer architecture, trigger FIFO readout (`readTrigFIFO.c`, `CheckAndReadTrigger`), Type-F synthetic headers (trigger + digitizer), FIFO index map, DMA chunking |
 | [vxworks_migration.md](vxworks_migration.md) | Migration notes from con6 (Solaris) to Ubuntu 24 |
 
@@ -84,6 +89,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | File | Description |
 |------|-------------|
 | [collector_fpga.md](collector_fpga.md) | Collector box FPGA firmware: CtrlFPGA (housekeeping/monitoring), StripeFPGA (relay/stripe/LED), pickoff card FPGAs (SBX Interface + Extension) |
+| [collector_box_fpga.md](collector_box_fpga.md) | NewBlackBox motherboard FPGAs (PSG SVN origin): ControlStripe (Spartan-3 XC3S400, per-stripe 48V power/clock/relay/SYNC/LED control, 6 per chassis, PCAL6416A I2C GPIO) and CtlFanout (Spartan-6 XC6SLX4, RPi SPI gateway, ADS1158 ADC scanning, CE/MISO 15-port fan-out) |
 | [collectorboxpi.md](collectorboxpi.md) | Collector box EPICS soft IOC on Raspberry Pi (aarch64/Debian 13): PXE boot (fs2.onenet), pi0–pi3 MAC map, st_201–204.cmd generation (GenerateCmdFile.py), Pre_EPICS_Collector SPI scan libs (NonEPICS_SPI_lib.c, NonEPICS_Collector_lib.c, DPRAM_access.c), HV PVs, db/ templates (18 types), commissioning workflow (Add_Remove_Detectors.sh), systemd service, Discord integration, GS hole→pi assignments |
 | [collectorbox_PVs.md](collectorbox_PVs.md) | CollectorBox PV list: 1,431 records/detector; GS/MOD/VME_GS/Ge_ID numbering explained |
 | [collectorbox_devicesupport.md](collectorbox_devicesupport.md) | EPICS device support internals: SPI driver, CAMAC_IO link, conversion coefficients |
@@ -130,6 +136,15 @@ Detailed plain-English summaries of key FPGA VHDL source files. Generated 2026-0
 | [vhdl/MTRG_MYRIAD_TRIGGER.md](vhdl/MTRG_MYRIAD_TRIGGER.md) | `MYRIAD_TRIGGER.vhd` | MTRG: MγRIAD trigger algorithm — programmable delay line, optional coincidence with other algorithms, selectable timestamp mode, subtypes 0x78/0x79 |
 | [vhdl/MTRG_mstr_mach.md](vhdl/MTRG_mstr_mach.md) | `mstr_mach.vhd` | MTRG: Master State Machine — continuously emits the 20-frame TTCL command cycle (SYNC, trigger decisions, Frame 12/13/14/15/16 control), local and remote-master modes, FIFO pipelining, monitor FIFO controls |
 | [vhdl/MTRG_local_trig_coinc.md](vhdl/MTRG_local_trig_coinc.md) | `local_trig_coinc.vhd` | MTRG: Local-vs-local coincidence trigger algorithm — dual-mask OR selects any two algorithm acks, overlap_mach enforces coincidence window, feeds trig_algo_support for standard FIFO/prescale/holdoff handling |
+| [vhdl/MTRG_trig_algo_support.md](vhdl/MTRG_trig_algo_support.md) | `trig_algo_support.vhd` | MTRG: **Shared base component for all trigger algorithms** — dual FIFO (algo + monitor), event counter, prescaler, holdoff (2025-10-22), throttle request; implements enable/veto/prescale decision matrix |
+| [vhdl/MTRG_support_modules.md](vhdl/MTRG_support_modules.md) | `timestamp.vhd`, `data_compressor.vhd`, `link_tx_block.vhd`, `remote_trig_support.vhd`, `trig_mon_collect.vhd`, `trigger_data_types.vhd` | MTRG support/infrastructure: 48-bit timestamp counter, TDC vernier compressor, DC-balanced SERDES fan-out (11 links), cross-system Link R trigger algorithm, trigger monitor FIFO collector, shared VHDL type definitions |
+| [vhdl/MTRG_registers.md](vhdl/MTRG_registers.md) | `registers.vhd` | MTRG VME register map: ~120 R/W + R/O registers (CS 0x0000–0x08FC, 0x1000–0x3FFC), 3 lookup RAMs (VETO/TRIG/SWEEP), 8+8 monitor FIFOs (Mon1-8 + Chan1-8), VME FSM state machine, rate counters |
+| [vhdl/MTRG_SERDES_RX_Mach.md](vhdl/MTRG_SERDES_RX_Mach.md) | `SERDES_RX_Mach_R2.vhd` | MTRG: SERDES reception state machine for inter-trigger links (L/R/U) — 20-frame FSM, 5-word prelock sequence, all frame decoders (F1 Sync/ISY, F3-F10 triggers, F11-F19 cmd/spare, F20 EOC), VETO_EVENT, LINK_IS_L generic, propagation control |
+| [vhdl/MTRG_AUX_IO.md](vhdl/MTRG_AUX_IO.md) | `AUX_IO.VHD` | MTRG: AUX port mux (8-bit bidirectional AUX_A/B), NIM output mux (4 modes each), target wheel encoder interface — parallel FILTER FSM (debounce) + SSI SLIDE FSM (2 µs stepped) + 7-state SSI serial receiver, polarity inversion, BEAM_SWEEP_OUT 4 modes |
+| [vhdl/MTRG_pos_finder.md](vhdl/MTRG_pos_finder.md) | `pos_finder.vhd` | MTRG TDC: thermometer-code edge position lookup — 11/12-bit slice → 4-bit position + valid flag; 2048/4096-entry ROM, 1-cycle pipeline; instantiated inside `vernier_pos_finder` |
+| [vhdl/MTRG_sum_hits_XY.md](vhdl/MTRG_sum_hits_XY.md) | `sum_hits_XY.vhd` | MTRG: XY coincidence trigger — fires when both X and Y global sums simultaneously exceed VME-configurable thresholds; 2-state FSM + trig_algo_support |
+| [vhdl/MTRG_comp_defs.md](vhdl/MTRG_comp_defs.md) | `trigger_comp_defs.vhd`, `trigger_top_comp_defs.vhd` | MTRG component declaration packages — all sub-design and top-level component port lists; includes `tdc_chain_cont` (4-phase 250 MHz TDC chain) port documentation |
+| [vhdl/MTRG_tdc_chain_cont.md](vhdl/MTRG_tdc_chain_cont.md) | `tdc_chain_cont.vhd` | MTRG TDC chain controller — 4× carry-chain TDC units (250 MHz 4-phase), fine counters, trigger ACK resampling + accumulation (toggle-phase 50→100 MHz), WANT_NEXT_TDC latch, 5-state autosample FSM, 80→20-bit FIFO repacking, 8-word TDC event packet format, TDC_FIFO_DATA_READY, dual ILA debug blocks |
 | [vhdl/PROGRESS.md](vhdl/PROGRESS.md) | — | Checklist of VHDL files summarized (RTRG + MTRG) |
 
 ### Liquid Nitrogen
@@ -146,7 +161,7 @@ Detailed plain-English summaries of key FPGA VHDL source files. Generated 2026-0
 |------|-------------|
 | [nfs_layout.md](nfs_layout.md) | NFS mount layout on DCS2: vol2–vol5, fs1/vol2, fs2/vol3, piserver; full directory inventory (experiment data, IOC py_scripts, gamln.db PV structure, legacy lnfill, EDM screens, GEBSort binaries, sbx2022tuning); collector box PXE MAC map |
 | [utility_scripts.md](utility_scripts.md) | BGO HV tuning scripts (NS_scripts/slopebox_scripts), PV discovery scripts, ANLDAQ GUI helper scripts (basic_settings_LED.py, terminals); data0 space monitor (deleted — does not exist) |
-| [snapshot_pv.md](snapshot_pv.md) | snapshot_pv repo: PV snapshot & watchdog utilities (Python/pyepics) |
+| [snapshot_pv.md](snapshot_pv.md) | snapshot_pv repo: PV snapshot & watchdog utilities (Python/pyepics); `copy_pvs.sh` (SCP from gs-cse/csw/cne/cnw + collector201); `EPICS_env.sh` (port map: DGS/DUO/DXA/slopebox/DUB) |
 | [influxdb_grafana.md](influxdb_grafana.md) | InfluxDB 3 + Grafana monitoring on DCS2 (192.168.203.56) |
 
 
@@ -228,6 +243,6 @@ Where the wiki (`wiki.anl.gov/gsdaq`) contradicts the source code, the source co
 
 ---
 
-*Maintained by General DGS (AI assistant). Last updated: 2026-04-22. MEMORY.md Knowledge Base Index replaced by this file as the single source of truth.*
+*Maintained by General DGS (AI assistant). Last updated: 2026-04-24. MEMORY.md Knowledge Base Index replaced by this file as the single source of truth.*
 
 

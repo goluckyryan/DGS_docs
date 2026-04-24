@@ -252,7 +252,7 @@ The downlink chain (MTRG → Digitizers):
 ### 4.5 Clock Architecture
 
 - `switched_master_clock` (50 MHz) — used by SerDes TX, router_main_mach, veto insertion, DDR outputs, `chan_in`, and `router_data_path` (all processing). Source switchable between local oscillator and `LINKL_RCLK` (recovered from MTRG) via a DCM. ✅ verified 2026-04-21 — `TOP.VHD:L2165` (`mclk => switched_master_clock` for ROUTER_DATA_PATH instantiation); `router_data_path.vhd:L169` (`mclk => mclk` for all chan_in instantiations; `SUM_HITS` process also clocked by `mclk`)
-- `switched_master_clock_2x` (100 MHz) — derived from the same DCM 2× output. Used for DDR outputs (SUMCOPY bus to CPLD) and test point only; **not** used by `chan_in` or `router_data_path`.
+- `switched_master_clock_2x` (100 MHz) — derived from the same DCM 2× output. Used for: DDR outputs (SUMCOPY bus to CPLD), test point (TEST_POINT[9]), and the three `dc_balance_mach` instances (DC balance encoding for downstream links and Link-L). **Not** used by `chan_in` or `router_data_path`. ✅ verified 2026-04-23 — `TOP.VHD:L1087` (test point), `TOP.VHD:L877-895` (ODDR SUMCOPY), `TOP.VHD:L2134,2153,2266` (dc_balance_mach clk_2x); `dc_balance_mach.vhd:L54,73` (DISP_LOOKUP_MUX + PARTIAL_DISP_SHIFTER run on clk_2x)
 
 > **Correction (2026-04-21):** An earlier version of this section incorrectly stated that `chan_in` and `router_data_path` used `switched_master_clock_2x` (100 MHz). Both are clocked by `switched_master_clock` (50 MHz). The SUM_HITS adder pipeline latency of 60 ns (3 × 20 ns) is consistent with this — see section 3.1.
 

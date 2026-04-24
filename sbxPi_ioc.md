@@ -3,7 +3,7 @@
 Stability: C2 - Active / semi-stable
 
 **Source:** `DGS_tools_pack/sbxPi/PickoffApp_RevC/`  
-**Last updated:** 2026-04-22  
+**Last updated:** 2026-04-24  
 **See also:** [`sbx.md`](sbx.md) — SBX hardware + Collector Box Pi IOC overview
 
 ---
@@ -48,7 +48,7 @@ Bits 15:0:       16-bit data
 | `Do_SPI1_transaction(RWflag, UsrAddr, UsrData)` | Perform one 24-bit SPI transaction; polls BUSY status before returning received data |
 | `SPI1_exit()` | Shut down SPI; drops CE2 — only call at IOC shutdown |
 
-**Clock speed:** Set via `RequestedSpeed` parameter passed into `SPI1_setup()`. The `bcm2835_aux_spi_setClockDivider()` formula: `SPICLKfreq = 250MHz / (2 × (speed+1))`.
+**Clock speed:** Set via `RequestedSpeed` parameter passed into `SPI1_setup()`. The `bcm2835_aux_spi_setClockDivider()` formula: `SPICLKfreq = 250MHz / (2 × (speed+1))`. The IOC uses **divider=30** → nominal 250MHz/(2×31) ≈ 4.03 MHz, but measured at ~5 MHz via Chipscope (400 ns/period at 100 MHz FPGA clock — so the divider may represent edge period, not full period). ✅ verified 2026-04-24 — `PickoffCtl_AO.c:L52` (`SPI1_setup(1,30)`); inline comment: "20 SPI clock periods take 400 ticks of the 100MHz clock → 200ns/clock = 5MHz".
 
 ---
 
@@ -89,8 +89,32 @@ OUT(0, 24, 20, 0, 0, "")
 | `PickoffLocalSerial` | ao, ai, bo, bi, mbbi, mbbo | Direct SPI1 transaction to/from Pickoff FPGA |
 | `PickoffI2CSerial` | ai | I2C transaction via Pickoff FPGA I2C command FIFO |
 | `PickoffCalc` | ai | Conversion chain — applies y=mx+b or PT100/PT500 polynomial to raw ADC values |
-| `PickoffSoftControl` | ao, ai | Software mailbox r/w — no hardware transaction, reads/writes `GLBL_PickoffControlVals[]` or `GLBL_PickoffFloatVals[]` |
+| `PickoffSoftControl` | ao, ai | Software mailbox r/w — no hardware transaction, reads/writes `GLBL_PickoffControlVals[]` or `GLBL_PickoffFloatVals[]`. AO has 8 distinct modes (see table below). |
 | `PickoffStep` | ai | Controlled step-wise adjustment (used for HV ramp logic) |
+
+### `PickoffSoftControl` AO — Mode Reference
+
+The `C` field of a `PickoffSoftControl` ao record encodes both the mode and mailbox index:
+- `PV_mode = (C & 0x7000) >> 12` — 3-bit mode selector (bits 14:12)
+- `Cidx = C & 0x00FF` — mailbox index (bits 7:0; for modes 4/5 further masked to `& 0x003F`)
+- Bit 15 of C: if set in mode 1, auto-advance array pointer after write
+
+| Mode | Action |
+|------|--------|
+| 0 | Write PV value to `GLBL_PickoffControlVals[Cidx]`. If `strlen(parm)==0` — read-modify-write using ANDMask and ShiftFactor; if nonzero — write-only (shift + OR with mask). |
+| 1 | Write PV value to `GLBL_PickoffDataArray[ptr]` (the roving array pointer). If `C & 0x8000` is set, auto-advance pointer after write (capped at index 1023). |
+| 2 | Write PV value to `GLBL_PickoffFloatVals[Cidx]` (floating-point mailbox). |
+| 3 | Set array pointer `GLBL_PickoffArrayPtr` to `&GLBL_PickoffDataArray[PV_val]` (capped at 1023). |
+| 4 | Write PV value to `GLBL_ConversionCoefficients[Cidx][0]` — the `m` (slope) for conversion set `Cidx`. |
+| 5 | Write PV value to `GLBL_ConversionCoefficients[Cidx][1]` — the `b` (offset) for conversion set `Cidx`. |
+| 6 | Treat PV value as a mailbox index, read `GLBL_PickoffControlVals[PV_val]`, set PV.val and PV.rval to that integer. |
+| 7 | Treat PV value as a mailbox index, read `GLBL_PickoffFloatVals[PV_val]`, set PV.val and PV.rval to that float. |
+
+✅ verified 2026-04-24 — `PickoffCtl_AO.c:L143-244` (`write_ao` switch(PV_mode) cases 0–7).
+
+**Note on `PickoffSoftControl` AI:** Reads back from `GLBL_PickoffControlVals[Cidx]` or `GLBL_PickoffFloatVals[Cidx]` (bit 15 of C selects float mode), with same ANDMask and ShiftFactor unpacking logic as the hardware AI.
+
+**Waveform record** (`PickoffSoftControl` waveform): sets `bptr = &GLBL_PickoffDataArray[0]` and `nord = 1024` — exposes the entire 1024-element data buffer as a single waveform PV. Debug print if `GLBL_PickoffControlVals[31]` is set. ✅ verified 2026-04-24 — `PickoffCtl_Waveform.c:L120-132`.
 
 ---
 
@@ -102,7 +126,7 @@ The IOC maintains two global arrays shared across all device support modules:
 |-------|------|------|-----|
 | `GLBL_PickoffControlVals[256]` | 256 shorts | `unsigned short` | Integer mailboxes — alarm enable flags, mode selects, inter-PV state |
 | `GLBL_PickoffDataArray[1024]` | 1024 shorts | `unsigned short` | Raw ADC scan data from SPI burst reads |
-| `GLBL_PickoffFloatVals[32]` | declared 32, used up to ~157 | `epicsFloat64` | Floating-point mailboxes — converted engineering values (volts, Kelvin, etc.) ⚠️ declared size 32 in `PickoffSupport.h:L37` and `PickoffSupport.c:L589`, but `HV_STEP.db` accesses indices 150–156 via `PickoffStep`/`PickoffSoftControl`. OOB access — works in practice due to adjacent static allocation. |
+| `GLBL_PickoffFloatVals[32]` | declared 32, used up to ~157 | `epicsFloat64` | Floating-point mailboxes — converted engineering values (volts, Kelvin, etc.) ✅ verified 2026-04-24 — `PickoffSupport.h:L37` + `PickoffSupport.c:L589` declare `[32]`; `HV_STEP.db:L79-158` uses Cidx=150 (C=0x2096..0x409C) accessing indices 150–156; `PickoffStep_AI.c:L200-205,234,302` accesses Cidx+0 through Cidx+6 with `Cidx = c & 0x00FF` (no bounds check); `PickoffCtl_AO.c:L212` mode-2 write is also unbounded. **Confirmed OOB** — works in practice due to C static global layout (adjacent arrays absorb the overflow). |
 | `GLBL_ConversionCoefficients[64][2]` | 64 × {m,b} | `epicsFloat64` | y=mx+b coefficients for 64 different conversion types |
 | `PT100Coefficients[10][2]` | 10 segments | `epicsFloat64` | Piecewise linear PT100 resistance-to-temperature conversion |
 | `PT500Coefficients[10][2]` | 10 segments | `epicsFloat64` | Piecewise linear PT500 resistance-to-temperature conversion |
@@ -236,3 +260,16 @@ The `PickoffApp_RevC` (sbxPi) and the Collector Box Pi IOC (`collectorboxpi`) sh
 - Key difference: `PickoffApp_RevC` has **one Pi per detector** (direct SPI); Collector Box Pi handles **up to 28 detectors** (multiplexed via Collector Box FPGA routing using GPIO `DetAddr`)
 
 The `DetAddr` (`B` field) = 0 in sbxPi PVs because there is no routing needed — the Pi is wired directly to a single Pickoff FPGA.
+
+---
+
+## Cross-References
+
+- `knowledgeBase/hardware_architecture.md` — Gammasphere hardware overview; slope box and pickoff card context
+- `knowledgeBase/sbx.md` — Slope Box Extension (SBX) hardware: signal chain, BGO pattern/sum, GS_ID dongle, HV map
+- `knowledgeBase/collectorboxpi.md` — Collector Box Pi IOC: shares same CAMAC_IO/global-mailbox/SPI pattern as sbxPi
+- `knowledgeBase/slope_box_interface.md` — SBX slope box interface; PickoffLocalSerial framework shared with sbxPi
+- `knowledgeBase/EPICS_DB_templates.md` — EPICS DB template system; same record types (ao, ai) used in DetSpec.db and HV_STEP.db
+- `knowledgeBase/collectorbox_devicesupport.md` — Device support layer; `CAMAC_IO` link type shared with sbxPi
+
+*Source: `DGS_tools_pack/DGS_SVN/psg/` (PickoffApp_RevC). Created: 2026-04-23.*

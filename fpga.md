@@ -546,11 +546,49 @@ See **[deep_fpga_building.md](deep_fpga_building.md)** for the full build guide,
 | [260E_trigger_scheme.md](260E_trigger_scheme.md) | RTRG 0x260E trigger scheme: chan_in.vhd (serial reception, DPRAM delay alignment, X/Y plane maps), router_data_path.vhd (multiplicity aggregation, Link-L output); VHDL-verified |
 | [deep_fpga_DIG.md](deep_fpga_DIG.md) | DIG firmware deep dive: Spartan-3, ADC pipeline, event packet format, pole-zero |
 | [deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md) | DIG per-channel signal processing: LED/CFD discriminator modes, delay chain, pileup, VME FPGA, IP cores |
+| [deep_fpga_DIG_modules.md](deep_fpga_DIG_modules.md) | DIG selected module analysis: `SERDES_TX_Mach_DGS.vhd` (disc packer), `event_packer.vhd` (accordion FIFO), `pileup_processor.vhd` (8-state FSM), `SERDES_RX_Mach.vhd` (20-frame Router command receiver, 1252 lines) |
 | [DIG_firmware_expert.md](DIG_firmware_expert.md) | All 8 readout modes, discriminator modes, pileup, timing, ADC linearity specs |
 | [ioc.md](ioc.md) | EPICS IOC: boot scripts, DB loading, firmware version PVs, MVME5500 setup |
 | [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, munch process, IOC connections |
 | [ANLDAQ.md](ANLDAQ.md) | DAQ GUI + TCP data receiver; trigger setup scripts; EPICS CA config per system |
 | [guceiver.md](guceiver.md) | Guceiver live diagnostic GUI: reads IOC TCP stream; DIG + TAC-II packet decoders |
+
+### VHDL Module Analysis (`vhdl/` subdirectory)
+
+Detailed plain-English summaries of FPGA VHDL source files. See `knowledgeBase/vhdl/PROGRESS.md` for coverage checklist.
+
+| Doc | Module | Description |
+|-----|--------|-------------|
+| [vhdl/RTRG_chan_in.md](vhdl/RTRG_chan_in.md) | `chan_in.vhd` | RTRG: serial SERDES input, 18-bit word decoding, 640 ns DPRAM delay alignment, discriminator extraction |
+| [vhdl/RTRG_disc_mach.md](vhdl/RTRG_disc_mach.md) | `disc_mach.vhd` | RTRG: BGO/Ge discriminator state machine (clean/dirty/BGO-only classification) |
+| [vhdl/RTRG_overlap_mach.md](vhdl/RTRG_overlap_mach.md) | `overlap_mach.vhd` | RTRG: trigger overlap and hold-off state machine |
+| [vhdl/RTRG_router_data_path.md](vhdl/RTRG_router_data_path.md) | `router_data_path.vhd` | RTRG: Link-L multiplicity aggregation, data forwarding to MTRG |
+| [vhdl/RTRG_top.md](vhdl/RTRG_top.md) | `TOP.VHD` | RTRG top-level: all sub-block wiring, port map, SERDES link management |
+| [vhdl/MTRG_top.md](vhdl/MTRG_top.md) | `top.vhd` | MTRG top-level: 8 Router aggregation, trigger decision distribution, NIM I/O, CPLD bus |
+| [vhdl/MTRG_eight_mt_channel.md](vhdl/MTRG_eight_mt_channel.md) | `eight_mt_channel.vhd` | MTRG: instantiates 8 `mt_input_channel` blocks, one per Router link |
+| [vhdl/MTRG_mt_input_channel.md](vhdl/MTRG_mt_input_channel.md) | `mt_input_channel.vhd` | MTRG: per-Router SERDES receiver, hit extraction, multiplicity contribution |
+| [vhdl/MTRG_sum_hits_X.md](vhdl/MTRG_sum_hits_X.md) | `sum_hits_X.vhd` | MTRG: X-plane hit count summation (north/south hemisphere aggregation) |
+| [vhdl/MTRG_calc_total_sum.md](vhdl/MTRG_calc_total_sum.md) | `calc_total_sum.vhd` | MTRG: final multiplicity sum and trigger decision comparator |
+| [vhdl/MTRG_MYRIAD_RCV_MACH.md](vhdl/MTRG_MYRIAD_RCV_MACH.md) | `MYRIAD_RCV_MACH.vhd` | MTRG: MγRIAD receiver — locks onto 5-word SERDES frame, extracts NIM/ECL/FERA/trigger bits |
+| [vhdl/MTRG_MYRIAD_TRIGGER.md](vhdl/MTRG_MYRIAD_TRIGGER.md) | `MYRIAD_TRIGGER.vhd` | MTRG: MγRIAD trigger algorithm — delay line, optional coincidence, subtypes 0x78/0x79 |
+| [vhdl/MTRG_mstr_mach.md](vhdl/MTRG_mstr_mach.md) | `mstr_mach.vhd` | MTRG: Master State Machine — 20-frame TTCL command cycle, trigger FIFO pipelining |
+| [vhdl/MTRG_local_trig_coinc.md](vhdl/MTRG_local_trig_coinc.md) | `local_trig_coinc.vhd` | MTRG: local-vs-local coincidence trigger algorithm |
+| [vhdl/MTRG_trig_algo_support.md](vhdl/MTRG_trig_algo_support.md) | `trig_algo_support.vhd` | MTRG: shared base component for all trigger algorithms (dual FIFO, prescaler, holdoff, throttle) |
+| [vhdl/MTRG_support_modules.md](vhdl/MTRG_support_modules.md) | `timestamp.vhd`, `data_compressor.vhd`, `link_tx_block.vhd`, `remote_trig_support.vhd`, `trig_mon_collect.vhd`, `trigger_data_types.vhd` | MTRG support/infrastructure: 48-bit timestamp, TDC vernier compressor, DC-balanced SERDES fan-out, cross-system trigger (Link R), monitor FIFO collector, VHDL type definitions |
+| [vhdl/MTRG_registers.md](vhdl/MTRG_registers.md) | `registers.vhd` | MTRG VME register map: ~120 R/O + R/W registers, 3 lookup RAMs (VETO/TRIG/SWEEP), 8+8 monitor FIFOs (MON1-8 + CHAN1-8), VME FSM state machine, rate counters |
+| [vhdl/MTRG_AUX_IO.md](vhdl/MTRG_AUX_IO.md) | `AUX_IO.VHD` | MTRG: AUX port mux, NIM output mux (4 modes), target wheel encoder (parallel FILTER FSM + SSI SLIDE FSM + SSI serial receiver), polarity inversion, BEAM_SWEEP_OUT |
+| [vhdl/MTRG_SERDES_RX_Mach.md](vhdl/MTRG_SERDES_RX_Mach.md) | `SERDES_RX_Mach_R2.vhd` | MTRG: 20-frame SERDES receiver FSM — lock/prelock, all frame decoders (F1 sync/ISY, F3-F10 triggers, F11-F19 spare/cmd, F20 EOC), VETO_EVENT, sanitized output |
+| [vhdl/MTRG_pos_finder.md](vhdl/MTRG_pos_finder.md) | `pos_finder.vhd` | MTRG TDC: thermometer-code edge position lookup — 11/12-bit slice → 4-bit position + valid flag; 2048/4096-entry ROM; 1-cycle pipeline; used by vernier_pos_finder |
+| [vhdl/MTRG_sum_hits_XY.md](vhdl/MTRG_sum_hits_XY.md) | `sum_hits_XY.vhd` | MTRG: XY coincidence trigger — fires when both X and Y global sums simultaneously exceed VME-configurable thresholds; 2-state FSM + trig_algo_support |
+| [vhdl/MTRG_comp_defs.md](vhdl/MTRG_comp_defs.md) | `trigger_comp_defs.vhd`, `trigger_top_comp_defs.vhd` | MTRG component declaration packages — all sub-design and top-level component port lists; includes tdc_chain_cont (4-phase 250 MHz TDC chain) port documentation |
+| [vhdl/MTRG_tdc_chain_cont.md](vhdl/MTRG_tdc_chain_cont.md) | `tdc_chain_cont.vhd` | MTRG TDC chain controller — 4-phase carry-chain TDC units, fine counters, trigger ACK resampling + accumulation, 5-state autosample FSM, 80→20-bit FIFO repacking, 8-word TDC event packet format, TDC_FIFO_DATA_READY |
+| [vhdl/MTRG_Generated_top.md](vhdl/MTRG_Generated_top.md) | `Generated_top.vhd` (entity `trigger_top`) | MTRG top-level structural glue — all 24 component instantiations + wiring, trigger algorithm slot map (algos 1–8), veto system (SYSTEM_VETO_STATE format), 8 monitor FIFO assignments, inline logic inventory (DCM, pad buffers, Frame 12/14/16/17 FSMs, rate counters, AUX direction), clock infrastructure, firmware type codes |
+
+### SBX (Slope Box Extension) — Motherboard Control FPGA
+
+| Doc | Module | Description |
+|-----|--------|-------------|
+| [deep_fpga_SBX_CtrlFPGA.md](deep_fpga_SBX_CtrlFPGA.md) | `SlopeBoxInt_TopLevel_RevC.vhd`, `PI_TRANSACTOR.vhd`, `I2C_template.vhd`, `LOOK_UP_TABLE1.VHD` | SBX Control FPGA (Spartan-6 XC6SLX9): 24-bit SPI interface to Raspberry Pi/Collector, 7-bit address decode, 128-register file, 3× I2C buses (power/preamp/dongle) with scanner machines, BGO discriminator DDR outputs, slope box 3-wire serial interface, analog switch control (TAU/GAIN/SIDE/BGO/DAC), preamp reset clamp, 48-bit timestamp, fake-Pi detection, fan control readout |
 
 ---
 *Source: `DGS_tools_pack/fpga/` and `DGS_tools_pack/FPGA/` (gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05.*
@@ -567,3 +605,14 @@ See **[deep_fpga_building.md](deep_fpga_building.md)** for the full build guide,
 - `knowledgeBase/ioc.md` — IOC config: firmware binary versions that must match hardware
 - `knowledgeBase/deep_fpga_building.md` — Build toolchain: ISE 14.7 / Vivado 2018.3
 - `knowledgeBase/260E_trigger_scheme.md` — RTRG 0x260E trigger scheme deep-dive: chan_in.vhd, router_data_path.vhd, X/Y plane maps, hit classification, full signal flow; verified against VHDL source
+- `knowledgeBase/vhdl/MTRG_support_modules.md` — MTRG infrastructure modules: timestamp.vhd, data_compressor.vhd (TDC vernier), link_tx_block.vhd (DC-balanced SERDES fan-out), remote_trig_support.vhd (Link R cross-system trigger), trig_mon_collect.vhd, trigger_data_types.vhd
+- `knowledgeBase/vhdl/MTRG_trig_algo_support.md` — shared base VHDL component for all MTRG trigger algorithms
+- `knowledgeBase/vhdl/MTRG_registers.md` — MTRG VME register map: all ~120 R/O + R/W registers, lookup RAMs, monitor FIFOs, VME FSM
+- `knowledgeBase/vhdl/MTRG_pos_finder.md` — TDC thermometer edge position lookup: 11/12-bit slice → 4-bit position + valid; ROM table, 1-cycle pipeline
+- `knowledgeBase/vhdl/MTRG_sum_hits_XY.md` — XY coincidence trigger algorithm: both X and Y global sums must exceed threshold simultaneously
+- `knowledgeBase/vhdl/MTRG_comp_defs.md` — trigger_comp_defs + trigger_top_comp_defs packages: all MTRG component declarations, tdc_chain_cont ports documented
+- `knowledgeBase/vhdl/MTRG_AUX_IO.md` — AUX_IO.VHD: AUX port mux, NIM outputs, target wheel encoder FSMs, SSI serial receiver
+- `knowledgeBase/vhdl/MTRG_SERDES_RX_Mach.md` — SERDES_RX_Mach_R2.vhd: 20-frame lock FSM, all frame decoders, VETO_EVENT
+- `knowledgeBase/vhdl/MTRG_tdc_chain_cont.md` — tdc_chain_cont.vhd: full TDC chain controller — 4-phase carry-chain units, fine counters, trigger ACK resampling, 5-state autosample FSM, 8-word output packet format
+- `knowledgeBase/vhdl/MTRG_Generated_top.md` — Generated_top.vhd: top-level structural glue (entity trigger_top) — all 24 component instances, trigger algo slot map, veto system (SYSTEM_VETO_STATE), 8 monitor FIFOs, inline logic, clock infrastructure, firmware type codes
+- `knowledgeBase/vhdl/PROGRESS.md` — coverage checklist for all VHDL module analysis pages (RTRG + MTRG) — **all MTRG files now complete**

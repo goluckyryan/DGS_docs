@@ -191,8 +191,12 @@ Stability: C1 - Operational / volatile
 | `/gsdaq/DGS_Commander_EDM_Screens` | 2026-04-20 | Interactive image map of EDM GUI; 7 main sections: Run Control (Start/Stop/Save/NoSave), Main Controller (waveforms/HW/timing), Main Controller Side Panel, VXI Heartbeat (obsolete), Temperatures, LN Main, Setup Script State — added to `run_procedures.md` |
 | `/gsdaq/The_Pickoff_Card` | 2026-04-16 | Corrected `sbx.md`: Pickoff Card is FPGA-based (not analog PCB); added full feature list and background scanning description |
 | `/gsdaq/Updating_Firmware_in_Digitizers_and_Triggers` | 2026-04-18 | Added to `ioc.md`: GLBL:DIG:config_main_fpga PV, 2024 ODT flash procedure reference, full old Java fpgasender API docs |
+| `/gsdaq/SBX_Power_Board` | 2026-04-23 | 48VDC PoE point-of-load power board; generates all SBX/preamp/Pi voltages; enables standalone detector operation from single PoE port; EDM: temp/power/fan display — added new section to `sbx.md` |
+| `/gsdaq/DAQ_Power_Supply` | 2026-04-23 | Redundant 48V Acopian supply per rack; floating outputs; powers collector box + ≤30 detectors per rack; fault relays → EPICS; chassis isolation prevents ground loops — added to `hardware_architecture.md` |
+| `/gsdaq/Attempts_at_Inventory` | 2026-04-23 | Mostly empty template. Only real data: MyRIAD #3/5/6 at F116 Test Stand 2018-04-25 (DGS SVN#4410 / GRETINA SVN#4043, addr 0x550000). Not added to KB (too stale/sparse). |
+| `/gsdaq/Beginner_Guide_to_Digitizer_Firmware` | 2026-04-23 | Intro page (Sept 2021). 14-bit @ 100 MHz, 10-channel DIG, Master/Slave build distinction — all already in KB. No new content. |
 
-**All known wiki pages have been visited as of 2026-04-20 (The_Pickoff_Card: 2026-04-16; Updating_Firmware: 2026-04-18).** If new pages appear on the wiki, add them here.
+**All known wiki pages visited as of 2026-04-23.** If new pages appear on the wiki, add them here.
 
 ---
 

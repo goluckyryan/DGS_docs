@@ -8,6 +8,25 @@ The IOC sender (`tcpReceiverMT`) writes raw binary files in **GEB (GRETINA Event
 
 ---
 
+## Table of Contents
+
+- [1. GEBHeader (16 bytes)](#1-gebheader-16-bytes)
+- [Note: IOC Output vs Saved File Format](#note-ioc-output-vs-saved-file-format)
+- [2. DIG Event Payload (GEB type 14)](#2-dig-event-payload-geb-type-14)
+  - [DIG Event Layout (ASCII)](#dig-event-layout-ascii)
+  - [Header Words (always present)](#header-words-always-present)
+  - [HEADER_TYPE Values](#header_type-values)
+  - [Word 4 — Flag Word](#word-4--flag-word)
+  - [Words 5–13 — Energy, Timing, Multiplex](#words-513--energy-timing-multiplex)
+  - [Words 14+ — Waveform Trace (optional)](#words-14--waveform-trace-optional-types-246)
+- [3. TAC-II / TDC Payload (GEB type 15)](#3-tac-ii--tdc-payload-geb-type-15)
+  - [TAC2 Repacking (IOC → Receiver)](#tac2-repacking-ioc--receiver)
+- [4. UniqueID Convention](#4-uniqueid-convention)
+- [5. Full Event Flow](#5-full-event-flow)
+- [References & Cross-References](#references--cross-references)
+
+---
+
 ## 1. GEBHeader (16 bytes)
 
 Every event starts with a fixed 16-byte header: ✅ verified 2026-04-07 — `receiver.h:L51-55` (`struct gebData`: int32_t type + int32_t length + uint64_t timestamp = 4+4+8 = 16 bytes)

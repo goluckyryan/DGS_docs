@@ -31,7 +31,14 @@ Stability: C2 - Active / semi-stable
 - [Connections to Other Subsystems](#connections-to-other-subsystems)
 - [Quick Notes](#quick-notes)
 - [devGData.c — Legacy VME_IO Device Support (Removed 2025-04-21)](#devgdatac--legacy-vme_io-device-support-removed-2025-04-21)
-- [Port 9010 On-Demand FIFO Grabber (Planned)](#port-9010-on-demand-fifo-grabber-planned--not-yet-implemented)
+- [Utility / Support Modules](#utility--support-modules-minor-files)
+  - [equalSub.c — EPICS Equality Subroutine](#equalsub.c--epics-equality-subroutine)
+  - [restoreSub.c — EPICS Restore Subroutine](#restoresub.c--epics-restore-subroutine)
+  - [profile.c — VxWorks Performance Profiler](#profilec--vxworks-performance-profiler)
+  - [MergedAsynDigParams.c — DIG Asyn Parameter Registration](#mergedasyndigparamsc--dig-asyn-parameter-registration)
+  - [FlashMaintenance.c — VME Flash Register Constants](#flashmaintenancec--vme-flash-register-constants)
+  - [devGVME.c — VME Board Management Layer](#devgvmec--vme-board-management-layer)
+- [State Machines & Runtime Drivers](#state-machines--runtime-drivers) → see [vxworks_state_machines.md](vxworks_state_machines.md)
 - [Cross-References](#cross-references)
 
 ---
@@ -600,145 +607,129 @@ Additional constants: `FLASH_BLOCK_SIZE = 128 kB`, `FLASH_BLOCKS = 128` (total f
 
 These registers match the VME FPGA firmware register map for flash access — used during FPGA firmware update. Cross-reference with `knowledgeBase/VME_registers.md` for the full register map context.
 
----
-
-### outLoop.st — Data Validation and Buffer Routing State Machine
-
-_Source: `dgsDrivers/dgsDriverApp/src/outLoop.st` (490 lines, EPICS State Notation Language)_ ✅ verified 2026-04-22 — full read
-
-**Purpose:** The middle layer of the three-machine pipeline (inLoop → outLoop → MiniSender). Takes data buffers filled by `inLoop.st` from the **written queue** (`QWritten`), validates them (event headers, timestamps, consistency), then moves them to the **send queue** (`QSend`) for `MiniSender.st` to transmit to `tcpReceiverMT`.
-
-**Two concurrent state sets:**
-1. `ss outLoop` — main control flow (run/stop, buffer movement)
-2. `ss outLoopTraceMon` — PV refresh timer (runs every 0.5 s in parallel) ✅ verified 2026-04-22 — `outLoop.st:L374` (`when (delay(0.5))`)
-
-#### Main State Machine (`ss outLoop`)
-
-| State | Trigger | Action |
-|-------|---------|--------|
-| `INIT` | Entry | Set task priority 190; print idle message; `msgFilter=0`, `pvRefreshReady=0` |
-| `INIT` | `AcqRun == 1` | Call `ResetStats()` → go to `CHECK_FOR_DATA` |
-| `INIT` | `delay(0.5)` | Service trace/PV refresh if flagged; stay in `INIT` |
-| `CHECK_FOR_DATA` | `!AcqRun && !Running` | Go to `CHECK_FOR_EMPTY_WRITTEN_Q` (drain remaining buffers) |
-| `CHECK_FOR_DATA` | `written_bufs > 0` | Go to `PROCESS_DATA` |
-| `CHECK_FOR_DATA` | `delay(0.05)` | Poll `getWrittenBufCount()` / `getSenderBufCount()`; log AcqRun/Running mismatch (rate-limited); stay in `CHECK_FOR_DATA` | ✅ verified 2026-04-22 — `outLoop.st:L330` |
-| `PROCESS_DATA` | Entry | Call `CheckAndMoveBuffers(written_bufs, send_bufs, sendEnable)`; accumulate `send_bufs += written_bufs`; reset `written_bufs=0`; go to `CHECK_FOR_DATA` |
-| `CHECK_FOR_EMPTY_WRITTEN_Q` | Entry | Update buffer counts; log flush message |
-| `CHECK_FOR_EMPTY_WRITTEN_Q` | `written_bufs > 0` | Go to `PROCESS_DATA` (drain last buffers) |
-| `CHECK_FOR_EMPTY_WRITTEN_Q` | else | Go to `INIT` (run done) |
-
-**Key monitored PVs:**
-
-| PV | Variable | Function |
-|----|----------|----------|
-| `Online_CS_SaveData` | `sendEnable` | 1 = save data; 0 = discard (no-save run); passed to `CheckAndMoveBuffers()` |
-| `Online_CS_StartStop` | `AcqRun` | Master run/stop from GUI — triggers INIT→run transition |
-| `DAQC{CRATE}:inLoop_Running` | `Running` | inLoop handshake — 1 when inLoop is actively running |
-| `DAQC{CRATE}_CS_TraceBd/TraceChan/TraceHorns` | `traceBoard/Chan/Horns` | Selects which board/channel to capture waveform trace |
-| `DAQC{CRATE}_OL_HeaderCheckEnable` | `outLoopHeaderCheckEnable` | Enable event header validation |
-| `DAQC{CRATE}_OL_TimestampCheckEnable` | `outLoopTimestampCheckEnable` | Enable timestamp consistency check |
-| `DAQC{CRATE}_OL_DeepCheckEnable` | `outLoopDeepCheckEnable` | Enable deeper data integrity checks |
-| `DAQC{CRATE}_OL_HeaderSummaryEnable` | `outLoopHeaderSummaryEnable` | Enable periodic header dumps to console |
-| `DAQC{CRATE}_OL_HeaderSummaryPrescale` | `outLoopHeaderSummaryPrescale` | Prescale for header dumps (default 0x1000) |
-
-**Check control flow (via `outLoopTraceMon`):** Every 0.5 s, the monitor state set copies check-control PVs to global C variables (`OL_Hdr_Chk_En`, `OL_TS_Chk_En`, `OL_Deep_Chk_En`, `OL_Hdr_Summ_En`, etc.) readable from `outLoopSupport.c`.
-
-**Reported PVs (updated every 0.5 s by `outLoopTraceMon`):**
-
-| PV | Description |
-|----|-------------|
-| `DAQC{CRATE}_CV_OutLoop0–6` | Per-board error counts (repurposed; was DataLost in KB) |
-| `DAQC{CRATE}_OL_DataRate0–6` | Per-board read rate in KB/s |
-| `DAQC{CRATE}_OL_Data0–6` | Per-board cumulative data in MB |
-| `DAQC{CRATE}_OL_NumFreeBuffers` | Current count of free buffers in pool |
-| `DAQC{CRATE}_OL_NumWrittenBuffers` | Current count of written buffers (ready for validation) |
-| `DAQC{CRATE}_OL_NumSendBuffers` | Current count of send buffers (ready for MiniSender) |
-| `DAQC{CRATE}_OL_TotalBufsWritten` | Total buffers written since run start |
-| `DAQC{CRATE}_OL_TotalFBufsWritten` | Total "flush" buffers written |
-| `DAQC{CRATE}_OL_TotalBufsLost` | Total buffers lost/dropped |
-| `DAQC{CRATE}_OL_BufLostPerecnt` | Lost-buffer percentage (note: original typo in PV name) |
-| `DAQC{CRATE}_CV_SendRate` | Send data rate in KB/s |
-| `DAQC{CRATE}_CV_TraceLen` / `DAQC{CRATE}_CV_Trace` | Waveform trace length + data (1024-sample array) |
-| `DAQC{CRATE}_CV_BuffersAvail` / `DAQC{CRATE}_CV_NumSendBuffers` | Legacy compatibility copies of buffer counts |
-
-**Key C support functions (from `outLoopSupport.c`):** ✅ verified 2026-04-22 — all function signatures confirmed in `outLoopSupport.c` (L82, L171, L209, L729, L786, L791, L796, L801, L817)
-
-| Function | Description |
-|----------|-------------|
-| `ResetStats()` | Zero all stats at run start |
-| `CheckAndMoveBuffers(written, send, enable)` | Core function: validate buffers from `QWritten`, move valid ones to `QSend` (if `enable=1`) or discard |
-| `UpdateDataRates()` | Recalculate per-board throughput rates |
-| `GetTrace(buf, board, ch)` | Copy waveform trace for board/channel into caller buffer; returns length |
-| `GetDataRate(board)` | Per-board throughput in Bytes/s |
-| `GetDataTotal(board)` | Cumulative per-board data in KB |
-| `GetErrorCount(board)` | Per-board error event count |
-| `GetErrorData(board, idx)` | Per-board raw error diagnostic data (idx 0–6) |
-| `GetTotalBuffers_Written()` | Total buffer write count |
-| `GetTotalBuffers_Lost()` | Total buffer loss count |
-| `GetTotalFBuffers_Written()` | Total flush buffer count |
-| `GetSendDataRate()` | Aggregate send rate in Bytes/s |
+**Note:** `FlashMaintenance.c` is constants-only. The actual flash functions (`ProgramFlash`, `VerifyFlash`, `EraseFlash`, `DownloadFlash`, `ConfigureFlash`) all live in **`devGVME.c`**. ✅ verified 2026-04-23 — `devGVME.c:L363–1083`
 
 ---
 
-### MiniSender.st — Network Send State Machine
+### devGVME.c — VME Board Management Layer
 
-_Source: `dgsDrivers/dgsDriverApp/src/MiniSender.st` (231 lines, EPICS State Notation Language)_ ✅ verified 2026-04-22 — full read
+_1,083-line C file: core VME board abstraction, VMERead32/VMEWrite32 primitives, board type detection, FPGA flash programming, and IOCShell command registration._ ✅ verified 2026-04-23 — `devGVME.c`
 
-**Purpose:** The final stage of the pipeline — takes validated send buffers from `QSend` and transmits them over TCP to `tcpReceiverMT` running on the DAQ host. One instance per VME crate. Uses `SendReceiveSupport.c` for all socket I/O.
+#### Global State
 
-**Single state set:** `ss ReceiveRequest` (runs as task priority 190)
+| Variable | Type | Description |
+|----------|------|-------------|
+| `daqBoards[GVME_MAX_CARDS]` | `struct daqBoard[7]` | Per-slot board state array (7 slots per VME crate) |
+| `BoardTypeNames[16][30]` | `char[][]` | String names for board type codes 0–15 |
+| `OL_Hdr_Chk_En` | `unsigned short` | outLoop header-check enable (default 1) |
+| `OL_TS_Chk_En` | `unsigned short` | outLoop timestamp-check enable (default 1) |
+| `OL_Deep_Chk_En` | `unsigned short` | outLoop deep-check enable (default 1) |
+| `OL_Hdr_Summ_En` | `unsigned short` | outLoop header summary enable (default 0) |
+| `OL_Hdr_Summ_PS` | `unsigned int` | Header summary prescale (default 0x1000) |
+| `OL_Hdr_Summ_Evt_PS` | `unsigned int` | Event summary prescale (default 0x100) |
 
-| State | Trigger | Action |
-|-------|---------|--------|
-| `init` | Entry | Set priority 190; `SenderRunning=0` |
-| `init` | `RunStopButton==1 && Save_NoSave_Button==1` | Call `InitRequestSocket()` (opens TCP server socket); `RequestMsgStatus=1`, `ConnectionAccepted=0`; go to `DelayAfterStart` |
-| `init` | `delay(1)` | Call `FlushAllBuffers()`; stay in `init` |
-| `DelayAfterStart` | `delay(2)` | Wait 2 s after run start (let inLoop/outLoop initialize); go to `WaitForConnection` |
-| `WaitForConnection` | Entry (every time, `-e`) | Call `AcceptConnection()` — blocks until `tcpReceiverMT` connects |
-| `WaitForConnection` | `!RunStopButton or !Save_NoSave_Button` | Go to `cleanup` |
-| `WaitForConnection` | `ConnectionAccepted > 0` | Call `FlushAllBuffers()` (start clean); `SenderRunning=1`; go to `HandleRequests` |
-| `WaitForConnection` | `delay(0.05)` | Retry `AcceptConnection()` |
-| `HandleRequests` | Entry (every time, `-e`) | Profile counter #4 start; call `getReceiverRequest()` (polls socket for request from receiver); profile stop |
-| `HandleRequests` | `RequestMsgStatus==0` (message received) | Go to `ProcessRequest` |
-| `HandleRequests` | `RequestMsgStatus==1` (no message yet) | Stay in `HandleRequests` |
-| `HandleRequests` | `!RunStopButton` | Go to `cleanup` |
-| `ProcessRequest` | Entry | Profile counter #5 start; call `sendServerResponse()` — responds to receiver with data-available count; profile stop; `NumBufsAvailable` = result |
-| `ProcessRequest` | `NumBufsAvailable==0` | No data ready; go to `HandleRequests` |
-| `ProcessRequest` | `NumBufsAvailable>0` | Profile counter #6 start; call `sendDataBuffer()` — send one buffer; profile stop; go to `HandleRequests` |
-| `cleanup` | Entry | Log; drain `QSend` via `FlushAllBuffers()`; call `CloseAllSockets()`; go to `init` |
+#### `struct daqBoard` (defined in `DGS_DEFS.h`)
 
-**Key C functions (from `SendReceiveSupport.c`):**
+The central per-board data structure, one per VME slot:
 
-| Function | Description |
-|----------|-------------|
-| `InitRequestSocket()` | Open TCP server socket, bind, listen — waits for `tcpReceiverMT` to connect |
-| `AcceptConnection()` | Accept incoming TCP connection from `tcpReceiverMT`; returns >0 on success |
-| `getReceiverRequest()` | Poll socket for a request message from receiver; returns 0=message, 1=no message, negative=error |
-| `sendServerResponse()` | Send response header to receiver indicating how many buffers are available; fetches first buffer from `QSend` if available; returns buffer count |
-| `sendDataBuffer()` | Send one data buffer (already fetched by `sendServerResponse`) to receiver over TCP |
-| `FlushAllBuffers()` | Discard all pending send buffers (called at cleanup or no-save mode) |
-| `CloseAllSockets()` | Close TCP socket(s) after run ends |
+| Field | Type | Description |
+|-------|------|-------------|
+| `vmeRegisters[0x24]` | `struct daqRegister[]` | 0x24 per-register structs (addr + mutex + tick + copy + dibs) |
+| `base32` | `volatile uint*` | Local CPU address mapped to VME base of this board |
+| `FIFO` | `volatile uint*` | Pointer to the board's hardware FIFO |
+| `vmever` | `unsigned short` | VME FPGA code_revision value (bits 31:16 of reg 0x920) |
+| `rev` / `subrev` | `unsigned int` | Main FPGA major/minor revision |
+| `mainOK` | `unsigned short` | Flag: main FPGA responded at init |
+| `board` | `unsigned short` | VME slot number |
+| `EnabledForReadout` | `unsigned short` | inLoop enable flag (set by `CS_Ena` PV) |
+| `DigUsrPkgData` | `int` | Type-F header payload for digitizer |
+| `TrigUsrPkgData` | `int` | Type-F header payload for trigger (added 2022-07-13) |
+| `router` | `unsigned short` | Router flag |
+| `board_type` | `unsigned short` | Board type index (0–15, see `BrdType_*` defines) |
 
-**Profile counters used (from `profile.h`):**
-- Counter 4: `PROF_MS_GET_RECEIVER_REQUEST` — time spent in `getReceiverRequest()`
-- Counter 5: `PROF_MS_SEND_SERVER_RESPONCE` — time spent in `sendServerResponse()`
-- Counter 6: `PROF_MS_SEND_DATA_BUFFER` — time spent in `sendDataBuffer()`
+**Board type codes** (bits 11:8 of `code_revision` for trigger boards; arbitrary for digitizers):
 
-**Run/no-save behavior:**
-- `Save_NoSave_Button == 0` (no-save): MiniSender stays in `init`; `FlushAllBuffers()` drains without TCP send. Data is counted by outLoop but never transmitted.
-- `Save_NoSave_Button == 1` (save): normal TCP send path activates.
+| Code | Constant | Board |
+|------|----------|-------|
+| 0 | `BrdType_NO_BOARD` | No board present |
+| 1 | `BrdType_GRETINA_RTRIG` | GRETINA Router Trigger |
+| 2 | `BrdType_GRETINA_MTRIG` | GRETINA Master Trigger |
+| 3 | `BrdType_LBNL_DIG` | LBNL Digitizer |
+| 4 | `BrdType_DGS_MTRIG` | DGS Master Trigger |
+| 6 | `BrdType_DGS_RTRIG` | DGS Router Trigger |
+| 8 | `BrdType_MYRIAD` | MγRIAD |
+| 12 | `BrdType_ANL_MDIG` | ANL Master Digitizer |
+| 13 | `BrdType_ANL_SDIG` | ANL Slave Digitizer |
+| 14 | `BrdType_MAJORANA_MDIG` | Majorana Master Digitizer |
+| 15 | `BrdType_MAJORANA_SDIG` | Majorana Slave Digitizer |
 
-**Cross-reference:** `ANLDAQ_tcpReceiver.md` — `tcpReceiverMT` protocol details; how it connects, sends requests, and receives data from MiniSender.
+#### Key Functions
+
+**`InitializeDaqBoardStructure()`** — Zeroes all 7 `daqBoards[]` slots. Must be called before `devGVMECardInit()`. Note: a bug existed (fixed 2023-09-21) where the loop used `<=` instead of `<`, causing an off-by-one write past the array.
+
+**`devGVMECardInit(int cardno, int slot)`** — Initializes one VME board slot:
+1. Converts VME slot number → base address: `base = slot << 20` (VME64x A32 addressing)
+2. Calls `sysBusToLocalAdrs()` to map VME bus address to local CPU address space (space=0x0a normal, 0x0b on RIO3 processor boards)
+3. Performs a `devReadProbe()` to read the VME FPGA version register at offset 0x248 (= 0x920 >> 2, longword-indexed); extracts bits 31:16 as `vmever`
+4. Advances `newbase` by `0x900/4` to the start of the VME FPGA register map
+5. Allocates one `epicsMutexCreate()` semaphore per register slot (0x24 total, covering 0x900–0x98C)
+6. Exposed to IOCShell as `devGVMECardInit(cardno, slot)`
+
+**`VMEWrite32(int bdnum, int regaddr, unsigned int data)`** — Locks `vme_driver_mutex`, converts register address to longword pointer via `daqBoards[bdnum].base32 + regaddr/4`, writes the value, unlocks. This is the universal VME write primitive used by all flash and driver functions.
+
+**`VMERead32(int bdnum, int regaddr)`** — Same pattern as write: mutex-protected read; result stored in global `VMERead32TempVal` (needed because IOCShell call functions can't return values directly). Exposed to IOCShell as `VMERead32(bdnum, regaddr)` — prints value to console.
+
+#### Flash Programming Functions
+
+All flash functions hold `vme_driver_mutex` for their entire duration — **ctrl-X and ctrl-C cannot interrupt them**.
+
+The flash chip uses byte-swapped word ordering relative to Linux file byte ordering. All read and write paths include a 4-byte endian swap:
+```c
+file_word  = ((raw & 0xFF000000) >> 24)  // bits 31:24 → 07:00
+           + ((raw & 0x00FF0000) >>  8)  // bits 23:16 → 15:08
+           + ((raw & 0x0000FF00) <<  8)  // bits 15:08 → 23:16
+           + ((raw & 0x000000FF) << 24); // bits 07:00 → 31:24
+```
+
+Flash geometry: 128 blocks × 128 kB = 16 MB total. Each programming operation targets one **bank** (32 blocks = 4 MB), selected by `address_control` (0 = lower bank, 1 = upper bank).
+
+| Function | IOCShell Args | Description |
+|----------|---------------|-------------|
+| `VerifyFlash(bdnum, addr_ctrl, stop_on_err, fname)` | 4 | Compare flash contents to .bin file. Reads 32-byte chunks, byte-swaps, compares. Reports mismatch count. |
+| `EraseFlash(bdnum, addr_ctrl)` | 2 | Block-erases one 4 MB flash bank. Issues cmd 0x20 (block erase) + 0xD0 (confirm) per block. Polls status reg 0x904 bit 0x80 (busy). Timeout at 10,000 polls per block. |
+| `ProgramFlash(bdnum, addr_ctrl, fname)` | 3 | Calls EraseFlash first, then programs from .bin file in 32-byte write-buffer commands (cmd 0xE8). Two-stage poll: buffer-write status then NV array commit. |
+| `DownloadFlash(bdnum, addr_ctrl, fname)` | 3 | Reads one 4 MB flash bank back to a file (byte-swapped to match original .bin layout). Mirrors ProgramFlash in reverse. |
+| `ConfigureFlash(bdnum, addr_ctrl)` | 2 | Commands the VME FPGA to reconfigure the main FPGA from flash. Writes to `vme_config_control` (0x090C). Polls status 0x904 bit 0x0002 (config complete). Timeout at 40 × 10-tick cycles. Reports `DoneError`, `ConfigComplete`, `InitLowErr`, `InitHighErr` status bits on timeout. |
+
+All five functions are registered with the IOCShell via EPICS `iocshRegister()` / `epicsExportRegistrar()` so they can be called from the VxWorks IOC shell prompt.
+
+#### `DGS_DEFS.h` — Central Type and Constants Header
+
+All modules share types/constants defined here (moved from `devGVME.h` in 2020-06-11 refactor):
+
+- **`rawEvt` struct** — Buffer descriptor: `id`, `datapcrosscheck`, `board`, `len`, `data*`, `owner_enum`, `board_type`, `data_type`
+- **`owner_enum`** — Buffer ownership state: `OWNER_Q_FREE(1)` → `OWNER_INLOOP(2)` → `OWNER_Q_WRITTEN(3)` → `OWNER_OUTLOOP(4)` → `OWNER_Q_SENDER(5)` → `OWNER_SENDER(6)`
+- **`evtServerRetStruct` / `ResponseMsg`** — TCP server response header: `type`, `recLen` (deprecated for DGS), `status`, `recs`
+- **`ReqMsg`** — TCP receiver request (4-byte int union)
+- **Buffer size constants** (MV5500 only): `RAW_BUF_SIZE=1MB`, `MAX_DIG_RAW_XFER_SIZE=512kB`, `DMA_CHUNK_SIZE_IN_BYTES=64kB` (actual max DMA size; the 512kB limit is of the FIFO, not DMA)
+- **Profiling counters** (9 counters, normally disabled via `NO_PROFILING`)
+- **outLoop tuning**: `SENDER_BUF_BYPASS_THRESHOLD = RAW_Q_SIZE × 0.5`, `MAX_EVENTS_TO_CHECK_PER_BUFFER = 128`
+- **Type-F generation flags**: compile-time `#define`/`#undef` to enable/disable empty, error, EOD Type-F headers
 
 ---
 
-## Port 9010 On-Demand FIFO Grabber (Planned — Not Implemented)
+## State Machines & Runtime Drivers
 
-> ⚠️ Design plan only as of 2026-04-18. `fifoGrabber.c` does not exist. No VxWorks build changes made.
+> 📄 **See [`vxworks_state_machines.md`](vxworks_state_machines.md)** for full detail on:
+> - **inLoop.st** — VME FIFO readout state machine (data acquisition, FIFO polling, board enable)
+> - **outLoop.st** — data validation and buffer routing state machine
+> - **MiniSender.st** — TCP data send state machine (port 9001)
+> - **Port 9010 On-Demand FIFO Grabber** (planned, not implemented)
+> - **Trigger board drivers** (asynTrigCommonDriver, asynTrigRouterDriver, asynTrigMasterDriver, RTRG/MTRG)
+> - **vmeDriverMutex** — shared VME bus mutex for flash programming synchronization
+> - **QueueManagement.c** — three-queue buffer pool (qFree/qWritten/qSender)
 
-- **Purpose:** Standalone TCP diagnostic service on port 9010 — grab raw FIFO data from a specific digitizer board without starting the full DAQ pipeline (no MiniSender, no receiver required).
-- **Plan document:** `vxworks/On-Demand-FIFO-Grabber-Plan.md` — full wire protocol, implementation details, Python client.
-- **Requires:** New `dgsDrivers/dgsDriverApp/src/fifoGrabber.c`, new task (`FifoGrabberTask`, priority 150), `FifoGrabberInit(9010)` call from VxWorks shell post-`iocInit`.
+_Split to separate file 2026-04-23 to keep `vxworks.md` under 650 lines._
 
 ---
 
@@ -747,8 +738,12 @@ _Source: `dgsDrivers/dgsDriverApp/src/MiniSender.st` (231 lines, EPICS State Not
 - `knowledgeBase/ioc.md` — IOC config, boot scripts, firmware versions, MVME5500 setup
 - `knowledgeBase/vxworks_migration.md` — Detailed migration notes from Solaris/con6 to Ubuntu 24
 - `knowledgeBase/vxworks_fifo_readout.md` — DMA buffer architecture, trigger FIFO readout, Type-F headers
+- `knowledgeBase/vxworks_state_machines.md` — inLoop/outLoop/MiniSender state machines, trigger drivers, queue management
 - `knowledgeBase/EPICS_asyn.md` — asyn driver internals: port model, worker threads, write flow
 - `knowledgeBase/VME_registers.md` — VME register addresses used by the IOC driver
 - `knowledgeBase/fpga.md` — FPGA firmware overview; the firmware binaries loaded by VxWorks
+- `knowledgeBase/ANLDAQ.md` — High-level pipeline overview (inLoop/outLoop/MiniSender data flow diagram + key PVs)
+- `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiverMT protocol; the TCP receiver MiniSender connects to
+- `knowledgeBase/deep_fpga_RTRG.md` / `knowledgeBase/deep_fpga_MTRG_MAIN.md` — RTRG/MTRG FPGA firmware
 
-*Created: 2026-04-05 | Last reviewed: 2026-04-22*
+*Created: 2026-04-05 | Last reviewed: 2026-04-23*

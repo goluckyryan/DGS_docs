@@ -199,12 +199,13 @@ All branches target `xc3s5000-fg900-5`.
 | File | Description |
 |------|-------------|
 | `jta_channel.vhd` | Per-channel pipeline: delay chain (P1, P2, M, K, D, D3 stages), threshold and CFD discriminators, pileup detection, peak finding, energy integration (PRE_RISE, POST_RISE, P2, baseline), Pending Event Queue (PEQ) |
+| `chan_trigger_control.vhd` | **Trigger Rondel — PEQ state machine** (entity `trigger_rondel`). 16-entry circular buffer of pending events (discriminator timestamps + status bits); 5-machine arbiter (Filler, Remover, Searcher, Vetoer, Check); BYPASS mode for internal triggering; veto gating; throttle control. **Fully documented in `deep_fpga_DIG_channel.md` → § Trigger Rondel.** ✅ verified 2026-04-24 — `chan_trigger_control.vhd` (1,191 lines, DGS branch) |
 | `thresh_disc.vhd` | Leading-edge threshold discriminator |
 | `cfd_disc.vhd` | Constant Fraction Discriminator |
 | `coarse_disc_count.vhd` | Coarse discriminator with count |
 | `coarse_thresh_disc.vhd` | **Simplified coarse threshold discriminator** (`thresh_disc_mach`). Stripped-down version of `thresh_disc.vhd` (2023-07-24 JTA) for use as coarse trigger only. Accepts 15-bit THRESH_DISC_PROMPT/DELAYED inputs, subtracts them, applies `DISCRIMINATOR_THRESHOLD` comparison with polarity control (pos/neg/both). State machine: `IDLE → INITIAL_FALSE_EDGE → WAIT_EDGE → PULSE → WAIT_DELAY`. Includes 9-bit holdoff counter (5.12 µs max). Outputs `DISC_FLAG_OUT`, `DISC_POLARITY`, `DISCBIT_HOLDOFF_RELEASE`, `DISC_MONITOR_OUT[13:0]`. `LOCAL_THROTTLE` (M. Oberling, 2014) suppresses discriminator during excessive decimation readout. ✅ verified 2026-04-18 — `coarse_thresh_disc.vhd:L3-8` (simplified 2023-07-24), `L30-57` (entity ports), `L87-88` (9-bit holdoff, 5.12 µs), `L120-155` (edge detection + threshold comparison) |
 | `baseline_tracker.vhd` | Running baseline estimation |
-| `pileup_processor.vhd` | Pileup detection and rejection logic |
+| `pileup_processor.vhd` | Pileup detection and rejection/acceptance logic (8-state FSM, 4-bit pileup counter, REJ/ACC halves). **Fully documented in `deep_fpga_DIG_modules.md` → § pileup_processor.** |
 | `triple_filter.vhd` | Triple moving-average filter |
 | `single_filter.vhd` | Single-stage moving-average filter |
 | `decimator.vhd` | Waveform decimation for readout |
@@ -225,8 +226,8 @@ All branches target `xc3s5000-fg900-5`.
 ### Router Interface (SERDES)
 | File | Description |
 |------|-------------|
-| `SERDES_TX_Mach_DGS.vhd` | Packs 10-channel discriminator bits into 18-bit SERDES frames; sends to Router |
-| `SERDES_RX_Mach.vhd` | Receives and decodes 20-frame command structure from Router (Sync, Trigger, Veto, Cal, Capture frames) |
+| `SERDES_TX_Mach_DGS.vhd` | Packs 10-channel discriminator bits into 18-bit SERDES frames; sends to Router. **Fully documented in `deep_fpga_DIG_modules.md` → § SERDES_TX_Mach_DGS.** |
+| `SERDES_RX_Mach.vhd` | Receives and decodes 20-frame command structure from Router (Sync, Trigger, Veto, Cal, Capture frames). **Fully documented in `deep_fpga_DIG_modules.md` → § SERDES_RX_Mach.** 1,252 lines; CLK50; 5-stage prelock, 20-frame FSM; F1=Sync/ISY (48-bit TS), F2=debug/monitor data, F3–F10=8 trigger decision frames (TRIG_FLAG+TRIG_TIMESTAMP), F11–F14=spare/stripped, F15=async commands (CAL/RESET/EXT_DISC+latch mode), F16=synchronous capture command, F17=AUX detector, F18–F19=spare, F20=EOC (always checked); per-frame VETO_EVENT[9:0] on every 5th word. |
 | `disparity_lookup.vhd` | DC balance disparity lookup table |
 
 ### Front Bus (Partner Digitizer Interface)
@@ -237,6 +238,7 @@ All branches target `xc3s5000-fg900-5`.
 ### Event Data Aggregation & Readout
 | File | Description |
 |------|-------------|
+| `event_packer.vhd` | "Accordion" FIFO controller: injects event headers then transfers waveform sample pairs into `acptd_event_fifo`; manages decimator enable/pause via timing-mark-driven logic. **Fully documented in `deep_fpga_DIG_modules.md` → § event_packer.** |
 | `Fifo.vhd` | External dual-clock FIFO interface (IDT 7007, 36-bit); bridges CLK100 write domain to CLK50 VME read domain |
 | `CLOCK_MANAGER.vhd` | Differential ADC/DAC clock output generation |
 | `DCM_CONTROLLER.vhd` | DCM lock/unlock/reset management |
@@ -486,6 +488,8 @@ One instance per channel (10 total). Manages the **go/no-go decision** and **wav
 
 → Continued in **[deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md)** — LED/CFD discriminator modes, delay chain, CFD zero-crossing, pileup, VME FPGA, IP cores.
 
+→ Additional module analysis in **[deep_fpga_DIG_modules.md](deep_fpga_DIG_modules.md)** — `SERDES_TX_Mach_DGS.vhd`, `event_packer.vhd`, `pileup_processor.vhd`, `SERDES_RX_Mach.vhd`.
+
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Dig*/` — VHDL source. PDF: `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05.*
 
@@ -499,4 +503,4 @@ One instance per channel (10 total). Manages the **go/no-go decision** and **wav
 - `knowledgeBase/VME_registers.md` — DIG VME register addresses from asyn driver source
 - `knowledgeBase/fpga.md` — FPGA system overview: DIG role in 3-tier trigger hierarchy
 
-*Created: 2026-04-07 | Last reviewed: 2026-04-20*
+*Created: 2026-04-07 | Last reviewed: 2026-04-24*

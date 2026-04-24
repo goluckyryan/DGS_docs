@@ -8,6 +8,21 @@ Stability: C2 - Active / semi-stable
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [SYSTEM_DEFINES.sh — Gammasphere Configuration](#system_definessh--gammasphere-configuration)
+- [Stage 1 — MTRG Initialization](#stage-1--mtrg-initialization)
+- [Stage 2 — RTRG Initialization](#stage-2--rtrg-initialization)
+- [Stage 3 — Link Lock Verification + RTRG Clock Hand-Off](#stage-3--link-lock-verification--rtrg-clock-hand-off)
+- [Stage 4 — DIG Initialization + Router Link Lock Verification + DIG Clock Hand-Off](#stage-4--dig-initialization--router-link-lock-verification--dig-clock-hand-off)
+- [Stage 5 — Transition to Live Data](#stage-5--transition-to-live-data)
+- [Key Design Notes](#key-design-notes)
+- [Trigger Algorithm Reference](#trigger-algorithm-reference-from-stage-1)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 The trigger setup is a 5-stage scripted initialization procedure that brings the MTRG→RTRG→DIG link chain from a cold/unknown state into a fully synchronized, data-passing configuration.  
@@ -25,7 +40,7 @@ Defines the physical topology used by all five stage scripts.
 |---|---|---|
 | `MT_VME_LEADER` | `VME10` | VME crate containing the MTRG |
 | `MT_USE_LINK_CLK` | 0 | Use local clock (not link clock) during MTRG init |
-| `DIG_CLOCK_SEL` | 1 | DIG final clock: 0=AUX, 1=Serdes (link clock from RTRG), 2=Oscillator, 3=Serdes |
+| `DIG_CLOCK_SEL` | 1 | DIG final clock: 0=S/D (SerDes), 1=OSC (internal oscillator), 2=S/D (SerDes), 3=AUX — sets `clk_select` PV. Default=1 (OSC=internal) during Stage 4 hand-off. ✅ verified 2026-04-23 — `MDigUserVME.template:L84` (`ZRST=S/D,ONST=OSC,TWST=S/D,THST=AUX`); `trig_setup_Stage4.sh:L163` (`0=Serdes,1=internal`). ⚠️ Prior KB had 0=AUX/1=Serdes/2=OSC/3=Serdes — corrected. |
 | `SCRIPT_VERBOSITY` | 1 | 0=stage-level, 1=steps, 2=per-channel |
 | `PERFORM_ERROR_CHECKS` | 0 | Enables EPICS PV lock checks at each stage (0=disabled in GS config) |
 

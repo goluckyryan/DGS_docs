@@ -6,6 +6,25 @@ _A primer for DGS: how EPICS works under the hood, record types, tools, and Pyth
 
 ---
 
+## Table of Contents
+
+- [1. What Is EPICS?](#1-what-is-epics)
+- [2. Record Types](#2-record-types)
+- [3. The IOC — Input/Output Controller](#3-the-ioc--inputoutput-controller)
+- [4. Channel Access (CA) — Under the Hood](#4-channel-access-ca--under-the-hood)
+- [5. PyEPICS — Python CA Client](#5-pyepics--python-ca-client)
+- [6. DGS PV Hierarchy — User PVs vs reg_* vs DAQC](#6-dgs-pv-hierarchy--user-pvs-vs-reg_-vs-daqc)
+- [7. EPICS DB File Syntax](#7-epics-db-file-syntax)
+- [8. DGS-Specific EPICS Setup](#8-dgs-specific-epics-setup)
+  - [CA Port Assignments](#ca-port-assignments)
+  - [dgsSoftIOC — DGS Central Soft IOC](#dgssoftioc--dgs-central-soft-ioc)
+  - [Collector Box (softIOC on Pi)](#collector-box-softioc-on-pi)
+  - [Useful One-Liners for DGS](#useful-one-liners-for-dgs)
+- [9. Database Definition Files (.dbd)](#9-database-definition-files-dbd)
+- [See Also](#see-also)
+
+---
+
 ## 1. What Is EPICS?
 
 EPICS is a distributed control system framework used in particle accelerators, nuclear physics labs, and large instruments worldwide (including DGS at ANL). It is:

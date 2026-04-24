@@ -73,7 +73,7 @@ The machine emits four simultaneous outputs: `CMDout` (links A–H), `LCMDout` (
 
 | Frame | Name | Description |
 |-------|------|-------------|
-| **1** | SYNC | Always emitted. Cmd byte 0x01 (normal) or 0x81 (Imperative). Arg byte 0x00 (normal) or 0xFF (timestamp rollover). Words 2–4: 48-bit timestamp. Word 5: DC balance (0x0000). During Imperative SYNC, timestamp words come from `STARTING_TIMESTAMP` instead of the live counter. |
+| **1** | SYNC | Always emitted. Cmd byte 0x01 (normal) or 0x81 (Imperative). Arg byte 0x00 (normal) or 0xFF (timestamp rollover). Words 2–4: 48-bit timestamp. Word 5: DC balance (0x0000). During Imperative SYNC, timestamp words come from `STARTING_TIMESTAMP` instead of the live counter. ✅ verified 2026-04-24 — mstr_mach.vhd:L362-376 (Imperative→0x81/normal→0x01; ROLLOVER→0xFF/normal→0x00; W2-W4 STARTING_TIMESTAMP vs TIMESTAMP_OF_SYNC) |
 | **2** | Debug / Detector Status | Words 1–2: `LOCAL_TRIG_MON_DET_DATA` and `LOCAL_TRIG_MON_XTRA_DATA` (detector state at last trigger). Word 3: `SYSTEM_VETO_STATE` (broadcast on L/R/U with own remote-master bit masked out). Word 4: 0xAAAA (null); also pre-reads TRIG_DES_FIFO if non-empty. Word 5: 0x0000 (filler). Monitor FIFO can optionally capture this frame on bit 6 (nonzero data) or bit 7 (changed data). |
 | **3–7** | Trigger Decision (internal) | If TRIG_DES_FIFO has data, words 1–4 stream trigger decision words; word 5 is filler. FIFO RE is carefully pipelined so data lands one clock after RE (one-cycle FIFO latency). All four outputs (A–H, L, R, U) receive the trigger data. Continues across multiple frames as long as FIFO is non-empty. |
 | **8** | Trigger Decision (Link L external) | Same as frames 3–7 but `LCMDout` is forced to NULL (0xAAAA) — prevents re-propagation of an external trigger from Link L back to itself. |
@@ -81,14 +81,14 @@ The machine emits four simultaneous outputs: `CMDout` (links A–H), `LCMDout` (
 | **10** | Trigger Decision (Link U external) | Same but `UCMDout` is forced to NULL. Final frame for FIFO draining — RE is explicitly dropped mid-frame. |
 | **11** | Spare | NULL frame (0xAAAA for words 1–4, filler for W5). Also asserts `TRIG_COLLECT_RST` at W1 to reset decision FIFO. |
 | **12** | Router / Data Generator Reset | Synchronous command frame for resetting Routers and DIGs. Words 1–5 carry `FRAME_12_DATA[1..5]` (nominally: 0x0001 reset command, Router counter resets, Router FIFO resets, DIG resets, spare). Nulled if `FRAME_12_REQ_FLAG` not set. `FRAME_12_SENT_FLAG` pulses at W4. Frame 12 also asserts `TRIG_COLLECT_FLAG` at W1, triggering the trigger collection machine. |
-| **13** | Demand Front-End Slow Data | Fixed pattern: W1=0x40FB (cmd byte 0x40), W2=0xA5A5, W3=0x5A5A, W4=0xA5A5, W5=0xA5A5. This causes all DIGs to upload their slow-data registers. |
+| **13** | Demand Front-End Slow Data | Fixed pattern: W1=0x40FB (cmd byte 0x40), W2=0xA5A5, W3=0x5A5A, W4=0xA5A5, W5=0xA5A5. This causes all DIGs to upload their slow-data registers. ✅ verified 2026-04-24 — mstr_mach.vhd:L803-816 (W1=X"40FB"; W2=NULL_VALUE_A5; W3=NULL_VALUE_5A; W4=NULL_VALUE_A5; W5=NULL_VALUE_A5) |
 | **14** | Digitizer Tester / MγRIAD | Synchronous command frame for Digitizer Tester control (words 1–3: cmd, timestamp comparison, pulse-count/delay). W4: veto status bits on L/R (`ANY_TRIGGER_VETO[15] & REMOTE_MASTER_VETO[14]` | lower 14 bits of FRAME_14_DATA[4]). Added 2021-06-16. W5: spare / pipeline for Frame 15 async setup. |
 | **15** | Async Front-End Command (GRETINA) | If `ASYNC_CMD_REQUEST` is set (a VME pulse latched and synchronized to F19/W5 boundary), words 1–5 are streamed from the async command FIFO. All four outputs receive same data. `ASYNC_CMD_ACK` pulses at W5 to clear the request. Otherwise, NULL frame. |
 | **16** | Synchronous System Capture | Synchronous command frame; words 1–5 from `FRAME_16_DATA[1..5]`. `FRAME_16_SENT_FLAG` pulses at W4. |
 | **17** | Auxiliary Detector (removed) | Defined in older spec; removed 2022-04-19 and replaced with NULL. |
 | **18** | Spare | NULL. |
 | **19** | Spare | NULL. Last frame before EOC; used to pipeline async command request to Frame 15. |
-| **20** | End-of-Cycle (EOC) | Fixed DC-balance alternating pattern: W1=0xFFFF, W2=0x0000, W3=0xFFFF, W4=0x0000, W5=0x5555. Timestamp is latched at F20/W4 for use in the next SYNC frame. |
+| **20** | End-of-Cycle (EOC) | Fixed DC-balance alternating pattern: W1=0xFFFF, W2=0x0000, W3=0xFFFF, W4=0x0000, W5=0x5555. Timestamp is latched at F20/W4 for use in the next SYNC frame. ✅ verified 2026-04-24 — mstr_mach.vhd:L1138-1160 (W1=X"FFFF"; W2=X"0000"; W3=X"FFFF"; W4=X"0000"; W5=X"5555") |
 
 ---
 
@@ -171,7 +171,7 @@ Bit:  15    14    13    12    11    10     9     8     7     6     5     4     3
 - Alg0–7: Individual trigger algorithm vetoes
 
 When broadcasting to Link L, bit 12 (RM L) is masked out (0) to prevent the satellite from seeing its own veto reflected back.  
-Similarly for R (bit 13) and U (bit 14).
+Similarly for R (bit 13) and U (bit 14). ✅ verified 2026-04-24 — mstr_mach.vhd:L438-447 (SYSTEM_VETO_STATE bit layout comment + L445 AND X"DFFF" for L; X"BFFF" for R; X"EFFF" for U)
 
 ---
 

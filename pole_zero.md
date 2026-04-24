@@ -7,6 +7,24 @@ _Reference paper: Begley, Zhu, Carpenter et al., NIM A 1040 (2022) 167113 — "A
 
 ---
 
+## Table of Contents
+
+1. [Symbol Table](#symbol-table)
+2. [What Is Pole-Zero?](#what-is-pole-zero)
+3. [Physical Derivation of the Correction Term](#physical-derivation-of-the-correction-term)
+4. [Summary: Three Levels of PZ Correction](#summary-three-levels-of-pz-correction)
+5. [PZ Coefficient Range and Meaning](#pz-coefficient-range-and-meaning)
+6. [Calibration Files](#calibration-files)
+7. [Method 1: From Parquet (Recommended)](#method-1-from-parquet-recommended)
+8. [Method 2: From ROOT (Alternative)](#method-2-from-root-alternative)
+9. [Using PZ in the Pipeline](#using-pz-in-the-pipeline)
+10. [Quick Reference](#quick-reference)
+11. [DetResult — Output Dataclass](#detresult--output-dataclass)
+12. [Related Files](#related-files)
+13. [Cross-References](#cross-references)
+
+---
+
 ## Symbol Table
 
 | Symbol | Code variable | Meaning |

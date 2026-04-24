@@ -590,7 +590,8 @@ The Pre_EPICS_Collector programs are built from a shared C library (`Src/`). The
 
 ## Cross-References
 
-- `knowledgeBase/collector_fpga.md` — CtrlFPGA + StripeFPGA firmware detail; the hardware the Pi IOC talks to
+- `knowledgeBase/collector_fpga.md` — CtrlFPGA + StripeFPGA firmware detail (git repo); the hardware the Pi IOC talks to
+- `knowledgeBase/collector_box_fpga.md` — ControlStripe + CtlFanout FPGAs (PSG SVN origin): per-stripe 48V relay/clock/SYNC/LED control (Spartan-3) and RPi SPI gateway + ADS1158 ADC scanning (Spartan-6)
 - `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector); use exec grep for PV lookups
 - `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support internals: SPI driver, CAMAC_IO link
 - `knowledgeBase/sbx.md` — Slope Box Extension hardware; BGO HV, GS_ID dongle, pickoff card

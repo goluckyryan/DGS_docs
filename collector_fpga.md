@@ -3,6 +3,20 @@ Stability: C3 - Structural / stable
 _Source: `DGS_tools_pack/collector_FPGA/` (local repo)_
 _Explored: 2026-04-06_
 
+## Table of Contents
+
+- [Overview](#overview)
+- [CtrlFPGA — Control & Housekeeping FPGA](#ctrlfpga--control--housekeeping-fpga)
+  - [Register Map Summary](#register-map-summary)
+  - [ADC Hardware Calibration Constants](#adc-hardware-calibration-constants)
+  - [EPICS PV Pattern](#epics-pv-pattern)
+  - [Per-Slot CtrlFPGA Register Addresses (Exact)](#per-slot-ctrlfpga-register-addresses-exact)
+- [StripeFPGA — Stripe & Relay Control FPGA](#stripefpga--stripe--relay-control-fpga)
+  - [Register Map Summary](#register-map-summary-1)
+- [PickoffCard SBX Interface / Extension](#pickoffcard-sbx-interface--extension)
+- [Relationship to collectorboxpi](#relationship-to-collectorboxpi)
+- [Cross-References](#cross-references)
+
 ---
 
 ## Overview
@@ -293,9 +307,10 @@ See: `knowledgeBase/collectorboxpi.md`, `knowledgeBase/collectorbox_devicesuppor
 - `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC, PXE boot, HV control
 - `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector ✅ verified 2026-04-16)
 - `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support internals, SPI driver, CAMAC_IO
-- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC, PXE boot, HV control
+- `knowledgeBase/collector_box_fpga.md` — ControlStripe + CtlFanout FPGAs (PSG SVN origin, sister codebase): per-stripe 48V relay/clock/SYNC control (Spartan-3) and RPi SPI gateway + ADS1158 ADC scanning (Spartan-6)
 - `knowledgeBase/sbx.md` — Slope Box Extension hardware, BGO HV, GS_ID dongle
+- `knowledgeBase/deep_fpga_SBX_CtrlFPGA.md` — Deep VHDL analysis of SBX Motherboard Control FPGA (entity SlopeBoxInt, Rev C, Spartan-6 XC6SLX9): 24-bit SPI, register file, I2C buses, BGO DDR outputs, analog switch control, preamp clamp, timestamp, firmware version registers
 
 ---
 
-_Last reviewed: 2026-04-23_
+_Last reviewed: 2026-04-24_

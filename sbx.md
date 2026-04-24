@@ -150,6 +150,28 @@ Also provides BGO HV demand control via DAC (see address map below).
 
 ---
 
+## SBX Power Board
+
+*Source: [wiki.anl.gov/gsdaq/SBX_Power_Board](https://wiki.anl.gov/gsdaq/SBX_Power_Board) — visited 2026-04-23*
+
+The SBX power board is an all-in-one, **point-of-load power system** for each detector and its SBX. It is located on top of the pickoff card inside the SBX.
+
+### Key characteristics
+- **Single input:** 48VDC from the DAQ rack supply
+- **Output voltages:** Generates all voltages required by slope box, preamp, pickoff board, and Raspberry Pi
+- **PoE support:** A single **Power over Ethernet (PoE)** port can power an entire detector + SBX, enabling **standalone detector operation** without the full DAQ infrastructure
+- **EPICS monitoring:** EDM screen available with display values for temperature, power, and fan speed; controls for power status and port data writes
+- **Isolation:** Provides electrical isolation between the 48V rack supply and the detector's ground/power (double isolation with the rack supply)
+
+### Standalone operation
+When running standalone via PoE:
+- Ethernet cable plugs into power board inside SBX
+- Powers slope box, pickoff, and preamp
+- An IOC within the SBX transfers signals to the digitizer
+- EPICS access still available for monitoring and control of PVs
+
+---
+
 ## GS_ID Dongle
 
 A small board in the SBX that identifies the **GS hole number** for this detector position.
@@ -200,7 +222,7 @@ The SBX is controlled via the **Collector Box Raspberry Pi** soft IOC (one Pi pe
 The SBX differentiator converts Ge preamp reset spikes into large opposite-polarity signals. The digitizer firmware's Preamp Reset Kill (PRK) detects these via an opposite-polarity discriminator and disables the main discriminator during the reset:
 - **Firmware PRK holdoff** = `PREAMP_RESET_DELAY` (8-bit, from `reg_led_threshold[23:16]`) × 512 clock cycles × 10 ns = up to 1.31 ms; testbench default = 0x25 (37) = **~189 µs** ✅ verified 2026-04-06 — `thresh_disc.vhd:L661`, `one_chan_tb.vhd:L360`
 - **PRK enable** = `reg_channel_control[3]` (bit 3) ✅ verified 2026-04-06 — `Digitizer.vhd:L1203`
-- Reset rate: every few ms to ~100s of ms (depends on radiation damage)
+- Reset rate: every few ms to ~100s of ms (depends on radiation damage) ✅ verified 2026-04-23 — DIG_firmware_expert.pdf p.12 ("once every few milliseconds to once every few hundred milliseconds depending upon how much neutron-induced damage the detector has")
 - PRK dead time: not significant unless detector needs annealing
 - **SBX GeCenter clamp time** (SBX Extension FPGA, `PARST_ANALOG_SWITCH_CTL` process, 100 MHz clock): `PARST_SWITCH_COUNT` default = `X"1388"` = 5000; loaded as `5000 & '0'` = 10000 counts at 100 MHz = **100 µs** default clamp duration. Register is 16-bit: bit 15 = enable flag, bits[14:0] = count (× 2 × 10 ns, max ~655 µs). ✅ verified 2026-04-06 — `SlopeboxInt_TopLevel_RevC.vhd:L552,L3208–3237`. Prior claim of "200–250 µs" was incorrect — that figure is not in the firmware source.
 
@@ -275,6 +297,7 @@ The same I2C engine + opcode format is used in **both the SBX Stripe FPGA and th
 
 ## Cross-References
 
+- `knowledgeBase/deep_fpga_SBX_CtrlFPGA.md` — Deep analysis of SBX Motherboard Control FPGA firmware (Spartan-6 XC6SLX9): SPI interface, 128-register file, 3× I2C buses, BGO discriminator DDR outputs, slope box serial, analog switch control, preamp reset clamp, timestamp, fake-Pi detection
 - `knowledgeBase/collector_fpga.md` — Pickoff card FPGAs (SBX Interface + Extension) that interface to SBX
 - `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC; controls BGO HV via pickoff card
 - `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support; SPI protocol to pickoff card

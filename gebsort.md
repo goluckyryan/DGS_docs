@@ -227,6 +227,68 @@ Output: `dgs_factor.dat` — one line per crystal, read by GEBSort at runtime to
 
 ---
 
+## Energy Algorithm `.stub` Files
+
+_Source: `gebsort/*.stub`_
+
+The three energy algorithms (selected by `dgs_algo` in `GEBSort.chat`) are implemented as **C code stubs** that are `#include`d into `bin_dgs.c` at compile time. This keeps the main sort file identical for all algorithm variants.
+
+| File | Algorithm | Used by |
+|------|-----------|--------|
+| `SZ_1.stub` | SZ method 1 (2021) — positive signal polarity | `bin_dgs.c`, `bin_dgs_GE.c` |
+| `SZ_1_neg.stub` | SZ method 1 — **negative** signal polarity (sign-flipped energy formula) | `bin_dgs_AUX.c` |
+| `SZ_2.stub` | SZ method 2 (2021) — two-segment PZ with t1/t2 transition times | `bin_dgs.c` (when `dgs_algo=2`) |
+| `SZ_0_3456.stub` | Simple/legacy energy algorithm | `bin_dgs.c` (when `dgs_algo=0`) |
+| `GEBMerge_TS_manip.stub` | Timestamp manipulation for GEBMerge | `GEBMerge.c` |
+
+### SZ_1 Algorithm (Positive Polarity)
+
+Implements the SZ energy method from Sept 2021 (T. Lauritsen emails):
+
+```c
+pz1 = powf(PZ[gsid], (Pars.dgs_MM + Pars.dgs_KK) / (double)Pars.dgs_MM);
+sum1 = DGSEvent[i].sum1 / Pars.dgs_MM;  // normalized pre-rise sum
+sum2 = DGSEvent[i].sum2 / Pars.dgs_MM;  // normalized post-rise sum
+
+// Update baseline when inter-event gap >= 450 us:
+if (d1 >= 450) base[gsid] = sum1;
+
+// Energy (positive polarity):
+Energy = sum2 - sum1 * pz1 - base[gsid] * (1 - pz1);
+```
+
+Base tracking: uses stored `DTlast[gsid]` (timestamp of previous event) to compute inter-event time in µs. LED mode uses raw timestamp difference; CFD mode masks to 30-bit counter and handles rollover.
+
+**Note (2025-11-12):** Code comments indicate the "supposedly better code" for baseline tracking was reverted to the standard form; the reason is unknown and flagged for investigation.
+
+### SZ_1_neg (Negative Polarity)
+
+Identical to `SZ_1.stub` except the energy formula is **sign-flipped** for detectors with negative-going signals (auxiliary/AUX-type detectors):
+
+```c
+// Negative polarity:
+Energy = sum1 * pz1 - sum2 + base[gsid] * (1 - pz1);  // signs reversed vs SZ_1
+```
+
+Used by `bin_dgs_AUX.c` for auxiliary detector channels.
+
+### bin_dgs_GE.c and bin_dgs_AUX.c
+
+`bin_dgs_GE.c` is **byte-for-byte identical** to `bin_dgs.c` (diff produces no output). ✅ verified 2026-04-24 — `diff bin_dgs.c bin_dgs_GE.c` → empty.
+
+`bin_dgs_AUX.c` differs from `bin_dgs.c` in 5 places:
+
+| Location | `bin_dgs.c` | `bin_dgs_AUX.c` |
+|----------|------------|----------------|
+| Event type filter | `DGSEvent[i].tpe == GE` | `DGSEvent[i].tpe == AUX` |
+| `sum2` condition for energy | `sum1 > 0 && sum1 < sum2` | `sum1 > 0` (no upper bound) |
+| Energy stub | `#include "SZ_1.stub"` | `#include "SZ_1_neg.stub"` |
+| Event loop filter (×3) | `tpe == GE` | `tpe == AUX` |
+
+**Purpose:** `bin_dgs_AUX.c` sorts events from **auxiliary detector channels** (BGO, ancillary detectors) rather than Ge crystals, using the negative-polarity energy formula appropriate for those signal types. ✅ verified 2026-04-24 — `diff bin_dgs.c bin_dgs_AUX.c`.
+
+---
+
 ## GEBMerge
 
 Merges multiple single-crate GEB data files into one timestamp-sorted stream:

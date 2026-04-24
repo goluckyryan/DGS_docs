@@ -8,6 +8,34 @@ _Split from `vxworks.md` on 2026-04-20. Sources: `dgsDrivers/dgsDriverApp/src/`,
 
 ---
 
+## Table of Contents
+
+- [DMA Buffer Architecture — VME Readout Internals](#dma-buffer-architecture--vme-readout-internals)
+  - [FIFO Poll → DMA → Buffer Queue Pipeline](#fifo-poll--dma--buffer-queue-pipeline)
+  - [Buffer Pool](#buffer-pool)
+  - [Trigger Throttle (software fallback)](#trigger-throttle-software-fallback)
+  - [Garbage Collection](#garbage-collection-optional-compile-time)
+- [Trigger FIFO Readout — readTrigFIFO.c](#trigger-fifo-readout--readtrigfifoc)
+  - [FIFO Index Map](#fifo-index-map)
+  - [FIFO Status Register](#fifo-status-register)
+  - [CheckAndReadTrigger() Logic](#checkandreadtrigger-logic-in-inloopsupportc)
+  - [transferTrigFifoData() Flow](#transfertrigfifodata-flow)
+  - [Key Size Constants](#key-size-constants-from-dgs_defsh)
+- [Type-F Headers](#type-f-headers)
+  - [Trigger Type-F Headers](#trigger-type-f-headers-triggertypefheader-in-readtrigfifoc)
+  - [Digitizer Type-F Headers](#digitizer-type-f-headers-digitizertypefheader-in-readdigfifoc)
+- [QueueManagement.c — Buffer Lifecycle & Key Structures](#queuemanagementc--buffer-lifecycle--key-structures)
+  - [rawEvt Structure](#rawevt-structure-buffer-descriptor)
+  - [owner_enum — Buffer Ownership Tracking](#owner_enum--buffer-ownership-tracking)
+  - [Queue Operations](#queue-operations)
+  - [bufDiag() — Buffer Integrity Checker](#bufdiag--buffer-integrity-checker)
+  - [setupFIFOReader() — Initialization](#setupfiforeader--initialization)
+  - [daqBoard Structure — Per-Slot VME Board Descriptor](#daqboard-structure--per-slot-vme-board-descriptor)
+  - [Board Type Constants](#board-type-constants-brdtype_)
+- [Cross-References](#cross-references)
+
+---
+
 ## DMA Buffer Architecture — VME Readout Internals
 _Source: `DGS_SVN/dgs/Documentation/Formal/Software/howTheSenderWorks.docx` (T. Madden, APS-XSD Detector Group)_
 

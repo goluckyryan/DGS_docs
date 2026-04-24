@@ -29,12 +29,12 @@ The algorithm operates in two parallel paths that can be combined via overlap lo
 
 ### Path 1 — MγRIAD trigger path
 1. Wait for `MYRIAD_DATA_LOCK = '1'` (MγRIAD receiver is synchronized)
-2. Watch for `RAW_TRIGGER` or `GATED_TRIGGER` pulse (selected by `MYRIAD_TRIG_TYPE_SELECT`)
-3. On trigger arrival: latch `TIME_STAMP_BUS` → push into **Pre-FIFO** (48-bit timestamp FIFO); pulse `TRIG_FLAG_IN` into a **delay line** (`DELAY_LINE` component, programmable via `REG_TRIG_DELAY`)
-4. After `REG_TRIG_DELAY` clocks: `MYRIAD_DELAYED_TRIGGER` falls out of the delay line; simultaneously `DELAYED_TIME_STAMP` is read from the Pre-FIFO (with a 2-clock pipeline delay to ensure data validity)
+2. Watch for `RAW_TRIGGER` or `GATED_TRIGGER` pulse (selected by `MYRIAD_TRIG_TYPE_SELECT`) ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L323,328` (MYRIAD_TRIG_TYPE_SELECT='0' → RAW_TRIGGER='1'; '1' → GATED_TRIGGER='1')
+3. On trigger arrival: latch `TIME_STAMP_BUS` → push into **Pre-FIFO** (48-bit timestamp FIFO); pulse `TRIG_FLAG_IN` into a **delay line** (`DELAY_LINE` component, programmable via `REG_TRIG_DELAY`) ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L324-330` (PRE_FIFO_WE <= '1', TRIG_FLAG_IN <= '1' on trigger)
+4. After `REG_TRIG_DELAY` clocks: `MYRIAD_DELAYED_TRIGGER` falls out of the delay line; simultaneously `DELAYED_TIME_STAMP` is read from the Pre-FIFO (with a 2-clock pipeline delay to ensure data validity) ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L397-399` (PRE_FIFO_RE_PIPE(0)<=MYRIAD_DELAYED_TRIGGER; PRE_FIFO_RE_PIPE(1)<=pipe(0); PRE_FIFO_RE<=pipe(1))
 
 ### Path 2 — Other trigger path
-- `OTHER_TRIGGER_MASK` (7 bits, one per other MTRG algorithm) selects which other algorithm acknowledge signals (`OTHER_NONVETOED_TRIG_ACK[7:1]`) can activate the coincidence logic
+- `OTHER_TRIGGER_MASK` (7 bits, one per other MTRG algorithm) selects which other algorithm acknowledge signals (`OTHER_NONVETOED_TRIG_ACK[7:1]`) can activate the coincidence logic ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L155,265-271`
 - Matching any enabled bit asserts `MASKED_OTHER_TRIGGER`
 
 ### Overlap Logic (`overlap_mach` instance)
@@ -42,13 +42,13 @@ Shared `overlap_mach` component (same as used in other MTRG algorithms):
 - `TRIG_FLAG_1` = `MYRIAD_DELAYED_TRIGGER`
 - `TRIG_FLAG_2` = `MASKED_OTHER_TRIGGER`
 - Programmable overlap window via `OVERLAP_DELAY` (7-bit)
-- Outputs: `MYRIAD_NO_OVERLAP` (MγRIAD only), `OVERLAP_TRIGGER` (both), `OTHER_NO_MYRIAD` (other only)
+- Outputs: `MYRIAD_NO_OVERLAP` (MγRIAD only), `OVERLAP_TRIGGER` (both), `OTHER_NO_MYRIAD` (other only) ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L417-419`
 
 ### Final trigger selection (`MYRIAD_TRIG_SEL_PROC`)
 | `OTHER_TRIGGER_MASK` | Final trigger | Subtype |
 |----------------------|---------------|---------|
-| All zeros (no other algo selected) | `MYRIAD_DELAYED_TRIGGER` directly | `0x78` |
-| Any bit set | `OVERLAP_TRIGGER` (coincidence required) | `0x79` |
+| All zeros (no other algo selected) | `MYRIAD_DELAYED_TRIGGER` directly | `0x78` | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L439,449`
+| Any bit set | `OVERLAP_TRIGGER` (coincidence required) | `0x79` | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L451,453`
 
 > When used standalone (mask=0): `RAW_NONVETOED_TRIG_ACK` = `MYRIAD_DELAYED_TRIGGER` (irrespective of veto, used by other algorithms' matrix logic).
 
@@ -60,8 +60,8 @@ Controlled by `MYRIAD_TRIGGER_MODE` register bit:
 
 | Mode | `MYRIAD_TRIGGER_MODE` | Timestamp in trigger record |
 |------|-----------------------|------------------------------|
-| Default | `'0'` | `TIME_STAMP_BUS` — timestamp when delayed trigger fires (exits delay line) |
-| Arrival mode | `'1'` | `DELAYED_TIME_STAMP` from Pre-FIFO — timestamp when MγRIAD message arrived |
+| Default | `'0'` | `TIME_STAMP_BUS` — timestamp when delayed trigger fires (exits delay line) | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L157,442-443`
+| Arrival mode | `'1'` | `DELAYED_TIME_STAMP` from Pre-FIFO — timestamp when MγRIAD message arrived | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L158,444-445`
 
 The arrival-mode timestamp is latched into the Pre-FIFO at the moment the trigger comes in, then read back out when the delayed version fires. This allows reporting the actual physics event time regardless of the programmed delay.
 
@@ -80,22 +80,22 @@ The arrival-mode timestamp is latched into the Pre-FIFO at the moment the trigge
 
 - **Component:** `FIFO_FWFT_48X64` (48-bit wide, 64 deep, first-word-fall-through)
 - **Write:** timestamp pushed at trigger arrival (`PRE_FIFO_WE`)
-- **Read:** read enable asserted 2 clocks after `MYRIAD_DELAYED_TRIGGER` (via 3-stage pipeline `PRE_FIFO_RE_PIPE`)
+- **Read:** read enable asserted 2 clocks after `MYRIAD_DELAYED_TRIGGER` (via `PRE_FIFO_RE_PIPE` — declared as `std_logic_vector(2 downto 0)` but only bits 0 and 1 are used; bit 2 is unused dead signal) ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L206,397-399`
 - Purpose: holds the "at-arrival" timestamp until the delayed trigger fires, so that `DELAYED_TIME_STAMP` can be used when `MYRIAD_TRIGGER_MODE='1'`
 
 ---
 
 ## Internal State Machine (`MYRIAD_TRIG_WE_MACH`)
 
-States: `IDLE` → `WAIT_TRIG` → `LOAD_PRE_FIFO`
+States: `IDLE` → `WAIT_TRIG` → `LOAD_PRE_FIFO` ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L194` (type declaration), `L292-349` (process)
 
 | State | Condition | Action |
 |-------|-----------|--------|
-| `IDLE` | `MYRIAD_DATA_LOCK='1'` | → `WAIT_TRIG`; else hold, keep Pre-FIFO in reset |
-| `WAIT_TRIG` | `RAW_TRIGGER='1'` (or `GATED_TRIGGER='1'` if `MYRIAD_TRIG_TYPE_SELECT='1'`) | Latch timestamp, pulse `TRIG_FLAG_IN`, pulse `PRE_FIFO_WE`, → `LOAD_PRE_FIFO` |
-| `LOAD_PRE_FIFO` | `RAW_TRIGGER='0'` (trigger de-asserted) | → `WAIT_TRIG` |
+| `IDLE` | `MYRIAD_DATA_LOCK='1'` | → `WAIT_TRIG`; else hold, keep Pre-FIFO in reset | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L307-311`
+| `WAIT_TRIG` | `RAW_TRIGGER='1'` (or `GATED_TRIGGER='1'` if `MYRIAD_TRIG_TYPE_SELECT='1'`) | Latch timestamp, pulse `TRIG_FLAG_IN`, pulse `PRE_FIFO_WE`, → `LOAD_PRE_FIFO` | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L320-333`
+| `LOAD_PRE_FIFO` | `RAW_TRIGGER='0'` (trigger de-asserted) | → `WAIT_TRIG` | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L341-349`
 
-The machine holds `LOAD_PRE_FIFO` while the trigger input remains high to prevent double-triggering.
+The machine holds `LOAD_PRE_FIFO` while the trigger input remains high to prevent double-triggering. ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L346-349` (stays in LOAD_PRE_FIFO while RAW_TRIGGER='1')
 
 ---
 
@@ -147,13 +147,13 @@ This is passed through to `trig_algo_support` (shared base) which handles the ac
 
 | Bit | Algorithm (acknowledge used) |
 |-----|------------------------------|
-| 1 | Manual / NIM In (AUX) / TargetWheel trigger (ack #1) |
-| 2 | SumX trigger (ack #2) |
-| 3 | SumY trigger (ack #3) |
-| 4 | SumXY trigger (ack #4) |
-| 5 | CPLD fast-sum trigger (ack #5) |
-| 6 | GITMO or Remote Master trigger (ack #6) |
-| 7 | Remote Master trigger (ack #7) |
+| 1 | Manual / NIM In (AUX) / TargetWheel trigger (ack #1) | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L265`
+| 2 | SumX trigger (ack #2) | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L266`
+| 3 | SumY trigger (ack #3) | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L267`
+| 4 | SumXY trigger (ack #4) | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L268`
+| 5 | CPLD fast-sum trigger (ack #5) | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L269`
+| 6 | GITMO or Remote Master trigger (ack #6) | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L270`
+| 7 | Remote Master trigger (ack #7) | ✅ verified 2026-04-24 — `MYRIAD_TRIGGER.vhd:L271`
 
 All uses `RAW_NONVETOED_TRIG_ACK` from the other algorithm (fires irrespective of enable, respects veto).
 

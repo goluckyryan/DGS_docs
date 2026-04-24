@@ -66,7 +66,7 @@ Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS
 | `class_PVWidgets.py` | 393 | PV-bound Qt widgets (see below) | ✅ 2026-04-17 |
 | `custom_QClasses.py` | 200 | Custom Qt base classes (see below) | ✅ 2026-04-18 |
 | `json2pv.py` | 281 | Parses `All_PV.json` → PV objects (see below) | ✅ 2026-04-18 |
-| `aux.py` | 7 | Minimal helpers | — |
+| `aux.py` | 7 | Two helper functions: `natural_key(s)` — natural sort key (splits on digit boundaries for human-order sorting); `make_pattern_list(prefix_list)` — compiles a list of regexes matching `PREFIX_[A-Za-z]` patterns | ✅ verified 2026-04-23 — `aux.py:L3-6` |
 | `Guceiver/` | — | Live waveform/spectrum monitor (matplotlib) | — |
 | `scripts/` | — | Shell/Python scripts launchable from GUI combo box | — |
 
@@ -318,52 +318,18 @@ Provides a set of **PV-aware Qt widgets** — each wraps a `PV` object, reads it
 
 ### `commander.py` — Main Window
 
-Startup sequence:
-1. Checks `SYSTEM` env var — if not set, re-execs itself via `bash -c "source EPICS_para.sh && exec python3 ..."` ✅ verified 2026-04-14 — `commander.py:L8-10`
-2. Calls `GeneratePVLists('../ioc/All_PV.json')` to build all PV lists ✅ verified 2026-04-14 — `commander.py:L21,L23`
-3. Creates `Board` objects for all DIG, RTR, MTRG, DAQ boards
-4. Launches PyQt6 `MainWindow`
+> **Full reference moved to [`ANLDAQ_commander.md`](ANLDAQ_commander.md)** (split 2026-04-23 for size).
 
-`MainWindow` layout:
-- **Data Taking groupbox** — Exp Name, Run ID, Exp Folder (Browse), Start/Stop Run button, Duration combo
-- **Board buttons** — one button per DIG/RTR/MTRG board → opens respective window
-- **System tabs** — via `gui_SYS.py`: timestamps, links, TCP, code revision
-- **Settings** — persisted to `settings.json` (exp name, folder, run counter, IOC config, duration index)
-- **CollectorBox PVs** — optionally loaded via `cb_json2pv.py` + `CollectorBox_PV.json` (graceful fallback if absent) ✅ verified 2026-04-07 — `commander.py:L93-97`: `try: from cb_json2pv import LoadCollectorBoxPVs ... except Exception: CB_PV, CB_DET_LIST = [], []`
-- **"Others" groupbox** — miscellaneous buttons including **SBX/CollectorBox** (`btn_det`): opens `DetWindow` showing all 110 detectors by collector box group (NE/SE/NW/SW). Enabled only when `SYSTEM == DGS`; grayed out for other system configs (XArray, DuoGe, SBX). ✅ verified 2026-04-19 — `commander.py:L247` (Others QGroupBox), `L283-286` (`btn_det`, `OpenDetWindow()`, `setEnabled(os.environ.get("SYSTEM") == "DGS")`)
-- **Guceiver** — live monitor launched from GUI; path added to `sys.path` at startup
+Key facts:
+- Main entry point — launches the full PyQt6 GUI; checks `SYSTEM` env var; auto-sources `EPICS_para.sh` if needed
+- Run control: `caput Online_CS_StartStop Start/Stop`; 2 s delay before `StartAcquisition()`; 3 s delay for SoftIOC; 8 s between repeat-mode runs
+- Duration timer combo: Infinity / 1 min / 5 min / 30 min / 1 hr / 2 hr / repeat variants
+- SoftIOC auto-spawn: `caget Online_CS_StartStop` ×3; spawns softIOC in `gnome-terminal` if unreachable
+- Terminal server: `telnet <TERMINAL_SERVER> <2000+N>` (IOC-1–6 → server 1; IOC-7+ → server 2)
+- Script runner: reads `scripts/enableScriptList.txt`; `.py` → `python3`, others → `bash`
+- Run timestamp CSV: `<expFolder>/RunTimestamp.csv`, format: `Timestamp, RunID, Event, Comment`
 
-Run control:
-- Start: `caput Online_CS_StartStop Start` + `caput Online_CS_SaveData Save` → spawns `tcpReceiverMT` ✅ verified 2026-04-08 — `start_run.sh:L212-213,L163-164`
-- Stop: `caput Online_CS_StartStop Stop` → wait → `kill_IOC.sh` ✅ verified 2026-04-08 — `start_run.sh:L220`
-- Run ID auto-increments; saved to `settings.json`
-- **2-second delay** after run start before `StartAcquisition()` is called — gives `RunStatusWindow` / `tcpReceiverMT` time to connect ✅ verified 2026-04-17 — `commander.py:L452`: `QTimer.singleShot(2000, self.StartAcquisition)`
-- **Run timestamp CSV** — appended to `<expFolder>/RunTimestamp.csv` on each start/stop; format: `Timestamp, RunID, Event, Comment` ✅ verified 2026-04-17 — `commander.py:L381-394`
-
-**Duration Timer** (combo box: Infinity / 1 min / 5 min / 30 min / 1 hr / 2 hr / 1 hr repeat / 2 hr repeat): ✅ verified 2026-04-17 — `commander.py:L456-517`
-- `Infinity` — no timer; run continues until manually stopped
-- Fixed durations (`1 min`…`2 hr`) — `QTimer.singleShot` fires → auto-stops run, then does nothing (button stays disabled until `RunStatusWindow` is closed by user)
-- Repeat durations (`1 hr repeat`, `2 hr repeat`) — on timer expiry: stops run → waits 8 s → closes `RunStatusWindow` → immediately starts next run with auto-generated comment
-
-**SoftIOC auto-spawn** — at startup `CheckACQCanStart()` tries `caget Online_CS_StartStop` up to 3×; if unreachable, spawns the softIOC in a `gnome-terminal` window: ✅ verified 2026-04-17 — `commander.py:L751-798`
-- Checks `ps ax` for an existing `SoftIOC` process first (skip if already running)
-- Spawns: `<ANLDAQ_DIR>/EPICS/softIOC/iocBoot/iocdgsSoftIOC/dgsSoftIoc.cmd`
-
-**Terminal server (telnet to IOC)** — "Open Terminal" combo → `IOC-N` → opens `gnome-terminal` running: ✅ verified 2026-04-17 — `commander.py:L808-843`
-- `telnet <TERMINAL_SERVER> <2000+N>` (e.g. IOC-1 → port 2001)
-- For DGS system: IOC-1 to IOC-6 use first terminal server IP; IOC-7+ use second IP (two terminal servers for 12 VME crates)
-- SlopeBox always uses IOC-3 / port 2003
-
-**Script runner** — "Select Script" combo → reads `scripts/enableScriptList.txt` (one filename per line, `#` for comments) → runs selected script via `QProcess`: ✅ verified 2026-04-17 — `commander.py:L718-740`
-- `.py` files → `python3 <script>`; others → `bash <script>`
-- stdout/stderr piped to console; script working dir = `scripts/`
-- **Current `enableScriptList.txt` entries (2 scripts):** `basic_settings_LED.py`, `Serdes_Linkup.sh` ✅ verified 2026-04-20 — `ANLDAQ/gui/scripts/enableScriptList.txt` (exact contents)
-
-**`scripts/terminals` (legacy standalone launcher)** — executable bash script that pre-dates the PyQt6 GUI; originally used with EDM (EPICS Display Manager). ✅ verified 2026-04-19 — `ANLDAQ/gui/scripts/terminals`
-- Single argument: `S` → spawns the softIOC in a `gnome-terminal`; any integer N → opens `gnome-terminal` telnet to `${TERMINAL_SERVER}` port `2000+N`
-- Checks for already-running softIOC via `ps ax | grep SoftIOC | grep bin` before spawning
-- **Not used by `commander.py`** — `commander.py` reimplements both behaviors directly in Python (L782, L818–843). The `terminals` script is kept for manual/legacy use only.
-- `${TERMINAL_SERVER}` and `${ANLDAQ_DIR}` must be set in environment (same variables used by the GUI)
+> **Full startup flow, layout, PV init, settings.json, Guceiver integration:** → [`ANLDAQ_commander.md`](ANLDAQ_commander.md)
 
 ---
 
@@ -529,6 +495,8 @@ Key flow-control PVs:
 - **Live depth**: exact current count of words in FIFO
 - **Event-bound depth**: updates only when a full event is in the FIFO (lags live by ≤ 1 event)
 - inLoop uses **event-bound depth** → every buffer read is guaranteed to contain only complete events (no need to stitch partial events across reads)
+
+> **Deep-dive:** For full state machine internals (outLoop.st state table, all PVs monitored/reported, MiniSender.st TCP handshake, QueueManagement three-queue buffer pool), see [`knowledgeBase/vxworks.md`](vxworks.md) — *outLoop.st*, *MiniSender.st*, and *QueueManagement.c* sections.
 
 ---
 
@@ -748,6 +716,7 @@ All 17 `calcout` records are hardcoded to `VME10` (the MTRG crate in the standar
 
 - `knowledgeBase/ANLDAQ_tcpReceiver.md` — `tcpReceiverMT` deep-dive: 3 binaries, TCP protocol, GEB header, class_DIG.h/class_TDC.h decoders, run control scripts (split from this file)
 - `knowledgeBase/ANLDAQ_GUI_windows.md` — GUI window reference: gui_MTRG (5 tabs), gui_Det, gui_scalar, gui_RTR, gui_Board (generic PV table), gui_CH (per-channel 5-tab), gui_RAM, gui_SYS, gui_LinkSys, gui_DataTaking (split from this file)
+- `knowledgeBase/ANLDAQ_commander.md` — commander.py deep-dive: top-level run control GUI, startup/env, board init, run start/stop flow, duration/repeat modes, SoftIOC auto-spawn, IOC terminal access, script runner, RunTimestamp CSV log (split from this file)
 - `knowledgeBase/ioc.md` — EPICS IOC boot scripts, DB files, PV definitions
 - `knowledgeBase/vxworks.md` — VxWorks build pipeline (produces the firmware ANLDAQ talks to)
 - `knowledgeBase/fpga.md` — DIG/RTRG/MTRG firmware overview
@@ -762,4 +731,4 @@ All 17 `calcout` records are hardcoded to `VME10` (the MTRG crate in the standar
 
 ---
 
-*Created: 2026-04-05 | Last reviewed: 2026-04-19 | ToC updated: 2026-04-19 (added Connections to Other Subsystems)*
+*Created: 2026-04-05 | Last reviewed: 2026-04-23 | ToC updated: 2026-04-23 (added ANLDAQ_commander.md to See Also)*

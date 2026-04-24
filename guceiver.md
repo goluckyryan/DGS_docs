@@ -37,16 +37,16 @@ Guceiver.py (QMainWindow)
 
 ### Threading model
 - `Receiver` lives in a dedicated `QThread`
-- GUI updates via `QTimer` at 500 ms interval
-- `QMutex` protects shared arrays between receiver thread and GUI thread
-- Four separate arrays: `waveformArray`, `energyArray`, `dataArray`, `TACArray` (each capped at 100 entries)
+- GUI updates via `QTimer` at 500 ms interval ✅ verified 2026-04-23 — `Guceiver.py:L138` (`self.timer.setInterval(500)`)
+- `QMutex` protects shared arrays between receiver thread and GUI thread ✅ verified 2026-04-23 — `class_Receiver.py:L3,L26` (`QMutex`; `data_mutex = QMutex()`)
+- Four separate arrays: `waveformArray` (cap 100), `dataArray` (cap 100), `TACArray` (cap 100) — all capped at 100 entries and pop from front when full. `energyArray` is unbounded (accumulates full spectrum; each entry = `(POST_RISE_ENERGY - PRE_RISE_ENERGY) / M_windows` where `M_windows=1000`). ✅ verified 2026-04-23 — `class_Receiver.py:L37-50,L177-210`
 
 ---
 
 ## Connection
 
 - Connects to IOC TCP port **9001** (same port as tcpReceiver) ✅ verified 2026-04-08 — `Guceiver.py:L63` (`{ip}:9001`)
-- IOC IP list loaded from `$IOC_IP` environment variable (space-separated list)
+- IOC IP list loaded from `$IOC_IP` environment variable (space-separated list) ✅ verified 2026-04-23 — `Guceiver.py:L58-60` (`os.environ.get("IOC_IP", "")`)
 - User selects which IOC from a dropdown; connection established on "Start Receiver"
 
 ### EPICS side effects
@@ -119,8 +119,10 @@ Energy = `POST_RISE_ENERGY - PRE_RISE_ENERGY` (baseline-subtracted). Pole-zero c
 | `EXTERNAL_DISC_FLAG` | External discriminator input triggered |
 
 ### Multiplicity extras (LED mode only)
-- `TRIG_MON_XTRA_DATA` — X-plane multiplicity (typically "clean" sum)
-- `TRIG_MON_DET_DATA` — Y-plane multiplicity (typically "dirty" sum)
+- `TRIG_MON_XTRA_DATA` — lower 16 bits of word 7; described as "multiplicity or other data" in class_DIG ✅ verified 2026-04-23 — `class_DIG.py:L19,L138` (`payload[7] & 0x0000FFFF`)
+- `TRIG_MON_DET_DATA` — upper 16 bits of word 7 (LED mode) or reconstructed from word 4 nibble + words 5–6 (CFD mode); described as "target wheel or other data" ✅ verified 2026-04-23 — `class_DIG.py:L20,L139,L146`
+
+> **Note:** Earlier KB entries incorrectly described TRIG_MON_XTRA_DATA as "X-plane multiplicity (clean)" and TRIG_MON_DET_DATA as "Y-plane multiplicity (dirty)" — these labels are not present in the source code. Actual usage depends on what the IOC configures in the TTCL monitor frame.
 
 ---
 

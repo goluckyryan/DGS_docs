@@ -9,6 +9,9 @@ Stability: C2 - Active / semi-stable
   - [fastEventConstructor](#fasteventconstructor)
   - [parquet_pysort — Python/C++ Parquet Pipeline](#parquet_pysort--pythonc-parquet-pipeline)
   - [gray_apps](#gray_apps)
+- [armory/ — Additional Tools](#armory--additional-tools-added-2026-04-23)
+  - [`misc.h` — Shared Utility Functions](#misch--shared-utility-functions)
+  - [`EventBuilder_XR` — Parallel k-way Merge → ROOT TTree Output](#eventbuilder_xr--parallel-k-way-merge--root-ttree-output)
 - [working/ — Experiment-Specific Scripts & Calibration](#working--experiment-specific-scripts--calibration)
   - [RunParquet (legacy)](#runparquet-legacy--superseded-by-processrun)
   - [parquetCLI](#parquetcli)
@@ -22,8 +25,6 @@ Stability: C2 - Active / semi-stable
 - [Connections to Other Subsystems](#connections-to-other-subsystems)
 - [EventBuilder_PQ Benchmark Results](#eventbuilder_pq-benchmark-results)
 - [Notes](#notes)
-- [`misc.h` — Shared Utility Functions](#misch--shared-utility-functions)
-- [`EventBuilder_XR` — Parallel k-way Merge → ROOT TTree Output](#eventbuilder_xr--parallel-k-way-merge--root-ttree-output)
 - [Cross-References](#cross-references)
 - [analyzer_*.cpp — ROOT Analysis Scripts](#analyzercpp--root-analysis-scripts)
 
@@ -665,13 +666,15 @@ Key improvements with ReadPool (vs without):
 
 ---
 
-## `misc.h` — Shared Utility Functions
+## armory/ — Additional Tools *(added 2026-04-23)*
+
+### `misc.h` — Shared Utility Functions
 
 _Source: `dgs_analysis/armory/fastEventContructor/misc.h` (303 lines, code-read 2026-04-23)_
 
 Header-only file included by `EventBuilder`, `EventBuilder_X`, `EventBuilder_XR`, and the ROOT analyzer scripts. Defines global state (channel/energy/PZ maps) and the complete pole-zero correction pipeline.
 
-### Global State
+#### Global State
 
 | Variable | Type | Description |
 |----------|------|-------------|
@@ -686,7 +689,7 @@ Header-only file included by `EventBuilder`, `EventBuilder_X`, `EventBuilder_XR`
 | `vdc_last` | `map<ushort, float>` | Last computed Vdc per detector — used by both Algo 1 and Algo 2 |
 | `timestamp_last` | `map<ushort, ullong>` | Last event timestamp per detector — used by Algo 1 |
 
-### Loader Functions
+#### Loader Functions
 
 | Function | Input File | Description |
 |----------|-----------|-------------|
@@ -695,7 +698,7 @@ Header-only file included by `EventBuilder`, `EventBuilder_X`, `EventBuilder_XR`
 | `LoadPZCalFromFile()` | `dgs_pz.cal` | Per-detector PZ constant; skips `#`/`/`/blank lines; returns `false` if file absent (e_raw = S2−S1) |
 | `LoadPZCorrectionFromFile()` | `GS_pz_correct_exp.txt` + `GS_pz_correct_factor.txt` | Loads per-detector exp + factor maps for Algo 2 |
 
-### Lookup Functions
+#### Lookup Functions
 
 | Function | Description |
 |----------|-------------|
@@ -703,7 +706,7 @@ Header-only file included by `EventBuilder`, `EventBuilder_X`, `EventBuilder_XR`
 | `FindBoardIDFromDetID(detID)` | Returns all `boardID`s associated with a `detID` |
 | `FindVMEDIGCHFromDetID(detID)` | Returns flat `[VME, DIG, CH, ...]` list for all hits mapping to `detID` |
 
-### Pole-Zero Correction Functions
+#### Pole-Zero Correction Functions
 
 **`CalculateVdcAlgo1(pre_rise_energy, event_timestamp, detID) → float`**
 - Simple time-gap approach: if `Δt ≥ 450 µs` since last event for this detector, assume signal has fully decayed; compute `vdc = S1 / M` where `M=350` (sample time in ticks). If `Δt < 450 µs`, reuse cached `vdc_last[detID]`.
@@ -724,7 +727,7 @@ Header-only file included by `EventBuilder`, `EventBuilder_X`, `EventBuilder_XR`
 
 > **Which algorithm is active?** Controlled by `#define PZ_ALGO` in each EventBuilder: currently `PZ_ALGO=2` (Algo2) in `EventBuilder_X.cpp`, `EventBuilder_XR.cpp`, and `EventBuilder.cpp`. `PZ_ALGO=1` selects Algo1; any other value uses raw `SAMPLED_BASELINE` directly as Vdc.
 
-## `EventBuilder_XR` — Parallel k-way Merge → ROOT TTree Output
+### `EventBuilder_XR` — Parallel k-way Merge → ROOT TTree Output
 
 _Source: `dgs_analysis/armory/fastEventContructor/EventBuilder_XR.cpp` (960 lines, code-read 2026-04-23)_
 
@@ -795,4 +798,4 @@ Same parallel-sector engine as `EventBuilder_X` (QuickBounds pre-scan, ghost reg
 
 <!--  original section removed 2026-04-18; see dgs_analysis_root_scripts.md  -->
 
-*Source: `DGS_tools_pack/dgs_analysis/` + `DGS_tools_pack/gebsort/`. Updated: 2026-04-18 (ROOT scripts split to dgs_analysis_root_scripts.md).*
+*Source: `DGS_tools_pack/dgs_analysis/` + `DGS_tools_pack/gebsort/`. Updated: 2026-04-18 (ROOT scripts split to dgs_analysis_root_scripts.md). MD organization 2026-04-24: fixed heading levels for misc.h + EventBuilder_XR (## → ### under new armory/ Additional Tools section); fixed ToC to match.*

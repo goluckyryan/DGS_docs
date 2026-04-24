@@ -7,6 +7,22 @@ For operational overview, cron jobs, and troubleshooting: see [`lnfill.md`](lnfi
 
 ---
 
+## Table of Contents
+
+1. [Communications](#communications)
+   - [InfluxDB (on DCS2.onenet)](#influxdb-on-dcs2onenet)
+   - [Discord Webhooks](#discord-webhooks)
+2. [ln2con — LN2 IOC Boot Host](#ln2con--ln2-ioc-boot-host)
+3. [LNValve Class Hierarchy — Python Fill Control Architecture](#lnvalve-class-hierarchy--python-fill-control-architecture)
+   - [LNValve — Base Valve Object](#lnvalve--base-valve-object)
+   - [DetValve — Detector Valve Extension](#detvalve--detector-valve-extension)
+   - [TankMan — Tank Manifold Manager](#tankman--tank-manifold-manager)
+4. [DetMan.py — FillManifold() Internals](#detmanpy--fillmanifold-internals)
+5. [Auxiliary Scripts (lnfill repo)](#auxiliary-scripts-lnfill-repo)
+6. [Cross-References](#cross-references)
+
+---
+
 ## Communications
 
 ### InfluxDB (on DCS2.onenet)
@@ -413,6 +429,73 @@ _Documented 2026-04-21 — code-verified from `DGS_tools_pack/lnfill/`._
 
 ---
 
+## tempmon.db — VXI Crate Temperature Monitor EPICS Database
+
+_Source: `DGS_tools_pack/ln2con/rtdb/tempmon.db` (429 lines, 43 records) ✅ verified 2026-04-23 — local file read_
+
+`tempmon.db` is loaded at IOC boot alongside `gamln.db`. It implements a **VXI crate heartbeat + HPGe temperature alarm aggregator** used by the analog-era LN2 fill IOC (`ln2con`). It does **not** monitor temperatures directly — it aggregates per-module temperature status PVs that are populated by `lnfiller.vx` subroutine records.
+
+### Record Summary (43 total)
+
+| Group | Records | Count |
+|-------|---------|-------|
+| `CRATE_ENABLEn` (mbbo) | Enable/disable per-VXI-crate monitoring | 6 |
+| `HEARTBEAT_OKn` (sub) | Subroutine: check heartbeat PV for each crate | 6 |
+| `HEARTBEAT_STATUSn` (bo) | Readback: DEAD / OK per crate | 6 |
+| `CRATE_OKn` (calc) | = HEARTBEAT_OK × CRATE_ENABLE (0 or 1) | 6 |
+| `CRATES_OK` (calc) | Sum of all 6 CRATE_OK values | 1 |
+| `CRATES_ENABLED` (calc) | Sum of all 6 CRATE_ENABLE values | 1 |
+| `CRATES_DISABLED` (calc) | 6 − CRATES_ENABLED | 1 |
+| `CRATES_NOTOK` (calc) | CRATES_ENABLED − CRATES_OK | 1 |
+| `TEMPLO_STATE` / `TEMPHI_STATE` / `TEMPDO_STATE` / `TEMPMC_STATE` / `CNOTOK_STATE` (mbbo) | Alarm state machines (OK / ALARM_PENDING / ALARM / ACK) | 5 |
+| `TEMPMON_HOLDOVER` (ai) | Alarm holdover time in seconds (default 300 s, max 21600 s) | 1 |
+| `TOTAL_ENABLED_TEMP_LO/OK/HI` (calc) | Cross-crate module count: enabled modules at LO/OK/HI temp | 3 |
+| `TOTAL_DISABLED_TEMP_OK` (calc) | Cross-crate count: disabled modules with temp OK | 1 |
+| `TOTAL_ENABLED` / `TOTAL_DISABLED` / `TOTAL_MISCONFIGURED` (calc) | Cross-crate totals | 3 |
+| `TEMPMON` (sub) | Main aggregator subroutine (reads all totals, drives alarm states) | 1 |
+| `TEMPMON_CTL` (sub) | Periodic control subroutine (SCAN=10s, reads LN_FILL_ID/LN_TANK_FILL_ID) | 1 |
+
+### VXI Crate Heartbeat Logic
+
+Each VXI crate (1–6) has a heartbeat PV (`HEARTBEAT1`–`HEARTBEAT6`) written by the hardware/VME driver running in `lnfiller.vx`. The `HEARTBEAT_OKn` subroutine record (INAM=`hb_sub_init`, SNAM=`hb_sub`) reads `HEARTBEATn.VAL` (INPA) and monitors for change — if the PV stops toggling, the crate is declared DEAD.
+
+- `CRATE_OKn = HEARTBEAT_OKn × CRATE_ENABLEn` — a crate only counts as OK if it's both heartbeating AND enabled
+- `CRATES_NOTOK = CRATES_ENABLED − CRATES_OK` — number of enabled crates that are not responding
+
+### Alarm State Machine (5 independent FSMs)
+
+Each alarm type has a 4-state mbbo FSM:
+
+| State | Value | Severity | Meaning |
+|-------|-------|----------|---------|
+| OK | 0 | NO_ALARM | Normal |
+| ALARM_PENDING | 1 | MINOR | Condition first detected (within holdover window) |
+| ALARM | 2 | MAJOR | Condition persisted past holdover (default 300 s) |
+| ACK | 3 | MINOR | Alarm acknowledged by operator |
+
+The 5 FSMs cover: `TEMPLO_STATE` (module too cold), `TEMPHI_STATE` (module too warm), `TEMPDO_STATE` (disabled module with temp OK — may indicate misconfiguration), `TEMPMC_STATE` (misconfigured modules), `CNOTOK_STATE` (enabled crates not OK).
+
+### Cross-Crate Module Counters
+
+The `TOTAL_*` calc records aggregate module counts across all 6 crates, weighted by `CRATE_OKn` (only counts modules from crates that are alive):
+- `TOTAL_ENABLED_TEMP_LO` — sum over crates of (CRATE_OKn × MODULES_ENABLED_TEMP_LOn)
+- `TOTAL_ENABLED_TEMP_OK` — same for modules in normal temperature range
+- `TOTAL_ENABLED_TEMP_HI` — same for modules above high-temp threshold
+- `TOTAL_DISABLED_TEMP_OK` — disabled modules with temp OK (flag for misconfiguration checking)
+- `TOTAL_ENABLED` / `TOTAL_DISABLED` / `TOTAL_MISCONFIGURED` — total module counts
+
+The `MODULES_ENABLED_*n` and `MODULES_DISABLED_*n` per-crate PVs are **not in tempmon.db** — they are populated by `lnfiller.vx` (the compiled VxWorks application, sourced from CVS on con6 via `tempmon_subs.c`). ✅ verified 2026-04-23 — `grep -n "MODULES_ENABLED\|HEARTBEAT[1-6]" rtdb/gamln.db` returns no matches; these PVs must originate in compiled C subroutine records within `lnfiller.vx`.
+
+### TEMPMON_CTL — Periodic Control Subroutine
+
+Runs every 10 seconds (SCAN="10 second"). Reads:
+- INPA: `LN_FILL_ID:XC.VAL` — current LN fill ID (which detector is being filled)
+- INPB: `LN_TANK_FILL_ID:XC.VAL` — current tank fill ID
+
+Purpose: correlate active fills with temperature alarm state to suppress false alarms during fill (detectors warm briefly when LN is first flowing).
+
+---
+
 ## Cross-References
 
 - [`lnfill.md`](lnfill.md) — Operational overview, fill types, cron jobs, health monitoring, troubleshooting
@@ -422,4 +505,4 @@ _Documented 2026-04-21 — code-verified from `DGS_tools_pack/lnfill/`._
 
 ---
 
-*Split from `lnfill.md` 2026-04-20 (F task — MD organization). Original content created 2026-04-05 through 2026-04-18. Auxiliary scripts documented 2026-04-21.*
+*Split from `lnfill.md` 2026-04-20 (F task — MD organization). Original content created 2026-04-05 through 2026-04-18. Auxiliary scripts documented 2026-04-21. tempmon.db structure documented 2026-04-23.*

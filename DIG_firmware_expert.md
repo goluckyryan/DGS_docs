@@ -138,9 +138,9 @@ Channel design changes slightly:
 
 ## Pileup Logic
 
-**Pileup counter**: 4-bit counter (max 15). Increments when discriminator fires; decrements when a delayed copy of discriminator bit exits delay chain formed by M2 (pre-rise) + K + K0. In CFD mode, LED (across 'k') used for pileup timing (LED must work for CFD to work; safer to base pileup on LED). ✅ verified 2026-04-06 — `jta_channel.vhd:L219` (`PILEUP_COUNT : std_logic_vector(3 downto 0)`), overflow at `"1111"` confirmed L1224
+**Pileup counter**: 4-bit counter (max 15). Increments when discriminator fires; decrements when a delayed copy of discriminator bit exits the delay chain: M1 (pre-rise accumulator, delay='m') → K0 → K → `DISCBIT_PILEUP_RELEASE`. In CFD mode, LED (across 'k') used for pileup timing (LED must work for CFD to work; safer to base pileup on LED). ✅ verified 2026-04-06 — `jta_channel.vhd:L219` (`PILEUP_COUNT : std_logic_vector(3 downto 0)`), overflow at `"1111"` confirmed L1224; signal chain `DISCBIT_PILEUP_M_TO_K0` → `DISCBIT_PILEUP_K0_TO_K` → `DISCBIT_PILEUP_RELEASE` confirmed 2026-04-23 at `jta_channel.vhd:L829,L876,L905,L912`. Note: earlier text said "M2 + K + K0" — corrected to M1 + K0 + K (the firmware delay buffer is DELAY_M1, labeled 'm'; K0 and K follow in that order).
 
-Pileup inspection time = m + k0 + k. Example: m=6 µs → max hit rate = 1/400 ns without overflow (2× typical HPGe rise time). Proper holdoff ending at peak prevents overflow. Counter overflow → pileup overflow state → requires software reset.
+Pileup inspection time = m + k0 + k. ✅ verified 2026-04-23 — confirmed by signal chain in `jta_channel.vhd`: disc flag passes through DELAY_M1 ('m' buffer), then DELAY_K0 (k0_val), then DELAY_K (kval) before `DISCBIT_PILEUP_RELEASE`. Example: m=6 µs → max hit rate = 1/400 ns without overflow (2× typical HPGe rise time). Proper holdoff ending at peak prevents overflow. Counter overflow → pileup overflow state → requires software reset.
 
 **First hit in train** = Accepted Hit (if pileup allowed or no pileup). **Second and subsequent hits** in train = Extended Events.
 
@@ -154,7 +154,7 @@ Pileup inspection time = m + k0 + k. Example: m=6 µs → max hit rate = 1/400 n
 **Header formation stages**:
 1. Discriminator fires → wide latch captures timestamp, energy sums, most header data
 2. During holdoff: peak timestamp/value added if found
-3. End of holdoff → latch copied to **PEHQ** (Putative Event Header Queue, depth 16)
+3. End of holdoff → latch copied to **PEHQ** (Putative Event Header Queue, depth 16) ✅ verified 2026-04-23 — `pehq.vhd:L34,L43` (4-bit `a` address counter; SRL_DELAY_256x16 and SRL_DELAY_68x16 use 4-bit address → 2⁴ = 16 entries; `diag_pehq_addr` is a 4-bit counter)
 4. End of pileup inspection time → PEHQ entry transferred to **Event Header FIFO** (Accepted Hit) or discarded
 
 **Holdoff < pileup time** is a hard requirement. If violated: PU_TIME_ERROR_FLAG set → readout blocked. Fix by adjusting holdoff/pileup and re-initializing channels (no power cycle needed).

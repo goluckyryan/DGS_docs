@@ -441,10 +441,10 @@ Always null command frame. Reserved for future use.
 | 4 | Data Generator Resets Bitmask |
 | 5 | 0x0000 |
 
-**Router Counter Resets (bits 0:7):** Reset counters at addresses 0x12C, 0x130, …, 0x148
+**Router Counter Resets (bits 0:7):** Reset counters at addresses 0x12C, 0x130, …, 0x148 ✅ verified 2026-04-23 — RTRG `registers.vhd:L151-158,L567-577` (REG_12C_IN through REG_148_IN confirmed as real VME addresses)
 **Router FIFO Resets:**
-- Bits 0:7: Clear channel-specific FIFOs at 0x180, 0x184, …, 0x19C
-- Bits 8:15: Clear board-wide "monitor" FIFOs at 0x160, 0x164, …, 0x17C
+- Bits 0:7: Clear channel-specific FIFOs at 0x180, 0x184, …, 0x19C ✅ verified 2026-04-23 — RTRG `registers.vhd:L591-598,L799-806` (CHAN_MON_FIFO_OUTs(1)–(8) at 0x0180–0x019C)
+- Bits 8:15: Clear board-wide "monitor" FIFOs at 0x160, 0x164, …, 0x17C ✅ verified 2026-04-23 — RTRG `registers.vhd:L583-590,L788-795` (MON_FIFO_OUTs(1)–(8) at 0x0160–0x017C)
 
 **Data Generator Resets (bits 3:0):**
 - Bit 0: Reset event generation state machine (restart pattern from beginning)
@@ -541,17 +541,17 @@ Pulse Delay units: 100s of ns (time from end of pulse n to beginning of pulse n+
 
 **Operation:**
 - All rate counters zeroed when device timestamp matches Timestamp[31:0] in command
-- Counters enabled for (Capture Length × 65.536 µs); max ~4.3 seconds
-- A Capture Length of 15,258 = ~1 second collection
+- Counters enabled for (Capture Length × 65.536 µs); max ~4.3 seconds ✅ verified 2026-04-23 — arithmetic: 65535 × 65536 ns = 4.295 s; 16-bit register max → ~4.3 s cap
+- A Capture Length of 15,258 = ~1 second collection ✅ verified 2026-04-23 — 15258 × 65536 ns = 999,948,288 ns ≈ 1.000 s
 - FIFOs reset immediately at timestamp match; start filling after FIFO Capture Delay (in same units as Capture Length)
   - Example: Capture Length = 15,258 (≈1 sec), FIFO Capture Delay = 12,250 → FIFOs start at 0.802 sec after start
 - "Capture complete" status bit set when collection window ends
 
 **Master Trigger counters (Frame 16):**
-- 16 counters total; reset and capture during same interval as front ends
-- First 8: count of triggers issued per trigger type
-- Second 8: count of triggers blocked by throttle or external Trigger Veto
-- Sum = total algorithm satisfaction count; ratio = dead time percentage
+- 16 counters total (8 × `TRIG_RATE_COUNTERs` + 8 × `RAW_TRIG_RATE_COUNTERs`); reset and captured synchronously during same interval as front ends ✅ verified 2026-04-24 — `MTRG/top.vhd:L4494-4516` (RATE_COUNTER_BLOCK generate loop)
+- First 8 (`TRIG_RATE_COUNTERs`, VME 0x2000–0x203C): count `ENABLED_NONVETOED_TRIG_ACK` — triggers actually sent to digitizers (veto-filtered)
+- Second 8 (`RAW_TRIG_RATE_COUNTERs`, VME 0x2040–0x207C): count `ENABLED_TRIG_ACK` — algorithm satisfied, whether or not vetoed
+- ⚠️ **Correction:** KB previously stated "second 8 = blocked by throttle/veto" — this is wrong. Neither counter directly measures blocked triggers. Dead-time estimate = (RAW − TRIG) / RAW per type.
 - These counters are **separate** from the running counters used by Frame 12
 
 ### Frame 17 — Auxiliary Detector Commands
@@ -574,6 +574,8 @@ Pulse Delay units: 100s of ns (time from end of pulse n to beginning of pulse n+
 | 3 | 0xFFFF | |
 | 4 | 0x0000 | |
 | 5 | 0x5555 | |
+
+✅ verified 2026-04-23 — word pattern confirmed: RTRG `SERDES_RX_Mach_R2.vhd:L246` (`X"FFFF", X"0000", X"FFFF", X"0000", X"5555"` — Frame 20 Fixed End-of-Cycle frame)
 
 - Special form of null command; marks frame boundary
 - Pattern chosen to be easily distinguishable in data dumps

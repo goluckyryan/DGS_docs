@@ -5,6 +5,25 @@ Stability: C3 - Structural / stable
 _Split from `deep_fpga_DIG.md` on 2026-04-10 (file exceeded 1200 lines)._
 _Source: `DGS_tools_pack/raw_FPGA/Dig*/` — `jta_channel.vhd`, `thresh_disc.vhd`, `Digitizer.vhd`. PDF: `ANL Digitizer Firmware for Experts.pdf`._
 
+## Table of Contents
+
+- [Per-Channel Signal Processing: LED and CFD Modes](#per-channel-signal-processing-led-and-cfd-modes)
+  - [Common Signal Path — Delay Chain and Filtering](#common-signal-path--delay-chain-and-filtering)
+  - [LED Mode — Leading-Edge Threshold Discriminator](#led-mode--leading-edge-threshold-discriminator)
+  - [CFD Mode — Constant Fraction Discriminator](#cfd-mode--constant-fraction-discriminator)
+  - [Mode Selection](#mode-selection)
+  - [After Discrimination — PEQ and Energy Integration](#after-discrimination--peq-and-energy-integration)
+  - [Trigger Rondel — chan_trigger_control.vhd (PEQ State Machine)](#trigger-rondel--chan_trigger_controlvhd-peq-state-machine)
+  - [Pileup Detection](#pileup-detection)
+  - [VME Registers for Discriminator Configuration](#vme-registers-for-discriminator-configuration)
+- [VME FPGA](#vme-fpga)
+  - [Source Files](#source-files)
+  - [Bitfiles](#bitfiles)
+  - [Clock Select Register (`clk_select`)](#clock-select-register-clk_select)
+- [Main FPGA Bitfiles](#main-fpga-bitfiles)
+- [IP Cores](#ip-cores)
+- [See Also](#see-also)
+
 ---
 
 ## Per-Channel Signal Processing: LED and CFD Modes
@@ -152,6 +171,102 @@ Trigger decision arrives (~2–4 µs later):
 ```
 
 In CFD mode with `CFD_ESUM_MODE = '1'`, the energy integration start is deferred to `THRESH_DISC_FLAG_DELAYED` (the LED crossing) rather than the CFD zero-crossing, so energy always integrates the same portion of the pulse regardless of discriminator mode.
+
+---
+
+### Trigger Rondel — chan_trigger_control.vhd (PEQ State Machine)
+
+_Source: `FPGA/DIG/MAIN_FPGA/BuildBranches/DGS/Source/chan_trigger_control.vhd` (1,191 lines). Entity: `trigger_rondel`. Fully read 2026-04-24._ ✅ verified 2026-04-24 — `chan_trigger_control.vhd` (1,191 lines, DGS branch)
+
+The **trigger rondel** is the per-channel arbiter between the discriminator and the readout machine. It implements a 16-entry **Pending Event Queue (PEQ)** — a circular buffer of timestamps and status bits — managed by a master state machine with five subsidiary machines (Filler, Remover, Searcher, Vetoer, Check). One instance runs per channel (10 total).
+
+#### Purpose and Terminology
+
+When the discriminator fires and is accepted by the pileup logic (`ACCEPTED_HIT`), the event is **not yet accepted for readout**. It is first entered into the PEQ as a **Pending** event. The PEQ holds it while the trigger system evaluates it. The trigger decision from the Router (via TTCL frames 3–10) later arrives as `TRIG_FLAG` + `TRIG_TIMESTAMP` and is used to search the PEQ for a matching event (within the programmed time window). If found, the event is marked **Accepted**; if the event expires before a matching trigger arrives, it is **Rejected**.
+
+#### PEQ Memory Structure
+
+The PEQ is a 16-entry (4-bit pointer) dual-port distributed RAM (Xilinx `RAM16X1D` primitives — not inferred; explicitly instantiated due to ISE inference difficulties with split record vectors). Each entry is 23 bits wide: ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L449-482` (DIST_RAM_TIMESTAMP/FLAGS/VETO_FLAG/TRIGGER_TYPE generate loops)
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| [22:20] | `TRIGGER_TYPE[2:0]` | Trigger type from the TTCL frame that accepted the event |
+| [19] | `VETO_FLAG` | Set if the event was vetoed (may still be accepted if `VETO_ENABLE='0'`) |
+| [18] | `PENDING_FLAG` | `'1'` = decision not yet made; `'0'` = decision made |
+| [17] | `ACCEPT_FLAG` | `'1'` = accepted; `'0'` = rejected (meaningful only when `PENDING_FLAG='0'`) |
+| [16] | `ROMS_FLAG` | ReadOut Machine Signaled: set after accept/reject is passed to the readout machine |
+| [15:0] | `TIMESTAMP[15:0]` | Lower 16 bits of the discriminator timestamp (10 ns per count at 100 MHz) |
+
+Four separate write-enable lines (`PEQ_WE[3:0]`) allow selective field updates without re-writing the full entry. ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L291-298` (`PEQ_WE[3]`=TRIGGER_TYPE, `[2]`=VETO_FLAG, `[1]`=FLAGS (PENDING/ACCEPT/ROMS), `[0]`=TIMESTAMP)
+
+Pointers: `PEQ_BOTTOM` (oldest entry, Remover advances this) and `PEQ_TOP` (next write slot, Filler advances this). Queue is full when `PEQ_TOP + 1 = PEQ_BOTTOM` (15 max entries, not 16). Throttle (`RONDEL_THROTTLE`) is asserted when `PEQ_TOP - PEQ_BOTTOM = 15` (full) or when the machine is in ERROR. ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L395-408`
+
+A separate **Trigger Accept FIFO** (`fifo_20x17_sepclk_fwft`, 17 entries, 20 bits: 16-bit TS + 3-bit type + 1 spare) queues incoming TTCL trigger messages. The Searcher reads from this FIFO when the PEQ is non-empty. ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L586-604`
+
+#### Master State Machine — Priority and States
+
+The master FSM runs at 100 MHz. It has 8 states with strict priority ordering in IDLE: ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L753-780`
+
+| Priority | State | Triggered by | Action |
+|----------|-------|-------------|--------|
+| 0 | `ERROR` | `ERROR_FLAG` | Permanently throttles channel; escape only via reset or `PEQ_BYPASS` |
+| 1 | `FILL` | `FILL_FLAG` (on `ACCEPTED_HIT`) | Add new event to PEQ top |
+| 2 | `REMOVE` | `REMOVE_FLAG` (on `EVENT_EXPIRED`) | Remove expired event from PEQ bottom |
+| 3 | `VETO` | `VETO_FLAG` (on `VETO_LAST_EVENT`) | Attempt to veto the most recent PEQ entry |
+| 4 | `SEARCH` | `SEARCH_FLAG` (Trigger Accept FIFO non-empty) | Search all PEQ entries for timestamp match |
+| — | `BYPASS` | `PEQ_BYPASS='1'` | Bypass mode: `ACCEPTED_HIT` → `EVENT_ACCEPT` directly |
+| — | `CHECK_FOR_NON_PENDING_EVENTS` | Called after REMOVE/SEARCH/VETO complete | Signal consecutive resolved entries to readout machine |
+
+**Important:** FILL and REMOVE are higher priority than SEARCH. This guarantees the PEQ never overflows and events never expire silently while a slow search is in progress.
+
+#### Subsidiary Machines
+
+**FILLER (`FILL` state):** 2 states: `START` (check capacity, ack flag), `ADD_EVENT` (write timestamp + `PENDING_FLAG='1'` + zeroed other fields to `PEQ_TOP`; increment `PEQ_TOP`). If `EVENT_VALID='0'` at fill time, the event is written with `PENDING_FLAG='0'` (immediately rejected) and transitions to `CHECK_FOR_NON_PENDING_EVENTS` to signal the reject. ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L865-931`
+
+**REMOVER (`REMOVE` state):** 2 states: `START` (ack flag, advance `PEQ_BOTTOM`, read current bottom entry), `REMOVE_EVENT` (overwrite entry with zeros; if `PENDING_FLAG` was still `'1'` → assert `EVENT_REJECT` immediately). Transitions to `CHECK_FOR_NON_PENDING_EVENTS` unless the queue is empty or the removed event was already decided. ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L932-985`
+
+**SEARCHER (`SEARCH` state):** 8 states. Starts at `PEQ_BOTTOM` and walks entries. Because the timestamp comparison pipeline has 4 pipeline stages, the Searcher uses 4 `SEARCH_PIPE_WAIT_*` states before entering `SEARCH_EVENT`. In `SEARCH_EVENT`, the comparison result (`TS_COMPARISON_OUTPUT`) is checked against the 4-cycle-delayed PEQ entry (`xxxxSEARCH_PIPED_RD_DATA`). If `PENDING_FLAG='1'` and the comparison passes: mark `ACCEPT_FLAG='1'`, `PENDING_FLAG='0'`, and OR the trigger type into the entry's `TRIGGER_TYPE` field (the OR allows multiple trigger types to accumulate — added 2025-05-30). Consumes one Trigger Accept FIFO entry per search pass. Transitions to `CHECK_FOR_NON_PENDING_EVENTS` after completing the walk. ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L988-1102`
+
+**Timestamp comparison (4-stage pipeline):** ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L606-634`
+```
+Stage 1: Latch EVENT_TS and TRIG_TS
+Stage 2: DIFFERENCE = EVENT_TS − TRIG_TS  (16-bit unsigned subtraction)
+Stage 3: OFFSET_DIFFERENCE = {NOT DIFFERENCE[15]} & DIFFERENCE[14:0]  (sign-flip MSB for unsigned window comparison)
+Stage 4: MATCH if OFFSET_DIFFERENCE < TS_COMP_UPPER_LIMIT_OFFSET and > TS_COMP_LOWER_LIMIT_OFFSET
+         (both limits also sign-flipped: TS_OFFSET_UPPER/LOWER_BOUND)
+```
+The sign-flip trick converts the signed window comparison into an unsigned magnitude comparison, centering the window at the zero-difference point.
+
+**VETOER (`VETO` state):** 3 states: `START` (ack flag, address `PEQ_TOP − 1`), `VETO_EVENT` (if `ROMS_FLAG='0'`: mark `VETO_FLAG='1'`; if `VETO_ENABLE='1'` also clear `PENDING` and `ACCEPT` flags so the event is rejected; if `ROMS_FLAG='1'`: event already passed to readout — too late, abort), `VETO_WAIT` (one-cycle settle, then → `CHECK_FOR_NON_PENDING_EVENTS`). ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L1104-1165`
+
+**CHECK_FOR_NON_PENDING_EVENTS:** Walks from `PEQ_BOTTOM` (or current `PEQ_RD_ADDR`) upward. For each entry where `PENDING_FLAG='0'` and `ROMS_FLAG='0'`: assert `EVENT_ACCEPT` or `EVENT_REJECT` (also `EVENT_VETO` if `VETO_FLAG='1'`) and set `ROMS_FLAG='1'` to prevent re-signaling. Stops when it hits a still-pending entry or reaches `PEQ_TOP − 1`. This ensures decisions are delivered to the readout machine in chronological order. ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L834-862`
+
+#### Veto Gating
+
+A 3-state `VETO_GATE` FSM (`ST_IDLE / ST_HIT / ST_VETOABLE`) with a 12-bit countdown counter (`VETO_COUNT`) controls when a cross-channel veto may be accepted. After each `ACCEPTED_HIT`, the counter loads `REG_VETO_GATE_WIDTH[11:0]` (default=255 → 2.55 µs; max=4095 → 40.95 µs) and starts counting down. A veto request (`VETO_LAST_EVENT`) is only accepted while `MAY_ACCEPT_VETO_REQUEST='1'` (i.e., within the countdown window). If `ENABLE_VETO_GATING='0'`, all vetoes are accepted unconditionally. This prevents stale cross-channel vetoes from incorrectly rejecting events. ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L636-698`
+
+#### Throttle Logic
+
+- `RONDEL_THROTTLE`: asserted when PEQ is full (15 entries) or in ERROR state. Blocks `ACCEPTED_HIT` and `CHANNEL_THROTTLE` output. ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L395-408`
+- `LATCHED_THROTTLE`: controls whether `EXTENDED_EVENT_OUT` is passed through. A pileup train's extended events are allowed to continue until a new `ACCEPTED_HIT` is seen, at which point the latch releases. This prevents partial pileup train readout. ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L373-394`
+
+#### Outputs to Readout Machine
+
+| Signal | Width | Description |
+|--------|-------|-------------|
+| `EVENT_ACCEPT` | 1 | One-clock pulse: event accepted for readout |
+| `EVENT_REJECT` | 1 | One-clock pulse: event rejected |
+| `EVENT_VETO` | 1 | One-clock pulse: event was vetoed (may accompany accept if `VETO_ENABLE='0'`) |
+| `EVENT_TYPE[2:0]` | 3 | Trigger type from TTCL (OR of all matching trigger slots) |
+| `ACCEPTED_EVENT_COUNT[31:0]` | 32 | Rate or accumulate counter of accepted events (`sync_capture_counter`) |
+| `ACCEPTED_HIT_OUT` | 1 | Buffered pass-through of `ACCEPTED_HIT` (after throttle gating) |
+| `EXTENDED_EVENT_OUT` | 1 | Buffered pass-through of pileup extension events |
+| `CHANNEL_THROTTLE` | 1 | Backpressure to upstream discriminator |
+| `DIAG_REG[31:0]` | 32 | Diagnostic: PEQ pointers, FSM state, flag bits |
+
+#### BYPASS Mode
+
+When `PEQ_BYPASS='1'` (register-controlled), the rondel enters `BYPASS` state and passes every `ACCEPTED_HIT` directly to `EVENT_ACCEPT` without PEQ involvement. All IRQ acks are driven continuously. This is the **internal trigger / accept-all** mode. ✅ verified 2026-04-24 — `chan_trigger_control.vhd:L796-833`
 
 ---
 
@@ -337,6 +452,7 @@ Located in each branch's `Cores/` directory:
 ## See Also
 
 - `knowledgeBase/deep_fpga_DIG.md` — DIG firmware overview: Spartan-3 architecture, ADC pipeline, event packet format, master/slave config, FIFO readout (this file is a continuation of that)
+- `knowledgeBase/deep_fpga_DIG_modules.md` — DIG selected module analysis: `SERDES_TX_Mach_DGS.vhd` (disc packer), `event_packer.vhd` (accordion FIFO), `pileup_processor.vhd` (8-state FSM), `SERDES_RX_Mach.vhd` (20-frame Router command receiver)
 - `knowledgeBase/fpga.md` — System-level overview: trigger hierarchy, signal flow, PEQ explanation, end-to-end timeline
 - `knowledgeBase/DIG_firmware_expert.md` — Operator-level guide: all 8 readout modes, register summary, discriminator config
 - `knowledgeBase/deep_fpga_RTRG.md` — Router firmware: multiplicity aggregation, throttle, VME register map

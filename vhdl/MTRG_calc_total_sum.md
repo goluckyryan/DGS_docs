@@ -1,6 +1,6 @@
 # calc_total_sum.vhd — Plain English Summary
 _Source: ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/calc_total_sum.vhd_
-_Summarized: 2026-04-15_
+_Summarized: 2026-04-15 | Last verified: 2026-04-24_
 Stability: C3 - Structural / stable
 
 ## Purpose
@@ -13,8 +13,8 @@ Sums X-plane and Y-plane multiplicity counts from up to 8 Routers into single de
 | `RST` | in | 1 | Active-high reset |
 | `RTR_SUM_OF_X` | in | JTA_8X8_Array | X-plane sum from each of 8 Routers (8 × 8-bit) |
 | `RTR_SUM_OF_Y` | in | JTA_8X8_Array | Y-plane sum from each of 8 Routers (8 × 8-bit) |
-| `X_TOTAL` | out | 11 | Total X-plane multiplicity across all Routers |
-| `Y_TOTAL` | out | 11 | Total Y-plane multiplicity across all Routers |
+| `X_TOTAL` | out | 11 | Total X-plane multiplicity across all Routers | ✅ verified 2026-04-24 — `calc_total_sum.vhd:L25` (`std_logic_vector(10 downto 0)`) |
+| `Y_TOTAL` | out | 11 | Total Y-plane multiplicity across all Routers (port is 11-bit; actual computed value is corrupted by stage-2 truncation bug — see below) | ✅ verified 2026-04-24 — `calc_total_sum.vhd:L27` |
 
 ## Key Logic / State Machine
 
@@ -26,25 +26,25 @@ Pairs of Router sums → 4× 11-bit subtotals:
 - `XSUBTOTAL2 = RTR_SUM_OF_X(3) + RTR_SUM_OF_X(4)`
 - `XSUBTOTAL3 = RTR_SUM_OF_X(5) + RTR_SUM_OF_X(6)`
 - `XSUBTOTAL4 = RTR_SUM_OF_X(7) + RTR_SUM_OF_X(8)`
-- Same for Y → YSUBTOTAL1..4 (11-bit)
+- Same for Y → YSUBTOTAL1..4 (11-bit) ✅ verified 2026-04-24 — `calc_total_sum.vhd:L38,L68-80` (YSUBTOTAL1..4 declared as `(10 downto 0)`; SUMPROC1 uses `"000" & xSUMYx` zero-extension)
 
 **SUMPROC2** (Stage 2, 1 clock):  
 - `XSUBTOTAL5 = XSUBTOTAL1 + XSUBTOTAL2` (11-bit result)
 - `XSUBTOTAL6 = XSUBTOTAL3 + XSUBTOTAL4` (11-bit result)
 - `YSUBTOTAL5 = YSUBTOTAL1 + YSUBTOTAL2`
 - `YSUBTOTAL6 = YSUBTOTAL3 + YSUBTOTAL4`
-- **Code note**: YSUBTOTAL5/6 are declared as `std_logic_vector(1 downto 0)` (2-bit) while XSUBTOTAL5/6 are correctly 11-bit. This appears to be a declaration bug — the Y path intermediate results are truncated to 2 bits at stage 2, making Y_TOTAL unreliable. XSUBTOTAL5/6 are correctly 11-bit.
+- **Code note**: YSUBTOTAL5/6 are declared as `std_logic_vector(1 downto 0)` (2-bit) while XSUBTOTAL5/6 are correctly 11-bit. This appears to be a declaration bug — the Y path intermediate results are truncated to 2 bits at stage 2, making Y_TOTAL unreliable. XSUBTOTAL5/6 are correctly 11-bit. ✅ verified 2026-04-24 — `calc_total_sum.vhd:L37` (`XSUBTOTAL5,6: (10 downto 0)`), `L40` (`YSUBTOTAL5,6: (1 downto 0)`) — bug confirmed in source
 
 **SUMPROC3** (Stage 3, 1 clock):  
 - `X_TOTAL = XSUBTOTAL5 + XSUBTOTAL6` (11-bit)
 - `Y_TOTAL = YSUBTOTAL5 + YSUBTOTAL6` (11-bit, but input truncated by bug above)
 
-**Total pipeline latency**: 3 clocks from Router input to X_TOTAL/Y_TOTAL output.
+**Total pipeline latency**: 3 clocks from Router input to X_TOTAL/Y_TOTAL output. ✅ verified 2026-04-24 — `calc_total_sum.vhd:L83-107` (SUMPROC1, SUMPROC2, SUMPROC3 each clocked on CLK rising edge — 3 separate registered stages)
 
 ## Key Constants / Parameters
 - Input range per Router: 0–255 (8-bit); physical maximum is 80 strips/Router (8 channels × 10 disc bits)
-- Output range: 0–640 across 8 Routers (10-bit needed, 11-bit allocated for X)
-- Adder tree is fully pipelined (separate process per stage) to meet timing at 50 MHz
+- Output range: 0–640 across 8 Routers (10-bit needed, 11-bit allocated for X) ✅ verified 2026-04-24 — port `X_TOTAL: (10 downto 0)` — 11-bit covers max 8×255=2040; physical max 640 fits in 10-bit
+- Adder tree is fully pipelined (separate process per stage) to meet timing at 50 MHz ✅ verified 2026-04-24 — `calc_total_sum.vhd:L64-107` (3 separate SUMPROC processes, all clocked)
 
 ## Connections to Other Modules
 - **Receives from**: eight_mt_channel.vhd (which extracts per-Router X/Y sums from incoming SerDes data) via RTR_SUM_OF_X, RTR_SUM_OF_Y

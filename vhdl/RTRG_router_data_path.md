@@ -41,6 +41,7 @@ Key ports:
 [7]     = DATA_VALID = ALL_DIGITIZERS_LOCKED AND ROUTER_LOCKED
 [6:0]   = X-plane multiplicity sum (0–80, 7-bit)
 ```
+✅ verified 2026-04-24 — `router_data_path.vhd:L235-239` (SUM_HITS process rank-3 output; comment header L1-20 confirms full 18-bit SerDes word with CG/POL framing bits added by DC balance)
 
 ## Key Logic / State Machine
 
@@ -53,15 +54,18 @@ Each clock builds LINKL_RAW_DATA via three sequential pipeline ranks (all in one
 - **Rank 2**: Pairs of rank-1 → 2× 6-bit sums
 - **Rank 3**: Final pair → 7-bit X and Y totals → LINKL_RAW_DATA[6:0] and [14:8]  
   Also sets [15]=throttle, [7]=data valid
+✅ verified 2026-04-24 — `router_data_path.vhd:L216-239` (SUM_HITS process; rank-1 L218-225, rank-2 L227-231, rank-3 L232-239; note all 3 ranks execute in a single clocked process so latency is 1 clock, not 3)
 
 ### FAST_COARSE_GE_SUM_PROC — single-cycle Ge aggregation
 - `INTER_COARSE_GE_SUM(0)` = sum of COARSE_GE_SUM(1..4) (each 3-bit → result 5-bit)
 - `INTER_COARSE_GE_SUM(1)` = sum of COARSE_GE_SUM(5..8)
 - `TOTAL_COARSE_GE_SUM` = INTER_COARSE_GE_SUM(0) + INTER_COARSE_GE_SUM(1) (6-bit, max 40)
+✅ verified 2026-04-24 — `router_data_path.vhd:L150-158` (FAST_COARSE_GE_SUM_PROC; INTER_COARSE_GE_SUM declared as MBO_2x5_Array i.e. 2×5-bit; TOTAL is 6-bit slv(5 downto 0)). Note: DIAG_INTER_COARSE_GE_SUM packs as "000"&INTER(0)&"000"&INTER(1) into 16-bit word (L144-148).
 
 ### DIGITIZER_LOCK + DIGITIZER_ALLLOCK
 Each channel: `DIGITIZER_LOCKED(i)='1'` if masked OR if LOCK_BUS(i)='0' (active-low lock).  
 `ALL_DIGITIZERS_LOCKED='1'` only when all 8 bits locked. Used to qualify DATA_VALID in link-L word.
+✅ verified 2026-04-24 — `router_data_path.vhd:L312-335` (DIGITIZER_LOCK and DIGITIZER_ALLLOCK processes; masked→locked='1', else NOT LOCK_BUS(i); ALL_DIGITIZERS_LOCKED='1' only if DIGITIZER_LOCKED="11111111")
 
 ### CHAN_FIFO_CTL_BLOCK (for i in 1 to 8) — diagnostic channel FIFOs
 Two-bit mode per channel (CHAN_MON_FIFO_CTL_REG[2i-1:2i-2]):
@@ -77,10 +81,10 @@ Two-bit write enable per channel (CHAN_MON_FIFO_WE_CTL_REG):
 |---|---|
 | "00" | Never |
 | "01" | Always |
-| "10" | This channel's disc bits nonzero |
+| "10" | This channel's disc bits nonzero (lower 10 bits of xxxCHAN_MON_FIFO_INs checked) |
 | "11" | Any channel's disc bits nonzero |
 
-Input is triple-registered (xxxCHAN_MON_FIFO_INs → xxCHAN_MON_FIFO_INs → xCHAN_MON_FIFO_INs → output) to align with WE latency.
+Input is triple-registered (mux → xxxCHAN_MON_FIFO_INs → xxCHAN_MON_FIFO_INs → xCHAN_MON_FIFO_INs → CHAN_MON_FIFO_INs output) to align with WE latency. ✅ verified 2026-04-24 — `router_data_path.vhd:L244-250` (pipeline registers; output assigned from xCHAN_MON_FIFO_INs via combinatorial SIGNAL ASSIGNMENTS at L166)
 
 ## Key Constants / Parameters
 - 8 input channels (for i in 1 to 8)

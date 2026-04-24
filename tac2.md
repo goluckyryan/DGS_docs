@@ -163,7 +163,7 @@ bin_tac2
 
 ### DGS_TRIG_EVENT Structure (GEBSort.h)
 
-15 × 16-bit unsigned words cast from the raw GEB payload (0xAAAA word stripped by tcpReceiver):
+15 × 16-bit unsigned words cast from the raw GEB payload (0xAAAA word stripped by tcpReceiver): ✅ verified 2026-04-23 — `GEBSort.h:L321-337` (struct layout), `bin_tac2.c:L176-192` (debug labels G–U match fields in order)
 
 | Field | Word | Description |
 |-------|------|-------------|
@@ -245,7 +245,7 @@ TDC_NET_TS_B = TDC_TS4B - TDC_VERNIER_B_ns + 1
 TDC_NET_TS_C = TDC_TS4C - TDC_VERNIER_C_ns + 2
 TDC_NET_TS_D = TDC_TS4D - TDC_VERNIER_D_ns + 3
 ```
-(+0/+1/+2/+3 ns phase offsets per quadrant)
+(+0/+1/+2/+3 ns phase offsets per quadrant) ✅ verified 2026-04-23 — `bin_tac2.c:L461-464`
 
 **Step 10 — Average valid chains → `dgs_tac2`:**
 If ≥ 2 valid chains, compute mean and set `dgs_tac2_valid = 1`. Otherwise `dgs_tac2 = -999999999` and `dgs_tac2_valid = 0`.

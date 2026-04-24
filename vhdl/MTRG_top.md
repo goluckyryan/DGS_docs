@@ -4,6 +4,8 @@ _Summarized: 2026-04-15_
 _Note: 5068-line file; summary covers trigger-chain sections only._
 Stability: C3 - Structural / stable
 
+> **Note:** This file documents `top.vhd` — a structural wrapper top. There is a separate, larger file `Generated_top.vhd` (6,286 lines, entity `trigger_top`) that is the **actual synthesis top-level** used by ISE. See [`MTRG_Generated_top.md`](MTRG_Generated_top.md) for a complete analysis of that file.
+
 ## Purpose
 Top-level VHDL for the MTRG (Master Trigger) FPGA board. Entity: `trigger_top`. Wires together: 8-channel Router data aggregation (`eight_mt_channel`), 8 trigger algorithm slots, a master state machine (`mstr_mach`) that distributes trigger decisions to Routers, per-algorithm veto logic, throttle management, NIM I/O, remote-master interconnects, and the CPLD multiplicity bus.
 

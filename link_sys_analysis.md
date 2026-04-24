@@ -6,6 +6,30 @@ Source: `DGS_tools_pack/ANLDAQ/gui/link_sys.py`
 
 ---
 
+## Table of Contents
+
+- [Glossary](#glossary)
+- [Purpose](#purpose)
+- [Why Is This Necessary? — The 3 Core Problems](#why-is-this-necessary--the-3-core-problems)
+- [5-Stage Initialization Sequence](#5-stage-initialization-sequence)
+  - [Stage 1 — Initialize MTRG](#stage-1--initialize-mtrg)
+  - [Stage 2 — Initialize RTRGs](#stage-2--initialize-rtrgs)
+  - [Stage 3 — Verify Lock + Hand Off Clock](#stage-3--verify-lock--hand-off-clock)
+  - [Stage 4 — Initialize DIGs + Verify Router Lock](#stage-4--initialize-digs--verify-router-lock)
+  - [Stage 5 — Switch to Real Data](#stage-5--switch-to-real-data)
+- [Assessment: Does link_sys.py Match the FPGA Code?](#assessment-does-link_syspy-match-the-fpga-code)
+- [How the PV → VME Address → FPGA Variable Chain Works](#how-the-pv--vme-address--fpga-variable-chain-works)
+- [Utility Methods](#utility-methods)
+- [Link Map Format Reference](#link-map-format-reference)
+- [Stage 5 — SYNC→Data Flip Sequence (Detailed)](#stage-5--syncdata-flip-sequence-detailed)
+- [Link Map Data Structures](#link-map-data-structures)
+- [ResetRouterLostLock Helper](#resetrouterlostlock-helper)
+- [Error Check Mode](#error-check-mode)
+- [Shell Script Counterpart](#shell-script-counterpart-trig_setup_stagesh)
+- [Cross-References](#cross-references)
+
+---
+
 ## Glossary
 
 | Term | Full Name | Meaning |
@@ -162,7 +186,7 @@ For each RTRG (Router):
 **Why:** DIGs must be initialized on local OSC first (same reason as RTRGs in Stage 2 — clean state before clock hand-off). The RTRG–DIG SERDES links need to lock before the DIG clock can be switched. After the clock switch, a second IMP_SYNC is required because DIGs were not on the MTRG-derived clock during Stage 3's IMP_SYNC — their counters were not reset then.
 
 **4A:** Initialize all DIGs (Digitizers) on their local oscillator:
-- `clk_select=1` (OSC) — each DIG uses its own on-board crystal oscillator as clock source (see Glossary: `clk_select`)
+- `clk_select=1` (OSC) — each DIG uses its own on-board crystal oscillator as clock source (see Glossary: `clk_select`) ✅ verified 2026-04-23 — `MDigUserVME.template:L84` (`ONVL=1, ONST="OSC"`)
 - Disable loopbacks — loopback mode routes the TX signal back to RX internally, used only for testing; must be off for normal operation
 - Set pre-emphasis to minimum — a safe starting point; can be tuned if link quality is poor
 - `dc_balance_enable=0` — DC balance encoding is disabled initially
@@ -179,9 +203,9 @@ For each RTRG (Router):
 - Only the MDIG is checked, not the SDIG (Slave Digitizer / front-bus receiver partner)
 - *Why MDIG only:* the SDIG does not transmit upstream — it only receives the trigger/clock signal from the MDIG on the front bus. The SDIG locks passively via the MDIG's transmit clock, so checking the MDIG is sufficient.
 
-**4E:** Flip all DIGs to the desired clock source (`dig_clk_sel`):
-- `dig_clk_sel=0` — each DIG stays on its own local oscillator (boards are independent; only use this for testing)
-- `dig_clk_sel=1` — each DIG switches to the link clock (derived from the RTRG, which is itself derived from the MTRG) — **this is the normal production setting**
+**4E:** Flip all DIGs to the desired clock source (`dig_clk_sel`), written to PV `clk_select`:
+- `dig_clk_sel=0` (`clk_select=0` = S/D) — each DIG switches to the **link clock** (SerDes-derived clock from the RTRG, which is itself derived from the MTRG) — **this is the normal production setting** ✅ verified 2026-04-23 — `MDigUserVME.template:L84` (`ZRVL=0, ZRST="S/D"`) + `link_sys.py:L581` (`SetPVManually(dig_name, "clk_select", dig_clk_sel)`)
+- `dig_clk_sel=1` (`clk_select=1` = OSC) — each DIG stays on its own local oscillator (boards are independent; only use this for testing)
 - After the clock switch: pulse RTRG `LOCK_RETRY` then `LOCK_ACK` to re-establish lock on the RTRG–DIG SERDES links (switching the DIG clock source causes the same momentary glitch as in Stage 3E)
 
 **4F:** Verify RTRG link-init reports `ALL_LOCKED_RBV == 1` — all active DIG–RTRG SERDES links are locked after the clock switch.

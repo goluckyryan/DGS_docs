@@ -105,11 +105,11 @@ Automated control system for filling germanium detector **dewars** with liquid n
 **Pre-fill setup (in `LNFill_cron.sh` and `LNFill_Auto_EFill_cron.sh`):**
 - Both cron scripts explicitly **disable `LNH1-20_FV:EN`** via `caput` before calling `LNFill_App.py`. This is a hardcoded valve disable applied before every fill (both scheduled and emergency). `LNH1-20` maps to manifold 1, position 20 (GS detector 20, fill bounds 139–419 s per `gefilltime2.dat`). Reason not documented in code — likely a known-bad valve or stuck hose. ✅ verified 2026-04-18 — `LNFill_cron.sh:L14`, `LNFill_Auto_EFill_cron.sh:L13`
 - `LNFill_cron.sh` also: runs `setTNF.sh` (set next fill time), `clean.sh` (delete empty logs + core.* files), and launches `AddPress.sh` in background before calling `LNFill_App.py F`. After fill ends, it calls `source LNFill_check.sh` (not a subshell — runs in same process) to check fill duration. If the output log file is empty at the end, posts anomaly alert to Discord: `'{outfile} is empty at the end of the LNFill_cron.sh. Something wrong with the fill.'` ✅ verified 2026-04-18 — `LNFill_cron.sh:L13-48`
-- `LNFill_Auto_EFill_cron.sh` (M-mode) is simpler: disable LNH1-20, run `LNFill_App.py M`, post the fill log file to Discord webhook if it exists. No check script, no AddPress. ✅ verified 2026-04-18 — `LNFill_Auto_EFill_cron.sh:L13-20`
+- `LNFill_Auto_EFill_cron.sh` (M-mode) is simpler: disable LNH1-20, echo a timestamp header (`=== 15 min M Fill check YYYYMMDD_HHMM`), run `LNFill_App.py M`, post the fill log file to Discord webhook if it exists. No check script, no AddPress. ✅ verified 2026-04-18 — `LNFill_Auto_EFill_cron.sh:L13-20`; timestamp echo added 2026-04-22 commit `800b65c`
 
 **Flow summary:**
 1. Check for existing LNFill_App.py instance (abort or kill old one) — see priority rules below
-2. Abort if less than 30 min to next scheduled fill (for non-F modes) — reads `LN_TTNF:XC` PV ✅ verified 2026-04-17 — `LNFill_App.py:L195-219`
+2. Abort if less than 30 min to next scheduled fill (for non-F modes) — reads `LN_TTNF:XC` PV. Time comparison uses `ZoneInfo('America/Chicago')` (DST-aware) and advances `timeNextFill_dt` by 1 day if the PV time has already passed today (prevents false "too close to fill" aborts near midnight). ✅ verified 2026-04-17 — `LNFill_App.py:L195-219`; timezone bug fixed 2026-04-22 commit `800b65c` (replaced fixed UTC-6 offset with `ZoneInfo`, added day-rollover guard)
 3. Check fill status = Ready (abort if `LN_MODE:XC` ≠ `Ready`) ✅ verified 2026-04-17 — `LNFill_App.py:L221-229`
 4. For M-mode: run `CheckTemps()` first; if no warm detectors, exit without killing any other instance ✅ verified 2026-04-17 — `LNFill_App.py:L238-244`
 5. Decode fill type → build target dewar list
@@ -178,7 +178,7 @@ Daemon that monitors 16 LN2-related EPICS PVs via CA subscriptions and logs stat
 | PV | Description |
 |----|-------------|
 | `LN_MODE:XC` | Current fill mode (Ready/Filling Dets/Filling Tanks/etc.) — set by VxWorks sequencer on ln2con |
-| `LN_FILL_MODE:XC` | Fill mode selection (0=Manual, 1=Auto Det, 2=Auto Tank+Det, 3=Cron fill in progress) |
+| `LN_FILL_MODE:XC` | Cron coordination flag — **only values 0 and 3 are used in practice**: 0=idle/manual, 3=cron fill in progress. ⚠️ The watchdog source code comment says `0=Manual, 1=Auto Det, 2=Auto Tank+Det` — these are **stale comments** from an older intent; values 1 and 2 are never set by current code. ✅ verified 2026-04-23 — `LNFill_cron.sh:L13,L30-31,L53` (only reads/writes 0 and 3); `lnfill_watchdog.py:L41` (stale comment) |
 | `LN_TTNF:XC` | Time of Next Fill |
 | `LN_TLFF:XC` | Time Last Det Fill Finished |
 | `LN_TSFS:XC` | Duration of last det fill |

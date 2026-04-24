@@ -180,7 +180,7 @@ All systems share the **same physical network (onenet, 192.168.203.x)** but are 
 | DUB | — | 5078 | 5079 |
 | DuoGe | DUO | 5080 ✅ | 5081 |
 
-✅ All CA ports verified 2026-04-05/07 — `ANLDAQ/EPICS_para.sh` (DGS:L45-46, DXA:L23-24, DUO:L16-17, DFMA:L5, SlopeBox:L36-37, DUB:L8)
+✅ All CA ports verified 2026-04-05/07 — `ANLDAQ/EPICS_env.sh` (DGS:L45-46, DXA:L23-24, DUO:L16-17, DFMA:L5 comment-only, SlopeBox:L36-37, DUB:L8 comment-only) ✅ re-verified 2026-04-23 — DGS/XDA/DUO/SlopeBox ports confirmed as exported vars; DFMA 5068/5069 and DUB 5078/5079 appear only in comment block L5/L8 (no exported vars found in this file)
 
 ### VME Crate Power PDUs
 
@@ -197,6 +197,21 @@ Three network-accessible power distribution units (PDUs) were installed June/Jul
 **VME32** is the master trigger crate (MTRG + RTR3); the other VMEs are digitizer/RTRG crates.
 
 *Source: [wiki.anl.gov/gsdaq/Network_Accessible_Power_Control_Units_of_DGS](https://wiki.anl.gov/gsdaq/Network_Accessible_Power_Control_Units_of_DGS) — JTA, 2020-07-02. Visited 2026-04-23.*
+
+### DAQ Power Supply (48V Redundant)
+
+*Source: [wiki.anl.gov/gsdaq/DAQ_Power_Supply](https://wiki.anl.gov/gsdaq/DAQ_Power_Supply) — visited 2026-04-23*
+
+Each of the four relay racks has a **redundant 48V DC supply** at the top (above the collector box and VME crate). Key characteristics:
+
+- **Manufacturer:** Acopian (not ANL-designed). Datasheet: `wiki_gsdaq/images/f/f0/AcopianCatRedundantPower.pdf`
+- **Redundancy modes:** Cold spare (one off) or hot spare (both on simultaneously)
+- **Fault monitoring:** Internal fault relays → collector box → EPICS alarm status
+- **Floating outputs:** Outputs are not referenced to ground; grounding point is defined at the digitizer (not at the supply)
+- **Double isolation:** Each detector is doubly isolated — 48V supply is isolated from rack chassis; SBX power board additionally isolates the point-of-load supply from the detector's ground
+- **Coverage:** Each supply powers the collector box and up to **30 detectors**
+- **Connection:** Overhead cord reel (one per rack)
+- **Chassis isolation:** Supply chassis can be isolated from the relay rack frame to eliminate ground loops between the two cord reels per rack
 
 ---
 
@@ -224,15 +239,15 @@ Gammasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
 
 | Type | Ge crystal | Signals | Electronics |
 |------|-----------|---------|-------------|
-| **Non-segmented** (older) | Single chunk, one contact | 1 signal (center) | 1 circuit board + HV filter |
-| **Segmented** (newer) | Sawn in half lengthwise | 3 signals: center contact + 2 side channels | 2 circuit boards + HV filter |
+| **Non-segmented** (older) | Single chunk, one contact | 2 Ge contacts (Center only used); 2 signals to digitizer | 1 circuit board + HV filter |
+| **Segmented** (newer) | Ge crystal split in half — 3 contacts: Center, Side A, Side B ✅ verified 2026-04-23 — wiki `/gsdaq/Gammasphere_Detectors` ("split in half resulting in three Ge contacts (Center, Side A, Side B)") | 2 signals to digitizer: Center (ch N) + mux'd Side A/B (ch N+1) via SBX pickoff ✅ verified 2026-04-23 — wiki: "Only one of the side connections is brought out to the digitizers"; `sbx.md:L83` (Ge Side A/B → DIG ch N+1) | 2 circuit boards + HV filter |
 
 **Operating conditions (both types):**
 - Vacuum: 10⁻⁵ to 10⁻⁶ Torr inside detector cold volume
 - Temperature: liquid nitrogen (~77 K)
 - Bias voltage: 2,900–4,800 V across the array (most common values: 4000V and 4800V) ✅ verified 2026-04-13 — `collectorboxpi/CollectorBox_RevA/iocBoot/iocCollectorApp/st_202.cmd` DS_GEHV values (non-zero range: 2900–4800V); DS_GEHV=0 = empty/disabled slot
 - Preamp type: **transistor-reset preamplifier** (no resistor feedback; NPN transistor bleeds accumulated charge when output reaches ~+10V; second comparator turns NPN off at ~0V) ✅ verified 2026-04-20 — `DGS_SVN/dgs/Detector_Repair/DetectorRepairProcedure.docx:JTA,2019-06-02` ("When the output gets to about +10V the comparator turns on" / "A 2nd comparator ensures that the NPN is turned off when the output gets near 0V")
-- Normal reset rate: every few ms to a few hundred ms depending on neutron damage to crystal
+- Normal reset rate: every few ms to a few hundred ms depending on neutron damage to crystal ✅ verified 2026-04-23 — DIG_firmware_expert.pdf p.12 ("Preamp Reset occurs at rates of once every few milliseconds to once every few hundred milliseconds depending upon how much neutron-induced damage the detector has")
 - Leakage current: typically ~1 nA ✅ verified 2026-04-20 — `DGS_SVN/dgs/Detector_Repair/DetectorRepairProcedure.docx:JTA,2019-06-02` ("Inevitably there is a certain amount of DC leakage (typically in the ~1nA range)")
 
 **Common repair reasons:** bad resolution, excessive reset rate, no signal.
@@ -245,7 +260,8 @@ Gammasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
 - `overview_SmallSystem.md` — DuoGe (DUO) and X-Array (DXA) small system details
 - `fpga.md` — FPGA firmware architecture (trigger cycle, signal flow, PEQ details)
 - `collectorboxpi.md` — Collector box Raspberry Pi soft IOC (SPI, PXE boot, HV control)
-- `collector_fpga.md` — Collector box FPGA firmware: CtrlFPGA, StripeFPGA, pickoff card FPGAs
+- `collector_fpga.md` — Collector box FPGA firmware (git repo): CtrlFPGA, StripeFPGA, pickoff card FPGAs
+- `collector_box_fpga.md` — Collector box FPGAs (PSG SVN origin): ControlStripe (Spartan-3, 48V relay/clock/SYNC/LED per stripe) + CtlFanout (Spartan-6, RPi SPI gateway + ADS1158 ADC scanning)
 - `ioc.md` — EPICS IOC configuration (MVME5500 boot, firmware versions, VME setup)
 - `sbx.md` — Slope Box Extension (SBX): signal conversion, BGO pattern/sum, GS_ID dongle, HV map
 - `sbxPi_ioc.md` — SBX Pi standalone IOC (PickoffApp_RevC): SPI1 24-bit transactions, CAMAC_IO device support, global mailboxes, I2C command FIFO protocol, HV ramp logic

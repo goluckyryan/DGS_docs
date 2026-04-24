@@ -6,6 +6,22 @@ Stability: C1 - Operational / volatile
 
 ---
 
+## Table of Contents
+
+- [General Approach: Things Are Broken and You Don't Know Why](#general-approach-things-are-broken-and-you-dont-know-why)
+- [Problem: IOC Not Talking — Ethernet Issues](#problem-ioc-not-talking--ethernet-issues)
+- [Problem: Router Not Locking to Digitizer Data](#problem-router-not-locking-to-digitizer-data)
+- [Problem: Master Trigger Not Receiving Router Data](#problem-master-trigger-not-receiving-router-data)
+- [Problem: IOC Boot Fails — VxWorks](#problem-ioc-boot-fails--vxworks)
+- [Problem: Data Rate / FIFO Issues](#problem-data-rate--fifo-issues)
+- [Problem: Timestamp Sync Errors](#problem-timestamp-sync-errors)
+- [Problem: Missing BGO Events on Specific Detectors](#problem-missing-bgo-events-on-specific-detectors)
+- [Problem: InfluxDB Detector Temperatures Stale / pi5-lnFill SSH Failure](#problem-influxdb-detector-temperatures-stale--pi5-lnfill-ssh-failure)
+- [Useful PVs for Diagnostics](#useful-pvs-for-diagnostics)
+- [Cross-References](#cross-references)
+
+---
+
 ## General Approach: Things Are Broken and You Don't Know Why
 
 ### Step 1 — Check IOC status

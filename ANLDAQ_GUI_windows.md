@@ -9,6 +9,26 @@ _Source: `DGS_tools_pack/ANLDAQ/gui/`._
 
 ---
 
+## Table of Contents
+
+1. [GUI: Master Trigger Window (`gui_MTRG.py`)](#gui-master-trigger-window-gui_mtrgpy)
+2. [GUI: Detector Array Window (`gui_Det.py`)](#gui-detector-array-window-gui_detpy)
+3. [GUI: Per-Detector Collector Box Window (`gui_GS.py`)](#gui-per-detector-collector-box-window-gui_gspy)
+4. [GUI: Scalar Window (`gui_scalar.py`)](#gui-scalar-window-gui_scalarpy)
+5. [GUI: Router Trigger Window (`gui_RTR.py`)](#gui-router-trigger-window-gui_rtrpy)
+6. [GUI: RAM Window (`gui_RAM.py`)](#gui-ram-window-gui_rampy)
+7. [GUI: System Window (`gui_SYS.py`)](#gui-system-window-gui_syspy)
+8. [Trigger Setup Scripts (`gui/scripts/`)](#trigger-setup-scripts-guiscripts)
+9. [GUI: Link System Window (`gui_LinkSys.py`)](#gui-link-system-window-gui_linksyspy)
+10. [GUI: Digitizer Board Window (`gui_DIG.py`)](#gui-digitizer-board-window-gui_digpy)
+11. [GUI: Per-Channel Window (`gui_CH.py`)](#gui-per-channel-window-gui_chpy)
+12. [GUI: Generic Board PV Window (`gui_Board.py`)](#gui-generic-board-pv-window-gui_boardpy)
+13. [GUI: Data Taking Window (`gui_DataTaking.py`)](#gui-data-taking-window-gui_datatakingpy)
+14. [Guceiver — Online Waveform/Spectrum Viewer](#guceiver--online-waveformspectrum-viewer)
+15. [See Also](#see-also)
+
+---
+
 ## GUI: Master Trigger Window (`gui_MTRG.py`)
 
 `MTRGWindow` — opened by clicking an MTRG board button in DGS Commander. The largest GUI module (1,425 lines). Uses a tab widget with 5 tabs, plus a top-level board info panel.
@@ -97,6 +117,73 @@ Same 2×2 / 3×10 layout. Per-slot cell:
 
 #### Availability detection
 Slot is "available" if `f"MOD{det_id:03d}"` is in `cb_det_list` (MOD-prefixed names from `CollectorBox_PV.json`). Unavailable slots: disabled placeholders with no CA connections. ✅ verified 2026-04-20 — `gui_Det.py:L67-68`
+
+## GUI: Per-Detector Collector Box Window (`gui_GS.py`)
+
+`GSWindow` — per-detector CollectorBox PV viewer. Opened from `DetWindow` (Detector Array Window) when the user clicks any detector button in the array grid. Shows CollectorBox-sourced status and control PVs for a single Gammasphere detector.
+
+_Source: `ANLDAQ/gui/gui_GS.py` (173 lines, code-read 2026-04-23)_ ✅ verified 2026-04-23
+
+### How It Opens
+
+- Clicking a detector ID button (`MOD###`) in `DetWindow`'s array grid calls `_OpenGSWindow(det_id)` ✅ verified 2026-04-23 — `gui_Det.py:L201-204`
+- Default behavior: **reuses a single shared window** (`_gs_window`) — switching to the new detector in place instead of opening a new window ✅ verified 2026-04-23 — `gui_Det.py:L246-253`
+- `new_window=True` path (not wired to any button currently): opens an additional independent `GSWindow` instance
+
+### Window Layout
+
+- Title: `GS###` (e.g. `GS042`); size: 500×400 px
+- **Detector dropdown** at top: lists all available detector IDs (`GS###` format); switching selection calls `SwitchTo()` which rebuilds the whole content grid
+- Two side-by-side `QGroupBox` columns:
+  - **Info / Status** — identity fields + status bits + voltage readbacks (read-only)
+  - **Control** — writable control PVs (scan, HV control)
+
+### Info / Status Column PVs
+
+| Label | PV | Type |
+|-------|----|------|
+| Ge ID | `GS###_Ge_ID` | int readback |
+| SlopeBox ID | `GS###_SlopeBox_ID` | int readback |
+| Ge Prefix | `GS###_Ge_Prefix` | int readback |
+| VME Index | `GS###_VME_Index` | int readback |
+| Dig Index | `GS###_Dig_Index` | int readback |
+| Dig Channel | `GS###_Dig_Channel` | int readback |
+| Ge HV | `GS###_SlopeBoxGe_HV_On` | enum (read-only combobox) |
+| Temp | `GS###_SlopeBoxTempHigh` | enum (read-only combobox) |
+| BGO HV | `GS###_SlopeBoxBGO_HV_On` | enum (read-only combobox) |
+| BGO Interlock | `GS###_SlopeBoxBGOInterlock` | enum (read-only combobox) |
+| BGO 400V | `GS###_Conv_BGO400` | float (2 dp, read-only) |
+| BGO 450V | `GS###_Conv_BGO450` | float (2 dp, read-only) |
+| 24V | `GS###_Conv_24V` | float (2 dp, read-only) |
+| +12V | `GS###_Conv_plus12V` | float (2 dp, read-only) |
+| -12V | `GS###_Conv_minus12V` | float (2 dp, read-only) |
+| 5V | `GS###_Conv_5V` | float (2 dp, read-only) |
+
+✅ verified 2026-04-23 — `gui_GS.py:L95-162` (int_pvs, status_pvs, voltage_pvs lists)
+
+### Control Column PVs
+
+| Label | PV | Type |
+|-------|----|------|
+| Scan Control | `GS###_Slopebox_Scan_control` | writable combobox |
+| Ge HV Ctrl | `GS###_GE_HV_CTRL` | writable combobox |
+| BGO HV Ctrl | `GS###_BGO_HV_CTRL` | writable combobox |
+
+✅ verified 2026-04-23 — `gui_GS.py:L164-176` (ctrl_pvs list)
+
+### Update Behavior
+
+- **1-second `QTimer`** calls `_UpdateWidgets()` which iterates all `RLineEdit`/`RComboBox` widgets and calls `.UpdatePV()` ✅ verified 2026-04-23 — `gui_GS.py:L62-64,L183-187`
+- CA callbacks subscribe on `showEvent()` and unsubscribe on `closeEvent()` (lazy subscription, same pattern as `DetWindow`)
+- Detector switch: `_OnDetChanged()` unsubscribes current PVs, clears layout, rebuilds with new `GS###` prefix, re-subscribes — all content recreated dynamically ✅ verified 2026-04-23 — `gui_GS.py:L83-101`
+
+### Notes
+
+- PVs are sourced from `cb_pv` (Collector Box PV list, passed in from `DetWindow`) — same `PV` objects shared with `DetWindow`
+- `_FindPV(pv_name)` does a linear scan through `cb_pv` by `.name` equality — no dict lookup ✅ verified 2026-04-23 — `gui_GS.py:L72-75`
+- All voltage PVs (`_Conv_*`) are explicitly set `ReadONLY=True`; status PVs (`_SlopeBox*`) also set `ReadONLY=True` ✅ verified 2026-04-23 — `gui_GS.py:L127-130,L147-150`
+
+---
 
 ## GUI: Scalar Window (`gui_scalar.py`)
 
@@ -214,13 +301,13 @@ All 5 stage scripts take `SYSTEM_DEFINES.sh` as their first argument. This file 
 
 | Variable | Value | Meaning |
 |----------|-------|---------|
-| `MT_VME_LEADER` | `VME10` | MTRG crate |
-| `MT_USE_LINK_CLK` | `0` | Local clock (not remote/link clock) |
-| `DIG_CLOCK_SEL` | `1` | Digitizer clock source = SERDES |
-| `PROPAGATE_TRIG_FROM_DUB/DFMA/DXA` | `0` | No remote trigger propagation |
-| `PERFORM_ERROR_CHECKS` | `0` | Error checking disabled |
+| `MT_VME_LEADER` | `VME10` | MTRG crate | ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L9`
+| `MT_USE_LINK_CLK` | `0` | Local clock (not remote/link clock) | ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L113`
+| `DIG_CLOCK_SEL` | `1` | Digitizer clock source = SERDES | ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L120`
+| `PROPAGATE_TRIG_FROM_DUB/DFMA/DXA` | `0` | No remote trigger propagation | ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L108-110`
+| `PERFORM_ERROR_CHECKS` | `0` | Error checking disabled | ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L124`
 
-**Router config** (`LIST_OF_ROUTERS`): 4 RTRGs, each using links A–F (6 Router channels) + Link L back to MTRG:
+**Router config** (`LIST_OF_ROUTERS`): 4 RTRGs, each using links A–F (6 Router channels) + Link L back to MTRG: ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L18-24`
 ```
 VME03:RTR1  A B C D E F X X  L X X
 VME06:RTR2  A B C D E F X X  L X X
@@ -228,13 +315,13 @@ VME09:RTR3  A B C D E F X X  L X X
 VME12:RTR4  A B C D E F X X  L X X
 ```
 
-**MTRG link map** (`MT_LINK_MAP`): Links A–D → RTR1–RTR4; E–H and L/R/U masked:
+**MTRG link map** (`MT_LINK_MAP`): Links A–D → RTR1–RTR4; E–H and L/R/U masked: ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L93-104`
 ```
 RTR1 → Link A    RTR2 → Link B    RTR3 → Link C    RTR4 → Link D
 E, F, G, H, L, R, U → MASKED
 ```
 
-**Digitizer config** (`LIST_OF_DIGITIZERS`): 12 crates; VME06 and VME10 have only 2 DIGs, rest have 4:
+**Digitizer config** (`LIST_OF_DIGITIZERS`): 12 crates; VME06 and VME10 have only 2 DIGs, rest have 4: ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L27-39`
 ```
 VME01–05, 07–09, 11–12: MDIG1 MDIG2 MDIG3 MDIG4  (4 boards each)
 VME06, VME10:            MDIG1 MDIG2               (2 boards each)
@@ -270,15 +357,16 @@ _Source: `ANLDAQ/gui/scripts/trig_setup_Stage*.sh` + `Serdes_Linkup.sh` (code-ve
 - `MTRG_TYPE_OPTIONS = ["MASKED","PIXIE","DFMA","DUB","DXA"]` — external system types for MTRG link map
 
 **GUI layout:**
-- **MTRG Link Map** (`QGroupBox`): one row per link (A–H, L, R, U); columns = link ID / type combo (`rtr_names + MTRG_TYPE_OPTIONS`) / propagate combo (0/1, enabled only for L, R, U links)
-- **Router Link Map** (`QGroupBox`): grid of checkboxes — rows=routers, columns=links A–H,L,R,U; state can be Active/Masked/Disabled
-- **Stage selector** (`QSpinBox`, 1–5), **clock source** combo, **Run** button, scrollable **log output** area
+- **MTRG Link Map** (`QGroupBox`): one row per link (A–H, L, R, U); columns = link ID / type combo (`rtr_names + MTRG_TYPE_OPTIONS`) / propagate combo (0/1, enabled **only** for L, R, U — hidden for A–H)
+- **Router Link Map** (`QGroupBox`): rows=routers, columns=links A–H,L,R,U; each cell is a `QCheckBox` (checked=active=1, unchecked=disabled=0; `state=2` masked+powered is handled inside `link_sys.py` directly, not from this GUI)
+- **Settings** (`QGroupBox`): Error Check checkbox (off by default), MTRG Clock Source combo (local/external), DIG Clock combo (0:AUX / 1:SERDES / 2:Oscillator / 3:SERDES, default=1)
+- Status label + **Run LinkSys** / **Cancel** buttons
 
-**Config save/load** (`SaveConfig`/`LoadConfig`): JSON file storing MTRG + RTR map state; allows reproducible link topology across sessions.
+**Config persistence** (`SaveConfig`/`LoadConfig`): JSON `linkMap.json` in the gui directory saves/restores full MTRG map, RTR checkbox grid, error-check flag, clock source, and DIG clock selection. Loaded automatically on window open.
 
-**`LinkSysWorker(QThread)`**: runs the 5-stage `LinkSys` sequence in a background thread so the GUI stays responsive. Emits `stage_update(str)` and `finished(bool, str)` signals back to the window.
+**`LinkSysWorker(QThread)`**: runs the full 5-stage `LinkSys` sequence in a background thread so the GUI stays responsive. Emits `stageUpdate(str)` (progress label) and `finished(bool, str)` (success/failure) signals. Runs all 5 stages sequentially — there is no stage-selector; the GUI always runs Stages 1–5 in order.
 
-_Source: `ANLDAQ/gui/gui_LinkSys.py` (295 lines, verified 2026-04-10)_
+_Source: `ANLDAQ/gui/gui_LinkSys.py` (verified 2026-04-23)_
 
 ---
 
