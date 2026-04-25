@@ -281,4 +281,17 @@ Key facts:
 
 ---
 
-*Created: 2026-04-25 (split from ANLDAQ.md)*
+---
+
+## Cross-References
+
+| File | Relationship |
+|------|--------------|
+| `ANLDAQ.md` | Parent ANLDAQ overview; this file split from it |
+| `ANLDAQ_GUI_windows.md` | Per-window GUI documentation (uses classes defined here) |
+| `ANLDAQ_gui_sys.md` | gui_SYS.py window detail |
+| `ANLDAQ_commander.md` | Commander run control GUI (top-level window) |
+
+---
+
+*Created: 2026-04-25 | Last reviewed: 2026-04-25*
