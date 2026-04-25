@@ -42,7 +42,7 @@ Two ROM tables are compiled into the entity:
 | `rom_size = 11` | `alt_small_lookup_bram` | 2048 × 5-bit | Active small ROM (11-bit input) |
 | `rom_size = 12` | `large_lookup_bram` | 4096 × 5-bit | Large ROM (12-bit input) |
 
-A second `small_lookup_bram` table exists but is commented out (`--lookup_bram <= small_lookup_bram`); the alternate table `alt_small_lookup_bram` is the active one for `rom_size=11`.
+A second `small_lookup_bram` table exists but is commented out (`--lookup_bram <= small_lookup_bram`); the alternate table `alt_small_lookup_bram` is the active one for `rom_size=11`. ✅ verified 2026-04-24 — pos_finder.vhd:L587-594 (IF_SMALL_ROM generate: `lookup_bram <= alt_small_lookup_bram`; L589 comment shows `small_lookup_bram` is commented out; IF_LARGE_ROM generate: L592-594)
 
 ### Output Packing
 
@@ -50,7 +50,9 @@ The 5-bit ROM output is split as:
 - `dout[4:1]` → `edge_pos` (4-bit binary position of the edge within the slice)
 - `dout[0]` → `valid_out` (1 if this slice contains a valid edge)
 
-**Position encoding:** The ROM encodes position values as 5-bit binary (e.g., `"11000"` = 24, `"10111"` = 23, `"00001"` = 1). `"00000"` means no valid edge (valid_out = 0).
+✅ verified 2026-04-24 — pos_finder.vhd:L596-597 (`edge_pos <= dout(4 downto 1)`; `valid_out <= dout(0)`)
+
+**Position encoding:** The ROM encodes position values as 5-bit binary (e.g., `"11000"` = 24, `"10111"` = 23, `"00001"` = 1). `"00000"` means no valid edge (valid_out = 0). ✅ verified 2026-04-24 — pos_finder.vhd:L63-66 (ROM entries: `"11000"` at index 7, `"10111"` at indexes 14-15, `"00000"` at 0-6 confirmed as no-edge values)
 
 ### Registered Output (1-cycle latency)
 
@@ -63,7 +65,7 @@ begin
 end process edge_finder;
 ```
 
-One clock cycle of pipeline latency per `pos_finder` instance.
+One clock cycle of pipeline latency per `pos_finder` instance. ✅ verified 2026-04-24 — pos_finder.vhd:L599-604 (edge_finder process body matches exactly)
 
 ---
 
@@ -85,7 +87,7 @@ From the header comment: slices are overlapped by a couple of bits to ensure the
 
 ## Companion Component Declaration
 
-Declared in `trigger_comp_defs.vhd` (L228–L237):
+Declared in `trigger_comp_defs.vhd` (L228–L237): ✅ verified 2026-04-24 — trigger_comp_defs.vhd:L228,L238 (component pos_finder … end component pos_finder; port list matches entity exactly)
 ```vhdl
 component pos_finder is
 generic ( rom_size : integer );

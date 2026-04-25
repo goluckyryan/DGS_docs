@@ -1,9 +1,9 @@
 # MTRG Generated_top.vhd — Top-Level Integration
 
 **Source:** `~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/Generated_top.vhd`  
-**Lines:** 6,286  
-**Entity:** `trigger_top`  
-**Architecture:** `trigtop`  
+**Lines:** 6,286 ✅ verified 2026-04-24 - Generated_top.vhd:L1 (`wc -l`)  
+**Entity:** `trigger_top` ✅ verified 2026-04-24 - Generated_top.vhd:L33  
+**Architecture:** `trigtop` ✅ verified 2026-04-24 - Generated_top.vhd:L200  
 **Stability:** C3 — Structural / stable
 
 **Note:** Despite the filename `Generated_top.vhd`, this is **not** auto-generated code. The file comment calls it `Spreadsheet_top.vhd` ("the file READ by the code generating spreadsheet") and was hand-authored by John Anderson. It is the true structural top of the DGS Master Trigger FPGA design.
@@ -91,6 +91,8 @@ Defined as constants for the `CODE_TYPE` field readable via VME:
 | `cCodeType_DFMA_MT` | 5 | DSSD Master Trigger |
 | Other | 0–15 | Proto, GRETINA variants, Data Generator, etc. |
 
+✅ verified 2026-04-24 - Generated_top.vhd:L205-219 (all type code constants confirmed)
+
 ---
 
 ## Component Instance Map
@@ -99,32 +101,34 @@ All sub-module instantiations in `trigtop`, in order of appearance:
 
 | Instance | Component | Lines | Description |
 |----------|-----------|-------|-------------|
-| `U1` | `timestamp` | ~3161 | 48-bit timestamp counter; slave sync from Link L |
-| `U2` | `mstr_mach` | ~3174 | Master state machine — full 20-frame TTCL output engine |
-| `U3` | `LINK_TX_BLOCK` | ~3244 | DC-balanced SERDES fan-out to all 11 links |
-| `U4` | `link_init` | ~3261 | SERDES lock/init sequencer (runs on `xVME_CLOCK`) |
-| `U5` | `LINK_LRU_RX` | ~3277 | Latches RX data from links L, R, U into `mclk` domain |
-| `TRIG_LOGIC1` | `cpld_trig` | ~3359 | Algo 1: CPLD fast-sum trigger (thin wrapper over `trig_algo_support`) |
-| `TRIG_LOGIC2` | `sum_hits_X` | ~3413 | Algo 2: Sum-of-X multiplicity trigger |
-| `TRIG_LOGIC3` | `sum_hits_X` | ~3471 | Algo 3: Sum-of-Y multiplicity trigger (same component, Y-plane links) |
-| `TRIG_LOGIC4` | `sum_hits_XY` | ~3527 | Algo 4: Sum-of-X AND Sum-of-Y coincidence trigger |
-| `TRIG_LOGIC5A` | `cpld_trig` | ~3659 | Algo 5A: CPLD fast-sum trigger (second instance for Algo 5) |
-| `TRIG_LOGIC5B` | `local_trig_coinc` | ~3706 | Algo 5B: Local-vs-local coincidence trigger (type `0x54`) |
-| `TRIG_LOGIC6` | `REMOTE_MASTER_TRIG_SUPPORT` | ~3768 | Algo 6: Remote trigger from Link L (inter-master) |
-| `TRIG_LOGIC7` | `REMOTE_MASTER_TRIG_SUPPORT` | ~3842 | Algo 7: Remote trigger from Link R |
-| `TRIG_LOGIC8` | `REMOTE_MASTER_TRIG_SUPPORT` | ~3912 | Algo 8 (REMOTE): Remote trigger from Link U (when in generic master-master mode) |
-| `TRIG_LOGIC8A` | `MYRIAD_TRIGGER` | ~3994 | Algo 8A: MyRIAD-based trigger (Link U, MYRIAD mode) |
-| `TRIG_LOGIC8B` | `REMOTE_MASTER_TRIG_SUPPORT` | ~4065 | Algo 8B: Remote master from Link U (generic mode) |
-| `TRIGGER_COLLECTION` | `trig_collect` | ~4142 | Trigger collection mux — arbitrates 8 algo FIFOs into single stream for mstr_mach |
-| `U20` | `registers` | ~4202 | VME register block (~120 R/O + R/W regs, 3 lookup RAMs, 8+8 monitor FIFOs) |
-| `LINK_L_RECEIVER` | `SERDES_RX_Mach` | ~4619 | Link L SERDES receiver — full 20-frame FSM |
-| `LINK_R_RECEIVER` | `SERDES_RX_Mach` | ~4692 | Link R SERDES receiver |
-| `LINK_U_MYR_RECEIVER` | `MYRIAD_RCV_MACH` | ~4764 | Link U MyRIAD receiver (active when `LINK_U_IS_TRIGGER_TYPE=0`) |
-| `LINK_U_TRIG_RECEIVER` | `SERDES_RX_Mach` | ~4782 | Link U generic trigger receiver (active when `LINK_U_IS_TRIGGER_TYPE=1`) |
-| `TDC1` | `tdc_chain_cont` | ~5559 | 4-phase carry-chain TDC controller; 8-word event packet; autosample FSM |
-| `TRIG_MON_COLLECTOR` | `trig_mon_collect` | ~5591 | Trigger monitor FIFO collector → Monitor FIFO 7 |
+| `U1` | `timestamp` | L3161 | 48-bit timestamp counter; slave sync from Link L |
+| `U2` | `mstr_mach` | L3174 | Master state machine — full 20-frame TTCL output engine |
+| `U3` | `LINK_TX_BLOCK` | L3244 | DC-balanced SERDES fan-out to all 11 links |
+| `U4` | `link_init` | L3261 | SERDES lock/init sequencer (runs on `xVME_CLOCK`) |
+| `U5` | `LINK_LRU_RX` | L3277 | Latches RX data from links L, R, U into `mclk` domain |
+| `TRIG_LOGIC1` | `cpld_trig` | L3359 | Algo 1: CPLD fast-sum trigger (thin wrapper over `trig_algo_support`) |
+| `TRIG_LOGIC2` | `sum_hits_X` | L3413 | Algo 2: Sum-of-X multiplicity trigger |
+| `TRIG_LOGIC3` | `sum_hits_X` | L3471 | Algo 3: Sum-of-Y multiplicity trigger (same component, Y-plane links) |
+| `TRIG_LOGIC4` | `sum_hits_XY` | L3527 | Algo 4: Sum-of-X AND Sum-of-Y coincidence trigger |
+| `TRIG_LOGIC5A` | `cpld_trig` | L3659 | Algo 5A: CPLD fast-sum trigger (second instance for Algo 5) |
+| `TRIG_LOGIC5B` | `local_trig_coinc` | L3706 | Algo 5B: Local-vs-local coincidence trigger (type `0x54`) |
+| `TRIG_LOGIC6` | `REMOTE_MASTER_TRIG_SUPPORT` | L3768 | Algo 6: Remote trigger from Link L (inter-master) |
+| `TRIG_LOGIC7` | `REMOTE_MASTER_TRIG_SUPPORT` | L3842 | Algo 7: Remote trigger from Link R |
+| *(no TRIG_LOGIC8 instance)* | — | L3912 | **Not a component instance** — L3912 is inline mux logic routing TRIG_LOGIC8A/8B outputs to `TRIGGER_FIFO_OUT(8)` via `TRIG_LOGIC_8_ALGO_SEL` |
+| `TRIG_LOGIC8A` | `MYRIAD_TRIGGER` | L3994 | Algo 8A: MyRIAD-based trigger (Link U, MYRIAD mode) |
+| `TRIG_LOGIC8B` | `REMOTE_MASTER_TRIG_SUPPORT` | L4065 | Algo 8B: Remote master from Link U (generic mode) |
+| `TRIGGER_COLLECTION` | `trig_collect` | L4142 | Trigger collection mux — arbitrates 8 algo FIFOs into single stream for mstr_mach |
+| `U20` | `registers` | L4202 | VME register block (~120 R/O + R/W regs, 3 lookup RAMs, 8+8 monitor FIFOs) |
+| `LINK_L_RECEIVER` | `SERDES_RX_Mach` | L4619 | Link L SERDES receiver — full 20-frame FSM |
+| `LINK_R_RECEIVER` | `SERDES_RX_Mach` | L4692 | Link R SERDES receiver |
+| `LINK_U_MYR_RECEIVER` | `MYRIAD_RCV_MACH` | L4764 | Link U MyRIAD receiver (active when `LINK_U_IS_TRIGGER_TYPE=0`) |
+| `LINK_U_TRIG_RECEIVER` | `SERDES_RX_Mach` | L4782 | Link U generic trigger receiver (active when `LINK_U_IS_TRIGGER_TYPE=1`) |
+| `TDC1` | `tdc_chain_cont` | L5559 | 4-phase carry-chain TDC controller; 8-word event packet; autosample FSM |
+| `TRIG_MON_COLLECTOR` | `trig_mon_collect` | L5591 | Trigger monitor FIFO collector → Monitor FIFO 7 |
 
-**Note on Link U mux:** `MYRIAD_RCV_MACH_RESET <= LINK_U_IS_TRIGGER_TYPE`. When this bit is set (from `reg_LINK_LRU_CTL`), the MYRIAD receiver is held in reset and Link U is used as a generic master-master link via `LINK_U_TRIG_RECEIVER`.
+✅ verified 2026-04-24 - Generated_top.vhd: all instance names and line numbers confirmed by grep
+
+**Note on Link U mux:** `MYRIAD_RCV_MACH_RESET <= LINK_U_IS_TRIGGER_TYPE`. When this bit is set (from `reg_TRIG_ALGO_MUX_SEL(2)`, addr 0x021C — **correction**: earlier stated `reg_LINK_LRU_CTL`, which is wrong), the MYRIAD receiver is held in reset and Link U is used as a generic master-master link via `LINK_U_TRIG_RECEIVER`. ✅ verified 2026-04-24 - Generated_top.vhd:L1605,L4760
 
 ---
 
@@ -242,6 +246,8 @@ From signal declarations (latest compiled firmware values visible in VHDL):
 | `reg_CODE_DATE` | 0x0158 | `0x1127` | Date code (November 27) |
 | `reg_CODE_REVISION` | 0x015C | `0x04A9` | Revision 04A9 |
 
+✅ verified 2026-04-24 - Generated_top.vhd:L610-611
+
 ---
 
 ## Key Signals
@@ -286,4 +292,4 @@ From signal declarations (latest compiled firmware values visible in VHDL):
 
 ---
 
-*Analyzed 2026-04-24. Source: Generated_top.vhd (6,286 lines). All component instances confirmed from grep+read of port maps.*
+*Analyzed 2026-04-24. Fact-verified 2026-04-24: entity/arch names, line count, firmware type codes, all component instance names and exact line numbers, reg_CODE_DATE/REVISION defaults. Correction: LINK_U_IS_TRIGGER_TYPE source was `reg_LINK_LRU_CTL` (wrong) → corrected to `reg_TRIG_ALGO_MUX_SEL(2)` (L1605). Correction: TRIG_LOGIC8 entry was listed as a component instance (wrong) → corrected to inline mux logic at L3912. Source: Generated_top.vhd.*

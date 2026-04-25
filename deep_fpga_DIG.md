@@ -488,7 +488,8 @@ One instance per channel (10 total). Manages the **go/no-go decision** and **wav
 
 → Continued in **[deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md)** — LED/CFD discriminator modes, delay chain, CFD zero-crossing, pileup, VME FPGA, IP cores.
 
-→ Additional module analysis in **[deep_fpga_DIG_modules.md](deep_fpga_DIG_modules.md)** — `SERDES_TX_Mach_DGS.vhd`, `event_packer.vhd`, `pileup_processor.vhd`, `SERDES_RX_Mach.vhd`.
+→ Additional module analysis in **[deep_fpga_DIG_modules.md](deep_fpga_DIG_modules.md)** (Part 1) — `SERDES_TX_Mach_DGS.vhd`, `event_packer.vhd`, `pileup_processor.vhd`, `SERDES_RX_Mach.vhd`, `Timestamp_Generator.vhd`, `Trigger_Mux.vhd`, `Channel_Readout_Controller.vhd`, `Channel_Readout_Mach.vhd`.  
+→ **[deep_fpga_DIG_modules2.md](deep_fpga_DIG_modules2.md)** (Part 2) — `dc_balance_mach.vhd`, `disparity_lookup.vhd`, `event_data_fifo.vhd`, `decimator.vhd`, `Event_Header_FIFO.vhd`, `Channel_FIFO_Readout_Mach.vhd`, `Lvme.vhd`, `Registers.vhd`.
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Dig*/` — VHDL source. PDF: `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05.*
@@ -502,5 +503,6 @@ One instance per channel (10 total). Manages the **go/no-go decision** and **wav
 - `knowledgeBase/connectors.md` — DIG connector pinouts: RJ45 SERDES, 36-pin Aux I/O
 - `knowledgeBase/VME_registers.md` — DIG VME register addresses from asyn driver source
 - `knowledgeBase/fpga.md` — FPGA system overview: DIG role in 3-tier trigger hierarchy
+- `knowledgeBase/deep_fpga_DIG_modules2.md` — DIG selected module analysis Part 2: DC balance, FIFOs, decimator, event header FIFO, channel collection FIFO, VME FSM, register map
 
 *Created: 2026-04-07 | Last reviewed: 2026-04-24*

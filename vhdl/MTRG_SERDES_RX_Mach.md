@@ -142,10 +142,10 @@ Implemented as a combinational ROM lookup against `FIXED_BITS(xWORD_INDEX)`:
 ### Frame 14 — Router Internal Commands (MYRIAD / Digitizer Tester)
 - Indices 65–69; handled identically to Frame 12 (`FRAME_14_LATCH`)
 - `FRAME_14_REQ_FLAG`, `FRAME_14_DATA[1..5]`, `FRAME_14_ACK_FLAG`
-- `VETO_FROM_REMOTE_MASTER` — declared as `out std_logic` with comment "from frame 14, word 4, bit 15" but **never assigned inside SERDES_RX_Mach_R2.vhd** — port is undriven in this version. ⚠️ anomaly — port comment describes intent; actual assignment may be in a higher-level wrapper or was omitted. (added 2021-06-16 per prior analysis)
+- `VETO_FROM_REMOTE_MASTER` — declared as `out std_logic` with comment "from frame 14, word 4, bit 15" but **never assigned inside SERDES_RX_Mach_R2.vhd** — port is undriven (VHDL default `'0'` applies). ✅ verified 2026-04-24 — SERDES_RX_Mach_R2.vhd:L71 (port decl only, grep confirms 1 occurrence total). In `Generated_top.vhd`, signals `VETO_FROM_REMOTE_MASTER_L/R/U` (init `'0'`) receive this undriven output (lines 4657/4729/4819) and are OR'd into `ANY_VETO_FROM_REMOTE_MASTER` (line 2075), which feeds `SYSTEM_VETO_STATE[15:13]` and the per-algo veto check (line 2504). Because the port is never driven, **the Remote Master Veto feature is permanently inactive** — the intent (extract bit 15 of F14W4) is described in comments but was never implemented in SERDES_RX_Mach_R2. Added 2021-06-16 per revision history.
 - Propagation gated by `PROPAGATION_CONTROL_REG(10)` (data latch) and `PROPAGATION_CONTROL_REG(9)` (req flag — copy-paste quirk) and `LINK_IS_L`
 
-✅ verified 2026-04-24 — SERDES_RX_Mach_R2.vhd:L71 (port decl only); L464–L505 (FRAME_14_LATCH process). `VETO_FROM_REMOTE_MASTER` has no assignment statement anywhere in the file (grep confirms 1 occurrence, port decl only).
+✅ verified 2026-04-24 — SERDES_RX_Mach_R2.vhd:L71 + Generated_top.vhd:L513-516,L2075,L2084-2086,L2504,L4657/4729/4819.
 
 ### Frame 15 — GRETINA Asynchronous Commands
 - Indices 70–74
@@ -222,7 +222,7 @@ Implemented as a combinational ROM lookup against `FIXED_BITS(xWORD_INDEX)`:
 | `TRIG_TYPE` | 3-bit type from trigger frame W1[10:8] |
 | `FRAME_12_REQ_FLAG` | Non-null F12 received, propagation enabled, Link L |
 | `FRAME_14_REQ_FLAG` | Non-null F14 received, propagation enabled, Link L |
-| `VETO_FROM_REMOTE_MASTER` | F14 word 4 bit 15 |
+| `VETO_FROM_REMOTE_MASTER` | F14 word 4 bit 15 — **intent only; never driven in SERDES_RX_Mach_R2.vhd; always '0'** ✅ verified 2026-04-24 |
 | `CAL_INJECT_FLAG` | F15W1, cmd=0x04 (one clock) |
 | `LATCH_STATUS_FLAG` | F15W1, cmd=0x08 (one clock) |
 | `FRONT_END_RESET_FLAG` | F15W1, cmd=0x10 (one clock) |
@@ -244,7 +244,7 @@ Implemented as a combinational ROM lookup against `FIXED_BITS(xWORD_INDEX)`:
   ✅ verified 2026-04-24 — SERDES_RX_Mach_R2.vhd:L303-304 (comment: "line commented out … so that TRIG_TIMESTAMP, once latched, stays asserted until"; L547 `TRIG_TIMESTAMP <= X"000000000000"` only in IDLE/reset)
 - `DATA_CHECK_FLAG` synthesizes to three 128×16-bit ROMs (Xilinx)
 - Multiple identical copies instantiated in MTRG — one per SERDES link (up to 11 for main + L/R/U)
-- VETO_FROM_REMOTE_MASTER was added 2021-06-16
+- VETO_FROM_REMOTE_MASTER was added 2021-06-16 as an unimplemented stub — port is declared but never driven; always outputs '0'; the intent (extract F14W4[15]) is documented in comments only. ✅ verified 2026-04-24 — SERDES_RX_Mach_R2.vhd:L71 + Generated_top.vhd:L513-516,L4657/4729/4819.
 - FRAME_14_LATCH uses `PROPAGATION_CONTROL_REG(9)` for the req flag but `PROPAGATION_CONTROL_REG(10)` for the data latch — likely a copy-paste quirk; only the data latch matters for downstream use  
   ✅ verified 2026-04-24 — SERDES_RX_Mach_R2.vhd:L471 (REQ: `PROPAGATION_CONTROL_REG(9)`) vs L481 (data latch: `PROPAGATION_CONTROL_REG(10)`)
 

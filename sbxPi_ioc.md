@@ -92,6 +92,24 @@ OUT(0, 24, 20, 0, 0, "")
 | `PickoffSoftControl` | ao, ai | Software mailbox r/w — no hardware transaction, reads/writes `GLBL_PickoffControlVals[]` or `GLBL_PickoffFloatVals[]`. AO has 8 distinct modes (see table below). |
 | `PickoffStep` | ai | Controlled step-wise adjustment (used for HV ramp logic) |
 
+### `PickoffLocalSerial` AO (`devAoPickoff`) — Write Modes
+
+The `C` field of a `PickoffLocalSerial` ao record (i.e., `devAoPickoff`, `write_ao` in `PickoffSupport_AO.c`) encodes a 2-bit MailboxMode and mailbox index:
+- `MailboxMode = (C & 0x3000) >> 12` — 2-bit mode selector (bits 13:12) ✅ verified 2026-04-25 — `PickoffSupport_AO.c:L183`
+- `Cidx = C & 0x00FF` — mailbox index (bits 7:0) ✅ verified 2026-04-25 — `PickoffSupport_AO.c:L184`
+- `AndMask` from `A`; `ShiftFactor = F & 0xF` (left shift of PV value before write)
+
+| Mode | Action |
+|------|--------|
+| 0 | **Normal:** `UsrAddr = N & 0x7F`; `UsrData = PV_val << ShiftFactor`. If `strlen(parm)==0` → read-modify-write (AND+OR); else write-only (OR with `A` mask). ✅ verified 2026-04-25 — `PickoffSupport_AO.c:L192-200,227-247` |
+| 1 | **Normal with copy:** Same as mode 0, but after the write, copies the written value to `GLBL_PickoffControlVals[Cidx]`. ✅ verified 2026-04-25 — `PickoffSupport_AO.c:L201-210,254-258` |
+| 2 | **Indirect data:** `UsrAddr = N & 0x7F`; `UsrData = GLBL_PickoffControlVals[Cidx] << ShiftFactor` (data comes from mailbox, not PV). ✅ verified 2026-04-25 — `PickoffSupport_AO.c:L211-215` |
+| 3 | **Indirect address:** `UsrAddr = GLBL_PickoffControlVals[Cidx] & 0x7F` (address from mailbox); `UsrData = PV_val << ShiftFactor`. ✅ verified 2026-04-25 — `PickoffSupport_AO.c:L216-222` |
+
+> Note: This is **distinct** from `PickoffSoftControl` AO (8 modes, `0x7000`, no hardware SPI). `devAoPickoff` always performs a real SPI transaction.
+
+---
+
 ### `PickoffSoftControl` AO — Mode Reference
 
 The `C` field of a `PickoffSoftControl` ao record encodes both the mode and mailbox index:
@@ -135,9 +153,10 @@ The IOC maintains two global arrays shared across all device support modules:
 
 | `ConversionType` | Description |
 |-----------------|-------------|
-| 0 | Simple `y = mx + b` using `GLBL_ConversionCoefficients[ConversionSet]` |
-| 1 | PT100 RTD: ADC counts → resistance → temperature (5-segment piecewise linear) |
-| 2 | PT500 RTD: ADC counts → resistance → temperature (5-segment piecewise linear) |
+| 0 | Simple `y = mx + b` using `GLBL_ConversionCoefficients[ConversionSet]` ✅ verified 2026-04-25 — `PickoffCalc_AI.c:L43-56` (case 0: `GLBL_ConversionCoefficients[ConversionSet][0/1]` mx+b) |
+| 1 | PT100 RTD: ADC counts → resistance → temperature (**6-segment** piecewise linear, indices 0–5) ✅ verified 2026-04-25 — `PickoffCalc_AI.c:L457-481` (PT100Coefficients[0..5][0/1] initialized; 6 coefficient pairs, **not 5** as previously stated) |
+| 2 | PT500 RTD: ADC counts → resistance → temperature (**6-segment** piecewise linear, indices 0–5) ✅ verified 2026-04-25 — `PickoffCalc_AI.c:L493-526` (PT500Coefficients[0..5][0/1] initialized; 6 coefficient pairs, **not 5** as previously stated) |
+| 3 | Reciprocal: `y = (m/x) + b` using `GLBL_ConversionCoefficients[ConversionSet]` ✅ verified 2026-04-25 — `PickoffCalc_AI.c:L140-154` (case 3: `m/HardwareValue + b`) — **previously undocumented** |
 
 ---
 
@@ -260,6 +279,45 @@ The `PickoffApp_RevC` (sbxPi) and the Collector Box Pi IOC (`collectorboxpi`) sh
 - Key difference: `PickoffApp_RevC` has **one Pi per detector** (direct SPI); Collector Box Pi handles **up to 28 detectors** (multiplexed via Collector Box FPGA routing using GPIO `DetAddr`)
 
 The `DetAddr` (`B` field) = 0 in sbxPi PVs because there is no routing needed — the Pi is wired directly to a single Pickoff FPGA.
+
+---
+
+## PickoffSupportBackup.c — Historical / Educational Version
+
+`PickoffSupportBackup.c` (1025 lines) is an **older, heavily-commented educational version** of the device support code preserved alongside the active `PickoffSupport*.c` files. It is **not compiled into the IOC** — the `Makefile` only includes `PickoffSupport.c` and its siblings. Its primary value is as documentation of the design reasoning.
+
+### What Makes It Different
+
+The backup uses a **different `camacio` field mapping** from the current code:
+
+| Field | Backup (`PickoffSupportBackup.c`) | Current (`PickoffSupport_AI.c` etc.) |
+|-------|----------------------------------|---------------------------------------|
+| `b` | `DetAddr` — GPIO/routing byte (which detector in a collector-box scenario) | Unused in sbxPi (always 0) |
+| `c` | `TransactionLength` — # of bits in SPI transaction (nominally 24) | Mode + mailbox index (e.g. `0x8096`) |
+| `n` | Combined RW flag + 7-bit address: upper byte nonzero → RW=1, lower byte = addr | 7-bit SPI register address only; RW direction hardcoded by record type |
+| `a` | AND mask for read-modify-write | AND mask (bit-field extraction) |
+| `f` | OR mask | Shift factor (bits[3:0]=amount, bit15=direction) |
+
+In the backup design, a GPIO `DetAddr` field (`b`) was reserved for the case where the same device support could multiplex to multiple detectors through a routing FPGA — exactly what the **Collector Box Pi** does. In `PickoffApp_RevC` this was simplified to `b=0` always (direct single-detector connection), and the field repurposing evolved into the current design.
+
+### Exported Structs
+
+The backup exports two device structs (but they are **not active** in the build):
+- **`devJTAx`** — `ai` read support (`"PickoffLocalSerial"`)
+- **`devAoPickoff`** — `ao` write support (`"PickoffLocalSerial"`)
+
+The real active build exports a richer set via `PickoffSupport.c` (`devPickoffLocalSerial`, `devPickoffSoftControl`, etc.).
+
+### Educational Content
+
+The file contains extensive inline tutorials (pp. 1–580 are mostly comments) explaining:
+- Why `asyn` is not used (identical rationale to current code + `collectorbox_devicesupport.md`)
+- How EPICS `CAMAC_IO` / `camacio` struct works from first principles
+- How `device()` + `epicsExportAddress()` wiring works
+- How `init_record` → `read_ai` / `write_ao` call sequence works
+- A worked example of a `VME_IO` device support (from Gretina) for comparison
+
+This file is the best single reference for **understanding the DGS Pi EPICS device support design philosophy**.
 
 ---
 

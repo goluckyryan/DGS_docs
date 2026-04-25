@@ -112,9 +112,13 @@ Step 1 — Pre-trigger (thresh_disc.vhd fires first as a gate):
     → after K cycles, asserts CFD_PRE_TRIGGER
 
 Step 2 — Fraction multiply (MULT17×17, 34-bit result):
-    FRACTIONAL_PROMPT = CFD_PROMPT × CFD_FRACTION >> 13
+    PRE_FRACTION = '0' & CFD_FRACTION & "000"  (CFD_FRACTION shifted left 3 bits → 17-bit)
+    FRACTIONAL_PROMPT = MULTIPLIER_OUT[31:18]  (top 14 bits of 34-bit product → effective divide by 2^18)
+    Net effect: FRACTIONAL_PROMPT ≈ CFD_PROMPT × CFD_FRACTION / 2^15
     (CFD_FRACTION register encodes the fraction as N/8192;
-     e.g. reg_cfd_fraction = 0x0C00 ≈ 75% of full scale)
+     e.g. reg_cfd_fraction = 0x0C00 ≈ 37.5%; for 75% use 0x1800 = 6144)
+    ✅ verified 2026-04-24 — cfd_disc.vhd:L34 (N/8192 comment), L156 (PRE_FRACTION shift-left-3), L165 (MULTIPLIER_OUT[31:18])
+    ⚠️ Correction: prior doc had '>> 13' (wrong) and '0x0C00 ≈ 75%' (wrong — 0x0C00 = 37.5%)
 
 Step 3 — CFD subtraction:
     CFD_SUBTRACTION = FRACTIONAL_PROMPT − CFD_DELAYED
@@ -170,7 +174,7 @@ Trigger decision arrives (~2–4 µs later):
     Rejected → discard PEQ entry silently
 ```
 
-In CFD mode with `CFD_ESUM_MODE = '1'`, the energy integration start is deferred to `THRESH_DISC_FLAG_DELAYED` (the LED crossing) rather than the CFD zero-crossing, so energy always integrates the same portion of the pulse regardless of discriminator mode.
+In CFD mode with `CFD_ESUM_MODE = '1'`, the energy integration start is deferred to `THRESH_DISC_FLAG_DELAYED` (the LED crossing) rather than the CFD zero-crossing, so energy always integrates the same portion of the pulse regardless of discriminator mode. ✅ verified 2026-04-24 — jta_channel.vhd:L54 (port comment: "0:capture energy at LED or CFD; 1:capture at LED+d only"), L1597 (energy integration start gate), L1963 (timestamp gate in CFD+ESUM mode)
 
 ---
 
@@ -312,7 +316,7 @@ All addresses are per-channel. Channel 0 uses the base address shown; channels 1
 |----------|-------------|------|-------------|
 | `reg_channel_control` | `0x040` | `CFD_MODE` bit | `0` = LED, `1` = CFD ✅ verified 2026-04-10 — `asynDigParams.c:L459` (`setAddress(reg_channel_control0,0x0040)`) |
 | `reg_led_threshold` | `0x080` | `[13:0]` | Threshold in ADC counts (both LED and CFD pre-gate) ✅ verified 2026-04-10 — `asynDigParams.c:L469` (`setAddress(reg_led_threshold0,0x0080)`) |
-| `reg_cfd_fraction` | `0x0C0` | `[12:0]` | CFD fraction encoded as N/8192 (e.g. `0x0C00` ≈ 75%) ✅ verified 2026-04-16 — `asynDigParams.c:L479` (`setAddress(reg_CFD_fraction0,0x00C0)`) |
+| `reg_cfd_fraction` | `0x0C0` | `[12:0]` | CFD fraction encoded as N/8192 (e.g. `0x0C00` = 37.5%; for 75% use `0x1800` = 6144) ✅ verified 2026-04-16 — `asynDigParams.c:L479` (`setAddress(reg_CFD_fraction0,0x00C0)`) ✅ corrected 2026-04-24 — `cfd_disc.vhd:L34` (`N/8192`); prior value of `≈ 75%` was wrong (3072/8192 = 37.5%) |
 | `reg_external_disc_mode` | `0x420` | 2 bits/ch | `00`=normal, `01`=OR with external, `10`=AND, `11`=external only ✅ verified 2026-04-19 — `Registers.vhd:L234` (`X"420"`, `reg_external_disc_mode`) |
 
 **Delay chain:**
@@ -452,7 +456,9 @@ Located in each branch's `Cores/` directory:
 ## See Also
 
 - `knowledgeBase/deep_fpga_DIG.md` — DIG firmware overview: Spartan-3 architecture, ADC pipeline, event packet format, master/slave config, FIFO readout (this file is a continuation of that)
-- `knowledgeBase/deep_fpga_DIG_modules.md` — DIG selected module analysis: `SERDES_TX_Mach_DGS.vhd` (disc packer), `event_packer.vhd` (accordion FIFO), `pileup_processor.vhd` (8-state FSM), `SERDES_RX_Mach.vhd` (20-frame Router command receiver)
+- `knowledgeBase/deep_fpga_DIG_modules.md` — DIG selected module analysis Part 1: `SERDES_TX_Mach_DGS.vhd` (disc packer), `event_packer.vhd` (accordion FIFO), `pileup_processor.vhd` (8-state FSM), `SERDES_RX_Mach.vhd` (20-frame Router command receiver), `Timestamp_Generator.vhd`, `Trigger_Mux.vhd`, `Channel_Readout_Controller.vhd`, `Channel_Readout_Mach.vhd`
+- `knowledgeBase/deep_fpga_DIG_modules2.md` — DIG selected module analysis Part 2: `dc_balance_mach.vhd`, `disparity_lookup.vhd`, `event_data_fifo.vhd`, `decimator.vhd`, `Event_Header_FIFO.vhd`, `Channel_FIFO_Readout_Mach.vhd`, `Lvme.vhd`, `Registers.vhd` (199-entry VME register map)
+- `knowledgeBase/deep_fpga_DIG_eventpacket.md` — DIG event packet format: full LED/CFD header layout (all 14 words), split field reconstruction, waveform samples, integration timelines
 - `knowledgeBase/fpga.md` — System-level overview: trigger hierarchy, signal flow, PEQ explanation, end-to-end timeline
 - `knowledgeBase/DIG_firmware_expert.md` — Operator-level guide: all 8 readout modes, register summary, discriminator config
 - `knowledgeBase/deep_fpga_RTRG.md` — Router firmware: multiplicity aggregation, throttle, VME register map

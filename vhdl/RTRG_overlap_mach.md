@@ -15,7 +15,7 @@ Generic two-signal coincidence detector. Given any two level signals (SIG_A, SIG
 | `RST` | in | 1 | Active-high reset ✅ verified 2026-04-17 — `overlap_mach.vhd:L17` |
 | `SIG_A` | in | 1 | First signal (level) ✅ verified 2026-04-17 — `overlap_mach.vhd:L19` |
 | `SIG_B` | in | 1 | Second signal (level) ✅ verified 2026-04-17 — `overlap_mach.vhd:L20` |
-| `OVERLAP_DELAY` | in | 7 | Coincidence window: 0–127 clocks (up to ~2.54 µs at 50 MHz; code comment says 2.56 µs — minor rounding) ✅ verified 2026-04-17 — `overlap_mach.vhd:L21` |
+| `OVERLAP_DELAY` | in | 7 | Coincidence window: 0–127 (OVERLAP_DELAY+1 ticks max, since B firing at OVERLAP_TIMER=0 still marks overlap — up to 128 ticks = **2.56 µs** at 50 MHz) ✅ verified 2026-04-17 — `overlap_mach.vhd:L21` comment; ✅ confirmed 2026-04-25 — `overlap_mach.vhd:L91-94` (OVERLAP_TIMER≥0 condition: SIG_B at timer=0 still counts) |
 | `OVERLAP_OCCURRED` | out | 1 | One-tick pulse: both edges arrived within OVERLAP_DELAY ✅ verified 2026-04-17 — `overlap_mach.vhd:L23` |
 
 ## Key Logic / State Machine
@@ -47,9 +47,10 @@ Pipelines SIG_A and SIG_B one clock, detects rising edges → `SIG_A_EDGE`, `SIG
 - Returns to ST_IDLE  
 
 ## Key Constants / Parameters
-- OVERLAP_DELAY: 7-bit (0–127) ✅ verified 2026-04-17 — `overlap_mach.vhd:L21`. Maximum window = 127 clocks. At 50 MHz that is 2.54 µs (code comment rounds to 2.56 µs); at 100 MHz that is 1.27 µs.
+- OVERLAP_DELAY: 7-bit (0–127) ✅ verified 2026-04-17 — `overlap_mach.vhd:L21`. Maximum window = 128 ticks (OVERLAP_DELAY+1, since B firing when timer=0 still counts ✅ verified 2026-04-25 — `overlap_mach.vhd:L91-94`). At 50 MHz: **2.56 µs**; at 100 MHz: 1.28 µs.
 
 ## Connections to Other Modules
-- This is a standalone generic component instantiated from higher-level logic (likely router_data_path.vhd or TOP.VHD).
+- **NOT instantiated anywhere in RTRG.** ✅ verified 2026-04-25 — exhaustive `grep` across all `~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/*.vhd` finds zero uses of `overlap_machine`. The module exists in the source tree as a standalone generic but is never wired in.
+- `disc_mach.vhd` has the same coincidence logic **inlined** — it does not import or instantiate this module. The overlap-detection algorithm was implemented twice: once here as a reusable component, and once embedded directly in `disc_mach.vhd`.
 - Functionally related to but separate from `discriminator_mach` (disc_mach.vhd), which has the same overlap-detection core but adds CLEAN/DIRTY/BGO-only classification logic.
 - Uses `WORK.trigger_comp_defs` package for component declarations ✅ verified 2026-04-17 — `overlap_mach.vhd:L7`

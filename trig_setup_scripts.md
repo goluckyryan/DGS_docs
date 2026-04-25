@@ -205,8 +205,9 @@ Links G, H, R, U are unused (`X`) in this config. Link L of each RTRG connects b
 
 ## Cross-References
 
-- `knowledgeBase/link_sys_analysis.md` — Python counterpart: `link_sys.py` (same 5-stage sequence, full timing/clock analysis, IMP_SYNC two-shot sync, EPICS CA call chain, error-check mode)
-- `knowledgeBase/ANLDAQ.md` — ANLDAQ GUI: SerdesLinkup button that invokes `link_sys.py`; `Serdes_Linkup.sh` wrapper
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: registers driven by Stage 1
-- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: registers driven by Stages 2–4
-- `knowledgeBase/troubleshooting.md` — Router lock loss, SYNC bit gotcha (Stage 5 clears SYNC)
+- [`link_sys_analysis.md`](link_sys_analysis.md) — Python counterpart: `link_sys.py` (same 5-stage sequence, full timing/clock analysis, IMP_SYNC two-shot sync, EPICS CA call chain, error-check mode)
+- [`ANLDAQ.md`](ANLDAQ.md) — ANLDAQ GUI: SerdesLinkup button that invokes `link_sys.py`; `Serdes_Linkup.sh` wrapper
+- [`ANLDAQ_GUI_windows.md`](ANLDAQ_GUI_windows.md) — GUI Windows: trigger setup scripts section, gui_LinkSys.py integration
+- [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) — MTRG Main FPGA: registers driven by Stage 1
+- [`deep_fpga_RTRG.md`](deep_fpga_RTRG.md) — RTRG firmware: registers driven by Stages 2–4
+- [`troubleshooting.md`](troubleshooting.md) — Router lock loss, SYNC bit gotcha (Stage 5 clears SYNC)

@@ -15,6 +15,7 @@ Stability: C2 - Active / semi-stable
   - [`dgsDrivers/` — DGS hardware driver library](#dgsdrivers----dgs-hardware-driver-library)
   - [`dgsIoc/` — Final IOC application](#dgsioc----final-ioc-application)
   - [`munch.tcl` — C++ startup table generator](#munchtcl----c-startup-table-generator)
+  - [`munch_build_date.py` — Embedded build-date extractor](#munch_build_datepy--embedded-build-date-extractor)
 - [Target Hardware](#target-hardware)
 - [Host Requirements](#host-requirements)
 - [Build](#build)
@@ -335,6 +336,33 @@ Source files (.c, .cpp, .st)
         ▼
   gretDet.munch  (complete ELF binary, ready for VxWorks)
 ```
+
+---
+
+### `munch_build_date.py` — Embedded Build-Date Extractor
+
+_Source: `DGS_tools_pack/vxworks/munch_build_date.py` — documented 2026-04-25_
+
+A small Python 3 utility that extracts **EPICS-embedded build timestamps** from a compiled `.munch` binary without recompiling or running the binary. Useful when filesystem `mtime` cannot be trusted (e.g., after `scp`/`rsync`/`tar` that resets timestamps) but you still need to know when the binary was built.
+
+**Why it works:** EPICS base bakes build-time strings into the `.rodata` section of every binary it compiles. These strings survive any file copy. The only way to change them is to recompile.
+
+**Usage:**
+```bash
+python3 munch_build_date.py gretDet.munch
+python3 munch_build_date.py gretDet.munch gretDet_linux.munch   # compare multiple
+```
+
+**Output per file:** file path, size in bytes, filesystem `mtime`, and up to four recognised embedded strings:
+
+| Label | Pattern matched |
+|-------|----------------|
+| `SEQ build` | `SEQ Version X.Y.Z: <date>` |
+| `EPICS Base built` | `EPICS Base built <date>` |
+| `CA Client Library` | `EPICS ..., CA Client Library <date>` |
+| `Misc Utilities` | `EPICS ..., Misc. Utilities Library<date>` |
+
+**Implementation:** Reads binary in full; extracts printable ASCII strings ≥ 8 characters (`[ -~]{8,}`); scans against four EPICS/SEQ regex patterns. Pure Python stdlib only (`re`, `sys`, `pathlib`, `datetime`). ✅ verified 2026-04-25 — `vxworks/munch_build_date.py:L1-82`
 
 ---
 
@@ -725,9 +753,12 @@ All modules share types/constants defined here (moved from `devGVME.h` in 2020-0
 > - **outLoop.st** — data validation and buffer routing state machine
 > - **MiniSender.st** — TCP data send state machine (port 9001)
 > - **Port 9010 On-Demand FIFO Grabber** (planned, not implemented)
-> - **Trigger board drivers** (asynTrigCommonDriver, asynTrigRouterDriver, asynTrigMasterDriver, RTRG/MTRG)
+> - **Trigger board drivers** (summary level; full deep-dive in `vxworks_trigger_drivers.md`)
 > - **vmeDriverMutex** — shared VME bus mutex for flash programming synchronization
 > - **QueueManagement.c** — three-queue buffer pool (qFree/qWritten/qSender)
+>
+> 📄 **See [`vxworks_trigger_drivers.md`](vxworks_trigger_drivers.md)** for the trigger asyn driver deep-dive:
+> - `asynTrigCommonDriver` base class (poll loop, `address_list[]`, `0xaaaa0000` mask), `asynTrigMasterDriver` (MTRG, 369 params), `asynTrigRouterDriver` (RTRG, 188 params), firmware type code table, boot sequence
 
 _Split to separate file 2026-04-23 to keep `vxworks.md` under 650 lines._
 
@@ -738,12 +769,14 @@ _Split to separate file 2026-04-23 to keep `vxworks.md` under 650 lines._
 - `knowledgeBase/ioc.md` — IOC config, boot scripts, firmware versions, MVME5500 setup
 - `knowledgeBase/vxworks_migration.md` — Detailed migration notes from Solaris/con6 to Ubuntu 24
 - `knowledgeBase/vxworks_fifo_readout.md` — DMA buffer architecture, trigger FIFO readout, Type-F headers
-- `knowledgeBase/vxworks_state_machines.md` — inLoop/outLoop/MiniSender state machines, trigger drivers, queue management
+- `knowledgeBase/vxworks_state_machines.md` — inLoop/outLoop/MiniSender state machines, trigger driver summary, queue management
+- `knowledgeBase/vxworks_trigger_drivers.md` — trigger asyn driver deep-dive (asynTrigCommonDriver, asynTrigMasterDriver, asynTrigRouterDriver, firmware type codes)
 - `knowledgeBase/EPICS_asyn.md` — asyn driver internals: port model, worker threads, write flow
+- `knowledgeBase/vxworks_vme_devlayer.md` — extended devGVME/devGData/DGS_DEFS reference: VME flash register map, `ConfigureFlash` register sequence, `DGS_DEFS.h` constants, `rawEvt` buffer descriptor, board type table, outLoop globals
 - `knowledgeBase/VME_registers.md` — VME register addresses used by the IOC driver
 - `knowledgeBase/fpga.md` — FPGA firmware overview; the firmware binaries loaded by VxWorks
 - `knowledgeBase/ANLDAQ.md` — High-level pipeline overview (inLoop/outLoop/MiniSender data flow diagram + key PVs)
 - `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiverMT protocol; the TCP receiver MiniSender connects to
 - `knowledgeBase/deep_fpga_RTRG.md` / `knowledgeBase/deep_fpga_MTRG_MAIN.md` — RTRG/MTRG FPGA firmware
 
-*Created: 2026-04-05 | Last reviewed: 2026-04-23*
+*Created: 2026-04-05 | Last reviewed: 2026-04-24*

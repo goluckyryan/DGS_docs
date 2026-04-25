@@ -90,6 +90,59 @@ OutFile (per board+channel)
 - Default receive buffer: **1M words = 4 MB** ✅ verified 2026-04-12 — `tcpReceiver/constant.h:L8` (`DEFAULT_DATA_SIZE = 1000000`)
 - TRIG raw packet: **16 words** → repacked to **10 words** ✅ verified 2026-04-16 — `tcpReceiver/constant.h:L4-5` (`TRIG_DATA_SIZE=16`, `TRIG_PACKET_LENGTH=10`)
 
+### Output File Naming (`OutFile::NewFile()`)
+
+Files are named `<runName>_<NNN>_<BBBB>_<C>` where:
+- `NNN` — rolling file counter (starts at 0; auto-increments when file hits 2 GB limit) ✅ verified 2026-04-25 — `receiver.h:L83-98`
+- `BBBB` — `board_id` zero-padded to 4 digits
+- `C` — `ch_id` as a single hex digit (0–9 or A–F)
+- **Exception:** if `ch_id == 10` (decimal, i.e. `0xA`; the trigger channel), the suffix is `_T` instead of `_A` ✅ verified 2026-04-25 — `receiver.h:L83-87`
+
+Examples:
+- DIG channel 5 on board 141: `myRun_000_0141_5`
+- Trigger (TRIG) channel (board 99): `myRun_000_0099_T`
+
+File split: when `fileSize > MAX_FILE_SIZE_BYTE` (2 GB), the current file is closed, `count` is incremented, and a new file is opened — output is `myRun_001_0141_5`, etc.
+
+File tracking: files are indexed in `outFileMap` by key `board_id * 100 + ch_id`. Files are set **read-only** (`chmod 444`) on close. ✅ verified 2026-04-25 — `receiver.h:L139-147`
+
+### TRIG Packet Repacking (16 raw words → 10 words)
+
+The raw TRIG packet (`0xAAAA0000` header, 16 words after `ntohl`) is repacked into a 10-word DIG-compatible payload before saving. Word mapping ✅ verified 2026-04-25 — `receiver.h:L448-466`:
+
+| Repacked Word | Content | Source Raw Words |
+|--------------|---------|------------------|
+| `payload[0]` | `0xAAAAAAAA` (SOE — replaces `0xAAAA0000`) | hardcoded |
+| `payload[1]` | `ch_id=0xA \| board_id(99)<<4 \| TRIG_PACKET_LENGTH(10)<<16` | hardcoded |
+| `payload[2]` | `header[4] \| header[3]<<16` | raw W4, W3 |
+| `payload[3]` | `header[2] \| header_type(0xE)<<16 \| 3<<26` | raw W2 |
+| `payload[4]` | `(header[1]<<16) + header[5]` | raw W1, W5 |
+| `payload[5]` | `(header[6]<<16) + header[7]` | raw W6, W7 |
+| `payload[6]` | `(header[8]<<16) + header[9]` | raw W8, W9 |
+| `payload[7]` | `(header[10]<<16) + header[11]` | raw W10, W11 |
+| `payload[8]` | `(header[12]<<16) + header[13]` | raw W12, W13 |
+| `payload[9]` | `(header[14]<<16) + header[15]` | raw W14, W15 |
+
+The repacked payload mimics DIG format: `payload[0]` starts with `0xAAAAAAAA`, and `payload[3]` embeds `header_type=0xE` and `3<<26` (HDR_LEN=3). The fake board_id is **99**, ch_id is **0xA** (10), which is why TRIG files appear as `_0099_T`.
+
+### `tcpReceiverMT` — Multi-Thread In-Place Display (`mtMode`)
+
+When `mtMode=true` (set by `tcpReceiverMT` for all threads), each `IOCReceiver` thread uses ANSI cursor escape codes to update its status on a **fixed terminal line** instead of scrolling:
+```
+\033[<N>A    ← move cursor up N lines (to this thread's reserved line)
+\r\033[K    ← carriage return + erase line
+... status line ...
+\033[<N>B    ← move cursor back down N lines
+\r            ← return to base
+```
+N = `totalThreads - threadIdx` — so thread 0 is the bottom-most, thread N-1 is the top. Each thread has exactly one reserved display line, pre-printed at startup by `tcpReceiverMT` main as `[<IP>] (connecting...)`. The per-line format is:
+```
+[%-15s] %7.3f MB | %d B | %ld s | empty: %d
+```
+(IP, total file MB, bytes-received-since-last-print, elapsed seconds, specialCount)
+
+All cursor movements and status writes are protected by `printMutex`. ✅ verified 2026-04-25 — `receiver.h:L581-589`, `tcpReceiverMT.cpp:L68-71`
+
 ### GEB Header (`#define ENABLE_GEB_HEADER`)
 
 Each event is prepended with a 16-byte GEB header before writing:
@@ -273,5 +326,84 @@ The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet for
 - `knowledgeBase/ANLDAQ_GUI_windows.md` — gui_DataTaking: GUI front-end that spawns and controls tcpReceiverMT
 - `knowledgeBase/data_structures.md` — GEB header format + DIG event packet layout
 - `knowledgeBase/dgs_analysis.md` — downstream analysis consuming tcpReceiverMT output
+- `knowledgeBase/run_procedures.md` — operator-level run procedures (uses `start_run.sh`/`stop_run.sh` as the key start/stop mechanism)
 
-*Created: 2026-04-14 | Last reviewed: 2026-04-20*
+*Created: 2026-04-14 | Last reviewed: 2026-04-24*
+
+---
+
+## Run Control Scripts — `start_run.sh`, `stop_run.sh`, `run_control_gui.py`
+
+_Source: `ANLDAQ/tcpReceiver/` | Analyzed 2026-04-24_
+
+### Overview
+
+The DAQ run control consists of three components that work together:
+
+| Component | Location | Role |
+|-----------|----------|------|
+| `start_run.sh` | DCS2: `SCRIPT_DIR` | Shell script: sets up run folder, snapshots PVs, launches receivers, starts EPICS acquisition, posts elog |
+| `stop_run.sh` | DCS2: `SCRIPT_DIR` | Shell script: stops acquisition, flushes data, kills receivers, posts elog, launches Parquet sort |
+| `run_control_gui.py` | dgs4 | Tkinter GUI that SSHes into DCS2 to run the above scripts, displays friendly status messages |
+
+### `expInfo.sh` — Experiment Configuration
+
+`start_run.sh` sources `expInfo.sh` in the same directory. All experiment-specific config lives there:
+
+| Variable | Purpose |
+|----------|---------|
+| `expName` | Experiment name (e.g. `myExp`) |
+| `expFolder` | Root folder for experiment (e.g. `/mnt/data0/exp000000`) |
+| `dataFolder` | Run subfolders go here (`${expFolder}/data`) |
+| `nfsFolder` | NFS sync destination (local path) |
+| `nfsPath` | NFS network path (e.g. `fs2.onenet:/mnt/vol5/atlasdata/dgs/exp000000`) |
+| `GEB_ID` | GEB data type ID (e.g. `14`) |
+| `elogLogbook` | ELOG logbook name |
+| `NEXT_RUN` | Auto-incremented run counter; updated by `sed -i` each run |
+
+If `expInfo.sh` is missing, `start_run.sh` creates a template and exits.
+
+### `start_run.sh` — Run Start Sequence
+
+1. **Run folder setup:** creates `${dataFolder}/${expName}_NNN/`; increments `NEXT_RUN` in `expInfo.sh` via `sed -i`
+2. **Final adjustments block:** commented `caput` commands for MDIG1/MDIG2 enable, master logic enable, FIFO reset — uncomment as needed per experiment
+3. **PV snapshot:** calls `~/snapshot_pv/dumpPVs.py --all --skip GS085,GS091,GS099,MOD085,MOD091,MOD099 --outdir <runFolder>` (skips 3 known-bad detectors)
+4. **Timestamp log:** appends `YYYYMMDD_HHMMSS, RunNNN, <comment>` to `${expFolder}/RunTimestamp.txt`
+5. **ELOG post:** posts start entry to `elog.phy.anl.gov:443` logbook, Category=Run
+6. **Receiver launch mode** (`USE_MT=false` default):
+   - `USE_MT=false` (default): opens one `gnome-terminal` per IP in `IPList[]` running `./tcpReceiver IP 9001 GEB_ID <outpath>`; two-column layout (6 per col), left col x=0, right col x=1400 ✅ verified 2026-04-24 — `start_run.sh:L9,L179,L191`
+   - `USE_MT=true`: opens one `gnome-terminal` running `./tcpReceiverMT config.txt <outpath>`; auto-generates `config.txt` from `IPList[]` if missing ✅ verified 2026-04-24 — `start_run.sh:L149,L153-163`
+   - PIDs written to `pidList.txt`
+7. **sleep 5:** waits for receivers to connect ✅ verified 2026-04-24 — `start_run.sh:L204`
+8. **EPICS start:** `caput Online_CS_StartStop Start` then `caput Online_CS_SaveData Save`
+9. **Auto-stop:** if `$waitTime` arg > 5 s, sleeps then auto-stops; otherwise unlimited ✅ verified 2026-04-24 — `start_run.sh:L216,L238`
+
+Current `IPList`: `.141 .142 .143 .144 .145 .177 .178 .179 .180 .183 .181 .182` (12 IOCs = 12 VME crates) ✅ verified 2026-04-24 — `ANLDAQ/tcpReceiver/start_run.sh:L12`
+
+### `stop_run.sh` — Run Stop Sequence
+
+1. `caput Online_CS_StartStop Stop`
+2. Appends "Stopped" entry to `RunTimestamp.txt`
+3. `sleep 10` — waits for IOC to flush data ✅ verified 2026-04-24 — `stop_run.sh:L29`
+4. `caput Online_CS_SaveData No Save` ✅ verified 2026-04-24 — `stop_run.sh:L31`
+5. `sleep 5` then calls `kill_IOC.sh` to kill receiver processes ✅ verified 2026-04-24 — `stop_run.sh:L34-35`
+6. **ELOG post:** calculates duration from `RunTimestamp.txt` start/stop timestamps; posts run size (`du -sh`) and NFS path ✅ verified 2026-04-24 — `stop_run.sh:L40-67`
+7. **Parquet sort:** launches `~/DGS_Analysis/working/RunParquet expInfo.sh <run_num>` in a new `gnome-terminal` ✅ verified 2026-04-24 — `stop_run.sh:L82-83`
+
+### `run_control_gui.py` — Tkinter GUI
+
+Runs on **dgs4**, SSHes into **DCS2** (`dcsu@dcs2.onenet`) using identity file `/home/dgs/.ssh/id_rsa`.
+
+**UI layout:**
+- Experiment name + next run number (refreshed by sourcing `expInfo.sh` over SSH)
+- Comment text entry (base64-encoded before SSH to survive shell quoting)
+- Start Run / Stop Run buttons (mutually exclusive; grayed during transitions)
+- Output area (dark background, green text) showing script output mapped to friendly messages
+- Clock (HH:MM:SS), run timer (green; starts when "is running" seen), data folder size (polled `du -sh` every 15 s)
+- Recent runs log panel (tail -15 from `RunTimestamp.txt`)
+
+**Status message mapping (key substrings in script stdout):**
+
+Start: "Final adjustments" → "Preparing final adjustments...", "Taking PV Snapshot" → "Taking PV snapshot...", "Start Run" → "Setting up run folder...", "tcpReceiver" → "Opening receivers...", "tcpReceiverMT" → "Opening receiver (MT)...", "Online_CS_StartStop Start" → "Starting DAQ...", "Online_CS_SaveData Save" → "Saving data...", "is running" → "DAQ started!"
+
+Stop: "Online_CS_StartStop Stop" → "Stopping DAQ...", "flush data" → "Waiting for IOC to flush data...", "Online_CS_SaveData" → "Stopping data save...", "kill receivers" → "Killing receivers...", "DAQ stopped" → "DAQ stopped.", "Parquet Sort" → "Running Parquet sort...", "elog" → "Posting to elog..."

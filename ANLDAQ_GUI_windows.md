@@ -97,23 +97,24 @@ The window (1100×700, title "SBX / CollectorBox") has:
 
 | Column | Widget | PV | R/W |
 |--------|--------|----|-----|
-| ID | `QLabel` (`MOD###`) | — | display only |
+| ID | `QPushButton` (`MOD###`) | — | click (or Shift+click) opens `GSWindow` |
 | TEMP | `RLineEdit` (2 dp) | `MOD###_DV_TEMP` | read-only |
 | HIGH | `RLineEdit` | `MOD###_DV_TEMP.HIGH` | R/W (EPICS alarm field, created as manual `PV()` — not in JSON) |
 | EN | `RTwoStateButton` | `MOD###_DV_EN` | R/W |
 
-Disabled dummy widgets for absent slots (NW/SW last 5). ✅ verified 2026-04-20 — `gui_Det.py:L176-218`
+Disabled dummy widgets for absent slots (NW/SW last 5). ✅ verified 2026-04-24 — `gui_Det.py` (Apr 23 commit c2339cb)
 
 #### HV tab
 Same 2×2 / 3×10 layout. Per-slot cell:
 
 | Column | Widget | PV | R/W |
 |--------|--------|----|-----|
-| ID | `QLabel` | — | display |
-| DV_GEHV | `RLineEdit` | `MOD###_DV_GEHV` | R/W |
-| DS_GEHV | `RLineEdit` | `MOD###_DS_GEHV` | read-only |
+| ID | `QPushButton` (`MOD###`) | — | click opens `GSWindow` for that detector |
+| Set | `RLineEdit` (2 dp) | `GS###_GE_HV_DEMAND_VOLTS` | R/W — Ge HV demand voltage |
+| Out | `RLineEdit` (2 dp) | `GS###_Conv_GeHV` | read-only — Ge HV converter measured |
+| High | `RLineEdit` (2 dp) | `MOD###_DS_GEHV` | read-only — HV setpoint from SlopeBox |
 
-✅ verified 2026-04-20 — `gui_Det.py:L221-264`
+Note: column order in widget layout is ID → Set (dv_w) → Out (conv_w) → High (ds_w). ✅ verified 2026-04-24 — `gui_Det.py:L270-310` (current file, Apr 23 commit)
 
 #### Availability detection
 Slot is "available" if `f"MOD{det_id:03d}"` is in `cb_det_list` (MOD-prefixed names from `CollectorBox_PV.json`). Unavailable slots: disabled placeholders with no CA connections. ✅ verified 2026-04-20 — `gui_Det.py:L67-68`
@@ -122,13 +123,13 @@ Slot is "available" if `f"MOD{det_id:03d}"` is in `cb_det_list` (MOD-prefixed na
 
 `GSWindow` — per-detector CollectorBox PV viewer. Opened from `DetWindow` (Detector Array Window) when the user clicks any detector button in the array grid. Shows CollectorBox-sourced status and control PVs for a single Gammasphere detector.
 
-_Source: `ANLDAQ/gui/gui_GS.py` (173 lines, code-read 2026-04-23)_ ✅ verified 2026-04-23
+_Source: `ANLDAQ/gui/gui_GS.py` (209 lines as of Apr 23 commit c2339cb, code-read 2026-04-24)_ ✅ verified 2026-04-24
 
 ### How It Opens
 
-- Clicking a detector ID button (`MOD###`) in `DetWindow`'s array grid calls `_OpenGSWindow(det_id)` ✅ verified 2026-04-23 — `gui_Det.py:L201-204`
-- Default behavior: **reuses a single shared window** (`_gs_window`) — switching to the new detector in place instead of opening a new window ✅ verified 2026-04-23 — `gui_Det.py:L246-253`
-- `new_window=True` path (not wired to any button currently): opens an additional independent `GSWindow` instance
+- Clicking a detector ID button (`MOD###`) in `DetWindow`'s Temperature or HV grid calls `_OpenGSWindow(det_id, new_window=shift_held)` ✅ verified 2026-04-24 — `gui_Det.py:L201-207` (Temperature tab) + HV tab
+- Default behavior: **reuses a single shared `_gs_window`** — switches to new detector in place; if Shift is held, a new independent `GSWindow` is spawned and appended to `_gs_window_extras` ✅ verified 2026-04-24 — `gui_Det.py`
+- On `DetWindow.closeEvent()`, all extra GSWindow instances are closed alongside the primary one
 
 ### Window Layout
 
@@ -505,10 +506,13 @@ See **[`guceiver.md`](guceiver.md)** for: architecture diagram, class_Receiver.p
 
 ## See Also
 
-- `knowledgeBase/ANLDAQ.md` — parent overview (class_PV, class_Board, findAllPV, commander.py)
-- `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiverMT deep-dive: protocol, GEB header, run control
-- `knowledgeBase/link_sys_analysis.md` — link_sys.py 5-stage sequence (called by gui_LinkSys.py)
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG firmware details for trigger tab PVs
-- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware details for RTR window PVs
+- [`ANLDAQ.md`](ANLDAQ.md) — parent overview (class_PV, class_Board, findAllPV, commander.py)
+- [`ANLDAQ_commander.md`](ANLDAQ_commander.md) — DGS Commander run control GUI (commander.py, board buttons, system tabs)
+- [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) — tcpReceiverMT deep-dive: protocol, GEB header, run control scripts
+- [`guceiver.md`](guceiver.md) — Guceiver online waveform/spectrum viewer (full reference)
+- [`trig_setup_scripts.md`](trig_setup_scripts.md) — trigger setup scripts (detailed cross-reference)
+- [`link_sys_analysis.md`](link_sys_analysis.md) — link_sys.py 5-stage sequence (called by gui_LinkSys.py)
+- [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) — MTRG firmware details for trigger tab PVs
+- [`deep_fpga_RTRG.md`](deep_fpga_RTRG.md) — RTRG firmware details for RTR window PVs
 
-*Created: 2026-04-13 | Last reviewed: 2026-04-20*
+*Created: 2026-04-13 | Last reviewed: 2026-04-24*

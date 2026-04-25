@@ -1,9 +1,10 @@
-# DIG Firmware — Selected Module Analysis
+# DIG Firmware — Selected Module Analysis (Part 1: Signal Chain & SERDES)
 
 Stability: C3 - Structural / stable
 
-_Analysis of DIG production VHDL modules not covered in `deep_fpga_DIG.md` or `deep_fpga_DIG_channel.md`._
-_Source tag: `MAIN_FPGA_TAGS/20180507/MAIN_FPGA/BuildBranches/DGS/Source/`_
+_Analysis of DIG production VHDL modules: signal chain, discriminator packing, SERDES, timestamp, trigger mux, and per-channel readout FSMs._  
+_For DC balance, waveform FIFOs, decimator, event header, channel collection FIFO, VME interface, and register map → see [deep_fpga_DIG_modules2.md](deep_fpga_DIG_modules2.md)._  
+_Source tag: `MAIN_FPGA_TAGS/20180507/MAIN_FPGA/BuildBranches/DGS/Source/`_  
 _Authors: John Anderson (JTA), Michael Oberling (MBO)_
 
 ## Table of Contents
@@ -16,7 +17,6 @@ _Authors: John Anderson (JTA), Michael Oberling (MBO)_
 - [Trigger_Mux.vhd — Trigger Source Selector](#trigger_muxvhd--trigger-source-selector)
 - [Channel_Readout_Controller.vhd — Readout Timing & Decision Logic](#channel_readout_controllervhd--readout-timing--decision-logic)
 - [Channel_Readout_Mach.vhd — Per-Channel Readout Wrapper](#channel_readout_machvhd--per-channel-readout-wrapper)
-- [See Also](#see-also)
 
 ---
 
@@ -186,7 +186,7 @@ On `reset_fifo`:
 
 **Entity:** `pileup_processor`  
 **Authors:** John Anderson (original), Michael Oberling (2014-09-02 refactor)  
-**Lines:** 359 (including ~100 lines of commented-out PU_ONLY mode code)  
+**Lines:** 359 ✅ verified 2026-04-25 — `pileup_processor.vhd` (line count confirmed) (including ~100 lines of commented-out PU_ONLY mode code)  
 **Clock domain:** CLK (100 MHz)
 
 ### Role
@@ -215,12 +215,14 @@ Implements the pileup detection and rejection/acceptance logic for a single digi
 4-bit saturating counter (increments on new `THRESH_DISC_FLAG` with no simultaneous release, decrements on `PILE_RELEASE_DLYD` with no simultaneous new hit):
 - Overflow: if count reaches `"1111"` and another hit arrives → `INT_OVERFLOW_FLAG = '1'` (fatal, machine locks in OVERFLOW state until channel reset).
 - Underflow: if count is `"0000"` and a release arrives → also sets `INT_OVERFLOW_FLAG = '1'`.
+✅ verified 2026-04-25 — `pileup_processor.vhd:L76-91` (4-bit PILEUP_COUNT; "1111" overflow L84-85; "0000" underflow L90-91)
 
-**Note (from code comment):** The 3-clock delay on `PILE_RELEASE_DLYD` vs `DISCBIT_PILEUP_RELEASE` was introduced in 2012-11-28 to accommodate PEHQ instantiation timing.
+**Note (from code comment):** The 3-clock delay on `PILE_RELEASE_DLYD` vs `DISCBIT_PILEUP_RELEASE` was introduced in 2012-11-28 to accommodate PEHQ instantiation timing. ✅ verified 2026-04-25 — `pileup_processor.vhd:L70-72` ("20121128: instantiation of PEHQ requires that pileup process be delayed by, we think, three clock ticks")
 
 ### State Machine (`pile_proc` process)
 
 8-state FSM with two parallel halves — **pileup reject** and **pileup accept** — selected by `PILEUP_DISABLE`:
+✅ verified 2026-04-25 — `pileup_processor.vhd:L49` (`type PILEUP_STATES is (CHECK_DISABLE, REJ_NO_HIT, REJ_ONE_HIT, REJ_MANY_HIT, OVERFLOW, ACC_NO_HIT, ACC_ONE_HIT, ACC_MANY_HIT)`)
 
 ```
 CHECK_DISABLE ──► REJ_NO_HIT ──► REJ_ONE_HIT ──► REJ_MANY_HIT ──► OVERFLOW
@@ -228,7 +230,7 @@ CHECK_DISABLE ──► REJ_NO_HIT ──► REJ_ONE_HIT ──► REJ_MANY_HIT 
      └──────────► ACC_NO_HIT ──► ACC_ONE_HIT ──► ACC_MANY_HIT ──────────┘
 ```
 
-**Cross-machine transitions:** Both halves monitor `PILEUP_DISABLE` and can switch to the other half on any clock cycle (machine is not locked to one half).
+**Cross-machine transitions:** Both halves monitor `PILEUP_DISABLE` and can switch to the other half on any clock cycle (machine is not locked to one half). ✅ verified 2026-04-25 — `pileup_processor.vhd:L134-247` (REJ_NO_HIT checks `PILEUP_DISABLE='0'` to cross to ACC; ACC_NO_HIT checks `PILEUP_DISABLE='1'` to cross to REJ)
 
 #### Pileup Reject Half (PILEUP_DISABLE = '1')
 
@@ -240,7 +242,7 @@ CHECK_DISABLE ──► REJ_NO_HIT ──► REJ_ONE_HIT ──► REJ_MANY_HIT 
 | `REJ_MANY_HIT` | Counter → 1 and release | → `REJ_NO_HIT` (exit "jail") |
 | `REJ_MANY_HIT` | Any time | `PILEUP_FLAG='1'`, suppress all hits |
 
-**Code comment (known bug):** "Pileup flag is not set for first event in pileup train." This is intentional/accepted; the flag is only set once the second discriminator fires.
+**Code comment (known bug):** "Pileup flag is not set for first event in pileup train." This is intentional/accepted; the flag is only set once the second discriminator fires. ✅ verified 2026-04-25 — `pileup_processor.vhd:L97` (`-- BUGUBG: Pileup flag is not set for first event in pileup train.`)
 
 #### Pileup Accept Half (PILEUP_DISABLE = '0')
 
@@ -253,11 +255,11 @@ CHECK_DISABLE ──► REJ_NO_HIT ──► REJ_ONE_HIT ──► REJ_MANY_HIT 
 | `ACC_MANY_HIT` | PILE_RELEASE_DLYD (subsequent releases) | Assert `EXTENDED_EVENT` |
 | `ACC_MANY_HIT` | Counter → 1 and final release | → `ACC_NO_HIT` |
 
-`FIRST_RELEASE_FLAG` tracks whether the first release of a pileup train has been seen; subsequent releases produce `EXTENDED_EVENT` rather than `ACCEPTED_HIT`.
+`FIRST_RELEASE_FLAG` tracks whether the first release of a pileup train has been seen; subsequent releases produce `EXTENDED_EVENT` rather than `ACCEPTED_HIT`. ✅ verified 2026-04-25 — `pileup_processor.vhd:L54,L210,L235,L237` (signal declared L54; set on first release L210,L235; checked L237 to branch ACCEPTED_HIT vs EXTENDED_EVENT)
 
 #### `PU_TOO_SHORT` Gate
 
-Output block (combinatorial, outside FSM): `ACCEPTED_HIT` and `EXTENDED_EVENT` are gated to '0' when `PU_TOO_SHORT = '1'`. This flag is set upstream when the pileup window is too short to be valid.
+Output block (combinatorial, outside FSM): `ACCEPTED_HIT` and `EXTENDED_EVENT` are gated to '0' when `PU_TOO_SHORT = '1'`. This flag is set upstream when the pileup window is too short to be valid. ✅ verified 2026-04-25 — `pileup_processor.vhd:L65-67` (`ACCEPTED_HIT <= INT_ACCEPTED_HIT when (PU_TOO_SHORT = '0') else '0'`; same for `EXTENDED_EVENT`)
 
 #### `PEHQ_RD_ADDR_ADV`
 
@@ -266,7 +268,7 @@ Driven directly (not gated) from `PILE_RELEASE_DLYD` regardless of pileup state 
 
 #### Commented-out PU_ONLY mode
 
-Three states (`PU_ONLY_NO_HIT`, `PU_ONLY_ONE_HIT`, `PU_ONLY_MANY_HIT`) were prototyped in 2013-06-04 by JTA to accept only pileup events and reject clean singles. This code is fully commented out and never compiled.
+Three states (`PU_ONLY_NO_HIT`, `PU_ONLY_ONE_HIT`, `PU_ONLY_MANY_HIT`) were prototyped in 2013-06-04 by JTA to accept only pileup events and reject clean singles. This code is fully commented out and never compiled. ✅ verified 2026-04-25 — `pileup_processor.vhd:L51` (comment `--20130604 allow for pileup-only events: PU_ONLY_NO_HIT, PU_ONLY_ONE_HIT, PU_ONLY_MANY_HIT`); L264-306 (states fully commented out)
 
 ---
 
@@ -357,8 +359,8 @@ Separate process `F15_DECODER` added 2016-04-18 to decode Frame 15 without bloat
 **Latch mode:** When `ENABLE_F15_LATCH = 1`, the external discriminator persists between frames (state held in `F15_LATCH_STATE`). Latch mode allows long-duration gating from a single TTCL command.
 ✅ verified 2026-04-24 — SERDES_RX_Mach.vhd:L110-111 (ENABLE_F15_LATCH, F15_LATCH_STATE signal declarations); L364-365 (latch drives EXTERNAL_DISC_FLAG)
 - **W2 (index 71):** bits[15:14]='10' → `ENABLE_F15_LATCH <= '1'` (enable); bits[15:14]='01' → disable latch and clear F15_LATCH_STATE.
-- **W3 (index 72):** bits[15:14]='10' → `F15_LATCH_STATE <= '1'` (SL set); bits[15:14]='01' → `F15_LATCH_STATE <= '1'` (⚠️ apparent copy-paste bug at L352: says "clear the latch if CL bit set" but assigns '1' not '0').
-✅ verified 2026-04-24 — SERDES_RX_Mach.vhd:L337-352 (W2 enable/disable; W3 SL/CL logic — note potential bug at L352)
+- **W3 (index 72):** bits[15:14]='10' → `F15_LATCH_STATE <= '1'` (SL = set latch); bits[15:14]='01' → `F15_LATCH_STATE <= '0'` (CL = clear latch). Logic is correct — no bug.
+✅ verified 2026-04-24 — SERDES_RX_Mach.vhd:L347-350 (DGS_TAG_20180607_TWEAK branch: SL assigns '1', CL assigns '0' with comment "clear the latch if CL bit set"); prior KB entry incorrectly transcribed '0' as '1' for CL case.
 
 ### Veto Decoder
 
@@ -367,7 +369,7 @@ Separate process `VETO_DECODER` added 2016-04-18. Fires on the 5th word of every
 
 **SLAVE_MODE special case:** If `SLAVE_MODE=TRUE`, channels 9:5 are forced to `"00000"` (no veto); channels 4:0 always receive `RECEIVED_CONTROL_DATA(4:0)` regardless of mode.
 ✅ verified 2026-04-24 — SERDES_RX_Mach.vhd:L399-403 (VETO_EVENT(4:0) always gets RECEIVED_CONTROL_DATA(4:0); SLAVE_MODE zeroes out VETO_EVENT(9:5))
-⚠️ Code comment at L397-398 contradicts the logic: comment says "only channels 9:5 (Ge Side) respond to vetoes" but code shows the opposite — 9:5 are zeroed in SLAVE_MODE while 4:0 always get data. Possible comment error or channel-label confusion in the original.
+✅ verified 2026-04-24 — SERDES_RX_Mach.vhd:L397-398 (DGS_TAG_20180607_TWEAK): the VHDL comment "only channels 9:5 (Ge Side) respond to vetoes" is poorly worded but the code logic is clear: SLAVE_MODE forces VETO_EVENT(9:5) to '0' (Ge channels suppressed) while VETO_EVENT(4:0) always gets RECEIVED_CONTROL_DATA(4:0) (BGO pattern signals always pass through). Comment's intended meaning: "in SLAVE_MODE, Ge channels do NOT get vetoes; BGO always reads out" — the word "respond" refers to the veto suppression path, not the data path. No code bug; comment resolved.
 
 ### Outputs Summary
 
@@ -660,6 +662,7 @@ When `write_flags=0`: full 16-bit `dec_data` without flag insertion.
 
 ## See Also
 
+- [deep_fpga_DIG_modules2.md](deep_fpga_DIG_modules2.md) — Part 2: DC balance, waveform FIFOs, decimator, event header FIFO, channel collection FIFO, VME interface, register map
 - [deep_fpga_DIG.md](deep_fpga_DIG.md) — top-level DIG architecture, source file table, SERDES RX format
 - [deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md) — per-channel signal processing, LED/CFD discriminators, Trigger Rondel
 - [deep_fpga_DIG_eventpacket.md](deep_fpga_DIG_eventpacket.md) — full event packet format

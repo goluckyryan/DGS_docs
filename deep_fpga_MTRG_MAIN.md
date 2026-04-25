@@ -104,14 +104,14 @@ Algo 5 itself (the CPLD/coincidence trigger) is **absent** from both groups — 
 ### Master State Machine
 | File | Description |
 |------|-------------|
-| `mstr_mach.vhd` | Master state machine — generates 20 command frames per 2 µs cycle (at 50 MHz); coordinates trigger decision collection and dispatch to Routers |
+| `mstr_mach.vhd` | Master state machine — generates 20 command frames per 2 µs cycle (at 50 MHz); coordinates trigger decision collection and dispatch to Routers. Full analysis: [`vhdl/MTRG_mstr_mach.md`](vhdl/MTRG_mstr_mach.md) |
 
 ### SERDES Reception & Links
 | File | Description |
 |------|-------------|
-| `SERDES_RX_Mach_R2.vhd` | Receives command data on inter-trigger links L, R, U; decodes sync, DetStatus, TrigDecision, and Frame12/14/15/16/17 frames |
-| `link_init.vhd` | SERDES link initialization and lock acquisition |
-| `link_tx_block.vhd` | SERDES transmitter for inter-trigger links L, R, U |
+| `SERDES_RX_Mach_R2.vhd` | Receives command data on inter-trigger links L, R, U; decodes sync, DetStatus, TrigDecision, and Frame12/14/15/16/17 frames. Full analysis: [`vhdl/MTRG_SERDES_RX_Mach.md`](vhdl/MTRG_SERDES_RX_Mach.md) |
+| `link_init.vhd` | SERDES link initialization and lock acquisition. Full analysis: [`vhdl/MTRG_link_init_and_input_pipeline.md`](vhdl/MTRG_link_init_and_input_pipeline.md) |
+| `link_tx_block.vhd` | SERDES transmitter for inter-trigger links L, R, U. See [`vhdl/MTRG_support_modules.md`](vhdl/MTRG_support_modules.md) |
 | `link_lru_rx.vhd` | Link L/R/U receiver clock domain synchronization |
 | `DCBAL_in.vhd` | DC-balance removal (converts 18-bit encoded to 16-bit data) |
 | `DCBAL_in_nofifo.vhd` | DC-balance removal variant without FIFO |
@@ -120,8 +120,9 @@ Algo 5 itself (the CPLD/coincidence trigger) is **absent** from both groups — 
 ### Input Channel Processing
 | File | Description |
 |------|-------------|
-| `eight_mt_channel.vhd` | Wrapper instantiating 8 `mt_input_channel` units; handles link masking and X/Y multiplicity sums |
-| `mt_input_channel.vhd` | Per-channel processing: DC-balance removal, FIFO handoff between SERDES clock and master clock, link status monitoring |
+| `eight_mt_channel.vhd` | Wrapper instantiating 8 `mt_input_channel` units; handles link masking and X/Y multiplicity sums. Full analysis: [`vhdl/MTRG_eight_mt_channel.md`](vhdl/MTRG_eight_mt_channel.md) |
+| `mt_input_channel.vhd` | Per-channel processing: DC-balance removal, FIFO handoff between SERDES clock and master clock, link status monitoring. Full analysis: [`vhdl/MTRG_mt_input_channel.md`](vhdl/MTRG_mt_input_channel.md) |
+| `mstr_trigger_input_pipeline.vhd` | Per-Router 132-bit data unpacker (`mt_pipeline` entity, 828 L): preamble lock (0xFFF/0x000/0x0F0), 8×12-word block extraction, 40-bit hit pattern, 16-bit CC energy+timestamp, crystal ID, buffer count, 7-condition DIGVALID gate, 24-bit GROUP_ENERGY_SUM accumulator, throttle aggregation (8 digs per 2 µs). Full analysis: [`vhdl/MTRG_link_init_and_input_pipeline.md`](vhdl/MTRG_link_init_and_input_pipeline.md) |
 
 #### Per-Link Mask Registers (ILM / XLM / YLM)
 
@@ -158,20 +159,20 @@ Links L, R, and U are **excluded from XLM/YLM processing** — the script explic
 | File | Description |
 |------|-------------|
 | `trig_collect.vhd` | Multiplexes 8 algorithm outputs into trigger decision FIFO for the master state machine |
-| `GITMO_TRIGGER.vhd` | Trigger algorithm for GRETINA digitizer channels |
-| `MYRIAD_TRIGGER.vhd` | Trigger algorithm for MyRIAD auxiliary detector |
-| `GITMO_RCV_MACH.vhd` | Receiver state machine for GRETINA data frames |
-| `MYRIAD_RCV_MACH.vhd` | Receiver state machine for MyRIAD data frames |
-| `trig_algo_support.vhd` | Common infrastructure shared by trigger algorithms |
-| `remote_trig_support.vhd` | Remote trigger propagation via inter-trigger links |
-| `local_trig_coinc.vhd` | Local coincidence logic |
+| `GITMO_TRIGGER.vhd` | Trigger algorithm for GRETINA digitizer channels. Full analysis: [`vhdl/MTRG_GITMO.md`](vhdl/MTRG_GITMO.md) |
+| `MYRIAD_TRIGGER.vhd` | Trigger algorithm for MyRIAD auxiliary detector. Full analysis: [`vhdl/MTRG_MYRIAD_TRIGGER.md`](vhdl/MTRG_MYRIAD_TRIGGER.md) |
+| `GITMO_RCV_MACH.vhd` | Receiver state machine for GRETINA data frames. Full analysis: [`vhdl/MTRG_GITMO.md`](vhdl/MTRG_GITMO.md) |
+| `MYRIAD_RCV_MACH.vhd` | Receiver state machine for MyRIAD data frames. Full analysis: [`vhdl/MTRG_MYRIAD_RCV_MACH.md`](vhdl/MTRG_MYRIAD_RCV_MACH.md) |
+| `trig_algo_support.vhd` | Common infrastructure shared by trigger algorithms. Full analysis: [`vhdl/MTRG_trig_algo_support.md`](vhdl/MTRG_trig_algo_support.md) |
+| `remote_trig_support.vhd` | Remote trigger propagation via inter-trigger links. See [`vhdl/MTRG_support_modules.md`](vhdl/MTRG_support_modules.md) |
+| `local_trig_coinc.vhd` | Local coincidence logic. Full analysis: [`vhdl/MTRG_local_trig_coinc.md`](vhdl/MTRG_local_trig_coinc.md) |
 
 ### Hit Summation & Multiplicity
 | File | Description |
 |------|-------------|
-| `sum_hits_X.vhd` | X-plane hit summation |
-| `sum_hits_XY.vhd` | X+Y combined plane summation |
-| `calc_total_sum.vhd` | Total multiplicity calculation |
+| `sum_hits_X.vhd` | X-plane hit summation. Full analysis: [`vhdl/MTRG_sum_hits_X.md`](vhdl/MTRG_sum_hits_X.md) |
+| `sum_hits_XY.vhd` | X+Y combined plane summation. Full analysis: [`vhdl/MTRG_sum_hits_XY.md`](vhdl/MTRG_sum_hits_XY.md) |
+| `calc_total_sum.vhd` | Total multiplicity calculation. Full analysis: [`vhdl/MTRG_calc_total_sum.md`](vhdl/MTRG_calc_total_sum.md) |
 | `overlap_mach.vhd` | Overlap detection state machine |
 | `data_compressor.vhd` | Event data compression |
 | `chan_fifo_write_ctl.vhd` | Channel FIFO write control |
@@ -179,24 +180,24 @@ Links L, R, and U are **excluded from XLM/YLM processing** — the script explic
 ### TDC & Timestamp
 | File | Description |
 |------|-------------|
-| `tdc_chain_cont.vhd` | TDC chain controller — coordinates 4 TDC units sampled at 0°/90°/180°/270° of 250 MHz clock; phase selection gives 1 ns coarse steps; combined with vernier fine count achieves ~30 ps effective resolution ✅ verified 2026-04-21 — `tdc_chain_cont.vhd:L28,L402` (250 MHz sampling; 68 ns expected delay at 4 ns period) |
+| `tdc_chain_cont.vhd` | TDC chain controller — coordinates 4 TDC units sampled at 0°/90°/180°/270° of 250 MHz clock; phase selection gives 1 ns coarse steps; combined with vernier fine count achieves ~30 ps effective resolution ✅ verified 2026-04-21 — `tdc_chain_cont.vhd:L28,L402` (250 MHz sampling; 68 ns expected delay at 4 ns period). Full analysis: [`vhdl/MTRG_tdc_chain_cont.md`](vhdl/MTRG_tdc_chain_cont.md) |
 | `tdc_unit_cont.vhd` | Individual TDC unit control |
-| `pos_finder.vhd` | Hit position finder |
+| `pos_finder.vhd` | Hit position finder. Full analysis: [`vhdl/MTRG_pos_finder.md`](vhdl/MTRG_pos_finder.md) |
 | `jta_vernier_pos_finder.vhd` | Vernier position detection |
 | `vernier_pos_finder.vhd` | Vernier refinement logic |
-| `timestamp.vhd` | Timestamp generation and synchronization |
+| `timestamp.vhd` | Timestamp generation and synchronization. See [`vhdl/MTRG_support_modules.md`](vhdl/MTRG_support_modules.md) |
 | `sync_capture_controller.vhd` | System-wide time capture controller |
 | `sync_capture_counter.vhd` | Counter for sync events |
 
 ### Register Interface & VME
 | File | Description |
 |------|-------------|
-| `registers.vhd` | VME register map (addresses 0x0000–0x08FC) — 117 write-register `when` entries, 238 unique addresses; read-only registers at 0x0100+; 0x08FC is top reserved address ✅ verified 2026-04-21 — `registers.vhd` (grep count: 117 write case entries, 238 unique hex addresses; L22-29 header comment) |
+| `registers.vhd` | VME register map (addresses 0x0000–0x08FC) — 117 write-register `when` entries, 238 unique addresses; read-only registers at 0x0100+; 0x08FC is top reserved address ✅ verified 2026-04-21 — `registers.vhd` (grep count: 117 write case entries, 238 unique hex addresses; L22-29 header comment). Full analysis: [`vhdl/MTRG_registers.md`](vhdl/MTRG_registers.md) |
 
 ### I/O & Support
 | File | Description |
 |------|-------------|
-| `AUX_IO.VHD` | Front panel auxiliary I/O mux, encoder, SSI |
+| `AUX_IO.VHD` | Front panel auxiliary I/O mux, encoder, SSI. Full analysis: [`vhdl/MTRG_AUX_IO.md`](vhdl/MTRG_AUX_IO.md) |
 | `LED_CTL.VHD` | LED indicator control |
 | `NIM_Delay.vhd` | Programmable BRAM delay for NIM inputs — 14-bit circular buffer; delay = `reg_NIMx_delay[13:0]` clock cycles; max ~327 µs at 50 MHz (16383 × 20 ns). Both NIM1 and NIM2 share the same architecture. ✅ verified 2026-04-21 — `NIM_Delay.vhd:L82-96` (14-bit read address offset into 16384-deep RAM) |
 | `Delay_Line.vhd` | Generic delay element |
@@ -208,7 +209,7 @@ Links L, R, and U are **excluded from XLM/YLM processing** — the script explic
 ### Monitoring
 | File | Description |
 |------|-------------|
-| `trig_mon_collect.vhd` | Trigger monitor data collection |
+| `trig_mon_collect.vhd` | Trigger monitor data collection. See [`vhdl/MTRG_support_modules.md`](vhdl/MTRG_support_modules.md) |
 | `trig_monitor_controller.vhd` | TDC monitor FIFO synchronization |
 
 ## Architecture
@@ -611,7 +612,12 @@ Located in `Firmware/MAIN_FPGA/trunk/Cores/`. XCO-based cores generated by ISE C
 - `knowledgeBase/vhdl/MTRG_comp_defs.md` — `trigger_comp_defs.vhd` + `trigger_top_comp_defs.vhd`: all component declarations, tdc_chain_cont ports
 - `knowledgeBase/vhdl/MTRG_pos_finder.md` — `pos_finder.vhd` analysis: 11/12-bit thermometer-to-4-bit edge position lookup (2048-entry ROM, 1-cycle pipeline)
 - `knowledgeBase/vhdl/MTRG_sum_hits_XY.md` — `sum_hits_XY.vhd` analysis: XY coincidence trigger (fires when both X+Y global sums exceed threshold, 2-state FSM)
+- `knowledgeBase/vhdl/MTRG_link_init_and_input_pipeline.md` — `link_init.vhd` + `mstr_trigger_input_pipeline.vhd` analysis: 7-state SERDES link init FSM (INIT→EN_SERDES→SYNC→WAIT_FOR_LOCK→ALL_LOCKED_UP→ACKED→ERROR), LINK_MASK VME register; 828-line per-Router data unpacker (preamble lock, 8×12-word blocks, 132-bit TEMP_REG, hit pattern/CC energy/crystal ID, GROUP_ENERGY_SUM, DIGVALID gate, throttle aggregation)
+- `knowledgeBase/vhdl/MTRG_GITMO.md` — `GITMO_RCV_MACH.vhd` + `GITMO_TRIGGER.vhd` analysis: GITMO legacy VXI interface (Link L 2-stage prelock, 5-word frame, NIM/ECL/FERA/RDY_BSY/EOE decoding), GITMO_TRIGGER 5-state FSM (type 0x56, 20 ns configurable delay)
 - `knowledgeBase/vhdl/MTRG_tdc_chain_cont.md` — `tdc_chain_cont.vhd` analysis: 4-phase carry-chain TDC (tdc_unit_cont ×4), 5-state autosample FSM, 8-word TDC event packet format
 - `knowledgeBase/vhdl/MTRG_Generated_top.md` — `Generated_top.vhd` analysis: top-level `trigger_top` entity (6,286 lines), all 24 component instances, trigger algo slot map, veto system, 8 monitor FIFOs, inline logic inventory
+- `knowledgeBase/vxworks_trigger_drivers.md` — VxWorks IOC trigger asyn drivers: `asynTrigMasterDriver` (MTRG, 369 params, card init from reg 0x15C), `asynTrigRouterDriver` (RTRG, 188 params), firmware type code table, boot sequence
+- `knowledgeBase/vxworks_state_machines.md` — VxWorks state machines: inLoop/outLoop/MiniSender pipeline; trigger driver overview (summary level)
+- `knowledgeBase/trig_sys_sim.md` — MTRG trigger system simulation testbench: two `trigger_top` (BUILD_TYPE=4) wired via 79 ns fake SERDES link, VME bus mux model, 8-step stimulus sequence (link init → manual triggers → propagation → DC balance → rapid-fire), full VME register address constants, BUILD_TYPE code map 0–F
 
 *Created: 2026-04-08 | Last reviewed: 2026-04-24*

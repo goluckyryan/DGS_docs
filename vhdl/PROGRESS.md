@@ -35,6 +35,7 @@ Quick checklist/index of detailed VHDL module analysis pages under `knowledgeBas
 
 ## Not Yet Analyzed
 - [x] AUX_IO.VHD → MTRG_AUX_IO.md (AUX port mux, NIM outputs, target wheel encoder filter/slide FSM, SSI serial encoder receiver)
+- [x] GITMO_RCV_MACH.vhd + GITMO_TRIGGER.vhd → MTRG_GITMO.md (GITMO Link L receiver: 5-word SERDES frame, 2-stage prelock, NIM/ECL/FERA/RDY_BSY/EOE decoding; GITMO_TRIGGER: 5-state FSM, 0x56 trigger type, delay countdown; NIM_TRIG/TOKEN_RCVD states removed 2012-01-28 per MPC)
 - [x] cpld_trig.vhd — CPLD fast-sum trigger → MTRG_support_modules.md (thin wrapper over trig_algo_support)
 - [x] jta_odelay.vhd (entity: tdc_unit_cont) — 64-element carry-chain TDC → MTRG_support_modules.md
 - [x] jta_vernier_pos_finder.vhd (entity: vernier_pos_finder) — 5-stage pipelined TDC position decoder → MTRG_support_modules.md
@@ -85,7 +86,7 @@ DIG analysis is split across three knowledge-base files rather than per-module v
   - [x] `shadow_registers.vhd` — register shadow logic
   - [x] `sync_capture_controller.vhd` / `sync_capture_counter.vhd` — sync capture
 
-- [deep_fpga_DIG_modules.md](../deep_fpga_DIG_modules.md) — selected module deep-dives; covers:
+- [deep_fpga_DIG_modules.md](../deep_fpga_DIG_modules.md) — Part 1: signal chain & SERDES deep-dives; covers:
   - [x] `SERDES_TX_Mach_DGS.vhd` (94 L) — discriminator hit packer, 10-ch stretch + TX word format
   - [x] `event_packer.vhd` (395 L) — accordion FIFO writer, 6-state FSM, timing-mark decimation
   - [x] `pileup_processor.vhd` (359 L) — 8-state dual-half FSM, 4-bit pileup counter
@@ -96,19 +97,19 @@ DIG analysis is split across three knowledge-base files rather than per-module v
   - [x] `Channel_Readout_Mach.vhd` (491 L) — structural wrapper, PEQ_BYPASS zeroing, write_flags format
 
 ### Not Yet Analyzed (DIG)
-- [ ] `dc_balance_mach.vhd` — DC balance state machine
-- [ ] `disparity_lookup.vhd` — disparity lookup table (DC balance)
-- [ ] `Event_Header_FIFO.vhd` — event header management FIFO
-- [ ] `event_data_fifo.vhd` — per-channel event data FIFO
-- [ ] `Channel_FIFO_Readout_Mach.vhd` — per-channel FIFO readout machine
-- [ ] `Channel_FIFO_Readout_Mach_Rework_WIP.vhd` — WIP rework (compare vs. production)
-- [ ] `decimator.vhd` — waveform decimation logic
-- [ ] `Lvme.vhd` — VME interface
-- [ ] `Registers.vhd` — DIG VME register map
-- [ ] `dp_srl_template.vhd` — dual-port SRL template (if not identical to chan version)
+- [x] `dc_balance_mach.vhd` — DC balance machine → **deep_fpga_DIG_modules2.md**
+- [x] `disparity_lookup.vhd` — 8-bit disparity ROM → **deep_fpga_DIG_modules2.md**
+- [x] `Event_Header_FIFO.vhd` — event header FIFO (LED/CFD header formats, 6-state read SM, late injection) → **deep_fpga_DIG_modules2.md**
+- [x] `event_data_fifo.vhd` — accordion waveform FIFO (32-bit packing, write_toggle alignment) → **deep_fpga_DIG_modules2.md**
+- [x] `decimator.vhd` — waveform decimation / averaging, 3-state FSM, PAUSE mode, dec_factor 0–7, timing marks → **deep_fpga_DIG_modules2.md**
+- [x] `Channel_FIFO_Readout_Mach.vhd` — per-channel FIFO readout machine → **deep_fpga_DIG_modules2.md** (7-state FSM; stop-bit bit 32; 36×1025 FWFT collection FIFO; EVENT_BOUNDARY_FLAG)
+- [x] `Channel_FIFO_Readout_Mach_Rework_WIP.vhd` — WIP rework → **deep_fpga_DIG_modules2.md** (6-state redesign, never deployed; 36×513 FIFO; no ILA/BUF)
+- [x] `Lvme.vhd` — VME interface → **deep_fpga_DIG_modules2.md** (8-state VME FSM; addr decode; DTACK 3-cycle delay for reads)
+- [x] `Registers.vhd` — DIG VME register map → **deep_fpga_DIG_modules2.md** (199 entries, 0x000–0x848; per-channel at 100 MHz; board-wide at 50 MHz)
+- [x] `dp_srl_template.vhd` — PEHQ SRL delay wrapper → deep_fpga_DIG_modules.md (entity PEHQ; 324-bit wide × 16-deep SRL; 4-bit address counter; wraps PEHQ_SRL_DELAY primitive)
 
 ---
 
-**Last reviewed:** 2026-04-24 (DIG section added; pos_finder, sum_hits_XY, trigger_comp_defs, tdc_chain_cont, Generated_top analyzed — all MTRG VHDL files now complete)  
+**Last reviewed:** 2026-04-24 (DIG section added; pos_finder, sum_hits_XY, trigger_comp_defs, tdc_chain_cont, Generated_top analyzed — all MTRG VHDL files now complete; all DIG VHDL files now complete; deep_fpga_DIG_modules.md split into Part 1 [signal chain & SERDES, 667 lines] and Part 2 [DC balance, FIFOs, VME, 605 lines] — both under 500/600 line target; fpga.md and PROGRESS.md cross-references updated; 2026-04-24 18:57 CDT: GITMO_RCV_MACH.vhd + GITMO_TRIGGER.vhd analyzed → MTRG_GITMO.md)  
 **Purpose:** Coverage checklist for per-module VHDL notes under `knowledgeBase/vhdl/`  
 **See also:** [fpga.md](../fpga.md), [deep_fpga_RTRG.md](../deep_fpga_RTRG.md), [deep_fpga_MTRG_MAIN.md](../deep_fpga_MTRG_MAIN.md), [deep_fpga_DIG.md](../deep_fpga_DIG.md)

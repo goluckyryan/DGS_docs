@@ -150,7 +150,7 @@ Many slope boxes (1 per Ge detector)
     │
     ▼
 Collector box (1 per sector, ~25–31 detectors) ✅ verified 2026-04-07 — collectorBox.sh:L8-49
-    │  SPI bus (bcm2835, 5-bit DEVSEL, 24-bit transactions)
+    │  SPI bus (bcm2835, 5-bit DEVSEL, 24-bit transactions) ✅ verified 2026-04-25 — DEVSEL_bus.c:L28-35 (5 GPIO lines: 13,23,24,25,26); sbxPi_ioc.md:L26 (bcm2835 SPI1); slope_box_interface.md:L33 (24-bit)
     ▼
 Raspberry Pi (PXE boot from fs2.onenet)
     │  EPICS soft IOC (CollectorBox_RevA)

@@ -432,5 +432,7 @@ All three hold pointers to `rawEvt` structs (not inline data) — messages are `
 - `knowledgeBase/ANLDAQ.md` — High-level pipeline overview (inLoop/outLoop/MiniSender data flow diagram + key PVs); complements the detailed state machine docs in this file
 - `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiverMT protocol; the TCP receiver MiniSender connects to
 - `knowledgeBase/deep_fpga_RTRG.md` / `knowledgeBase/deep_fpga_MTRG_MAIN.md` — RTRG/MTRG FPGA firmware; maps to trigger driver params in this file
+- `knowledgeBase/vxworks_trigger_drivers.md` — **Deep-dive into the trigger asyn drivers** (`asynTrigCommonDriver`, `asynTrigMasterDriver`, `asynTrigRouterDriver`): poll loop internals, `address_list[]` map, `0xaaaa0000` sub-field mask, firmware type code table, boot sequence; split from the summary in this file
+- `knowledgeBase/vxworks_vme_devlayer.md` — VME hardware abstraction layer (`devGVME.c`/`devGData.c`/`DGS_DEFS.h`): board init, VMERead32/VMEWrite32, flash programming, `daqBoard`/`daqRegister` structs, board type codes; foundational layer below the state machines and asyn drivers
 
-*Created (split): 2026-04-23 | Last reviewed: 2026-04-23*
+*Created (split): 2026-04-23 | Last reviewed: 2026-04-24*

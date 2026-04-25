@@ -120,14 +120,14 @@ Each clock, `disc_mach` pipelines `GE_DISC_FLAG` and `BGO_DISC_FLAG` one tick an
 
 ### 2.2 Four-State Overlap Machine
 
-The state machine uses a 7-bit `OVERLAP_TIMER`, loaded from `OVERLAP_DELAY` (= `TSCATTER_DELAY_REG[6:0]`, 0–127 clocks = 0–1270 ns at 100 MHz):
+The state machine uses a 7-bit `OVERLAP_TIMER`, loaded from `OVERLAP_DELAY` (= `TSCATTER_DELAY_REG[6:0]`, 0–127 clocks = 0–1270 ns at 100 MHz): ✅ verified 2026-04-25 — `disc_mach.vhd:L44` (type enum: ST_IDLE, ST_OVERLAP_GE_FIRST, ST_OVERLAP_BGO_FIRST, ST_WAIT_DIRTY); `L45` (`OVERLAP_TIMER: std_logic_vector(6 downto 0)`)
 
 | State | Description |
 |---|---|
-| **ST_IDLE** | Waiting. Timer pre-loaded to OVERLAP_DELAY. Exits on any edge. |
-| **ST_OVERLAP_GE_FIRST** | Ge fired first; counting down. BGO within window → DIRTY; timer expires → CLEAN. |
-| **ST_OVERLAP_BGO_FIRST** | BGO fired first; counting down. BGO retriggering resets timer. Ge within window → DIRTY; timer expires → BGO_ONLY. |
-| **ST_WAIT_DIRTY** | Both fired; counting out the remainder of the window, then pulses DIRTY. |
+| **ST_IDLE** | Waiting. Timer pre-loaded to OVERLAP_DELAY. Exits on any edge. ✅ verified 2026-04-25 — `disc_mach.vhd:L131` (`OVERLAP_TIMER <= OVERLAP_DELAY` in ST_IDLE) |
+| **ST_OVERLAP_GE_FIRST** | Ge fired first; counting down. BGO within window → DIRTY; timer expires → CLEAN. ✅ verified 2026-04-25 — `disc_mach.vhd:L144-173` (BGO_EDGE → DIRTY or ST_WAIT_DIRTY; OVERLAP_TIMER=0 no BGO → CLEAN) |
+| **ST_OVERLAP_BGO_FIRST** | BGO fired first; counting down. BGO retriggering resets timer. Ge within window → DIRTY; timer expires → BGO_ONLY. ✅ verified 2026-04-25 — `disc_mach.vhd:L177-203` (BGO_EDGE reloads OVERLAP_DELAY:L180; GE_EDGE → DIRTY; timer=0 → BGO_ONLY_EVENT:L192) |
+| **ST_WAIT_DIRTY** | Both fired (or one side entered early); counts out remainder of OVERLAP_TIMER, then pulses DIRTY. ✅ verified 2026-04-25 — `disc_mach.vhd:L207-220` (MBO 20140610: count down remaining time, assert DIRTY_EVENT when OVERLAP_TIMER=0) |
 
 ### 2.3 Event Classification Summary
 
@@ -137,7 +137,7 @@ The state machine uses a 7-bit `OVERLAP_TIMER`, loaded from `OVERLAP_DELAY` (= `
 | Ge rises first, BGO within overlap window | **DIRTY_EVENT** |
 | BGO rises first, Ge within overlap window | **DIRTY_EVENT** |
 | BGO rises, no Ge within overlap window | **BGO_ONLY_EVENT** |
-| Both rise simultaneously | **DIRTY_EVENT** (after timer expires) |
+| Both rise simultaneously | **DIRTY_EVENT** (after timer expires from OVERLAP_DELAY) ✅ verified 2026-04-25 — `disc_mach.vhd:L139` (MBO 20140610: simultaneous GE_EDGE+BGO_EDGE in ST_IDLE → jump directly to ST_WAIT_DIRTY; timer counts from OVERLAP_DELAY) |
 
 The single-tick pulses from `disc_mach` are handed back to `chan_in`'s ONE_SHOTS process, which stretches each one into an **assertion window** of up to 127 clocks (`ASSERTION_DELAY = TSCATTER_DELAY_REG[14:8]`). If a new event arrives before the timer expires, the one-shot restarts — producing a continuous assertion across a burst of hits.
 
@@ -195,7 +195,9 @@ This 16-bit word occupies bits [16:1] of the 18-bit SerDes frame transmitted to 
 
 ### 3.4 Coarse Ge Fast Path
 
-In parallel with the main adder tree, a single-cycle process sums the 3-bit `COARSE_GE_SUM` outputs from all eight `chan_in` instances into a 6-bit `TOTAL_COARSE_GE_SUM` (max 40). This bypasses the FIFO-based clock crossing and provides a faster pre-trigger sum for rapid decisions.
+In parallel with the main adder tree, `FAST_COARSE_GE_SUM_PROC` sums the 3-bit `COARSE_GE_SUM` outputs from all eight `chan_in` instances into a 6-bit `TOTAL_COARSE_GE_SUM` (max 40). Each `COARSE_GE_SUM` is a popcount of 5 coarse Ge discriminator bits (bits [14:10] from the SERDES word), so the per-channel max is 5 and the 8-channel max is 8×5=40. ✅ verified 2026-04-25 — `chan_in.vhd:L213` (COARSE_GE_SUM is sum of 5 COARSE_GE_BITS; max=5 per channel); `router_data_path.vhd:L55` (TOTAL_COARSE_GE_SUM: 6-bit out; max=40 confirmed)
+
+The process uses 2 pipeline ranks inside a single clocked block: Rank 1 sums channels 1–4 and 5–8 into two 5-bit `INTER_COARSE_GE_SUM` values (registered); Rank 2 sums the two inter-values into `TOTAL_COARSE_GE_SUM`. Since both ranks use registered outputs, the full result has **2 clock cycles (40 ns) latency** relative to the `COARSE_GE_SUM` inputs. MBO noted this: "lets try multiple ranks of adders in a single clock" (meaning within one process block, not one cycle). ✅ verified 2026-04-25 — `router_data_path.vhd:L139-148` (INTER registered at cycle N, TOTAL uses previous-cycle INTER values → 2-cycle pipeline)
 
 ### 3.5 DUO Example — Link-L Contents
 
@@ -229,8 +231,9 @@ The uplink chain (Digitizers → MTRG):
 
 The downlink chain (MTRG → Digitizers):
 
-1. `router_main_mach` decodes the incoming 18-bit `LINKL_RX` stream. Frame 12 words carry router-specific commands (counter/FIFO resets); these are decoded by `F12_DECODE` and **replaced with 0xAAAA** in the stream that is forwarded to digitizers (so digitizers never see raw router commands).
-2. `ADD_VETOES_BLK` (one state machine per digitizer): monitors the 5-word frame structure. On the 5th word of every frame 1–19, it replaces the outgoing word with the **accumulated live-channel veto bitmap** for that digitizer (10 bits, from `LIVE_CHANNEL_VETOES`). Between insertions the latch accumulates new veto requests via OR. The 5th word of frame 20 is reserved for machine synchronization and is not overridden.
+1. `SERDES_RX_Mach_R2` (instantiated as part of the link-receive path) decodes the incoming `LINKL_RX` stream. Frame 12 carries router-specific commands (counter/FIFO resets); these are extracted by the `FRAME_12_LATCH` process and the frame is **replaced with null words (0xAAAA/0xAAAA/0xAAAA/0xAAAA/0x0000)** in `SANITIZED_CONTROL_DATA` before forwarding to digitizers — so digitizers never see raw router commands. ✅ verified 2026-04-25 — `SERDES_RX_Mach_R2.vhd:L44` (port comment: "RECEIVED_CONTROL_DATA, with frames 12 & 14 replaced by Null frames"); `L1108-1116` (frame 12 state: words except last → 0xAAAA, word #59 → 0x0000; `VETO_EVENT` extracted from LATCHED_CONTROL_DATA[9:0] on word #59)
+   - **Correction (2026-04-25):** Earlier text said "router_main_mach" and "F12_DECODE" handle the replacement. The actual block is `SERDES_RX_Mach_R2` (the SERDES_RX_MACH instantiation). The 5th word of frame 12 (word index 59) is replaced with 0x0000 (not 0xAAAA); all other frame 12 words use 0xAAAA.
+2. `ADD_VETOES_BLK` (one process per digitizer, `ADD_VETOES_PROC`): monitors the 5-word frame structure. On the 5th word of every frame 1–19, it replaces the outgoing word with the **accumulated live-channel veto bitmap** for that digitizer (10 bits, from `CHANNEL_VETOES`). Between insertions the latch accumulates new veto requests via OR. The 5th word of frame 20 is reserved for machine synchronization and is not overridden. ✅ verified 2026-04-25 — `TOP.VHD:L2015-2055` (`ADD_VETOES_PROC` process; comment: "5th word of a frame is being processed"; word indices 5/10/15…95 (frames 1–19) → insert `"000000" & LATCHED_CHANNEL_VETOES(i)` at bits [16:1]; otherwise pass through `SANITIZED_CONTROL_DATA` and OR-accumulate `CHANNEL_VETOES(i)` into latch)
 3. Eight `dc_balance_mach` instances re-encode the modified words and drive `LINKA..LINKH_TX` to the digitizers.
 
 ### 4.3 Key VME Registers Relevant to Trigger
@@ -385,7 +388,7 @@ The core logic is a simple 2-state leading-edge detector:
 | **WAIT_FALL** (fired) | `SUM_OF_X > SUM_OF_X_THRESH` | Stay (de-assert TRIGGER_OCCURRED immediately after the one tick) |
 | **WAIT_FALL** (fired) | `SUM_OF_X ≤ SUM_OF_X_THRESH` | Return to WAIT_TRIG (re-arm) |
 
-The comparison is **strictly greater than** (`>`), not `≥`. So `SUM_OF_X_THRESH = 1` fires when the sum reaches 2 or above.
+The comparison is **strictly greater than** (`>`), not `≥`. So `SUM_OF_X_THRESH = 1` fires when the sum reaches 2 or above. ✅ verified 2026-04-25 — `sum_hits_X.vhd:L65-92` (20180507 trunk; type `SUM_STATES is (WAIT_TRIG, WAIT_FALL)`; comparison at L80: `if (SUM_OF_X > SUM_OF_X_THRESH)`; re-arm at L92: `SUM_STATE <= WAIT_TRIG` when sum ≤ threshold)
 
 This produces exactly one `TRIGGER_OCCURRED` pulse per threshold-crossing event, no matter how long the sum remains above threshold. Re-arming requires the sum to fall back to or below the threshold.
 
@@ -484,15 +487,16 @@ The MTRG supports 8 simultaneous trigger algorithm slots:
 
 ### 9.2 Veto Logic
 
-Each algorithm slot has an independent veto signal `TRIGGER_VETOES(i)`. A veto is asserted if any of (in priority order):
+Each algorithm slot has an independent veto signal `TRIGGER_VETOES(i)`. A veto is asserted via an `if/elsif` chain in `VETO_PROC_BLOCK` (one process per algorithm). The chain is evaluated in this order (first match wins): ✅ verified 2026-04-25 — `top.vhd:L1474-1495` (20180507 trunk; `VETO_PROC_BLOCK` generate loop for i in 1 to 8)
 
-1. **ALGO_THROTTLE** — any algorithm's trigger FIFO exceeds 50% full. *Unconditional — cannot be masked.*
-2. **NIM_IN2** active, with `TRIG_MASK_REG(14)` and per-algorithm `TRIG_VETO_SELECT(i)(0)` enabled.
-3. **GLOBAL_THROTTLE_REQUEST** — any RTRG is throttling — with `TRIG_MASK_REG(15)` and `TRIG_VETO_SELECT(i)(2)`.
-4. **MON7_VETO_REQUEST** — monitor FIFO #7 overflow, with `TRIG_MASK_REG(13)`.
-5. **VETO_FROM_VETO_RAM** — target wheel position veto, with enable bits.
-6. **Software veto** — `TRIG_MASK_REG(11)` with per-algorithm select.
-7. **ANY_VETO_FROM_REMOTE_MASTER** — propagated veto from a remote Master Trigger.
+1. **NIM_IN2** active — with `TRIG_MASK_REG(14)='1'` AND `TRIG_VETO_SELECT(i)(0)='1'` (`L1479-1480`)
+2. **GLOBAL_THROTTLE_REQUEST** — any RTRG is throttling — with `TRIG_MASK_REG(15)='1'` AND `TRIG_VETO_SELECT(i)(2)='1'` (`L1482-1483`)
+3. **MON7_VETO_REQUEST** — monitor FIFO #7 overflow — with `TRIG_MASK_REG(13)='1'` (no per-algo select; global only) (`L1486-1487`)
+4. **VETO_FROM_VETO_RAM** — target wheel position veto (added 2015-07-20) — with `TRIG_MASK_REG(12)='1'` AND `TRIG_VETO_SELECT(i)(1)='1'` (`L1489-1490`)
+5. **ALGO_THROTTLE_REQUEST(i)** — this algorithm's own trigger FIFO exceeds 50% full. *Unconditional — no mask bit, no per-algo select. Code comment: "cannot be disabled, as not responding to them is fatal."* (`L1491-1493`)
+6. Else: `TRIGGER_VETOES(i) <= '0'` (`L1494-1495`)
+
+> **Correction (2026-04-25):** An earlier version of this section listed ALGO_THROTTLE as item 1 (highest priority) and software veto / ANY_VETO_FROM_REMOTE_MASTER as items 6–7. In the 20180507 trunk, ALGO_THROTTLE is the **last** item in the `elsif` chain (item 5). There is no software veto (TRIG_MASK_REG(11)) or ANY_VETO_FROM_REMOTE_MASTER term in `VETO_PROC_BLOCK` in this firmware version.
 
 ### 9.3 Master State Machine (mstr_mach) — Trigger Distribution
 

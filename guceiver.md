@@ -201,7 +201,8 @@ See `knowledgeBase/DIG_firmware_expert.md` for DIG header type 7/8 field definit
 
 ## Cross-References
 
-- `knowledgeBase/ANLDAQ.md` — Production DAQ pipeline: tcpReceiverMT also connects to IOC TCP:9001
-- `knowledgeBase/data_structures.md` — Full binary event format: DIG (0xAAAAAAAA) and TAC-II (0x0000AAAA) packets
-- `knowledgeBase/DIG_firmware_expert.md` — DIG header type 7/8 field definitions decoded by Guceiver
-- `knowledgeBase/tac2.md` — TAC-II TDC: vernier interpolation, data format decoded by the TAC-II tab
+- [`ANLDAQ.md`](ANLDAQ.md) — Production DAQ pipeline: tcpReceiverMT also connects to IOC TCP:9001
+- [`ANLDAQ_GUI_windows.md`](ANLDAQ_GUI_windows.md) — ANLDAQ GUI Windows: Guceiver launch context, Data Taking window
+- [`data_structures.md`](data_structures.md) — Full binary event format: DIG (0xAAAAAAAA) and TAC-II (0x0000AAAA) packets
+- [`DIG_firmware_expert.md`](DIG_firmware_expert.md) — DIG header type 7/8 field definitions decoded by Guceiver
+- [`tac2.md`](tac2.md) — TAC-II TDC: vernier interpolation, data format decoded by the TAC-II tab

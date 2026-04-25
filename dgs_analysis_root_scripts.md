@@ -225,6 +225,79 @@ root -l 'readTrace.C("runXXX.root", 0, 999, true)'  # print raw ADC values
 
 ---
 
+## analyzer_duo.cpp — DuoGe Two-Detector Analysis (431 lines)
+
+_Source: `dgs_analysis/armory/fastEventContructor/analyzer_duo.cpp` (code-read 2026-04-25)_
+
+A ROOT CINT script for **DuoGe (DUO) 2-detector analysis**. Reads `EventBuilder_XR` output (ROOT TTree, schema `evID/NumHits/id/detID/sum1/sum2/baseline/eventTS/trigTS`) and produces energy spectra, timing difference distributions, and coincidence matrices for a 2-HPGe + 2-BGO DuoGe setup.
+
+**Channel map (DuoGe-specific, hardcoded comments):**
+| Channel | Role |
+|---------|------|
+| ch-0 | BGO for HPGe ch-5 |
+| ch-1 | BGO for HPGe ch-6 |
+| ch-2, 3, 4 | Unmapped / unused in analysis |
+| ch-5 | HPGe detector 1 |
+| ch-6 | HPGe detector 2 |
+
+Channel ID extracted as `id[hit] % 100` (raw digitizer id modulo 100).
+
+**Energy calculation:**
+- `e_raw = (S2 - pz × S1) / 350.0` where S1=`sum1` (pre-rise trap sum), S2=`sum2` (post-rise trap sum)
+- PZ coefficient loaded from `dgs_pz.cal` via `LoadPZCalFromFile()` from `misc.h`; falls back to S2−S1 if file missing
+- Hardcoded `pz = 0.935` override in `CalcEnergy()` (overrides loaded value — temporary debug override)
+- Energy range: −1000 to +6000 ADC (500 bins)
+
+**Per-event coincidence bitmask (`coinBitVal`):**
+| Bit | Channel | Mask |
+|-----|---------|------|
+| 0 | ch-0 (BGO-5) | 0x1 |
+| 1 | ch-1 (BGO-6) | 0x2 |
+| 2 | ch-5 (HPGe-1) | 0x4 |
+| 3 | ch-6 (HPGe-2) | 0x8 |
+
+**Histograms produced (22 total):**
+| Histogram | Description |
+|-----------|-------------|
+| `he5_0` | Energy ch-5 (any hit in event) |
+| `he5_1` | Energy ch-5 (no ch-0 BGO — BGO veto) |
+| `he6_0` | Energy ch-6 (any) |
+| `he6_1` | Energy ch-6 (no ch-1 BGO — BGO veto) |
+| `he56` | Energy ch-5 (both ch-5 and ch-6 present, no BGO) |
+| `he56_clean_intraTimeGate` | ch-5 energy, ch-5+ch-6 prompt coincidence, no BGO veto |
+| `he5_intraTimeGate` | ch-5 energy, excluding events where ch-0 BGO is prompt (≤30 ticks = ≤300 ns) |
+| `he56_intraTime56` | 2D: ch-5 energy vs. intra-event timestamp difference(ch-5−ch-6) |
+| `te0/te1/te5/te6` | Inter-event timestamp differences per channel (T_MIN=−100, T_MAX=6000 ticks) |
+| `tdiffEvt` | Inter-event timestamp difference (first-hit TS of consecutive events) |
+| `intraTDiff05` | Intra-event TS diff: ch-0 minus ch-5 (both present); range ±120 ticks |
+| `intraTDiff05_clean` | Same but only when ONLY ch-0 and ch-5 present |
+| `intraTDiff56` | Intra-event TS diff: ch-5 minus ch-6 (both present) |
+| `coin` | 2D 7×7 coincidence matrix (channel vs channel, hit pairs per event) |
+| `coinBit` | 1D: per-event coincidence bitmask value distribution (16 bins) |
+| `chVschCount` | 2D: channel vs count of that channel in event |
+| `nHitvsCh` | 2D: channel vs total event multiplicity |
+| `timeSpan` | Event time span: max hit TS − min hit TS (0–110 ticks, when >1 hit) |
+
+**Key gate conditions:**
+- BGO veto for ch-5: requires `!(coinBitVal & 0x1)` (no ch-0)
+- BGO veto for ch-6: requires `!(coinBitVal & 0x2)` (no ch-1)
+- Prompt ch-0/ch-5 gate: `|TS(ch-0) − TS(ch-5)| ≤ 30 ticks` (300 ns)
+- Prompt ch-5/ch-6 gate: `|TS(ch-5) − TS(ch-6)| ≤ 5 ticks` (50 ns)
+
+**Canvas layout (`c1`, 4×3 = 12 pads, 1800×1200):**
+- Pad 1: `he5_0` (blue) + `he5_1` (green) — ch-5 energy with/without BGO veto
+- Pad 2: `he56` (blue) + `he56_clean_intraTimeGate` (red) — 2-detector clean spectra
+- Pad 3 (log-Y): `intraTDiff05` + `intraTDiff05_clean` + `intraTDiff56` overlay
+- Pad 4: `intraTDiff05_clean` (blue) alone
+- Pad 5: `he6_0` + `he6_1` — ch-6 spectra
+- Pad 6–12: `te0`, `te1`, `te5`, `te6` (inter-event TS diffs), `tdiffEvt`, `timeSpan`, `nHitvsCh`
+
+**Usage:** `root -l -q 'analyzer_duo.cpp("haha_1000.root")'` — defaults to `haha_1000.root` if no arg. Output canvas saved (display only, no write in current version).
+
+✅ verified 2026-04-25 — `analyzer_duo.cpp:L1-431` (full read)
+
+---
+
 ## Cross-References
 
 | Topic | File |
@@ -236,6 +309,7 @@ root -l 'readTrace.C("runXXX.root", 0, 999, true)'  # print raw ADC values
 | GEB binary data format + GEBHeader struct | `knowledgeBase/data_structures.md` |
 | Gammasphere geometry (GS hole → θ/φ, map.dat context) | `knowledgeBase/gammasphere_geometry.md` |
 | DIG firmware readout modes (source of raw GEB payloads) | `knowledgeBase/DIG_firmware_expert.md` |
+| DuoGe system overview | `knowledgeBase/overview_SmallSystem.md` |
 
 ---
 

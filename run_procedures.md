@@ -247,6 +247,7 @@ See `knowledgeBase/dgs_analysis.md` for full details on each step.
 | Troubleshooting IOC, FIFO, link lock issues | `knowledgeBase/troubleshooting.md` |
 | Trigger bring-up (5-stage SERDES link-up scripts) | `knowledgeBase/trig_setup_scripts.md` |
 | DAQ GUI (ANLDAQ commander, data-taking tab) | `knowledgeBase/ANLDAQ.md` |
+| Run control scripts (`start_run.sh`, `stop_run.sh`, `run_control_gui.py`) deep-dive | `knowledgeBase/ANLDAQ_tcpReceiver.md` §Run Control Scripts |
 | DIG firmware — readout modes, data formats | `knowledgeBase/DIG_firmware_expert.md` |
 | GEB data format + type codes | `knowledgeBase/data_structures.md`, `knowledgeBase/dgs_analysis.md` § GEB |
 | GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | `knowledgeBase/gebsort.md` |

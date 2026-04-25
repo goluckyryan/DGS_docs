@@ -24,35 +24,36 @@ Classifies one Ge+BGO detector pair event as **CLEAN**, **DIRTY**, or **BGO-only
 ## Key Logic / State Machine
 
 ### FIND_EDGES process
-Each clock, pipelines GE_DISC_FLAG and BGO_DISC_FLAG one tick. Detects rising edge: `GE_EDGE <= '1'` when `GE_PIPE='0'` and `GE_DISC_FLAG='1'`. Same for BGO. These one-tick pulses feed the state machine.
+Each clock, pipelines GE_DISC_FLAG and BGO_DISC_FLAG one tick. Detects rising edge: `GE_EDGE <= '1'` when `GE_PIPE='0'` and `GE_DISC_FLAG='1'`. Same for BGO. These one-tick pulses feed the state machine. ✅ verified 2026-04-25 — `disc_mach.vhd:L101–115` (GE_PIPE/BGO_PIPE latched at L101-102; edge detect L103-114; GE_EDGE_DIAG/BGO_EDGE_DIAG assigned L119-120)
 
-### DISCRIMINATOR_MACHINE — 4 states
+### DISCRIMINATOR_MACHINE — 4 states ✅ verified 2026-04-25 — `disc_mach.vhd:L122–216` (async RST L124; state type ST_IDLE/ST_OVERLAP_GE_FIRST/ST_OVERLAP_BGO_FIRST/ST_WAIT_DIRTY L49)
 
-**ST_IDLE** — Waiting  
-- Loads `OVERLAP_TIMER ← OVERLAP_DELAY`  
-- Clears all outputs (CLEAN, DIRTY, BGO_ONLY all '0')  
+**ST_IDLE** — Waiting ✅ verified 2026-04-25 — `disc_mach.vhd:L132–146`  
+- Loads `OVERLAP_TIMER ← OVERLAP_DELAY` (L133)  
+- Clears all outputs (CLEAN, DIRTY, BGO_ONLY all '0') (L134-136)  
 - Transitions:  
-  - Both edges simultaneously → **ST_WAIT_DIRTY** (known dirty, skip overlap counting)  
-  - GE_EDGE only → **ST_OVERLAP_GE_FIRST**  
-  - BGO_EDGE only → **ST_OVERLAP_BGO_FIRST**  
+  - Both edges simultaneously → **ST_WAIT_DIRTY** (MBO 20140610; L137-138)  
+  - GE_EDGE only → **ST_OVERLAP_GE_FIRST** (L139-140)  
+  - BGO_EDGE only → **ST_OVERLAP_BGO_FIRST** (L141-142)  
 
-**ST_OVERLAP_GE_FIRST** — Ge fired first, counting down  
-- Decrements OVERLAP_TIMER each clock  
-- If BGO_EDGE arrives while timer ≥ 0:  
-  - Timer = 0 → `DIRTY_EVENT='1'`, return to IDLE immediately  
-  - Timer > 0 → `DIRTY_EVENT='0'`, go to **ST_WAIT_DIRTY** to finish the window  
-- If timer reaches 0 with no BGO: `CLEAN_EVENT='1'`, return to IDLE  
+**ST_OVERLAP_GE_FIRST** — Ge fired first, counting down ✅ verified 2026-04-25 — `disc_mach.vhd:L148–168`  
+- Decrements OVERLAP_TIMER each clock (L149); BGO_ONLY forced '0' (L148)  
+- If BGO_EDGE arrives:  
+  - Timer = 0 → `DIRTY_EVENT='1'`, return to IDLE immediately (L152-155; MBO note: resolves edge case where BGO fires exactly as counter expires)  
+  - Timer > 0 → `DIRTY_EVENT='0'`, go to **ST_WAIT_DIRTY** to finish the window (L156-159)  
+- If timer reaches 0 with no BGO: `CLEAN_EVENT='1'`, return to IDLE (L161-165)  
 
-**ST_OVERLAP_BGO_FIRST** — BGO fired first, counting down  
-- Decrements OVERLAP_TIMER each clock; if BGO fires again, resets timer to OVERLAP_DELAY  
-- If GE_EDGE arrives while timer ≥ 0:  
-  - Timer = 0 → `DIRTY_EVENT='1'`, return to IDLE immediately  
-  - Timer > 0 → go to **ST_WAIT_DIRTY**  
-- If timer reaches 0 with no Ge: `BGO_ONLY_EVENT='1'`, return to IDLE  
+**ST_OVERLAP_BGO_FIRST** — BGO fired first, counting down ✅ verified 2026-04-25 — `disc_mach.vhd:L170–197`  
+- Decrements OVERLAP_TIMER each clock; if BGO fires again, resets timer to OVERLAP_DELAY (L174; comment: this shouldn't occur under normal hold-off conditions but handled)  
+- CLEAN_EVENT forced '0' (L171)  
+- If GE_EDGE arrives:  
+  - Timer = 0 → `DIRTY_EVENT='1'`, return to IDLE immediately (L181-184; same edge-case fix as GE_FIRST)  
+  - Timer > 0 → `DIRTY_EVENT='0'`, go to **ST_WAIT_DIRTY** (L185-188)  
+- If timer reaches 0 with no Ge: `BGO_ONLY_EVENT='1'`, return to IDLE (L190-193)  
 
-**ST_WAIT_DIRTY** — Both fired, waiting for window to expire  
-- Decrements OVERLAP_TIMER each clock  
-- When timer = 0: `DIRTY_EVENT='1'`, return to IDLE  
+**ST_WAIT_DIRTY** — Both fired, waiting for window to expire ✅ verified 2026-04-25 — `disc_mach.vhd:L199–214` (MBO 20140610: 'New state. Jump here when you know you're dirty.')  
+- Decrements OVERLAP_TIMER each clock (L200)  
+- When timer = 0: `DIRTY_EVENT='1'`, return to IDLE (L202-208); CLEAN and BGO_ONLY forced '0' throughout  
 
 ### Timing summary
 | Scenario | Output |

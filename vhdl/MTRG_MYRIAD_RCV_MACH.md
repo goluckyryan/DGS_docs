@@ -37,6 +37,8 @@ The MγRIAD sends a **repeating 5-word frame** of 16-bit words over SERDES at 50
 | 10:8 | 3-bit ordinal counter (word index 0–4, for sync verification) |
 | 7:0 | Word-specific payload (see table below) |
 
+✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L27-43` (header comment confirms full bit/word format)
+
 | Word | Ordinal (bits 10:8) | Bits 7:0 |
 |------|---------------------|----------|
 | 00 | — | `0xAD` (reset sync marker — part of `0x0BAD`) |
@@ -46,7 +48,9 @@ The MγRIAD sends a **repeating 5-word frame** of 16-bit words over SERDES at 50
 | 04 | `011` | 8-bit secondary frame counter (sync check) |
 | 05 | `100` | Fixed value `0xA5` (end-of-frame marker / lock anchor) |
 
-> **Note:** Words are labeled 00–05 in the comment header, but the state machine uses states W01–W05 (the "word 00 = 0xAD" is only sent during reset/unlock and is handled implicitly by the prelock states).
+✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L36-43` (word payload assignments confirmed; 0xAD at L36, 0xA5 at L43)
+
+> **Note:** Words are labeled 00–05 in the comment header, but the state machine uses states W01–W05 (the "word 00 = 0xAD" is only sent during reset/unlock and is handled implicitly by the prelock states). ✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L74` (`type WORD_TYPE is (PRELOCK1, PRELOCK2, W01, W02, W03, W04, W05)`)
 
 ---
 
@@ -57,11 +61,13 @@ States: `PRELOCK1` → `PRELOCK2` → `W01` → `W02` → `W03` → `W04` → `W
 ### PRELOCK1
 - Waits for SERDES to achieve lock (`LINK_LOCK = '0'`, active LOW)
 - All outputs held at defaults (MACHINE_LOCKED='0')
+✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L102-111` (PRELOCK1: if LINK_LOCK='0' → PRELOCK2, else stay; all outputs zeroed)
 
 ### PRELOCK2
 - SERDES is locked; searching for word W05 anchor (`bits[14:13]="00"`, `bits[7:0]=0xA5`)
 - If found → advance to W01
 - If SERDES lock drops → return to PRELOCK1
+✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L125-137` (PRELOCK2: LINK_LOCK='1'→PRELOCK1 L127; bits[14:13]="00" AND bits[7:0]=0xA5 → W01 L130-136)
 
 ### W01 — NIM status word
 - Captures `bits[7:0]` → `NIM_STAT`
@@ -70,24 +76,29 @@ States: `PRELOCK1` → `PRELOCK2` → `W01` → `W02` → `W03` → `W04` → `W
 - Captures `bit[15]` → `CLK_10_FLAG`
 - Verifies `bits[14:13]="00"` AND `bits[10:8]="000"` → if OK sets `MACHINE_LOCKED='1'`, advances to W02
 - Mismatch → `MACHINE_LOCKED='0'`, return to PRELOCK1
+✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L150-162` (NIM_STAT←bits[7:0] L152; RAW_TRIGGER←bit[12] L153; GATED_TRIGGER←bit[11] L154; CLK_10_FLAG←bit[15] L150; ordinal "000"+MACHINE_LOCKED L156-161)
 
 ### W02 — ECL status word
 - Captures `bits[7:0]` → `ECL_STAT`
 - Same trigger bits captured each word
 - Verifies ordinal `bits[10:8]="001"` → advance to W03 or unlock
+✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L173-183` (ECL_STAT←bits[7:0] L173; ordinal "001" check L177)
 
 ### W03 — FERA control states
 - Captures `bits[7:0]` → `FERA_STAT`
 - Verifies ordinal `bits[10:8]="010"` → advance to W04 or unlock
+✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L201-211` (FERA_STAT←bits[7:0] L201; ordinal "010" check L204)
 
 ### W04 — Frame counter
 - Does not capture bits[7:0] (frame counter; comment says "may be replaced with something of interest later")
 - Verifies ordinal `bits[10:8]="011"` → advance to W05 or unlock
+✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L224-234` (no bits[7:0] capture; ordinal "011" check L230; comment "may be replaced" L218)
 
 ### W05 — End-of-frame anchor
-- Verifies `bits[14:13]="00"`, `bits[7:0]=0xA5"`, `bits[10:8]="100"`
+- Verifies `bits[14:13]="00"`, `bits[7:0]=0xA5`, `bits[10:8]="100"`
 - If OK: `MACHINE_LOCKED='1'`, `EOF_ERROR='0'`, loop back to W01
 - Mismatch: `MACHINE_LOCKED='0'`, `EOF_ERROR='1'`, return to PRELOCK1
+✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L247-259` (all 3 checks L247-251; MACHINE_LOCKED+EOF_ERROR='0'+→W01 L252-254; mismatch MACHINE_LOCKED='0'+EOF_ERROR='1'+→PRELOCK1 L255-257)
 
 ---
 
@@ -108,6 +119,8 @@ States: `PRELOCK1` → `PRELOCK2` → `W01` → `W02` → `W03` → `W04` → `W
 | `GATED_TRIGGER` | out | 1 | MγRIAD gated trigger bit (bit 11, present every word) |
 | `EOF_ERROR` | out | 1 | Set if W05 sync check fails (MBO-added error flag) |
 
+✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L46-63` (entity port list; NIM_STAT declared `(8 downto 1)` L50; EOF_ERROR added by MBO L62)
+
 ---
 
 ## Integration in MTRG
@@ -122,9 +135,9 @@ States: `PRELOCK1` → `PRELOCK2` → `W01` → `W02` → `W03` → `W04` → `W
 
 ## Notes
 
-- `NIM_STAT` port is declared `(8 downto 1)` — 1-indexed, matching MγRIAD's NIM input numbering (NIM In 1–8 in hardware documentation, though MYRIAD.vhd itself uses 0-indexed)
-- The `CLK_10_FLAG` bit (bit 15) provides a 10 MHz reference for timing verification between modules
-- Lock robustness: any single-word ordinal mismatch immediately resets to PRELOCK1 — tight sync discipline
+- `NIM_STAT` port is declared `(8 downto 1)` — 1-indexed, matching MγRIAD's NIM input numbering (NIM In 1–8 in hardware documentation, though MYRIAD.vhd itself uses 0-indexed) ✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L50`
+- The `CLK_10_FLAG` bit (bit 15) provides a 10 MHz reference for timing verification between modules ✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L28` (header: "bit 15: Used by MYRIAD_ for 10MHz flag bit")
+- Lock robustness: any single-word ordinal mismatch immediately resets to PRELOCK1 — tight sync discipline ✅ verified 2026-04-24 — `MYRIAD_RCV_MACH.vhd:L160-161,181-183,209-211,232-234,255-257` (all W01–W05 else branches → PRELOCK1)
 
 ---
 

@@ -50,7 +50,8 @@ Stability: C3 - Structural / stable
 
 | File | Entity / Purpose |
 |------|-----------------|
-| `SlopeBoxInt_TopLevel_RevC.vhd` | Top-level (4,654 lines) — all logic and port definitions |
+| `SlopeBoxInt_TopLevel_RevC.vhd` | Top-level (4,653 lines) — all logic and port definitions |
+✅ verified 2026-04-25 — `wc -l` on all 4 source files: 4653/1131/1056/245 match exactly
 | `PI_TRANSACTOR.vhd` | `SERIAL_CTL_MACH` — 24-bit SPI state machine, dual-port Pi + Collector interface (1,131 lines) |
 | `I2C_template.vhd` | Generic I2C transactor, FIFO-driven, command-word based (1,056 lines) |
 | `LOOK_UP_TABLE1.VHD` | Address-to-machine one-hot decoder (245 lines) |
@@ -97,7 +98,7 @@ The SBX Control FPGA sits on the Motherboard (Pickoff card) and interfaces betwe
 
 **Clock selection:** A `BUFGMUX` selects between the oscillator and the trigger clock as PLL input. The FPGA monitors `BUFG_CLK_FROM_TRIG` with a 20-bit counter latched every millisecond; `TRIG_CLK_PRESENT` goes high when the count is non-zero. If the trigger clock disappears, the FPGA falls back to the oscillator.
 
-**Reset:** `POWER_UP_PLL_DLY_CNT` counts 0x2FAF080 = 1 second at 50 MHz before releasing the PLL reset. Software can also trigger a soft-boot via `PULSED_CONTROL_REG`.
+**Reset:** `POWER_UP_PLL_DLY_CNT` counts 0x2FAF080 = 50,000,000 = 1 second at 50 MHz before releasing the PLL reset. ✅ verified 2026-04-25 — SlopeBoxInt_TopLevel_RevC.vhd:L401 Software can also trigger a soft-boot via `PULSED_CONTROL_REG`.
 
 ---
 
@@ -147,11 +148,11 @@ The FPGA has 128 addresses (7-bit). Selected key registers:
 | 0x08 | `BGO_PATTERN_SEL_ADDR` | — | BGO pattern selector (output group 5) |
 | 0x09–0x0E | `GE_CENTER_OFFSET` through `BGO_DISCBIT_THRESHOLD` | — | Octet DAC control (output group 6) |
 | 0x11 | `I2C_SPEED_CONTROL_REG` | 0x0909 | I2C clock divider for all three buses |
-| 0x12 | `CYCLE_DELAY_REG` | 0x003D | Upper 16 bits of 4MHz cycle count between slope box reads (~1 Hz) |
+| 0x12 | `CYCLE_DELAY_REG` | 0x003D | Upper 16 bits of 4 MHz cycle count between slope box reads; full 32-bit count = 0x003D × 65536 = 3,997,696 clocks ÷ 4 MHz ≈ 1.0 s (~1 Hz) ✅ verified 2026-04-25 — SlopeBoxInt_TopLevel_RevC.vhd:L525 (comment: "upper 16 bits of count of 4MHz clocks between cycles of slope box reads") |
 | 0x14 | `MISC_CTL_STAT_REG` | 0x0000 | Misc status/control; bit[6]=PREAMP_FIFO_EMPTY; bit[2]=PREAMP_FIFO_FULL |
 | 0x1C | `SLOPE_BOX_ID_REG` | 0x0000 | Slope box identifier |
 | 0x1D–0x24 | `LAST_SLOPEBOX_ADC_VAL[0:7]` | 0x0000 | Last readback from slope box ADC channels 0–7 |
-| 0x36 | `TRIG_CLK_MON_COUNTER` | — | 20-bit latched trigger clock frequency counter |
+| 0x36 | `TRIG_CLK_MON_COUNTER` | — | 20-bit latched trigger clock frequency counter ✅ verified 2026-04-25 — SlopeBoxInt_TopLevel_RevC.vhd:L620-621, L1296 |
 | 0x37 | `TRACE_FIFO_RD_PORT` | — | Read port for trace FIFO |
 | 0x3D–0x44 | `BGO_DISCBIT_COUNTER[1:8]` | 0x0000 | Per-channel BGO discriminator event counters |
 | 0x45–0x52 | `BGO_DAC_DEMAND[0:13]` | — | BGO DAC threshold demands (output group 13); read from DPRAM |
@@ -168,7 +169,7 @@ Many analog control registers (output groups 1–6, 13) are **write-only from th
 
 ## Dual-Port RAM (DPRAM)
 
-- **Size:** 1024 × 16-bit (10-bit address, 16-bit data)
+- **Size:** 1024 × 16-bit (10-bit address, 16-bit data) ✅ verified 2026-04-25 — SlopeBoxInt_TopLevel_RevC.vhd:L1966
 - **Usage:** Backing store for write-only configuration registers (DAC demands, analog switch settings, slope box read results, I2C read data from scanner machines)
 - **Port A:** Control interface (Pi read path — prefetch reads)
 - **Port B:** Scanner machines write results into DPRAM; multiple scanner machines arbitrate access via a cross-domain FIFO
@@ -194,13 +195,13 @@ Entity: instantiated 3× (power board, preamp, dongle). File: `I2C_template.vhd`
 | 8 | MACK | Master sends ACK (for read sequences) |
 | 7:0 | DATA | Byte to assert on SDA |
 
-**ACK4_CTL (bits 15:14) encoding:**
+**ACK4_CTL (bits 15:14) encoding:** ✅ verified 2026-04-25 — I2C_template.vhd:L33-37 + L820-848
 - 00 → transmit + ACK + continue
 - 01 → transmit + ACK + Repeated Start + continue
 - 10 → transmit + ACK + STOP
 - 11 → transmit + ACK + STOP + loop (restart)
 
-**Speed:** Controlled by `I2C_SPEED_CONTROL_REG` (default 0x0909 — separate dividers for upper/lower nibbles).
+**Speed:** Controlled by `I2C_SPEED_CONTROL_REG` (default 0x0909 — separate dividers for upper/lower nibbles). ✅ verified 2026-04-25 — SlopeBoxInt_TopLevel_RevC.vhd:L519 (`signal I2C_SPEED_CONTROL_REG : std_logic_vector(15 downto 0) := X"0909"`)
 
 **Three I2C buses:**
 
@@ -243,8 +244,9 @@ Each I2C bus has an associated **scanner machine** that auto-scans at startup (a
 **Differential outputs to collector box (DDR OSERDES):**
 - `BGOP_A_PLUS/MINUS` — carries `BGO_GROUP_A_DATA`
 - `BGOP_B_PLUS/MINUS` — carries `BGO_GROUP_B_DATA`
-- `BGO_DISCBIT_CTL_REG(9)` selects which group gets MASKED_BGO_DISCBIT vs. Sum/Thresh/Mult
-- DDR at 100 MHz with CLK_200MHz for OSERDES; BGOP_DATA0 = mux bit 0
+- `BGO_DISCBIT_CTL_REG(9)` selects which group gets MASKED_BGO_DISCBIT vs. Sum/Thresh/Mult ✅ verified 2026-04-25 — SlopeBoxInt_TopLevel_RevC.vhd:L2222-2227 (`BGO_DISCBIT_CTL_REG(9)='0'` → A=MASKED_BGO_DISCBIT, B=Sum/Thresh/Mult; `='1'` → swapped)
+- **8:1 OSERDES serializer** using CLK_200MHz (DDR); data clocked at 50 MHz → **400 Mbit/s serial stream** to collector box ✅ verified 2026-04-25 — SlopeBoxInt_TopLevel_RevC.vhd:L2195-2197 (comment: "8:1 serializer that in theory will send all the BGO discriminator bits to the collector box every 20ns, sending it as a 400MHz serial stream"); CLK_DIV_IN=CLK_50MHz_buf, CLK_IN=CLK_200MHz (L2263/2264)
+- BGOP_DATA0 = BGOSUMDISCBIT (when BGO_DISCBIT_CTL_REG(8)='0') or '1' constant for sync; bit 0 is multiplex/sync bit ✅ verified 2026-04-25 — SlopeBoxInt_TopLevel_RevC.vhd:L2206-2208
 
 **Analog mux control:**
 - `BGOMUXSEL[2:0]` and `BGOMUXENBL` — parallel control to BGO Pattern analog mux
@@ -293,7 +295,7 @@ Internal versions of these signals (prefixed `x`) are used for ILA monitoring; t
 - `PREAMPRSTMON` — input from comparator monitoring the GeCenter signal; goes high during a spontaneous preamp reset event
 - `GeCenterClampEn` — output; activates `TMUX6119DCNR` analog switch to clamp the GeCenter line during preamp reset
 - `PA_RESET_COUNT` (0x02) — 16-bit counter of preamp reset events
-- `PARST_SWITCH_COUNT` (0x38) — default 0x1388 (5000 counts = 100 µs at 50 MHz) — duration of clamp activation
+- `PARST_SWITCH_COUNT` (0x38) — default 0x1388 (5000 counts = 100 µs at 50 MHz) — duration of clamp activation ✅ verified 2026-04-25 — SlopeBoxInt_TopLevel_RevC.vhd:L623
 - `PARST_CLAMP_DC_VAL` (0x10) — DC value to assert during clamp
 
 ---
@@ -313,7 +315,7 @@ A DVI cable carries the BGO Pattern data to the collector module:
 - `TIMESTAMP[47:0]` — 48-bit counter running at trigger clock rate (50 MHz = 20 ns per tick)
 - `Imperative_Sync` — from `BUFSYNCFROMCOLLECTOR`; resets timestamp counter for global synchronization
 - `Internal_Sync` — software-triggered sync event
-- `SYNC_CHK_STATE` FSM (4 states: LOCAL_CLOCK, WAIT_FIRST_EDGE, MONITOR, ERROR) — validates sync period consistency; `LATCHED_SYNC_ERR` / `SYNC_ERROR` flags
+- `SYNC_CHK_STATE` FSM (4 states: LOCAL_CLOCK, WAIT_FIRST_EDGE, MONITOR, ERROR) — validates sync period consistency; `LATCHED_SYNC_ERR` / `SYNC_ERROR` flags ✅ verified 2026-04-25 — SlopeBoxInt_TopLevel_RevC.vhd:L450
 - `SYNC_PERIOD_COUNT[7:0]` — measured sync interval in clock ticks
 - `TIMESTAMP_LOW` (0x3C) — lower 16 bits of timestamp (readable by Pi)
 

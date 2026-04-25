@@ -1,8 +1,8 @@
 # MTRG sum_hits_XY.vhd — XY Coincidence Trigger Algorithm
 Stability: C3 - Structural / stable
 
-Source: `~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/sum_hits_XY.vhd`  
-Lines: 158
+Source: `FPGA/MTRG/Firmware/MAIN_FPGA/trunk/Source/sum_hits_XY.vhd`  
+Lines: 158 ✅ verified 2026-04-24 — file confirmed 158 lines
 
 ---
 
@@ -70,17 +70,18 @@ end sum_hits_xy;
 
 ### Trigger Algorithm FSM
 
-2-state FSM (`SUM_STATES`):
+2-state FSM (`SUM_STATES`) ✅ verified 2026-04-24 — sum_hits_XY.vhd:L70-71 (`type SUM_STATES is (WAIT_TRIG, WAIT_FALL)`):
 
 | State | Transition Condition | Action |
 |-------|---------------------|--------|
-| `WAIT_TRIG` | `GLOBAL_X_TOTAL > SUM_OF_X_THRESH AND GLOBAL_Y_TOTAL > SUM_OF_Y_THRESH` | `TRIGGER_OCCURRED = '1'`, capture `TRIG_TYPE`, go to `WAIT_FALL` |
-| `WAIT_FALL` | Both totals drop to threshold or below | Return to `WAIT_TRIG`; `TRIGGER_OCCURRED = '0'` |
+| `WAIT_TRIG` | `GLOBAL_X_TOTAL > SUM_OF_X_THRESH AND GLOBAL_Y_TOTAL > SUM_OF_Y_THRESH` | `TRIGGER_OCCURRED = '1'`, capture `TRIG_TYPE`, go to `WAIT_FALL` ✅ verified 2026-04-24 — L85-90 |
+| `WAIT_FALL` | Both totals drop to threshold or below (≤ thresh re-arms, since `>` test fails at equality) | Return to `WAIT_TRIG`; `TRIGGER_OCCURRED = '0'` always in this state ✅ verified 2026-04-24 — L90-96 |
 
 Key behavior:
 - Trigger fires on the **rising edge** of both totals exceeding threshold simultaneously
 - **Hysteresis**: stays in `WAIT_FALL` until both totals drop ≤ their thresholds (prevents double-triggering on a single event)
-- Note (from code comment, L85): `TRIGGER_ENABLE` is now processed inside `trig_algo_support`, not locally (changed 2015-09-16)
+- Note (from code comment, L85): `TRIGGER_ENABLE` is now processed inside `trig_algo_support`, not locally (changed 2015-09-16) ✅ verified 2026-04-24 — L84 comment `--20150916: TRIGGER_ENABLE is now processed in trig_algo_support.`
+- Note: a local `TRIGGER_TYPE` signal captures `TRIG_TYPE` in WAIT_TRIG (L88), but the port map to `trig_algo_support` passes `TRIG_TYPE` directly — the captured signal is unused in the port map ✅ verified 2026-04-24 — L72 (`signal TRIGGER_TYPE : std_logic_vector(7 downto 0)`) vs L110 (`TRIGGER_TYPE_CODE => TRIG_TYPE`)
 
 ### Generic Support Layer
 

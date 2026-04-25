@@ -554,6 +554,59 @@ IOC IPs are for **data stream only** — do not telnet to them for shell access.
 
 ---
 
+## Legacy VxWorks Trigger FPGA Reload Scripts
+
+**Location:** `vxworks/dgsIoc/iocBoot/iocArray/` — plain-text VxWorks shell scripts (no extension)
+
+These scripts predate the EPICS `ConfigureFlash` command and use the VxWorks `m` (memory-modify) command to directly write to the VME FPGA control register on the **old GRETINA trigger crate** (MTRG + RTRGs). They are **not used for DIG boards** (DIGs use `ConfigureFlash` via devGVME.c instead).
+
+### How It Works
+
+The old GRETINA-era trigger VME FPGA (`FPGA/MTRG/Gretina Trigger/VHDL/VME_FPGA/`) exposes `fpga_ctrl_reg` at VME offset **0x0900**. Unlike the newer DIG VME FPGA (where 0x090C = `vme_config_control` triggers reconfiguration), in the MTRG/RTRG VME FPGA, bits [1:0] of `fpga_ctrl_reg` connect directly to the `cb_dcf_cnfg_in[1:0]` input of the `fpga_cnfg_reset_controller`.
+
+In the `cnfg_done` state of the controller FSM, **a rising edge on `cb_dcf_cnfg_i[0]` or `cb_dcf_cnfg_i[1]`** causes the FSM to return to `startup` — reloading the main FPGA from flash. The scripts achieve this by writing 0 (clear) then 1 (rising edge on bit 0):
+
+```vxworks
+m 0xe8<slot>00900,4   # open VME address in 32-bit mode
+0                      # write 0 (ensure bit 0 low)
+q                      # quit m command
+m 0xe8<slot>00900,4   # re-open same address
+1                      # write 1 (rising edge on bit 0 → triggers reload)
+q
+```
+
+### VME Address → Board Mapping
+
+On the MVME5500, the VME A32 window is mapped at local offset **0xe8000000**. Combined with `base = slot << 20`:
+
+| Script | Address | Slot | Board (old GRETINA trigger crate) |
+|--------|---------|------|-----------------------------------|
+| `reload0` | `0xe8100000 + 0x900` | 1 | Board in slot 1 |
+| `reload1` | `0xe8200000 + 0x900` | 2 | Board in slot 2 |
+| `reload2` | `0xe8300000 + 0x900` | 3 | MTRG (slot 3, per vme32.cmd) |
+| `reload3` | `0xe8400000 + 0x900` | 4 | RTR1 (slot 4) |
+| `reload4` | `0xe8500000 + 0x900` | 5 | RTR2 (slot 5) |
+| `reload5` | `0xe8600000 + 0x900` | 6 | RTR3 (slot 6) |
+
+### Combined Scripts
+
+**`reloadMainFPGA`** — reloads 4 boards (slots 5→4→3→2) in sequence: writes 0 to all four first, then 1 to all four. Targets the full GRETINA trigger crate (MTRG + 3 RTRGs + one extra slot-2 board).
+
+**`fix`** — runs `reload1` through `reload4` (slots 2–5) then calls `reboot` to restart the VxWorks IOC. Emergency recovery script when the trigger FPGA needs reloading and the IOC must be restarted.
+
+### Key Difference vs `ConfigureFlash`
+
+| | Legacy reload scripts | `ConfigureFlash(bdnum, bank)` |
+|--|--|--|
+| Target | Old GRETINA trigger VME FPGA (MTRG/RTRG in trigger crate) | DIG boards (via devGVME.c `vme_config_control` 0x090C) |
+| Mechanism | Direct VxWorks `m` memory write to 0x900 (`fpga_ctrl_reg` bit 0 rising edge) | EPICS iocsh command → `VMEWrite32` to 0x090C |
+| FPGA source | `FPGA/MTRG/Gretina Trigger/VHDL/VME_FPGA/cnfg_reset_controller.vhd` | `FPGA/DIG/VME_FPGA_ANL/Source/register_block.vhd` |
+| Era | Legacy GRETINA trigger board design (pre-DGS split) | Current DGS ANL VME FPGA design |
+
+✅ verified 2026-04-25 — `vxworks/dgsIoc/iocBoot/iocArray/reload0`–`reload5`, `reloadMainFPGA`, `fix`; `FPGA/MTRG/Gretina Trigger/VHDL/VME_FPGA/TOP.VHD:L676-677` (`cb_dcf_cnfg_in => fpga_ctrl_reg_i(1 downto 0)`); `cnfg_reset_controller.vhd:L352-353` (rising edge on cnfg_i[0] or [1] → restart from `startup`); `vme32.cmd:L89-92` (slot assignments)
+
+---
+
 ## Cross-References
 
 - `knowledgeBase/ioc.md` — IOC boot scripts, startup sequence, firmware versions
@@ -565,4 +618,4 @@ IOC IPs are for **data stream only** — do not telnet to them for shell access.
 
 ---
 
-*Verified against source: `VxWorks/dgsDrivers/dgsDriverApp/src/`, `VxWorks/epics/base-3.14.12.1/src/`, `VxWorks/asyn*/`. Last updated: 2026-04-12.*
+*Verified against source: `VxWorks/dgsDrivers/dgsDriverApp/src/`, `VxWorks/epics/base-3.14.12.1/src/`, `VxWorks/asyn*/`. Last updated: 2026-04-25.*

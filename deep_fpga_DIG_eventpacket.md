@@ -65,48 +65,48 @@ Note: `MPX_FIELD[23:0]` in Word 11 is the multiplexed field — when `CP` (Word 
 | UserDef[11:0] | W1[15:4] | User tag from `reg_user_package_data` ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L316` (`header(1)(15 downto 4) <= user_package_data`, port: `user_package_data: in std_logic_vector(11 downto 0)`) |
 | CH_ID[3:0] | W1[3:0] | Channel number (0–9) ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L317` (`header(1)(3 downto 0) <= std_logic_vector(to_unsigned(channel_id, 4))`) |
 | HDR_LEN[5:0] | W3[31:26] | Header length constant = 28 ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L90` (20230809 current tag, rev 0x4CD8): `cHEADER_LENGTH := 28` (36-bit FIFO words; 14 VME words × 2 per FIFO word). `cREPORTED_HEADER_SIZE = 26` (= 28 − 2, per GRETINA convention). |
-| EVT_TYPE[2:0] | W3[25:23] | Event type (filled at readout) |
-| TM | W3[21] | `TRIG_TS_MODE`: 0 = use arrival TS; 1 = use trigger-mux TS |
-| PM | W3[20] | `PEQ_BYPASS`: 1 = pending event queue bypassed |
+| EVT_TYPE[2:0] | W3[25:23] | Event type (filled at readout) ✅ verified 2026-04-24 — `Event_Header_FIFO.vhd:L768` (`next_event_header_word(25 downto 23) <= current_event_type` — injected from event decision FIFO at readout time) |
+| TM | W3[21] | `TRIG_TS_MODE`: 0 = use arrival TS; 1 = use trigger-mux TS ✅ verified 2026-04-24 — `Event_Header_FIFO.vhd:L324` (LED) / L417 (CFD) (`header(3)(21) <= TRIG_TS_MODE`; port comment: "0: use TRIG_ARRIVAL_TIMESTAMP; 1: use TRIGGER_MUX_TIMESTAMP") |
+| PM | W3[20] | `PEQ_BYPASS`: 1 = pending event queue bypassed ✅ verified 2026-04-24 — `Event_Header_FIFO.vhd:L325` (LED) / L418 (CFD) (`header(3)(20) <= PEQ_BYPASS`; port comment: "1 = PEQ logic is bypassed") |
 | HEADER_TYPE[3:0] | W3[19:16] | Format: `0111` (7) = LED; `1000` (8) = CFD ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L101-102` (current 20230809 tag, rev 0x4CD8): `cHEADER_TYPE_LED = to_unsigned(7,4)`, `cHEADER_TYPE_CFD = to_unsigned(8,4)`. Prior firmware DGS_TAG_20180607_TWEAK used 5/6 (LED/CFD); values incremented again in Aug 2021 build. |
 | SAMPLED_BASELINE[23:0] | W6[23:0] | Baseline estimate latched at event time (ADC counts × M) ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L355` (`header(6)(23 downto 0) <= event_data.sampled_baseline(23 downto 0)`) |
-| TRIG_MON_DET_DATA[15:0] | W7[31:16] | Detector trigger monitor data from Frame 2 |
-| TRIG_MON_XTRA_DATA[15:0] | W7[15:0] | Extra trigger monitor data from Frame 2 |
+| TRIG_MON_DET_DATA[15:0] | W7[31:16] | Detector trigger monitor data from Frame 2 (LED mode; in CFD mode split across W4/W5/W6 — see CFD section) ✅ verified 2026-04-24 — `Event_Header_FIFO.vhd:L357` (`header(7)(31 downto 16) <= TRIG_MON_DET_DATA`) — port comment: "detector state data at time of trigger (e.g. target wheel) from SERDES" |
+| TRIG_MON_XTRA_DATA[15:0] | W7[15:0] | Extra trigger monitor data from Frame 2 (LED mode only; not present in W7 for CFD) ✅ verified 2026-04-24 — `Event_Header_FIFO.vhd:L358` (`header(7)(15 downto 0) <= TRIG_MON_XTRA_DATA`) — port comment: "extra state data at time of trigger (sumX, sumY) from SERDES" |
 | PRE_RISE_SUM[23:0] | W8[23:0] | Pre-peak energy integral (M samples) — see Energies ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L361` (`header(8)(23 downto 0) <= event_data.pre_rise_energy(23 downto 0)`); upper byte W8[31:24] = POST_RISE_SUM[7:0] |
 | TS_OF_PEAK[15:0] | W9[31:16] | Lower 16 bits of 48-bit timestamp at pulse peak ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L363` (`header(9)(31 downto 16) <= event_data.ts_of_peak`) |
 | TS_OF_TRIGGER[15:0] | W10[31:16] | Lower 16 bits of 48-bit timestamp when trigger arrived ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L366` (`header(10)(31 downto 16) <= X"0000"` — replaced by trigger timestamp at readout; TRIG_TS_MODE bit selects arrival vs trigger-mux TS) |
 | TS_OF_COARSE[9:0] | W13[23:14] | Coarse discriminator timestamp (10-bit) ✅ verified 2026-04-17 — `Event_Header_FIFO.vhd:L378` (`header(13)(23 downto 14) <= event_data.TS_OF_COARSE`); extension bits [11:10] in W4[13:12] via `TS_OF_COARSE_XTND` (added 2023-08-07, replaced GENERAL_ERROR/SYNC_ERROR) |
-| PU_CNT[3:0] | W6[27:24] | Number of simultaneous pileup events |
+| PU_CNT[3:0] | W6[27:24] | Number of simultaneous pileup events (LED mode; in CFD mode PU_CNT[3:2]=W7[31:30], PU_CNT[1:0]=W7[15:14]) ✅ verified 2026-04-24 — `Event_Header_FIFO.vhd:L354` LED (`header(6)(27 downto 24) <= event_data.PILEUP_COUNT`); L451/L453 CFD split |
 
-**Status flag bits (Word 4):**
+**Status flag bits (Word 4):** ✅ verified 2026-04-24 — `Event_Header_FIFO.vhd:L329–349` (LED header assignments)
 
 | Bit | Abbrev | Meaning |
 |-----|--------|---------|
 | 15 | PU | Pileup flag: another event was in-flight when this one fired |
-| 14 | PO | Pileup-waveform-only mode active |
-| 13 | GE | `TS_OF_COARSE` extension bit 1 (replaced GENERAL_ERROR in 2023) |
-| 12 | SE | `TS_OF_COARSE` extension bit 0 (replaced SYNC_ERROR in 2023) |
-| 10 | OF | Offset flag (filled at readout) |
-| 9 | PV | Peak valid: peak-finding algorithm found a clean peak |
-| 8 | ED | External discriminator flag: event was triggered externally |
-| 6 | VF | Veto flag (filled at readout) |
-| 5 | WF | Write-flags mode: 1 = header-only, no waveform data written |
+| 14 | PO | Pileup-waveform-only mode active (`pileup_waveform_only` port) |
+| 13 | GE | `TS_OF_COARSE` extension bit 1 (replaced GENERAL_ERROR in 2023-08-07) |
+| 12 | SE | `TS_OF_COARSE` extension bit 0 (replaced SYNC_ERROR in 2023-08-07) |
+| 10 | OF | Offset flag (filled at readout; '0' in FIFO) |
+| 9 | PV | Peak valid: peak-finding algorithm found a clean peak (`peak_valid_flag`) |
+| 8 | ED | External discriminator flag: event was triggered externally (`external_disc_flag`) |
+| 6 | VF | Veto flag (filled at readout; '0' in FIFO) |
+| 5 | WF | ADC sample mode: WF=1 → 14-bit ADC data + 2 flag bits per sample; WF=0 → 16-bit ADC, no flags. (Packet bit = `NOT write_flags` port; `write_flags=1` selects 14-bit+flags mode per `Channel_Readout_Mach.vhd:L49,L427`) |
 | 4 | PE | `EARLY_PRE_M_SEL`: which early pre-rise window was used |
 
-**Status flag bits (Word 13):**
+**Status flag bits (Word 13):** ✅ verified 2026-04-24 — `Event_Header_FIFO.vhd:L377–383` (LED header); L473–479 (CFD)
 
 | Bit | Abbrev | Meaning |
 |-----|--------|---------|
 | 13 | CF | `COARSE_FIRED`: coarse discriminator fired on this event |
-| 12 | PC | `PARST_TSM`: preamp reset timestamp matched |
+| 12 | PC | `PARST_TSM`: preamp reset timestamp matched (bit 11 = `PT` is unassigned/reserved, always '0') |
 | 10 | ST | `SECOND_THRESH`: second (higher) threshold of thresh_disc satisfied |
 
-**Word 10 control bits:**
+**Word 10 control bits:** ✅ verified 2026-04-24 — `Event_Header_FIFO.vhd:L367–368` (LED); L463–464 (CFD)
 
 | Bit | Abbrev | Meaning |
 |-----|--------|---------|
-| 15 | CP | `CAPTURE_PARST_TS`: 1 = MPX_FIELD (Word 11[23:0]) holds `TS_OF_LAST_PREAMP_RESET` |
-| 14 | P2 | `P2_MODE`: P2 sum integration mode |
+| 15 | CP | `CAPTURE_PARST_TS`: 0 = MPX_FIELD (Word 11[23:0]) holds 2nd early pre-rise energy; 1 = holds `TS_OF_LAST_PREAMP_RESET` |
+| 14 | P2 | `P2_MODE`: 0 = P2 is delay only (length = reg_p_window); 1 = P2+M1 split mode |
 
 ## Split field reconstruction
 
@@ -420,7 +420,7 @@ E_true = E_corrected / scale
 
 ## CFD Header differences (words 4–7 only)
 
-In CFD mode (`HEADER_TYPE = 0101`), words 0–3 and 8–13 are identical to LED. Words 4–7 carry different fields:
+In CFD mode (`HEADER_TYPE = 1000` = 8; ✅ verified 2026-04-24 — `Event_Header_FIFO.vhd:L102`: `cHEADER_TYPE_CFD = to_unsigned(8,4)`), words 0–3 and 8–13 are identical to LED. Words 4–7 carry different fields:
 
 ```
 Word  4:  |     TS_OF_LAST_EVENT[15:0]    |PU|PO|GE|SE|CV|OF|PV|ED|TF|VF|WF|PE| TDD[15:12]             |
@@ -504,6 +504,8 @@ If `reg_raw_data_length = 0`, no waveform words are written and the packet ends 
 - `knowledgeBase/DIG_firmware_expert.md` — Expert guide: all readout modes, data format, timing, trigger_mux_select
 - `knowledgeBase/data_structures.md` — GEB binary format: DIG event packet layout
 - `knowledgeBase/pole_zero.md` — Pole-zero correction detail and register settings
+- `knowledgeBase/deep_fpga_DIG_modules.md` — DIG module analysis Part 1: `SERDES_TX_Mach_DGS.vhd`, `event_packer.vhd`, `pileup_processor.vhd`, `SERDES_RX_Mach.vhd`, `Timestamp_Generator.vhd`, `Trigger_Mux.vhd`, `Channel_Readout_Controller.vhd`, `Channel_Readout_Mach.vhd`
+- `knowledgeBase/deep_fpga_DIG_modules2.md` — DIG module analysis Part 2: `Event_Header_FIFO.vhd` (LED/CFD header FIFO, all 14 header words), `decimator.vhd` (waveform decimation/averaging, 3-state FSM, PAUSE mode), `event_data_fifo.vhd` (per-channel waveform FIFO, 32-bit packing)
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Dig*/` — VHDL source. PDF: `ANL Digitizer Firmware for Experts.pdf`. Split from `deep_fpga_DIG.md`: 2026-04-16.*

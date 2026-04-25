@@ -129,7 +129,7 @@ The TDC reset path is carefully staged across clock domains to prevent metastabi
 ```
 TDC_RESET → TDC_RESET_pipe (4-stage shift) → RETIMED_PIPELINE_RESET (single pulse on "0011" pattern)
 ```
-`RETIMED_PIPELINE_RESET` produces a single-clock-wide reset pulse when `TDC_RESET` transitions low→high.
+`RETIMED_PIPELINE_RESET` produces a single-clock-wide reset pulse when `TDC_RESET` transitions low→high. ✅ verified 2026-04-24 — tdc_chain_cont.vhd:L333-346 (4-stage shift `TDC_RESET_pipe`; case "0011"→RETIMED_PIPELINE_RESET='1', all others='0')
 
 **Phase-to-phase propagation:**
 ```
@@ -138,19 +138,19 @@ SAMP_RESET(1) ← SAMP_RESET(0)           (clocked on TDC_CLOCK_90)
 SAMP_RESET(2) ← SAMP_RESET(1)           (clocked on TDC_CLOCK_180)
 SAMP_RESET(3) ← SAMP_RESET(2)           (clocked on TDC_CLOCK_270)
 ```
-Each `SAMP_RESET(n)` resets its corresponding TDC unit and fine counter.
+Each `SAMP_RESET(n)` resets its corresponding TDC unit and fine counter. ✅ verified 2026-04-24 — tdc_chain_cont.vhd:L356 (`SAMP_RESET(0)<=RETIMED_PIPELINE_RESET`), L364 (`SAMP_RESET(1)<=SAMP_RESET(0)` on TDC_CLOCK_90), L371/L378 (phases 180/270 similarly)
 
 **At 100 MHz (`RESET_100`):**
 ```
 TDC_RESET → RESET_PIPELINE (4-stage) → RESET_100 (single pulse on "0011" pattern)
 ```
-`RESET_100` resets the autosample FSM, FIFO, trigger ACK accumulators, and data compressor.
+`RESET_100` resets the autosample FSM, FIFO, trigger ACK accumulators, and data compressor. ✅ verified 2026-04-24 — tdc_chain_cont.vhd:L388-393 (`RESET_PIPELINE` 4-stage shift on CLOCK_100MHz; `if RESET_PIPELINE="0011" then RESET_100<='1'`)
 
 ---
 
 ## 4-Phase TDC Carry Chains
 
-Four `tdc_unit_cont` instances are placed at fixed RLOC locations 2 columns apart (X0Y0, X2Y0, X4Y0, X6Y0), ensuring spatial separation of the four phases in the Xilinx carry chain fabric.
+Four `tdc_unit_cont` instances are placed at fixed RLOC locations 2 columns apart (X0Y0, X2Y0, X4Y0, X6Y0), ensuring spatial separation of the four phases in the Xilinx carry chain fabric. ✅ verified 2026-04-24 — tdc_chain_cont.vhd:L285-291 (`attribute RLOC of TDC_A/B/C/D :label is "X0Y0"/"X2Y0"/"X4Y0"/"X6Y0"`)
 
 Each unit:
 - Samples `BIT_IN` using its phase-specific 250 MHz clock
@@ -207,7 +207,7 @@ All four `TDC_FINE_COUNT(n)` vectors feed `data_compressor` alongside the raw ve
 
 ## TDC Autosample FSM
 
-**States:** `IDLE`, `WAIT_TDC`, `RELATCH`, `WRITE_DATA`, `WRITE_DATA2`
+**States:** `IDLE`, `WAIT_TDC`, `RELATCH`, `WRITE_DATA`, `WRITE_DATA2` ✅ verified 2026-04-24 — tdc_chain_cont.vhd:L130 (`type TDC_AUTOSAMPLE_STATES is (IDLE, WAIT_TDC, RELATCH, WRITE_DATA, WRITE_DATA2)`)
 
 | State | Action |
 |-------|--------|
@@ -249,6 +249,8 @@ All four `TDC_FINE_COUNT(n)` vectors feed `data_compressor` alongside the raw ve
 ## Output Word Format
 
 Each TDC event is written as **two 80-bit FIFO entries**, repacked into **eight 20-bit output words** (upper 4 bits are framing tags, lower 16 bits are data):
+
+✅ verified 2026-04-24 — tdc_chain_cont.vhd:L820 (WRITE_DATA 80-bit word) and L834 (WRITE_DATA2 80-bit word) confirm all 8 framing tags and data assignments exactly.
 
 | Word | Framing Tag (bits 19:16) | Data (bits 15:0) | Content |
 |------|--------------------------|-------------------|---------|

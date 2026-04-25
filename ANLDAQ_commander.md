@@ -212,17 +212,17 @@ The Guceiver live data monitor is embedded from `ANLDAQ/gui/Guceiver/`. It is in
 ## SoftIOC Auto-Spawn
 
 On startup, `CheckACQCanStart()` runs:
-1. Attempts `epics.caget("Online_CS_StartStop", timeout=5.0)` up to **3 times** with 2-second retries.
+1. Attempts `epics.caget("Online_CS_StartStop", timeout=5.0)` up to **3 times** with 2-second retries. ✅ verified 2026-04-25 — `commander.py:L756-762` (`for attempt in range(3)`, `timeout=5.0`, `time.sleep(2)`)
 2. If the PV is unreachable, calls `OpenSoftIOC()`.
 
 `OpenSoftIOC()`:
-- Checks `ps ax` for an existing SoftIOC process (looks for "SoftIOC" + "bin" + trailing ".cmd").
+- Checks `ps ax` for an existing SoftIOC process (looks for "SoftIOC" + "bin" + trailing ".cmd"). ✅ verified 2026-04-25 — `commander.py:L768-779` (`ps_out` scan for "SoftIOC", "bin", `first[-3:] == "cmd"` or `".cmd" in first`)
 - If not running, spawns a gnome-terminal with:
   ```
   cd $ANLDAQ_DIR/EPICS/softIOC/iocBoot/iocdgsSoftIOC
   ../../bin/$EPICS_HOST_ARCH/dgsSoftIOC dgsSoftIoc.cmd
-  ```
-- If spawn fails (e.g. no gnome-terminal), the `ACQStartStop` and `ACQSaveData` buttons are disabled.
+  ``` ✅ verified 2026-04-25 — `commander.py:L791-799`
+- If spawn fails (e.g. no gnome-terminal), the `ACQStartStop` and `ACQSaveData` buttons are disabled. ✅ verified 2026-04-25 — `commander.py:L802-803` (`self.ACQStartStop.setEnabled(False); self.ACQSaveData.setEnabled(False)`)
 
 ---
 
@@ -238,7 +238,7 @@ Port formula: `2000 + IOC_id` (e.g., IOC-1 → port 2001). ✅ verified 2026-04-
 
 **DGS system split:** for IOC id ≤ 6, uses `TERMINAL_SERVER.split()[0]` (first server); for id > 6, uses `TERMINAL_SERVER.split()[1]` (second server). This reflects two terminal servers covering the two VME crate racks. ✅ verified 2026-04-23 — `commander.py:L833-836`
 
-**SlopeBox system:** always uses IOC id = 3 regardless of selection.
+**SlopeBox system:** always uses IOC id = 3 regardless of selection. ✅ verified 2026-04-25 — `commander.py:L829-830` (`if system == "SlopeBox": id = 3`)
 
 ---
 
@@ -264,7 +264,7 @@ Settings are stored in `ANLDAQ/gui/settings.json`:
 
 ## Script Runner
 
-The "Others" panel includes a script combo that reads `scripts/enableScriptList.txt` for a list of available scripts (one filename per line, `#` lines skipped). Scripts can be `.py` (run with `python3`) or `.sh` (run with `bash`). Output is piped to the console. Scripts run in a `QProcess` in the `scripts/` directory.
+The "Others" panel includes a script combo that reads `scripts/enableScriptList.txt` for a list of available scripts (one filename per line, `#` lines skipped). Scripts can be `.py` (run with `python3`) or `.sh` (run with `bash`). Output is piped to the console. Scripts run in a `QProcess` in the `scripts/` directory. ✅ verified 2026-04-25 — `commander.py:L268-274` (`enableScriptList.txt` path, `not name.startswith("#")` filter)
 
 ---
 
@@ -278,7 +278,7 @@ Timestamp, RunID, Event, Comment
 2026-04-23 10:30:00, 1, stop, "single 30 min run stopped"
 ```
 
-The file is created with header if it doesn't exist. Run comments are entered by the operator at run start (except for auto-repeat runs which use a fixed comment).
+The file is created with header if it doesn't exist. ✅ verified 2026-04-25 — `commander.py:L402-408` (`needHeader = not os.path.isfile(csvFile)`, writes `"Timestamp, RunID, Event, Comment\n"` on first create) Run comments are entered by the operator at run start (except for auto-repeat runs which use a fixed comment). ✅ verified 2026-04-25 — `commander.py:L445,L501` (start/stop LogRunTimestamp calls)
 
 ---
 

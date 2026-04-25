@@ -1,300 +1,286 @@
-# MγRIAD - Multipurpose γ-Ray Interface to Auxiliary Detectors
+# MyRIAD — Trigger Expansion Module
 
-**Full name:** Multipurpose γ-Ray Interface to Auxiliary Detectors
-**Source:** `DGS_SVN/dgs/MyRIAD/Documentation/MyRIAD Abridged User Notes.pdf` (v0.0, 2018-04-27, J. Anderson) + `MyRIAD User Manaual.pdf` (v1.2, March 2015, J. Anderson - full register map in Section 3)
-**Also:** `DGS_SVN/dgs/MyRIAD/Documentation/MYRIAD_Module_Specification.pdf`
-**Wiki PDFs:** `https://wiki.anl.gov/wiki_gsdaq/images/4/40/MyRIAD_User_Manaual.pdf`
+**Stability: C3 - Structural / stable**
 
-Stability: C3 - Structural / stable
+Source: `DGS_tools_pack/FPGA/others/MyRIAD/`
 
 ---
 
-## Purpose
+## Overview
 
-The MγRIAD bridges auxiliary detectors (NIM/ECL-based) to the DGS/GRETINA TTCL trigger system. It:
-- Receives the TTCL timestamp from the Master Trigger via RJ45 (Cat5e, same as digitizer)
-- Propagates DGS/GRETINA timestamps to auxiliary VME-based DAQs
-- Sends trigger messages back to the Master Trigger when the auxiliary detector fires
-- Provides local coincidence logic between local detector and auxiliary trigger
-- Interfaces legacy FERA ADC systems via ECL
+**MyRIAD** (name likely derived from "many/multiple I/O module") is a VME-based trigger expansion module designed for Digital Gammasphere (DGS) and GRETINA experiments at Argonne National Laboratory. It was designed by the High Energy Physics Division at ANL for the Physics Division.
 
-Connected to **link U** of the Master Trigger. ✅ verified 2026-04-07 - `top.vhd:L3562` (`RECEIVED_MYRIAD_DATA => LAT_LINKU_RX`).
+Key purpose: provide additional NIM/ECL I/O, coincidence logic, FIFO data buffering, and SERDES-based trigger/timestamp communication to the DGS master trigger system.
 
----
+Firmware type code: **0xB** = "MyRIAD Trigger expansion module" (from `MyRIAD_pkg.vhd`) ✅ verified 2026-04-25 - MyRIAD_pkg.vhd:L45
 
-## Front Panel Connectors
+Latest firmware revision: `0x0B16` dated `0810/2022` (August 10, 2022) ✅ verified 2026-04-25 - MyRIAD_pkg.vhd:L53-55
 
-### RJ45 - TTCL Link
-- **Not Ethernet** - Cat5e cable to DGS/GRETINA trigger module only ✅ verified 2026-04-17 - `MyRIAD User Manaual.pdf` p.2
-- Carries TTCL (Trigger Timing and Control Link) - same protocol as digitizer RJ45 ✅ verified 2026-04-17 - `MyRIAD User Manaual.pdf` p.2: "SerDes interface compatible with Trigger Timing and Control Link specification" + "The RJ-45 connector is NOT ETHERNET. This connector uses Cat5e cable"
-- LEDs on connector indicate SERDES link lock state
-
-#### MγRIAD → MTRG SERDES Data Frame Format
-_Source: `MYRIAD_RCV_MACH.vhd` header comment ✅ verified 2026-04-07_
-
-MγRIAD sends a **5-word repeating frame** over SERDES (16-bit words):
-
-| Word | Bits 15:13 | Bit 12 | Bit 11 | Bits 10:8 | Bits 7:0 |
-|------|-----------|--------|--------|-----------|----------|
-| All  | bit15=10MHz flag, bits14:13=00 | Raw trigger (NIM or ECL input) | Gated trigger (coincidence logic output) | 3-bit ordinal counter (sync check) | word-specific (below) |
-| 00 | - | - | - | - | `0xAD` (part of reset sync `0x0BAD`) |
-| 01 | - | - | - | - | NIM input states (8 bits) |
-| 02 | - | - | - | - | ECL input states |
-| 03 | - | - | - | - | FERA control states |
-| 04 | - | - | - | - | 8-bit frame counter (sync check) |
-
-MTRG receiver (`MYRIAD_RCV_MACH`) locks onto this stream and extracts NIM/ECL state, raw trigger, gated trigger, and 10 MHz flag. Reset detected by `0x0BAD` signature in word 00.
-
-### JTAG
-- Direct FPGA access via Xilinx JTAG programmer
-
-### ECL CTL Header (10-pin, 2 differential inputs + 3 differential outputs)
-- Pinout compatible with FERA ADC system cables ✅ verified 2026-04-06 - MyRIAD Abridged User Notes.pdf p.3
-- Firmware-defined; current DGS build uses ECL CTL outputs as diagnostics:
-  - **FERA FULL** pair → copy of multiplexed 50 MHz FPGA clock (locked = TTCL sync OK) ✅ verified 2026-04-06 - MyRIAD Abridged User Notes.pdf p.3
-  - **FERA ACK** pair → copy of **NIM input 7** (0-based index, i.e. the GP Counter NIM input) ✅ verified 2026-04-16 - `MyRIAD.vhd:L1926` (`FERA_ACK_pin <= NIM_IN_PIN(7)`) ⚠️ PDF (p.3) says "NIM input 1" - VHDL is authoritative; PDF may refer to older firmware
-  - **FERA OVF** pair → driven by `CLOCK_50MHZ` via DDR output flip-flop (OFDDRRSE), producing a 50 MHz square wave - used for jitter comparison with `MAIN_FPGA_MACH_CLK_1_pin` ✅ verified 2026-04-16 - `MyRIAD.vhd:L1929-1940` (`CLOCK_50_DRIVER_DDR` OFDDRRSE, MBO comment 2022-08-10: "changed to CLOCK_50MHz for jitter comparison")
-  - **FERA WSI** pair (input) → alternate source for local trigger signal; if `GATING_REG` bit is set, rising edge of `FERA_WSI_IO_pin` is used as trigger input instead of NIM In 0 ✅ verified 2026-04-16 - `MyRIAD.vhd:L1062-1064` (`if FERA_WSI_PIPE(1)='0' and FERA_WSI_PIPE(0)='1'` → local trigger)
-  - **FERA VETO** pair (input) → readable via `ECL_STATUS_B[0]` status register; no active trigger function in current firmware ✅ verified 2026-04-16 - `MyRIAD.vhd:L1976` (`ECL_STATUS_B <= "00000000000000" & FERA_WSI_IO_pin & FERA_VETO_pin`)
-
-### ECL I/O Header (16 differential ECL signals)
-- Default: 16 receiver inputs (100 Ω termination per differential pair)
-- Assembly positions allow installing driver chips instead (reconfigurable)
-- All signals available to firmware
-
-### NIM I/O - 8 inputs, 4 outputs
-Layout: two groups of 4 inputs (I), two groups of 2 outputs (O). ✅ verified 2026-04-06 - MyRIAD Abridged User Notes.pdf p.5 Fig.1
-
-#### NIM Input Functions
-| Input | Function |
-|-------|---------|
-| **NIM In 0** (upper left) | **Local system trigger input** - latches timestamp on each edge; minimum pulse width **100 ns** ✅ verified 2026-04-08 - MYRIAD_Module_Specification.pdf ("100ns wide should be used") |
-| **NIM In 1** | Local coincidence input - starts coincidence timer after NIM In 0 edge; asserts coincidence if NIM In 1 fires before timeout |
-| NIM In 2-7 | General purpose - counted only (no trigger function as of 2018-04-27) |
-
-- All NIM inputs connected to 16-bit edge counters (sampled at 100 MHz) ✅ verified 2026-04-06 - MyRIAD Abridged User Notes.pdf p.5
-- All NIM input states regularly sent to Master Trigger over SERDES ✅ verified 2026-04-06 - MyRIAD Abridged User Notes.pdf p.5
-
-#### NIM Output Functions
-
-| Output | Function |
-|--------|----------|
-| **NIM Out 0** | Echoed copy of NIM In 0 (fixed, not configurable) ✅ verified 2026-04-08 - MYRIAD_Module_Specification.pdf §3.5 |
-| **NIM Out 1** | Buffered copy of NIM In 1 (fixed, not configurable) ✅ verified 2026-04-08 - MYRIAD_Module_Specification.pdf §3.5 |
-| **NIM Out 2** | Copy of 'sync flag' from DGS/Gretina master trigger over SERDES; pulses every 2 μs - useful for timing verification ✅ verified 2026-04-08 - MYRIAD_Module_Specification.pdf §3.5 |
-| **NIM Out 3** | Coincidence logic output (fires when NIM In 1 occurs within coincidence window after starting trigger) ✅ verified 2026-04-08 - MYRIAD_Module_Specification.pdf §3.4 |
-
-> Note: GATING_REG (0x0702) bits 0-1 select the coincidence *starting trigger* source (bit 0 = NIM In 0, bit 1 = SERDES trigger from master). The NIM Out 0/1 outputs are hardwired echoes - they are not muxed by GATING_REG. Prior doc claiming bits 3:2 and 6:4 controlled NIM Out 0/1 selection was incorrect.
+FPGA device: **Xilinx Spartan-3 XC3S1000-FG456**
 
 ---
 
-## Front Panel LEDs (3×3 array)
+## FPGA Structure
+
+MyRIAD has **two FPGAs**:
+
+| FPGA | Source directory | Role |
+|------|-----------------|------|
+| MAIN FPGA | `MAIN_FPGA/Source/` | All main logic: SERDES, TDC, coincidence, FIFO write, timestamp, NIM/ECL I/O |
+| VME FPGA | `VME_FPGA/Source/` | VME bus interface, address decode, register bridge to MAIN FPGA |
+
+### VME FPGA Components
+- `TOP.VHD` — top-level VME interface
+- `vme_addr_decode.vhd` — VME address decoder
+- `external_bus_controller.vhd` — external bus controller to MAIN FPGA
+- `configuration_controller.vhd` — configuration FSM
+- `register_block.vhd` — register interface
+- `myr reg notes.txt` — hardware register bit definitions (see Register Map below)
+
+---
+
+## MAIN FPGA Source Files
+
+| File | Purpose |
+|------|---------|
+| `MyRIAD.vhd` | Top-level entity, all I/O port declarations |
+| `MyRIAD_pkg.vhd` | Package: constants, type arrays, firmware revision, component declarations |
+| `registers.vhd` | All VME-accessible registers (read/write logic) |
+| `GITMO_TOP.vhd` | GITMO (Gammasphere Interface to Trigger MOdule) — collects GS master trigger clock/trigger info, packs into SERDES data stream for DGS master trigger |
+| `GITMO_RCV_MACH.vhd` | GITMO receive state machine |
+| `tdc_unit2.vhd` | TDC unit using carry-chain delay lines (64-bit vernier), clocked at 300 MHz |
+| `tdc_short_chain.vhd` | Short variant of carry-chain TDC |
+| `Timestamp_Generator.vhd` | System timestamp generator |
+| `SERDES_RX_Mach_R2.vhd` | SERDES receive state machine (R2 = revision 2) |
+| `SERDES_TX_MACH.vhd` | SERDES transmit state machine |
+| `Phase_Hunter_SerDes.vhd` | DCM phase hunt for SERDES lock alignment |
+| `DCM_CONTROLLER.vhd` | DCM management (lock, reset, logic reset) |
+| `dc_balance_mach.vhd` | DC-balance encoder/decoder for SERDES |
+| `DCBAL_in.vhd` | DC-balance input (with FIFO) |
+| `DCBAL_in_nofifo.vhd` | DC-balance input (no FIFO variant) |
+| `disparity_lookup.vhd` | Disparity lookup table for 8B/10B-style coding |
+| `NIM_Delay.vhd` | NIM delay line using on-chip RAM (up to 65535 cycles delay per channel) |
+| `Fifo.vhd` | Internal FIFO wrapper |
+| `mstr_mach.vhd` | Master state machine |
+| `basic_capture_counter.vhd` | Basic event capture counter |
+| `trigger_data_types.vhd` | Data type definitions for trigger packets |
+| `pinlock.ucf` | Pin constraints (XC3S1000 device) |
+
+---
+
+## Firmware Command Formats (Generic)
+
+The MAIN FPGA has a generic parameter `COMMAND_LINE_COMMAND_FORMAT` controlling which command set it responds to:
+
+| Value | Mode |
+|-------|------|
+| 0 | DGS Master Trigger |
+| 1 | DGS Router |
+| 2 | GRETINA Master Trigger |
+
+(`myriad_pkg.vhd`: `cCMD_FORMAT_DGS_MASTER`, `cCMD_FORMAT_DGS_ROUTER`, `cCMD_FORMAT_GRETINA_MASTER`) ✅ verified 2026-04-25 - MyRIAD_pkg.vhd:L159-161
+
+---
+
+## Hardware I/O (MAIN FPGA Top Level)
+
+### External FIFOs
+- Two external FIFO chips: **FIFO A** and **FIFO B**
+- Each is 18-bit wide (16 data bits + 2 flag bits) ✅ verified 2026-04-25 - MyRIAD.vhd:L36-37 (FIFOFLAG0/1 = bits 16/17)
+- FIFO A data[15:0] → VME data bits [15:0]; FIFO B data[15:0] → VME data bits [31:16] ✅ verified 2026-04-25 - MyRIAD.vhd:L37,L72
+- Flag bits (bits 16/17) are control-only; not driven to VME data bus ✅ verified 2026-04-25 - MyRIAD.vhd:L36-37
+- Full first-word fall-through mode supported ✅ verified 2026-04-25 - MyRIAD.vhd:L49 (FIFO_A_FWFTSI_pin = FirstWordFallThru)
+- Standard IDT/Cypress-style FIFO interface: WEN, REN, RCLK, WCLK, EF, HF, PAF, PAE, FF ✅ verified 2026-04-25 - MyRIAD.vhd:L44-66
+
+### SERDES Link
+- Uses **DS92LV18** LVDS SERDES chip (18-bit parallel ↔ serial) ✅ verified 2026-04-25 - MyRIAD.vhd:L158
+- Receive clock: SERDES_RCLK (both I/O pad and GCLK pad present) ✅ verified 2026-04-25 - MyRIAD.vhd:L169-170
+- Lock indicator: SERDES_LOCK_pin is **active LOW** (low = locked) ✅ verified 2026-04-25 - MyRIAD.vhd:L167
+- RJ45 connector with 2 extra LVDS pairs (STAT0/STAT1) for status I/O ✅ verified 2026-04-25 - MyRIAD.vhd:L175-181
+- RJ45 has two LED pairs (SERDES_LED0/LED1 + complement pins) ✅ verified 2026-04-25 - MyRIAD.vhd:L185-187
+
+### NIM I/O
+- 8× NIM inputs (`NIM_IN_pin[7:0]`) ✅ verified 2026-04-25 - MyRIAD.vhd:L133
+- 4× NIM outputs (`NIM_OUT_pin[3:0]`) ✅ verified 2026-04-25 - MyRIAD.vhd:L134
+- NIM delay lines: software-configurable delay per channel using on-chip RAM (65535-cycle max)
+
+### ECL I/O
+- 16× ECL inputs (`ECL_IO_pin[15:0]`) — only receivers populated (drivers physically present but not stuffed on board) ✅ verified 2026-04-25 - MyRIAD.vhd:L135
+- 4× ECL driver enables (`ECL_DRIVE_EN0-3`) for groups of 4 bits each ✅ verified 2026-04-25 - MyRIAD.vhd:L136-139
+- Secondary ECL connector (FERA interface): FERA_FULL, FERA_ACK, FERA_OVF, FERA_WSI, FERA_VETO signals ✅ verified 2026-04-25 - MyRIAD.vhd:L142-148
+
+### Clock Sources
+- Oscillator clock: `MAIN_FPGA_LOGIC_CLK_0/1` (redundant, 50 MHz)
+- Switchable machine clock: `MAIN_FPGA_MACH_CLK_0/1` — mux selects between oscillator and SERDES recovered clock
+- CLOCK_SEL_pin: controls external clock mux chip
+- DCM produces: 5 MHz (÷10), 50 MHz (×1), 100 MHz (×2), 250 MHz (×5)
+
+### LEDs
+- 5× front-panel LEDs (`LED_pin[9:5]`)
+- 2× RJ45 LEDs + complements
+
+---
+
+## TDC (Time-to-Digital Converter)
+
+- `tdc_unit2.vhd`: carry-chain TDC
+- 64-bit vernier output (one bit per carry-chain slice) ✅ verified 2026-04-25 - tdc_unit2.vhd:L43
+- Sampling clock: 300 MHz (`TDC_CLOCK`) ✅ verified 2026-04-25 - tdc_unit2.vhd:L25
+- Input: any logic signal (`BIT_IN`) ✅ verified 2026-04-25 - tdc_unit2.vhd:L26
+- Dual interleaved delay chains: `DELAY_CHAIN_ODD` and `DELAY_CHAIN_EVEN` ✅ verified 2026-04-25 - tdc_unit2.vhd:L43
+- Uses XORCY_D/XORCY_L Xilinx primitives for carry-chain delay line ✅ verified 2026-04-25 - tdc_unit2.vhd:L49-64
+- Reset enables capture; stop event captured as thermometer code
+
+---
+
+## Key Internal Registers (from `registers.vhd` and `myr reg notes.txt`)
+
+| Address | Name | Direction | Description |
+|---------|------|-----------|-------------|
+| 0x0000 | BOARD_ID | R | Board identification |
+| 0x0004 | REG_004 / FIFO_STATUS | R | FIFO status flags |
+| 0x0020 | HARDWARE_STATUS | R | Hardware/SERDES/DCM status |
+| 0x040C | REG_40C / PULSED_CTRL | W | Pulsed control register (one-shot actions) |
+| 0x040E | REG_40E / FIFO_CTRL | W | FIFO control |
+| 0x0410 | REG_410 / CAPTURE_TIME | W | FIFO capture window time |
+| 0x0600 | CODE_REVISION | R | Firmware revision |
+| 0x0604 | CODE_DATE_MMDD | R | Firmware date (MM/DD) |
+| 0x0606 | CODE_DATE_YEAR | R | Firmware year |
+| 0x0702 | NIM_STATUS / REG_702 | R/W | NIM input status; NIM gating control |
+| 0x0704 | ECL_STATUS_A | R | ECL input status A |
+| 0x0706 | ECL_STATUS_B | R | ECL input status B |
+| 0x0708 | REG_708 | R | Latched timestamp [47:32] |
+| 0x070A | REG_70A | R | Latched timestamp [31:16] |
+| 0x070C | REG_70C | R | Latched timestamp [15:0] |
+| 0x070E | REG_70E | R | SERDES command format readback |
+| 0x0710 | REG_710 | W | Coincidence trigger delay |
+| 0x0712 | REG_712 | W | Coincidence trigger gate width |
+| 0x0714 | REG_714 | R | Live timestamp [47:32] |
+| 0x0716 | REG_716 | R | Live timestamp [31:16] |
+| 0x0718 | REG_718 | R | Live timestamp [15:0] |
+| 0x071A–0x0720 | REG_71A–720 | R/W | Timestamp error count control/readback |
+| 0x0722 | REG_722 | W | TTCL time offset (10 ns steps applied to trigger timestamp) |
+| 0x0724 | REG_724 | R | Missed trigger count |
+| 0x0726 | REG_726 | R | Delayed trigger error count |
+| 0x0728 | REG_728 | W | SERDES propagation control |
+| 0x072C | REG_72C | W | Coincidence output control |
+| 0x07EC | FIFO_COUNTER | R | Number of events written to FIFO |
+| 0x07F0 | TRIG_COUNTER | R | Number of triggers received |
+| 0x07F2–0x0800 | USER_COUNTERs[7:0] | R | 8× user-defined counters |
+
+---
+
+## Hardware Status Register (0x0020) Bit Map
 
 ```
-P1  P2  V4
-F3  F5  S6
-S7  S8  S9
+Bit 00: STAT0_R_pin (LVDS status input 0)
+Bit 01: STAT1_R_pin (LVDS status input 1)
+Bit 02: SERDES_SM_LOST_LOCK_FLAG (SM ever lost lock)
+Bit 03–07: reserved
+Bit 08: DCM_LOCKED
+Bit 09: reserved
+Bit 10: SERDES_LOCK_pin (ACTIVE LOW — 0=locked, 1=unlocked)
+Bit 11: UNQUALIFIED_SM_LOCKED (state machine lock, ignores stringent check)
+Bit 12: serdes_isync_flag (imperative sync received)
+Bit 13: serdes_sync_flag (sync received)
+Bit 14: '1' (always 1, for Ron's software check — added 2014-02-11)
+Bit 15: serdes_sm_locked (full lock including data pattern check)
+```
+(Source: `myr reg notes.txt`)
+
+---
+
+## Pulsed Control Register (0x040C) Bit Map
+
+```
+Bit 00: (reserved)
+Bit 01: RESET timestamp logic
+Bit 02: SERDES_SM_LOST_LOCK_RST (clear lost lock flag)
+Bit 03: clear local counter
+Bit 04: LOCAL_TS_RESET_FLAG (simulate imperative sync in local mode)
+Bit 05: reset FIFO and clear capture mode
+Bit 06–13: (reserved)
+Bit 14: put FIFO into SERDES capture mode for CAPTURE_TIME
+Bit 15: SYNC_RESET to DCM
 ```
 
-| LED | Label | Meaning |
-|-----|-------|---------|
-| 1 | P | +5V VME power present (blue) |
-| 2 | P | DC-DC converter subsidiary voltages OK (green) |
-| 4 | V | VME access activity (flashes on each VME access) |
-| 3 | F | FPGA configuration in progress (blinks) |
-| 5 | F | Firmware-specific main FPGA indicator (currently unused) |
-| 6 | S | Blinks when internal coincidence logic satisfied |
-| 7 | S | Blinks on NIM input 1 leading edges |
-| 8 | S | Blinks on local detector TRIGGER IN edges (NIM In 0 or ECL FERA WSI, firmware-selectable) |
-| 9 | S | Blinks on NIM input 7 leading edges |
-
 ---
 
-## DGS Usage
+## SERDES Config Register Bit Map
 
-In DGS, MγRIAD is connected to **link U** of the MTRG: ✅ verified 2026-04-07 - `MTRG/top.vhd:L3562`
-- Receives TTCL timestamps → propagates to auxiliary VME DAQs
-- Sends auxiliary detector trigger messages back to MTRG
-- Local NIM input 0 = aux detector trigger (e.g. ancillary detector, tape station) ✅ verified 2026-04-17 - `MyRIAD.vhd:L393,L1057-1058` (`AUX_DETECTOR_TRIG` driven by `NIM_IN_PIPE(0)` rising edge)
-- Local NIM input 1 = coincidence gate signal ✅ verified 2026-04-17 - `MyRIAD.vhd:L1692` (ILA comment: "coincidence logic 2nd NIM input"; L1464: `NIM_IN_PIPE(1)` rising edge → TRIG_COINC_STATE)
+Normal operational value: `0x0063` or `0x8063`
 
-Coincidence timer is programmable via register - window defines valid auxiliary trigger window relative to NIM In 0.
-
----
-
-## VME Register Map
-_Source: MyRIAD User Manual v1.2, 2015/2018, J. Anderson - Section 3.2/3.3_
-
-All registers are 16-bit, A16/D16. Addresses in hex.
-
-| Address | Mode | Register | Function |
-|---------|------|----------|----------|
-| 0x0000 | R | `board_id` | Board address + firmware info |
-| 0x0004 | RW | `fifo_status` | FIFO status |
-| 0x0020 | R | `hardware_status` | DCM status information |
-| 0x040C | W | `pulsed_control` | Write-only self-clearing: resets |
-| 0x040E | RW | `fifo_control` | FIFO operational modes |
-| 0x0410 | RW | `Capture_time` | SerDes capture time (FIFO test) |
-| 0x0600 | R | `code_revision` | Firmware revision |
-| 0x0604 | R | `code_date` | Compilation date (MMDD) |
-| 0x0606 | R | `code_year` | Compilation year (YYYY) |
-| 0x0700 | R | `NIM_input_status` | Current state of all NIM inputs ✅ verified 2026-04-19 - `registers.vhd:L257` (`when X"0700" => VME_DATA_OUT <= NIM_STATUS`) |
-| 0x0702 | RW | `GATING_REG` | Coincidence starting trigger select: bit 0 = use NIM In 0 as starting trigger; bit 1 = use SERDES trigger from master as starting trigger. (NIM Out 0/1 are hardwired echoes, not controlled by this register.) ✅ verified 2026-04-08 - MYRIAD_Module_Specification.pdf §3.4 |
-| 0x0704 | R | `ECL_input_status_A` | Current state of ECL data inputs ✅ verified 2026-04-19 - `registers.vhd:L260` (`when X"0704" => VME_DATA_OUT <= ECL_STATUS_A`) |
-| 0x0706 | R | `ECL_input_status_B` | Current state of ECL control inputs ✅ verified 2026-04-19 - `registers.vhd:L261` (`when X"0706" => VME_DATA_OUT <= ECL_STATUS_B`) |
-| 0x0708 | R | `LATCHED_TIMESTAMP_A` | Timestamp bits 47:32 (latched on NIM In 0) ✅ verified 2026-04-19 - `registers.vhd:L262` (`when X"0708" => VME_DATA_OUT <= REG_708 -- RELATCHED_TIMESTAMP(47 downto 32)`) |
-| 0x070A | R | `LATCHED_TIMESTAMP_B` | Timestamp bits 31:16 ✅ verified 2026-04-19 - `registers.vhd:L263` |
-| 0x070C | R | `LATCHED_TIMESTAMP_C` | Timestamp bits 15:0 ✅ verified 2026-04-19 - `registers.vhd:L264` |
-| 0x070E | RW | `SerDes_COMMAND_FORMAT` | Select DGS or GRETINA command format ✅ verified 2026-04-19 - `registers.vhd:L265` (`when X"070E" => VME_DATA_OUT <= REG_70E_IN -- SERDES_COMMAND_FORMAT`) |
-| 0x0710 | RW | `Coincidence_window_delay` | Delay value for coincidence trigger window (writable). Default=0x0100. ✅ verified 2026-04-20 - `registers.vhd:L265,L394` (both read and write cases present; `xREG_710` default `X"0100"` at L379) |
-| 0x0712 | RW | `coincidence_window_width` | Gate width for coincidence trigger (writable). Default=0x0110. ✅ verified 2026-04-20 - `registers.vhd:L266,L395` (read+write; `xREG_712` default `X"0110"` at L380) |
-| 0x0714 | R | `LIVE_TIMESTAMP_A` | Running timestamp bits 47:32 ✅ verified 2026-04-20 - `registers.vhd:L267` (`VME_DATA_OUT <= REG_714 -- SYSTEM_TIMESTAMP(47 downto 32)`) |
-| 0x0716 | R | `LIVE_TIMESTAMP_B` | Running timestamp bits 31:16 ✅ verified 2026-04-20 - `registers.vhd:L268` |
-| 0x0718 | R | `LIVE_TIMESTAMP_C` | Running timestamp bits 15:0 ✅ verified 2026-04-20 - `registers.vhd:L269` |
-| 0x071A | RW | *(reserved)* | **Reserved - do not read or write.** ⚠️ Previously mislabeled as `TIMESTAMP_ERROR_CTRL` - corrected 2026-04-20. ✅ verified 2026-04-20 - `registers.vhd:L270` (comment: "reserved, do not read or write") |
-| 0x071E | R | `TIMESTAMP_ERROR_CNT_A` | Timestamp error counter bits 31:16 (errors from SERDES) ✅ verified 2026-04-20 - `registers.vhd:L272` (`REG_TS_ERR_COUNT(31 downto 16)`) |
-| 0x0720 | R | `TIMESTAMP_ERROR_CNT_B` | Timestamp error counter bits 15:0 ✅ verified 2026-04-20 - `registers.vhd:L273` (`REG_TS_ERR_COUNT(15 downto 0)`) |
-| 0x0722 | RW | `TTCL_TIME_OFFSET` | Master trigger re-issue offset control ✅ verified 2026-04-20 - `registers.vhd:L274,L398` (read + writable; comment: "TTCL_TIME_OFFSET register") |
-| 0x0724 | R | `MISSED_TRIG_COUNT` | Counter of missed re-issued trigger messages ✅ verified 2026-04-20 - `registers.vhd:L275` (`std_logic_vector(REG_724) -- MISSED_TRIG_COUNT`) |
-| 0x0726 | R | `DLYD_TRIG_ERR_COUNT` | Counter of re-issued trigger errors ✅ verified 2026-04-20 - `registers.vhd:L276` (`std_logic_vector(REG_726) -- DLYD_TRIG_ERR_COUNT`) |
-| 0x0728 | RW | `PROPAGATION_CONTROL` | Controls SerDes command processing ✅ verified 2026-04-20 - `registers.vhd:L277,L399` (read + write) |
-| 0x07EC | R | `FIFO_COUNTER` | Number of triggers stored in FIFO ✅ verified 2026-04-19 - `registers.vhd:L280` (`when X"07EC" => VME_DATA_OUT <= std_logic_vector(FIFO_COUNTER)`) |
-| 0x07F0 | R | `TRIG_COUNTER` | Total triggers received ✅ verified 2026-04-19 - `registers.vhd:L281` (`when X"07F0"`); **KB previously said 0x07EE - corrected** |
-| 0x07F2-0x07Fe | R | `USER_COUNTER_0-6` | Edge counters for NIM inputs 0-6 ✅ verified 2026-04-19 - `MyRIAD.vhd:L910` (`USER_COUNTERs reads back at 0x07F2 - 0x0800`; 8 total NIM input counters) |
-| 0x0800 | R | `USER_COUNTER_7` | Edge counter for NIM input 7 ✅ verified 2026-04-19 - `MyRIAD.vhd:L910` (0x0800 = last of 8 USER_COUNTERs driven by `NIM_IN` rising edges, L997-1005) |
-| 0x0848 | RW | `sd_config` | SerDes configuration register ✅ verified 2026-04-20 - `registers.vhd:L295,L401` (read: `xREG_848 -- SERDES configuration register`; write case at L401) |
-| 0x0860-0x0866 | R | TDC vernier data | 4 × 16-bit TDC vernier words (bits 63:48, 47:32, 31:16, 15:0) ✅ verified 2026-04-19 - `registers.vhd:L296-299` (`TDC_VERNIER(63 downto 48/47 downto 32/31 downto 16/15 downto 0)`) |
-| 0x0900 | RW | `fpga_ctrl_reg` | Main FPGA configuration control |
-| 0x0902 | R | `vme_status` | VME FPGA status |
-| 0x0904 | R | `vme_aux_status` | VME FPGA auxiliary status |
-| 0x0906 | RW | `config_req_ack` | Configuration request/ack (write triggers FPGA reconfiguration; read back = ack) ✅ verified 2026-04-20 - `register_block.vhd:L243` (comment: "0x0906 (configuration request/ack)") |
-| 0x0908 | RW | `flash_vpen` | Flash write-protect enable |
-| 0x090A | RW | `config_start_low` | FPGA config start address (low) |
-| 0x090C | RW | `config_start_high` | FPGA config start address (high) - only bits [7:0] used ✅ verified 2026-04-20 - `register_block.vhd:L181,L252` (read/write cases both `config_start_high`; note: **KB previously had 0x090C and 0x0910 swapped**) |
-| 0x090E | RW | `config_stop_low` | FPGA config stop address (low) |
-| 0x0910 | RW | `config_stop_high` | FPGA config stop address (high) - only bits [7:0] used; default=0x0007 (stop at 0x70000) ✅ verified 2026-04-20 - `register_block.vhd:L185,L256` (read/write cases both `config_stop_high`; L134 default `X"0007"`) |
-| 0x0918 | RW | `vme_sandbox1` | VME sandbox register 1 (debug) |
-| 0x091A | RW | `vme_sandbox2` | VME sandbox register 2 (debug) |
-| 0x091C | RW | `vme_sandbox3` | VME sandbox register 3 (debug) |
-| 0x091E | RW | `vme_sandbox4` | VME sandbox register 4 (debug) - R/W, default=0x3333 ✅ verified 2026-04-20 - `register_block.vhd:L195,L265` (both read and write cases; L118 default `X"3333"`) |
-| 0x1000 | R | `fifo` | FIFO read port - each read returns one 16-bit word from the trigger FIFO |
-
-_Note: Above 0x0902 entries sourced from `MYRIAD_Module_Specification.pdf` (v1.0, 2014). Some may differ from User Manual v1.2 (2015)._
-
-### Coincidence Logic
-State machine: fires when "starting trigger" occurs (NIM In 0 if `GATING_REG[0]`=1, or SERDES trigger if `GATING_REG[1]`=1). After `Coincidence_window_delay` × 20 ns, opens a window of width `coincidence_window_width`. If NIM In 1 fires during window → NIM Out 3 asserts. Timeout without match → return to idle.
-
----
-
----
-
-## FPGA Firmware Architecture
-_Source: `DGS_tools_pack/FPGA/others/MyRIAD/MAIN_FPGA/Source/MyRIAD.vhd` (explored 2026-04-08)_
-
-**Main FPGA chip:** Xilinx Spartan-3 **XC3S1000-FG456** ✅ verified 2026-04-19 - `FPGA/others/MyRIAD/MAIN_FPGA/Work13/MyRIAD.xise`: Device=xc3s1000, Package=fg456, Family=Spartan3
-
-**VME FPGA chip:** Xilinx Spartan-3 **XC3S400-FG320** ✅ verified 2026-04-19 - `FPGA/others/MyRIAD/VME_FPGA/Work13.4/Work13.4.xise`: Device=xc3s400, Package=fg320, Family=Spartan3
-
-### Generic Parameter
-```vhdl
-COMMAND_LINE_COMMAND_FORMAT : integer
-  -- 0 = DGS Master format
-  -- 1 = DGS Router format
-  -- 2 = GRETINA Master format
 ```
-Controls how the SERDES RX machine interprets incoming commands - same hardware supports all three modes via a compile-time generic.
-
-### Key Internal Modules
-
-| Module/Instance | File | Function |
-|----------------|------|----------|
-| `MAIN_DCM_CTRL` | `DCM_CONTROLLER.vhd` | Manages Xilinx DCM - generates 50/100/250 MHz clocks from oscillator or SERDES recovered clock; clock source selectable via `CLOCK_SEL_pin` |
-| `INST_SERDES_RX_Mach` | `SERDES_RX_Mach_R2.vhd` | Receives 18-bit SERDES data; DC-balance decoding; command frame parsing per `COMMAND_FORMAT` |
-| `TX_INST` | `SERDES_TX_MACH.vhd` | Transmits 18-bit SERDES words at 100 MHz; DC-balanced via disparity lookup |
-| `U20` | `registers.vhd` | VME-accessible register file (16-bit, A16/D16); all registers in MYRIAD's VME map above |
-| `NIM_PIPES_BLK` | `MyRIAD.vhd` (inline generate loop × 8) | Fixed 3-stage shift-register pipelines for each NIM input; samples at 100 MHz, detects rising edge via `NIM_IN_PIPE(i)(1:0) = "01"`. **Note:** `NIM_Delay.vhd` exists in Source/ (a programmable circular-buffer delay, 2 inputs) but is **not instantiated** in `MyRIAD.vhd` — it appears to be from the Digitizer Tester project header. ✅ verified 2026-04-23 - `MyRIAD.vhd:L985-995` (inline generate, no component instantiation) |
-| `FIFO_TIMESTAMP_MACH` | inline process | Writes trigger timestamps + NIM/ECL states into dual external FIFOs (A and B, 18-bit wide each = 16-bit data + 2 flag bits) |
-| `TRIGGER_COINC_PROC` | `MyRIAD.vhd` (inline process) | Coincidence logic: waits for `LATCH_TRIG_FLAG` (aux detector trigger), counts down `AUX_DETECTOR_DLY_CNT`; if NIM In 1 rises within that window → `COINC_TRIG_FLAG` asserts (NIM Out 3). **Note:** `mstr_mach.vhd` exists in Source/ but is a separate Satellite Master state machine (TTCL command generator), **not** the coincidence logic. It is not instantiated in `MyRIAD.vhd`. ✅ verified 2026-04-23 - `MyRIAD.vhd:L1427-1470` (`TRIGGER_COINC_PROC`, `TRIG_COINC_STATE` FSM) |
-| `Phase_Hunter_SerDes` | `Phase_Hunter_SerDes.vhd` | Aligns SERDES receive clock phase for proper data sampling |
-
-### TDC
-A TDC block (`tdc_unit2`) exists in `Source/` but is **commented out** in `MyRIAD.vhd` - it was tested but not integrated into the production firmware. The `TDC_LOOPBACK_OUT_pin` is hard-wired to `'0'`. Only `TDC_VERNIER_OUT` signal is declared; actual TDC is in MTRG Main FPGA, not here.
-
-### FIFO Architecture
-Dual external FIFOs (A and B) hold trigger records for VME readout:
-- **FIFO A** → VME data bits [15:0] (lower word) ✅ verified 2026-04-17 - `MyRIAD.vhd:L37` ("Bits (15:0) of FIFO 'A' drive directly out VME data bits 15:0")
-- **FIFO B** → VME data bits [31:16] (upper word) ✅ verified 2026-04-17 - `MyRIAD.vhd:L73` ("Bits (15:0) of FIFO 'B' drive directly out VME data bits 31:16")
-- 18-bit write port: bits[15:0] = data, bit16 = FIFOFLAG0/2 (control), bit17 = FIFOFLAG1/3 (control) ✅ verified 2026-04-17 - `MyRIAD.vhd:L36,L72` (header comments)
-- Clock: 100 MHz write; VME-synchronous read ✅ verified 2026-04-17 - `MyRIAD.vhd:L466,L1536` (FIFODATA_IOB process clocked on CLOCK_100MHZ)
-- Reset via `PULSED_CTRL[5]` (self-clearing pulsed control register bit) ✅ verified 2026-04-17 - `MyRIAD.vhd:L1625` (comment: "hit PULSED_CTRL(5)"), L1817/1839 (MRS driven by `not PULSED_CTRL(5)`)
-
-### Git Location
-`DGS_tools_pack/FPGA/others/MyRIAD/MAIN_FPGA/Source/` (ISE project, Spartan-3)
+Bit 00: SERDES_DEN_pin (driver enable)
+Bit 01: SERDES_REN_pin (receiver enable)
+Bit 02: SERDES_LINE_LE_pin (line loopback enable)
+Bit 03: SERDES_LOCAL_LE_pin (local loopback enable)
+Bit 04: SERDES_SYNC_pin (sync pattern control)
+Bit 05: SERDES_TPWRDN_pin (TX power down, active low)
+Bit 06: SERDES_RPWRDN_pin (RX power down, active low)
+Bit 07: stringent_lock_flag (if set: check data pattern everywhere; if clear: only Sync+EOC)
+Bit 15: clock select (0=oscillator, 1=SERDES recovered clock)
+```
 
 ---
 
-## ANLDAQ / IOC Integration
-_Source: `ANLDAQ/gui/gui_MTRG.py`, `ANLDAQ/gui/link_sys.py`, `ANLDAQ/ioc/db/MTrigUser.template` (explored 2026-04-23)_
+## Coincidence Logic
 
-The Master Trigger IOC and GUI expose MγRIAD as a distinct Link U / overlap-control path:
+MyRIAD implements a **Auxiliary Detector ↔ Gammasphere coincidence window**:
 
-- `EN_MYRIAD_LINK_U` is the trigger-mask enable bit for the MγRIAD/Link U source in the MTRG trigger mask table. ✅ verified 2026-04-23 - `MTrigUser.template:L33605-L33613`
-- `link_sys.py` explicitly clears `EN_MYRIAD_LINK_U` during trigger reset/setup, so scripted trigger reconfiguration treats MyRIAD as a standard selectable trigger source. ✅ verified 2026-04-23 - `link_sys.py:L105-L113`
-- `gui_MTRG.py` provides a `MYR_TRIGGER_TYPE_SELECT` two-state button labeled **Myriad Raw / Myriad Gated**, confirming the GUI can choose whether MTRG uses raw or coincidence-gated MγRIAD trigger information. ✅ verified 2026-04-23 - `gui_MTRG.py:L199-L206`
-- `MYRIAD_OVERLAP_DELAY` and the associated overlap-enable mask live in `reg_MYRIAD_OVERLAP_CTL`, showing that MTRG can require time overlap between the MγRIAD path and selected trigger algorithms. ✅ verified 2026-04-23 - `MTrigUser.template:L69907-L69919`
-
-## Related Files
-- `connectors.md` - links R and U on MTRG where MγRIAD connects
-- `ttcl.md` - TTCL protocol MγRIAD uses for trigger communication
-- `wiki_gsdaq.md` - MγRIAD mentioned in DAQ system overview
-
-## SVN Location
-`DGS_tools_pack/DGS_SVN/dgs/MyRIAD/`
+- `AUX_DETECTOR_TRIG`: input from NIM IN[0] or ECL WSI (multiplexed)
+- `AUX_DETECTOR_TRIG_DLY` (REG_710): delay after aux detector trigger before GS gate opens
+- `MSTR_TRIG_OVERLAP_TIME` (REG_712): gate width for coincidence window
+- State machine: `WAIT_FOR_AUX_DETECTOR` → `AUX_DETECTOR_DLY_WAIT`
+- Counters: `COINC_TRIG_COUNTER`, `COINC_TIMEOUT_COUNTER`, `MISSED_TRIG_ERROR_COUNTER`
 
 ---
 
-## Firmware Revision (from Source)
-_Source: `DGS_tools_pack/FPGA/others/MyRIAD/MAIN_FPGA/Source/MyRIAD_pkg.vhd` - verified 2026-04-12_
+## TTCL Trigger Interface
 
-| Constant | Value | Meaning |
-|----------|-------|---------|
-| `cCODE_REVISION` | `0x0B16` | PCB rev=0 (no proto suffix), firmware type=B (MyRIAD expansion), major=1, minor=6 |
-| `cCODE_DATE_MMDD` | `0x0810` | August 10 |
-| `cCODE_DATE_YEAR` | `0x2022` | 2022 |
+MyRIAD receives TTCL (Trigger, Timestamp, Command Link) messages from the DGS master trigger via SERDES:
 
-**Firmware type code B** = "MyRIAD Trigger expansion module" - same numeric encoding as all other DGS/GRETINA firmware (see `MyRIAD_pkg.vhd:L35-51` for full table). This is the production firmware as of 2022-08-10.
-
----
-
-## GITMO_TOP.vhd - Legacy Module in Same FPGA Repo
-
-`FPGA/others/MyRIAD/MAIN_FPGA/Source/GITMO_TOP.vhd` (795 lines) is a **separate legacy module** stored in the same repo, not the current MγRIAD firmware. It is **not built or deployed** on the current DGS/Gammasphere setup.
-
-**GITMO = Gammasphere Interface to Trigger MOdule** - author: John Anderson (ANL).
-
-**Purpose:** Collect clock and trigger information from the **Gammasphere Master Trigger crate** (VXI-bus based), pack into a data stream, and transmit over SERDES to control the Digital Gammasphere (DGS) Master Trigger. This was the bridge between the legacy analog Gammasphere trigger hardware and the digital DGS system during the transition period.
-
-**Key hardware interfaces:**
-- `TRIG0_FROM_VXI_pin` - 'early' trigger from Gammasphere VXI backplane
-- `VXI_RDY_BSY_IN_T_pin` - VXI Ready/Busy bus signal
-- `TTLTRIG_pin` - TTL trigger inputs (2 bits)
-- `NIM_IN_pin`, `ECL_IN_pin` - NIM/ECL front panel inputs
-- `FERA_*` - FERA ADC control interface (same as MγRIAD)
-- SERDES I/O to/from DGS MTRG (same DS92LV18 chip as MγRIAD)
-
-**Clocks:** 10 MHz VXI clock → DCM → 50 MHz logic clock; ICS502 PLL generates SERDES TCLK.
-
-**Architecture:** `mstr_mach` sub-component (data generator) collects NIM/ECL/VXI trigger inputs and formats a SERDES command stream → `COMMAND_OUT` → sent to DGS MTRG Link L.
-
-> **Relationship to current system:** The MTRG's `GITMO_TRIGGER.vhd` algorithm (Link L input) and `GITMO_RCV_MACH.vhd` receiver were originally designed to receive data from this GITMO_TOP module. Current DGS uses Link L for remote-master or GRETINA interconnects, not the physical GITMO hardware. The GITMO_TOP.vhd is preserved as historical reference. ✅ verified 2026-04-17 - `GITMO_TOP.vhd` header comment + port declarations
+- `TTCL_TRIG_TIMESTAMP [47:0]`: timestamp embedded in trigger packet
+- `TTCL_TRIG_FLAG`: high when trigger received
+- `TTCL_TRIG_TYPE [2:0]`: trigger type field
+- `TTCL_TIME_OFFSET` (REG_722): delay applied to trigger timestamp before asserting NIM output (in 10 ns steps)
+- Delayed trigger state machine: `IDLE → CALC_OFFSET_TIME → LET_FLAGS_SETTLE1 → LET_FLAGS_SETTLE2 → WAIT_MATCH`
+- `DLYD_TTCL_TRIG_OUT`: NIM output pulse at fixed delay relative to trigger timestamp
+- `DLYD_TRIG_ERROR_COUNTER`: counts triggers where delay cannot be met
 
 ---
 
-*Created: 2026-04-05 (from SVN MyRIAD Abridged User Notes PDF). FPGA firmware section added 2026-04-08. Firmware revision verified from source 2026-04-12. GITMO_TOP section added 2026-04-17.*
+## GITMO (Gammasphere Interface to Trigger Module)
 
-## Cross-References
+`GITMO_TOP.vhd` implements a historical adapter role:
+- Collects clock and trigger data from an **analog Gammasphere Master Trigger crate**
+- Packs this into the DGS SERDES data stream for the Digital Gammasphere Master Trigger
+- Bridges legacy GS analog trigger system to digital DGS infrastructure
+- Has same dual-FIFO interface (FIFO A + FIFO B) as MyRIAD main FPGA
 
-- `knowledgeBase/connectors.md` - MTRG front-panel connector pinouts; MγRIAD connects to Link U (NIM I/O, ECL CTL, ECL I/O, RJ45 TTCL)
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` - MTRG Main FPGA: Link U SERDES reception, `RECEIVED_MYRIAD_DATA` signal
-- `knowledgeBase/ttcl.md` - TTCL spec; MγRIAD receives timestamps and trigger decisions from MTRG over SERDES
-- `knowledgeBase/fpga.md` - 3-tier trigger hierarchy; MγRIAD as auxiliary trigger input via Link U
+---
+
+## FIFO Data Write State Machine
+
+`FIFO_WRT_STATES`: `WAIT_TRIG → WRT_HDR_A → WRT_HDR_B → WRT1A → WRT1B → WRT2A → WRT2B → WRT3A → WRT3B → ALWAYS_CAPTURE_A → ALWAYS_CAPTURE_B`
+
+Data written per trigger event: header (A+B words) + 3× 32-bit data words (A and B halves each)
+
+---
+
+## Diagnostic / Debug Features
+
+- **Chipscope ILA** projects: multiple `.cpj` files in `MAIN_FPGA/Chipscope/` for different operating modes (FIFO mode, SERDES mode, delayed trigger, default, 80-bit ILA)
+- **VIO** (Virtual I/O): 64-bit control bits + 16-bit readback data sampled every LACK edge
+- ILA trigger bus: 128-bit wide
+- Loopback pins: `N_OUT_DLY_OUT/IN[7:0]`, `TDC_LOOPBACK_OUT/IN` for fine-tuning ODELAY values
+
+---
+
+## Relationship to Other DGS Components
+
+- Receives TTCL data stream from MTRG (DGS Master Trigger) via SERDES
+- Sends event data via VME bus (through VME FPGA)
+- Can operate in DGS Master, DGS Router, or GRETINA Master mode
+- GITMO variant bridges analog GS master trigger crate to digital DGS trigger infrastructure
+- Not to be confused with MTRG (deep_fpga_MTRG.md) or RTRG (deep_fpga_RTRG.md) — MyRIAD is an *auxiliary* expansion module, not a primary trigger processor

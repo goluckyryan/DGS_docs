@@ -4,6 +4,46 @@ Stability: C2 - Active / semi-stable
 
 > 🔗 **Related:** `sbx.md` — SBX (Slope Box Extension) hardware that this IOC controls | `collectorbox_PVs.md` — full PV list | `gammasphere_geometry.md` — GS hole numbering
 
+## Table of Contents
+
+1. [What It Is](#what-it-is)
+2. [Key Hardware](#key-hardware)
+3. [Repository Layout](#repository-layout)
+4. [Key Files](#key-files)
+   - [GenerateCmdFile.py Inputs](#generatecmdfilepy-inputs)
+   - [special_detectors.txt — Per-Detector Overrides and DISPLACED Cables](#special_detectorstxt--per-detector-overrides-and-displaced-cables)
+5. [PVs — High Voltage Control (per active detector)](#pvs--high-voltage-control-per-active-detector)
+6. [Build Order](#build-order)
+7. [Generating Startup Files](#generating-startup-files)
+   - [Per-Detector Macro Assignments](#per-detector-macro-assignments)
+   - [Geometry Helpers](#geometry-helpers)
+   - [Autosave .req File Generation](#autosave-req-file-generation)
+8. [Running the IOC](#running-the-ioc)
+9. [softioc_postscript.sh — Post-Init Hardware Commissioning](#softioc_postscriptsh--post-init-hardware-commissioning)
+   - [Phase 1 — Relay & SPI Enable](#phase-1--relay--spi-enable-loop-over-65-stripeport-grid)
+   - [Phase 2 — I2C & Preamp Enable](#phase-2--i2c--preamp-enable-loop-over-detector-list)
+   - [Phase 3 — BGO HV Interlock](#phase-3--bgo-hv-interlock)
+   - [Phase 4 — HPGe HV Interlock & Ramp](#phase-4--hpge-hv-interlock--ramp)
+   - [Phase 5 — PT100 Temperature Calibration](#phase-5--pt100-temperature-calibration)
+   - [Phase 6 — Health Check & Error Report](#phase-6--health-check--error-report)
+10. [Networking / PXE Boot](#networking--pxe-boot)
+11. [Discord Integration](#discord-integration)
+12. [EPICS Port Convention (inferred)](#epics-port-convention-inferred)
+13. [SPI Hardware Communication Layer](#spi-hardware-communication-layer)
+    - [Protocol](#protocol)
+    - [DEVSEL Bus (Device Selection)](#devsel-bus-device-selection)
+    - [ADC Scanner](#adc-scanner)
+    - [Key Functions (spi.c)](#key-functions-spic)
+    - [Global Data Structure (CollectorSupport.h)](#global-data-structure-collectorsupporth)
+    - [I2C Control Flags (CollectorSupport.h)](#i2c-control-flags-collectorsupporth)
+14. [Collector Box → GS Hole Assignments](#collector-box--gs-hole-assignments)
+15. [db/ Template Files (18 templates)](#db-template-files-18-templates)
+16. [Commissioning Workflow — Adding / Removing Detectors](#commissioning-workflow--adding--removing-detectors)
+    - [Add_Remove_Detectors.sh (must run as root)](#add_remove_detectorssh-must-run-as-root)
+    - [Pre_EPICS_Collector/ — Commissioning Utilities](#pre_epics_collector--commissioning-utilities)
+17. [Connections to Other Subsystems](#connections-to-other-subsystems)
+18. [Cross-References](#cross-references)
+
 ## What It Is
 
 An **EPICS soft IOC** running on Raspberry Pi (aarch64 / Debian 13) that controls and monitors **Collector Box** hardware (CollectorBox_RevA). All 4 Pi collector boxes now run this repo (as of commit 2309422, 2026-04-13 — "all pi changed to NFS server").

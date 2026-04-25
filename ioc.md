@@ -2,6 +2,38 @@
 
 Stability: C2 - Active / semi-stable
 
+## Table of Contents
+
+1. [What It Is](#what-it-is)
+   - [Historical Origin (Carlware)](#historical-origin-carlware)
+2. [Folder Layout](#folder-layout)
+3. [EPICS CA Port Map (from cdCommands)](#epics-ca-port-map-from-cdcommands)
+4. [Firmware Files (firmware/)](#firmware-files-firmware)
+   - [Board Type Encoding — code_revision\[11:8\]](#board-type-encoding--code_revision118)
+5. [Boot Script Details](#boot-script-details)
+   - [vme66.cmd (DuoGe — CRATE=66)](#vme66cmd-duoge--crate66)
+6. [Boot Scripts](#boot-scripts)
+   - [Production GS Crate Slot Map (VME01–VME12)](#production-gs-crate-slot-map-vme01vme12)
+7. [FTP Server Setup (IOC Host)](#ftp-server-setup-ioc-host)
+8. [Current Firmware Versions](#current-firmware-versions)
+9. [IOC Setup (Example: DuoGe / tangerine)](#ioc-setup-example-duoge--tangerine)
+   - [VxWorks Boot Parameters (set on MVME5500 boot prompt)](#vxworks-boot-parameters-set-on-mvme5500-boot-prompt)
+   - [Prerequisites on Host](#prerequisites-on-host)
+10. [Key Concepts](#key-concepts)
+    - [munch file (gretDet.munch)](#munch-file-gretdetmunch)
+    - [EPICS PVs](#epics-pvs)
+    - [DB Templates (ioc/db/)](#db-templates-iocdb)
+    - [MTrigUser.template — Key PV Groups](#mtrigusertemplatekey-pv-groups)
+    - [Boot script flow](#boot-script-flow)
+11. [findAllPV.py — PV Discovery Tool](#findallpvpy--pv-discovery-tool)
+12. [Connections to Other Subsystems](#connections-to-other-subsystems)
+13. [IOC Connections: Ethernet vs Terminal Server](#ioc-connections-ethernet-vs-terminal-server)
+    - [1. Ethernet (Data + EPICS)](#1-ethernet-data--epics)
+    - [2. Terminal Server (Console/Shell access)](#2-terminal-server-consoleshell-access)
+    - [Terminal Server Assignments](#terminal-server-assignments)
+14. [Operational Notes](#operational-notes)
+15. [Cross-References](#cross-references)
+
 ## What It Is
 
 The **IOC (Input/Output Controller) repository** — contains all files needed to bring up a DGS VME crate:
@@ -197,10 +229,36 @@ Boot sequence:
 ## Boot Scripts
 
 Located in `boot/`:
+- `vme01.cmd`–`vme12.cmd` — Production GS crates; see table below
 - `vme66.cmd` — DuoGe crate (CRATE=66); uses `cdCommands` (CA port 5080/5081 DuoGe) ✅ verified 2026-04-20 — `ioc/boot/cdCommands:L11-12` (SERVER_PORT=5080, REPEATER_PORT=5081); `vme66.cmd:L14` (< cdCommands)
 - `vme99.cmd` — GRETINA lab test stand (CRATE=99); uses `cdCommandsLab` (CA port 5074/5075 G-wing) ✅ verified 2026-04-20 — `ioc/boot/vme99.cmd:L18,L21,L27` (G-wing port 5074/5075 comment + putenv + < cdCommandsLab)
 - `cdCommands` — paths + EPICS CA env for DuoGe system
 - `nfsCommands` — NFS mount: `nfsAuthUnixSet("fs.gam", 6000, 10, 0, 0)` ✅ verified 2026-04-20 — `ioc/boot/nfsCommands:L1`
+
+### Production GS Crate Slot Map (VME01–VME12)
+
+✅ verified 2026-04-24 — all entries extracted directly from `ioc/boot/vme01.cmd`–`vme12.cmd` (slot comments + `asynDigitizerConfig`/`asynTrigRouterConfig1`/`asynTrigMasterConfig1` lines)
+
+| Crate | Slot 1 | Slot 2 | Slot 3 | Slot 4 | Slot 5 | Slot 6 | Slot 7 | DIG count | Trigger |
+|-------|--------|--------|--------|--------|--------|--------|--------|-----------|---------|
+| VME01 | IOC | MDIG1 | SDIG1 | MDIG2 | SDIG2 | empty | empty | 4 | — |
+| VME02 | IOC | MDIG1 | SDIG1 | MDIG2 | SDIG2 | empty | empty | 4 | — |
+| VME03 | IOC | MDIG1 | SDIG1 | MDIG2 | SDIG2 | empty | RTR1 | 4 | RTRG RTR1 (board# 4, slot 7) |
+| VME04 | IOC | MDIG1 | SDIG1 | MDIG2 | SDIG2 | empty | empty | 4 | — |
+| VME05 | IOC | MDIG1 | SDIG1 | MDIG2 | SDIG2 | empty | empty | 4 | — |
+| VME06 | IOC | MDIG1 | SDIG1 | empty | empty | empty | RTR2 | 2 | RTRG RTR2 (board# 4, slot 7) |
+| VME07 | IOC | MDIG1 | SDIG1¹ | MDIG2 | SDIG2¹ | empty | empty | 4 | — |
+| VME08 | IOC | MDIG1 | SDIG1 | MDIG2 | SDIG2 | empty | empty | 4 | — |
+| VME09 | IOC | MDIG1 | SDIG1 | MDIG2 | SDIG2 | empty | RTR3 | 4 | RTRG RTR3 (board# 4, slot 7) |
+| VME10 | IOC | MDIG1 | SDIG1 | empty | MTRG | Fiber Exp. | empty | 2 | MTRG (board# 4, slot 5) |
+| VME11 | IOC | MDIG1 | SDIG1 | MDIG2 | SDIG2 | empty | empty | 4 | — |
+| VME12 | IOC | MDIG1 | SDIG1 | MDIG2 | SDIG2 | empty | RTR4 | 4 | RTRG RTR4 (board# 4, slot 7) |
+
+¹ VME07 comment says SDIG1 and SDIG2 are "Removed to reduce load" but they are still initialized in `asynDigitizerConfig` and `inLoop` B-params — likely physically absent but software slots kept for symmetry.
+
+**Summary:** 11 production crates with digitizers; VME10 houses the MTRG; VME03/06/09/12 each house one RTRG. Total DIG boards: 4×10 + 2×1 + 2×1 = 44 DIGs (matches `SYSTEM_DEFINES.sh` in trig_setup scripts). 4 RTRGs total. 1 MTRG.
+
+**User package data:** `[(crate# − 1) × 4] + 101 + board#` where board# ∈ {0,1,2,3} → VME01: 101–104, VME02: 105–108, … VME11: 141–144, VME12: 145–148. MTRG = 150; RTR1–4 = 151–154 (planned, not yet implemented as of 2023-03-31). ✅ verified 2026-04-24 — `vme01.cmd` + `ioc/boot/vme10.cmd` + comment in all `.cmd` files.
 
 **Key differences between vme66 and vme99:**
 - vme66: loads `daqCrate.template` + NFS globals commented out; `cdCommands` (DuoGe port) ✅ verified 2026-04-20 — `vme66.cmd:L98` (daqCrate.template); `vme66.cmd:L105` (dgsGlobals commented out)
@@ -497,4 +555,7 @@ gnome-terminal -- bash -c "telnet 192.168.203.54 2001; exec bash"
 - `knowledgeBase/VME_registers.md` — Complete VME register addresses extracted from asyn driver source
 - `knowledgeBase/IOC_cmd.md` — IOC shell commands available in DGS VxWorks IOC
 - `knowledgeBase/fpga.md` — FPGA firmware overview; firmware revisions that must match IOC boot scripts
+- `knowledgeBase/vxworks_state_machines.md` — DAQ runtime state machines (`inLoop.st`, `outLoop.st`, `MiniSender.st`); buffer pool; trigger driver summary
+- `knowledgeBase/vxworks_fifo_readout.md` — DMA buffer architecture, trigger FIFO readout, Type-F synthetic headers, FIFO index map
+- `knowledgeBase/vxworks_trigger_drivers.md` — Deep-dive into trigger asyn drivers (`asynTrigCommonDriver`, `asynTrigMasterDriver`, `asynTrigRouterDriver`); firmware type code table
 - `knowledgeBase/troubleshooting.md` — IOC connectivity issues, SYNC bit gotcha

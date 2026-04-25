@@ -94,7 +94,7 @@ RTRG/
 | `DCBAL_in.vhd` | DC-balance removal with FIFO |
 | `DCBAL_in_nofifo.vhd` | DC-balance removal without FIFO |
 | `disc_mach.vhd` | Discriminator state machine |
-| `overlap_mach.vhd` | Overlap detection state machine |
+| `overlap_mach.vhd` | Overlap detection state machine (⚠️ unused — not instantiated anywhere in RTRG) |
 | `disparity_lookup.vhd` | DC balance disparity lookup table |
 
 ### Throttle Control
@@ -334,9 +334,11 @@ ST_WAIT_DIRTY:  (entered when the second discriminator fires with time still lef
 
 ### Outputs
 
-The one-clock-wide pulses `CLEAN_EVENT`, `DIRTY_EVENT`, and `BGO_ONLY_EVENT` are fed to `overlap_mach.vhd` which stretches them into the ASSERTION time window used by the multiplicity sum logic.
+The one-clock-wide pulses `CLEAN_EVENT`, `DIRTY_EVENT`, and `BGO_ONLY_EVENT` are fed back into `chan_in.vhd` (ONE_SHOTS process), which stretches them into `HAVE_CLEAN`, `HAVE_DIRTY`, and `HAVE_MODULE` assertion windows using `ASSERTION_DELAY` (from `TSCATTER_DELAY_REG[14:8]`). ✅ verified 2026-04-25 — `chan_in.vhd:L329,339,349`
 
-The stretched signals `HAVE_CLEAN` and `HAVE_DIRTY` (from `overlap_mach`) are transmitted to the MTRG as the X-sum (clean) and Y-sum (dirty) multiplicity contributions.
+The stretched signals `HAVE_CLEAN` and `HAVE_DIRTY` (produced by the ONE_SHOTS process in `chan_in.vhd`) are transmitted to the MTRG as the X-sum (clean) and Y-sum (dirty) multiplicity contributions.
+
+> **Note:** `overlap_mach.vhd` is a separate generic 2-input coincidence detector (window comparator) with a one-tick `OVERLAP_OCCURRED` output. Despite earlier KB notes, it is **NOT instantiated anywhere in RTRG** ✅ verified 2026-04-25 — exhaustive grep of `~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/*.vhd` finds zero uses. `disc_mach.vhd` implements its own inline overlap detection and does not import this module. The overlap-detection algorithm exists in the source tree as an unused standalone generic.
 
 > This is why the MTRG has separate `EN_SUM_X` and `EN_SUM_Y` trigger enables — X = clean (Compton-suppressed Ge hits), Y = dirty (Compton-coincident). The Gammasphere physics trigger typically fires on `EN_SUM_X` with a threshold.
 
@@ -399,9 +401,12 @@ Each Router sends one 132-bit word to the MTRG per trigger cycle (2 µs), one wo
 - `knowledgeBase/260E_trigger_scheme.md` — Deep dive into RTRG 0x260E trigger scheme: `chan_in.vhd` serial reception + bit alignment, `router_data_path.vhd` multiplicity aggregation, X/Y plane maps, Link-L output format; verified against VHDL source
 - `knowledgeBase/vhdl/RTRG_chan_in.md` — `chan_in.vhd` plain-English analysis: 18-bit SERDES word decoding, 640 ns DPRAM delay alignment, discriminator bit extraction, CLEAN_DIRTY register modes
 - `knowledgeBase/vhdl/RTRG_disc_mach.md` — `disc_mach.vhd` analysis: discriminator classifier (clean/dirty/BGO-only), event tagging logic
-- `knowledgeBase/vhdl/RTRG_overlap_mach.md` — `overlap_mach.vhd` analysis: trigger overlap and hold-off state machine (stretches CLEAN/DIRTY pulses into HAVE_CLEAN/HAVE_DIRTY assertion windows)
+- `knowledgeBase/vhdl/RTRG_overlap_mach.md` — `overlap_mach.vhd` analysis: generic 2-input coincidence window detector — answers "did SIG_A and SIG_B both fire within OVERLAP_DELAY clocks?" (one-tick OVERLAP_OCCURRED output); ⚠️ NOT instantiated in RTRG (disc_mach.vhd has equivalent logic inlined) — module exists in source tree but is unused ✅ verified 2026-04-25
+- `knowledgeBase/vhdl/RTRG_support_modules.md` — overlap_machine, throttle_monos, throttle_limiters, channel_resets, Plane_bit_count: coincidence detection, throttle monostable stretchers (2 µs/rank-cascaded limiter), per-channel pipeline reset, 1024-entry popcount LUT
 - `knowledgeBase/vhdl/RTRG_router_data_path.md` — `router_data_path.vhd` analysis: Link-L multiplicity aggregation, data forwarding to MTRG
 - `knowledgeBase/vhdl/RTRG_top.md` — `TOP.VHD` analysis: top-level RTRG block wiring, port map, all sub-module instantiation
+- `knowledgeBase/vxworks_trigger_drivers.md` — VxWorks IOC trigger asyn drivers: `asynTrigRouterDriver` (RTRG, 188 params, ftype=6), firmware type code table, shared poll/VME mutex infrastructure
+- `knowledgeBase/vxworks_state_machines.md` — VxWorks state machines: inLoop/outLoop/MiniSender pipeline; trigger driver overview (summary level)
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Rtr4704*/` — VHDL source + bitfiles. Created: 2026-04-05.*

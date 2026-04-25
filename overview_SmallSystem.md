@@ -100,6 +100,14 @@ Stability: C2 - Active / semi-stable
 | dub1ioc2 | .98 | VxWorks | VME IOC 2 |
 | dub1ioc3 | .99 | VxWorks | VME IOC 3 |
 | mpod1 | .221 | — | Iseg MPOD HV controller |
+| xiatest | .25 | — | XIA test node |
+| xiatemp | .31 | — | XIA temp node |
+| xia14-250-27-lan | .219 | — | XIA 14-250 digitizer (LAN) |
+| xia14-250-24-0 | .223 | — | XIA 14-250 digitizer |
+| xia14-250-24-1 | .228 | — | XIA 14-250 digitizer |
+| uballxia1 | .234 | — | XIA node (retired?) |
+
+✅ verified 2026-04-25 — [wiki: Computers and networks](https://wiki.anl.gov/gsdaq/Computers_and_networks) (all IPs/hostnames confirmed; added XIA test nodes)
 
 _Source: [wiki: Computers and networks](https://wiki.anl.gov/gsdaq/Computers_and_networks) ✅ visited 2026-04-06_
 

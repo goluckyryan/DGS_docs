@@ -7,6 +7,53 @@ Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/CollectorApp/src/`
 
 ---
 
+## Table of Contents
+
+1. [Why Not asyn?](#why-not-asyn)
+2. [EPICS Device Support Architecture](#epics-device-support-architecture)
+   - [How PVs Connect to Hardware](#how-pvs-connect-to-hardware)
+   - [Link Structure Used: CAMAC_IO](#link-structure-used-camac_io)
+   - [Record Init Flow](#record-init-flow)
+   - [Record Process Flow](#record-process-flow)
+3. [Global Data Structure](#global-data-structure)
+4. [Conversion Coefficients Table](#conversion-coefficients-table)
+   - [PT100 / PT500 Temperature Fit (2-step)](#pt100--pt500-temperature-fit-2-step)
+5. [Source Files Overview](#source-files-overview)
+6. [Two-Layer PV Architecture](#two-layer-pv-architecture)
+7. [CollectorSupport_AO — Full SPI Write Flow](#collectorsupport_ao--full-spi-write-flow)
+8. [CollectorCtl_AO — Mailbox Write Flow](#collectorctl_ao--mailbox-write-flow)
+9. [CollectorDPRSupport_AI — DPRAM Read Flow](#collectordprsupport_ai--dpram-read-flow)
+10. [What Pi Source Can vs Cannot Answer](#what-pi-source-can-vs-cannot-answer)
+11. [I2C Device Support (CollectorI2C_AI/AO.c)](#i2c-device-support-collectori2c_aiaoc)
+    - [How It Differs from Normal SPI Device Support](#how-it-differs-from-normal-spi-device-support)
+    - [camacio Field Encoding (I2C AO)](#camacio-field-encoding-i2c-ao)
+    - [I2C FIFO Command Word Format](#i2c-fifo-command-word-format)
+    - [Transfer Type (C field, bits 7:0)](#transfer-type-c-field-bits-70)
+    - [Scan Inhibit / FIFO Trigger Sequence (AO write path)](#scan-inhibit--fifo-trigger-sequence-ao-write-path)
+    - [I2C AI (Read) Path](#i2c-ai-read-path)
+    - [Data Width Limitation](#data-width-limitation)
+12. [CollectorI2C — I2C Bridge Device Support](#collectori2c--i2c-bridge-device-support)
+    - [camacio Field Mapping for I2C](#camacio-field-mapping-for-i2c)
+    - [FIFO Word Format (16-bit)](#fifo-word-format-16-bit)
+    - [C Parameter (Transfer Type) Modes](#c-parameter-transfer-type-modes)
+13. [CollectorStep — Closed-Loop HV Stepping](#collectorstep--closed-loop-hv-stepping)
+    - [Operating Modes](#operating-modes)
+    - [camacio Field Mapping for Step](#camacio-field-mapping-for-step)
+    - [Mailbox Layout (relative to Cidx)](#mailbox-layout-relative-to-cidx)
+    - [Algorithm](#algorithm)
+14. [CollectorDPRSupport — Dual-Port RAM (DPRAM) Read](#collectordprsupport--dual-port-ram-dpram-read)
+    - [camacio Field Mapping for DPRAM](#camacio-field-mapping-for-dpram)
+    - [Bank Switching](#bank-switching)
+    - [MailboxModes](#mailboxmodes)
+    - [Debug / Trace](#debug--trace)
+15. [CollectorCalc — Mailbox Comparison / Interlock Logic](#collectorcalc--mailbox-comparison--interlock-logic)
+    - [camacio Field Mapping for CollectorCalc](#camacio-field-mapping-for-collectorcalc)
+    - [Function1 Modes (bits 11:8 of C)](#function1-modes-bits-118-of-c)
+    - [Usage Context](#usage-context)
+16. [Cross-References](#cross-references)
+
+---
+
 ## Why Not asyn?
 
 The device support is custom C — **asyn is explicitly rejected** (see comments in `CollectorSupport.c`):

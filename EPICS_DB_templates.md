@@ -357,18 +357,85 @@ with registers covering every router link, every coincidence combination, sweep 
 
 ## dgsGlobals DB files
 
-One static `.db` file per VME crate (e.g. `dgsGlobals_DGS_VME01.db`, `_VME06.db`, etc.).
+One static `.db` file per VME crate (e.g. `dgsGlobals_DGS_VME01.db` through `VME12.db`, `VME66.db`, `VME99.db`).
 
 These are **not** templates — they are pre-expanded EPICS DB files generated for a specific crate
-configuration. They contain `dfanout` records that fan out global set-all commands to individual
-board PVs. Examples:
+configuration. They contain exclusively `dfanout` records (298 records total in VME99 version).
+All records are of type `dfanout`; the files contain no other record types.
 
-- `VME99:GLBL:master_fifo_reset` → fans out to `VME99:MDIG1:master_fifo_reset`, `VME99:SDIG1:master_fifo_reset`
-- `VME01:GLBL:BGOs_ext_disc_src` → fans to channel-level `ext_disc_src0`–`4` on MDIG1
-- `VME01:GLBL:GeC_ext_disc_src` → fans to `ext_disc_src5`–`9` on MDIG1 (GeC = central Ge contact)
-- `VMEnn:MDIG1:BGOs_ext_disc_src` — per-board sub-fanout to per-channel PVs
+**Purpose:** Fan out global "set-all" commands to individual board PVs in a two-level chain:
+1. **Phase 2A** — `VMEnn:GLBL:<param>` fans to `VMEnn:MDIG1:<param>` and/or `VMEnn:SDIG1:<param>`
+2. **Phase 2B** — `VMEnn:MDIG1:<detector_type>_<param>` fans to per-channel `VMEnn:MDIG1:<param>N`
 
-This two-level fanout (global → board → channel) allows setting all BGO or Ge channels at once.
+Example (ext_disc_src on VME99):
+```
+# Phase 2A: global → board
+record(dfanout,"VME99:GLBL:BGOs_ext_disc_src") { OUTA: VME99:MDIG1:BGOs_ext_disc_src }
+# Phase 2B: board → channels 0–4
+record(dfanout,"VME99:MDIG1:BGOs_ext_disc_src") { OUTA–OUTE: VME99:MDIG1:ext_disc_srcN (N=0..4) }
+```
+
+**Detector-type prefixes** (32 params each — same set for all 4 types):
+- `BGOs_` → MDIG1 channels 0–4 (BGO synchronous/slow board)
+- `GeC_` → MDIG1 channels 5–9 (central Ge contact)
+- `BGOp_` → SDIG1 channels 0–4 (BGO prompt/fast board)
+- `GeS_` → SDIG1 channels 5–9 (segment Ge contact)
+
+✅ verified 2026-04-25 — `ANLDAQ/ioc/db/dgsGlobals_DGS_VME99.db`: `grep -c 'record(dfanout'` = 298; channel routing from `BGOs_ext_disc_src`→ext_disc_src0–4, `GeC_ext_disc_src`→ext_disc_src5–9, `BGOp_ext_disc_src`→SDIG1:ext_disc_src0–4, `GeS_ext_disc_src`→SDIG1:ext_disc_src5–9.
+
+**Per-detector-type parameters (32 params, same set for BGOs/GeC/BGOp/GeS):**
+`ahit_count_mode`, `CFD_fraction`, `channel_enable`, `coarse_width`, `counter_reset`,
+`d3_window`, `disc_count_mode`, `disc_width`, `downsample_factor`, `dropped_event_count_mode`,
+`d_window`, `enable_dec_pause`, `event_count_mode`, `event_extension_mode`, `ext_disc_sel`,
+`ext_disc_src`, `k0_window`, `k_window`, `led_threshold`, `m_window`, `p1_window`, `P2_mode`,
+`p2_window`, `pileup_extension_enable`, `pileup_mode`, `pileup_waveform_only_mode`,
+`preamp_reset_delay`, `preamp_reset_delay_en`, `raw_data_delay`, `raw_data_length`,
+`trigger_polarity`, `write_flags`
+
+**System-level (global, no detector-type prefix) — 38 PVs:**
+
+| PV suffix | Description |
+|-----------|-------------|
+| `master_fifo_reset` | Reset FIFOs on all boards |
+| `master_counter_reset` | Reset all event/disc counters |
+| `master_logic_enable` | Enable/disable DAQ logic globally |
+| `trigger_mux_select` | Select trigger source (ExtTTCL, IntAcptAll, etc.) |
+| `veto_enable` | Enable veto logic |
+| `ts_counter_mode` | Timestamp counter mode |
+| `ts_counter_reset` | Reset timestamp counter |
+| `counter_mode` | Event counter mode |
+| `cfd_mode` | CFD mode selection |
+| `coarse_threshold` | Global coarse discriminator threshold |
+| `holdoff_time` | Global holdoff time |
+| `peak_sensitivity` | Peak-sensing sensitivity |
+| `stop_ho_at_peak` | Stop holdoff at peak flag |
+| `load_delays` | Load delay settings |
+| `clk_select` | Clock source select |
+| `rj45_throttle_mode` | RJ45 link throttle mode |
+| `win_comp_min` | Window comparator minimum |
+| `win_comp_max` | Window comparator maximum |
+| `FIFO_Prog_Thresh` | FIFO programmable threshold |
+| `EXT_DISC_REQ` | External discriminator request |
+| `ext_disc_ts_sel` | External disc timestamp select |
+| `dac_channel_select` | DAC channel select |
+| `dac_attenuation` | DAC attenuation setting |
+| `DIAG_DISC_SEL` | Diagnostic discriminator select |
+| `DIAG_WAVE_SEL` | Diagnostic waveform select |
+| `diag_mux_control` | Diagnostic multiplexer control |
+| `diag_input` | Diagnostic input select |
+| `diag_input_en` | Diagnostic input enable |
+| `lfsr_rate_sel` | LFSR pulser rate select |
+| `lfsr_seed` | LFSR seed value |
+| `sd_rx_pwr` | SERDES RX power control |
+| `sd_tx_pwr` | SERDES TX power control |
+| `sd_sync` | SERDES sync command |
+| `sd_local_loopback_en` | SERDES local loopback enable |
+| `sd_line_loopback_en` | SERDES line loopback enable |
+| `sd_pem` | SERDES PEM mode |
+| `sd_sm_stringent_lock` | SERDES state machine stringent lock |
+| `sd_sm_lost_lock_flag_rst` | SERDES lost-lock flag reset |
+
+✅ verified 2026-04-25 — complete list extracted from `dgsGlobals_DGS_VME99.db` system-level GLBL records (non-detector-type-prefixed).
 
 ---
 

@@ -209,10 +209,10 @@ These are writable control registers in the lower address block:
 
 | Address | Type | Description |
 |---------|------|-------------|
-| 0x0048  | FIFO (R/W) | Generic sandbox FIFO — VME R/W, no board function |
-| 0x00F0  | Special write | Reset signals for 8 board-wide + 8 channel diagnostic signals |
-| 0x08F4  | FIFO (write) | **Async Command FIFO** — written by VME, read by Master State Machine |
-| 0x08F8  | FIFO (write) | **AUX Command FIFO** — written by VME, read by Master State Machine |
+| 0x0848  | FIFO (R/W) | Generic sandbox FIFO — VME R/W, no board function (`GENERIC_TEST_FIFO`, 16×1023 async; reset via `xreg_PULSED_CTL2(14)`) ✅ verified 2026-04-25 — `registers.vhd:L1043,L1155,L1168` (REG_ADDR=X"0848" for both read and write) |
+| 0x08F0  | Special write | FIFO reset register — resets for MON FIFOs 1–8 and CHAN FIFOs 1–8; `xreg_FIFO_RESETS[7:0]` → MON resets, `[15:8]` → CHAN resets ✅ verified 2026-04-25 — `registers.vhd:L1459,L871-872` (write decoder X"08F0"; stale internal comment at L862 erroneously says 0x00F0, which is the old address) |
+| 0x08F4  | FIFO (write) | **Async Command FIFO** — written by VME, read by Master State Machine ✅ verified 2026-04-25 — `registers.vhd:L1157` (`if (REG_ADDR = X"08F4") then ASYNC_CMD_FIFO_WE <= '1'`) |
+| 0x08F8  | Reserved | **AUX Command FIFO** — reserved in header comment but **not implemented** in current firmware; no WE logic exists for this address ✅ verified 2026-04-25 — `registers.vhd:L22-23` (header comment says reserved), no X"08F8" write decoder found in source |
 | 0x08FC  | Reserved | Reserved for future FIFO type |
 
 ---
