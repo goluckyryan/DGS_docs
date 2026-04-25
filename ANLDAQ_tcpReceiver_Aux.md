@@ -1,7 +1,7 @@
 # ANLDAQ tcpReceiver/Aux — Offline ROOT Analysis Framework
 
 **Source:** `ANLDAQ/tcpReceiver/Aux/`
-**Stability:** C2 — Active / semi-stable
+Stability: C2 - Active / semi-stable
 **Last updated:** 2026-04-25
 
 ## Overview
@@ -172,3 +172,18 @@ Variant of `script.cpp` for LED-mode DIG data (LED = Leading-Edge Discriminator,
 - Requires a working ROOT installation to compile/run `script.cpp` and `script_LED.cpp`
 - `class_DIG.h` and `class_TDC.h` are self-contained header-only libraries reusable in other analysis contexts
 - The `packData` function in `script.cpp` has an out-of-bounds bug (allocates 10 words, writes indices up to 20) — it appears to be an experimental/in-progress function
+
+---
+
+## Cross-References
+
+| File | Relationship |
+|------|--------------|
+| `ANLDAQ_tcpReceiver.md` | Production `tcpReceiverMT` binary these Aux files accompany |
+| `data_structures.md` | DIG event packet format decoded by `class_DIG.h` |
+| `dgs_analysis.md` | Main analysis tools; these aux scripts are lighter-weight alternatives |
+| `guceiver.md` | Another online DIG data viewer (uses same `class_DIG.h` patterns) |
+
+---
+
+*Created: 2026-04-25 | Last reviewed: 2026-04-25*

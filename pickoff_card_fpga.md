@@ -254,3 +254,19 @@ All addresses verified 2026-04-25 — `SlopeboxInt_TopLevel_RevC.vhd:L228-345` (
 - Default `MISC_CTL2_REG` = `0x0075` = watchdog enabled (`[12]=0`), `PreampQIRate[2:0]=5`, `Enable_Preamp_QI=1`, `FakePiGreenLED=1`, `FakePiRedLED=1` ✅ verified 2026-04-25 — `SlopeboxInt_TopLevel_RevC.vhd:L579`
 - Rev C was supposed to be the same as Rev B at time of design (per `ReadMe.txt`)
 - 3 startup ROMs: preamp (`I2C_STARTUP_ROM` / `INITIAL_PA_ROM_ADDRESS`), power board, and dongle — each scanned independently after power-on via scanner state machines
+
+---
+
+## Cross-References
+
+| File | Relationship |
+|------|--------------|
+| `sbx.md` | Slope Box system overview including Pickoff Card role |
+| `deep_fpga_SBX_CtrlFPGA.md` | Detailed analysis of the SBX Motherboard Control FPGA (RevC same FPGA) |
+| `sbxPi_ioc.md` | Pi IOC that communicates with this FPGA via SPI |
+| `collector_fpga.md` | Collector box FPGA for comparison (similar architecture) |
+| `hardware_architecture.md` | System context: BGO and HPGe detector signal chain |
+
+---
+
+*Created: 2026-04-25 | Last reviewed: 2026-04-25*

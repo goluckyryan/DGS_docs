@@ -283,3 +283,21 @@ dbLoadRecords("RTrigUser.template",      "CRATE=01,BOARD=RTR1,PORT=VME01_RTR1")
 ```
 
 **PV naming:** `GS:{CRATE}:{BOARD}:reg_LOCK_BUS` etc. (macro expansions from template `$(CRATE)` / `$(BOARD)`).
+
+---
+
+## Cross-References
+
+| File | Relationship |
+|------|--------------|
+| `vxworks.md` | VxWorks IOC overview, asyn framework context |
+| `vxworks_state_machines.md` | inLoop/outLoop state machines (work above the trigger drivers) |
+| `vxworks_vme_devlayer.md` | VME device layer (devGVME.c) these drivers rely on |
+| `EPICS_asyn.md` | asyn framework explanation |
+| `EPICS_DB_templates.md` | RTrigRegisters/RTrigUser/MTrigUser templates loaded by these drivers |
+| `deep_fpga_MTRG_MAIN.md` | MTRG FPGA internals (registers the MTRG driver reads/writes) |
+| `deep_fpga_RTRG.md` | RTRG FPGA internals (registers the RTRG driver reads/writes) |
+
+---
+
+*Created: 2026-04-24 | Last reviewed: 2026-04-25*

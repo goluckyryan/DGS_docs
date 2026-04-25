@@ -241,3 +241,20 @@ Global vars set by `outloop.st` (EPICS sequencer) and read by `outloopsupport.c`
 | `EMPTY_MASK` | 0x00300000 | External FIFO empty flags (bits 20–21) | ✅ verified 2026-04-25 — DGS_DEFS.h:L164 |
 | `SCAN_LOOP_MINIMUM_DELAY` | 0.001 s | inLoop minimum poll delay | ✅ verified 2026-04-25 — DGS_DEFS.h:L92 |
 | `SCAN_LOOP_MAXIMUM_DELAY` | 0.300 s | inLoop maximum poll delay (at 4 DIGs) | ✅ verified 2026-04-25 — DGS_DEFS.h:L95 (comment: "Good for 4 digitizer") |
+
+---
+
+## Cross-References
+
+| File | Relationship |
+|------|--------------|
+| `vxworks.md` | VxWorks IOC overview including devGVME.c context |
+| `vxworks_fifo_readout.md` | FIFO readout layer built on top of this devlayer |
+| `vxworks_state_machines.md` | inLoop/outLoop state machines using the structures defined here |
+| `vxworks_trigger_drivers.md` | Trigger asyn drivers (asynTrigMaster/Router) use same VME mutex |
+| `ioc.md` | IOC boot scripts calling `devGVMECardInit` |
+| `IOC_cmd.md` | VMERead32/VMEWrite32 shell commands wrapping this layer |
+
+---
+
+*Created: 2026-04-24 | Last reviewed: 2026-04-25*

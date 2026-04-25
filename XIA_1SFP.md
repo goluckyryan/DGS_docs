@@ -257,3 +257,19 @@ Slow-clock mode: `MISC_CTL_REG[13] = 1` → ILA only captures on `SLOW_CLK` puls
 7. **Firmware revision tracking:** `CODE_REVISION_REG = 0x0040`. Comment says "Rev B started with 0x0020". Rev A presumably = 0x0000–0x001F range. Active development was 2024.
 
 8. **Shared IP with MγRIAD:** SERDES_RX_Mach, SERDES_TX_MACH, Timestamp_Generator, GITMO_RCV_MACH, Phase_Hunter_SerDes all pulled verbatim from the MγRIAD/MyRIAD codebase. See [`myriad.md`](myriad.md) for protocol details.
+
+---
+
+## Cross-References
+
+| File | Relationship |
+|------|--------------|
+| `myriad.md` | MγRIAD hardware overview; shared SERDES/GITMO IP source |
+| `fpga.md` | FPGA firmware overview including XIA 1SFP |
+| `ttcl.md` | TTCL protocol received by this board |
+| `deep_fpga_MTRG_MAIN.md` | MTRG — the trigger master this board links to via Link U |
+| `overview_SmallSystem.md` | XIA test nodes that use this hardware |
+
+---
+
+*Created: 2026-04-24 | Last reviewed: 2026-04-25*

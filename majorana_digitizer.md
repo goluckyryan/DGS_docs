@@ -223,3 +223,19 @@ Full code revision value: `0x00004CBB` (LED/master) or `0x00004DBB` (CFD/slave)
 The Majorana branch shares ~90% of its structure with `FPGA/DIG/` (main DGS digitizer). Files that are identical or near-identical: `CLOCK_MANAGER.vhd`, `SERDES_RX_Mach.vhd`, `SERDES_TX_Mach_DGS.vhd`, `Timestamp_Generator.vhd`, `dc_balance_mach.vhd`, `event_packer.vhd`, `pileup_processor.vhd`, `Register_Logic.vhd`, `Registers.vhd`, and most FIFO modules. The divergence is entirely in the per-channel discriminator path (`jta_channel.vhd`, `thresh_disc.vhd`).
 
 Also present: **LBL Digitizer** (`FPGA/others/LBL_Digitizer/`) — the GRETINA digitizer firmware (PDF documentation present); not documented in the KB as of 2026-04-25.
+
+---
+
+## Cross-References
+
+| File | Relationship |
+|------|--------------|
+| `deep_fpga_DIG.md` | Main DGS digitizer firmware (trunk from which Majorana branched) |
+| `deep_fpga_DIG_channel.md` | Per-channel signal processing detail (shared with Majorana) |
+| `fpga.md` | FPGA firmware overview including this branch |
+| `hardware_architecture.md` | HPGe + BGO detector hardware context |
+| `preamp_reset_readme.md` | Preamp reset detection (FPGA feature in shared codebase) |
+
+---
+
+*Created: 2026-04-25 | Last reviewed: 2026-04-25*
