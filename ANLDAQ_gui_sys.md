@@ -210,6 +210,8 @@ Parameters (15 total): ✅ verified 2026-04-25 — `gui_SYS.py:L518-534` (15 ent
 `SetDetTypePV()` selects MDIG or SDIG boards, then iterates the matching channel range.
 ✅ verified 2026-04-25 — `gui_SYS.py:L556-579` (GeC/BGO → MDIG ch 5-9/0-4; GeS/Aux → SDIG ch 5-9/0-4)
 
+Board settings PV names, options, and highlight colors (yellow for `stop_ho_at_peak`, green for `load_delays`) ✅ verified 2026-04-26 — `gui_SYS.py:L518-534` (all 15 entries), `gui_SYS.py:L549-552` (style sheet)
+
 ---
 
 ## PV Name Conventions by Board Type
