@@ -147,21 +147,26 @@ Each branch under `BuildBranches/` has the same internal layout:
 
 ## Compile-Time Build Options (Generics)
 
-_Source: `DIG/MAIN_FPGA/Build options for the digitizer.docx` (JTA, 2016-05-27)_
+_Source: `DIG/MAIN_FPGA/Build options for the digitizer.docx` (JTA, 2016-05-27) — partially superseded by VHDL source (see correction note)_
+
+> ⚠️ **Correction 2026-04-26:** The 2016 docx is no longer accurate for the DGS branch. Several generics were removed/renamed by 2022–2023. Ground truth: `DGS/Work/BUS_LEFT.xise:L414` and `DGS/Source/Digitizer.vhd:L43–55`.
 
 These ISE project generics/parameters control what is compiled into the firmware:
 
-| Generic | Type | Default | Description |
-|---------|------|---------|-------------|
-| `SLAVE_MODE` | bool | **0** (false) | Clock distribution: 0=master (use DS92LV18 clock), 1=slave (use front bus cable clock). **Always 0 for DGS production.** Code revision reads `0x4Cnn` if master, `0x4Dnn` if slave. |
-| `EXPANDED_T_BUFFER` | bool | — | **Defunct (hard-coded true since 2015).** All builds have 20 µs T buffer. |
-| `RUN_EXT_FIFO_AT_100MHZ` | bool | 1 | Use 100 MHz clock for external FIFO logic. Always 1 in practice; will be deprecated. |
-| `INCLUDE_ILA` | bool | 0 | Enable ChipScope ILA (internal logic analyzer). Uses ~10 BRAMs, risk of timing issues. Dev/debug only. |
-| `DIAG_MUX_SIZE` | int | 2 | DAC diagnostic output: 0=DAC disabled (1-2% slice savings), 1=DAC on (X waveform only), 2=DAC on with full per-channel mux. |
-| `MAJORANA_MODE_FLAG` | bool | 0 | Majorana experiment mode: disables triple-filter discriminator, uses running pre/post-rise sums instead. Fixed M-buffer size set by `MAJORANA_M_SIZE`. **Off for DGS production.** |
-| `MAJORANA_M_SIZE` | int | — | (Only when `MAJORANA_MODE_FLAG=1`) Fixed M-buffer size: 0=128, 1=256, 2=512, 3=1024 samples. |
+| Generic | Type | DGS Production Value | Description |
+|---------|------|---------------------|-------------|
+| `FRONT_BUS_LEFT` | bool | **1** (BUS_LEFT) / **0** (BUS_RIGHT) | Replaced `SLAVE_MODE` (2022-08-15). Selects front-bus cable direction: TRUE=send discriminator bits, FALSE=receive. ✅ verified 2026-04-26 — `Digitizer.vhd:L43,L48`; `BUS_LEFT.xise:L414`; `BUS_RIGHT.xise:L414` |
+| `DIAG_MUX_SIZE` | int | **2** | DAC diagnostic output: 0=DAC disabled (saves ~1–2% slices), 1=DAC on (X waveform only), 2=DAC on with full per-channel mux. ✅ verified 2026-04-26 — `Digitizer.vhd:L50–53`; `BUS_LEFT.xise:L414` |
+| `INCLUDE_DSP_ILA` | bool | **1** | Enable ChipScope ILA for DSP path. Saves BRAMs when 0. Split from old single `INCLUDE_ILA` generic. ✅ verified 2026-04-26 — `Digitizer.vhd:L54`; `BUS_LEFT.xise:L414` |
+| `INCLUDE_LVME_ILA` | bool | **0** | Enable ChipScope ILA for LVME (VME) path. Disabled in production. ✅ verified 2026-04-26 — `Digitizer.vhd:L55`; `BUS_LEFT.xise:L414` |
+| `SLAVE_MODE` | bool | **Removed** | Formerly selected clock source (DS92LV18 master vs front-bus slave). Replaced by `FRONT_BUS_LEFT` in 2022. ✅ verified 2026-04-26 — `Digitizer.vhd:L43` ("SLAVE_MODE boolean generic is removed throughout, replaced by new generic FRONT_BUS_LEFT") |
+| `RUN_EXT_FIFO_AT_100MHZ` | bool | **Defunct/commented** | Both generate blocks commented out in DGS branch. ✅ verified 2026-04-26 — `Digitizer.vhd:L631,L641` |
+| `EXPANDED_T_BUFFER` | bool | **Removed** | Was defunct (hard-coded true since 2015). No longer present in DGS branch generics. ✅ verified 2026-04-26 — not present in `Digitizer.vhd:L48–56` (active generics list) |
+| `MAJORANA_MODE_FLAG` | bool | **Does not exist** | Not present in any branch as an ISE generic. The Majorana branch is a separate code fork (not a flag). ✅ verified 2026-04-26 — grep of all BuildBranches finds no `MAJORANA_MODE_FLAG` anywhere |
+| `MAJORANA_M_SIZE` | int | **Does not exist** | Same — no such generic in any branch. ✅ verified 2026-04-26 — grep of all BuildBranches finds no `MAJORANA_M_SIZE` anywhere |
 
-**Maximal build** (for resource estimation): `SLAVE_MODE=0, RUN_EXT_FIFO_AT_100MHZ=1, INCLUDE_ILA=1, DIAG_MUX_SIZE=2, MAJORANA_MODE_FLAG=0, MAJORANA_M_SIZE=3`
+**DGS production build (BUS_LEFT):** `FRONT_BUS_LEFT=1, DIAG_MUX_SIZE=2, INCLUDE_DSP_ILA=1, INCLUDE_LVME_ILA=0` ✅ verified 2026-04-26 — `BUS_LEFT.xise:L414`
+**DGS production build (BUS_RIGHT):** `FRONT_BUS_LEFT=0, DIAG_MUX_SIZE=2, INCLUDE_DSP_ILA=1, INCLUDE_LVME_ILA=0` ✅ verified 2026-04-26 — `BUS_RIGHT.xise:L414`
 
 ---
 

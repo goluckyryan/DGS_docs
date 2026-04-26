@@ -1,7 +1,8 @@
 # eSATA / USB Removable Disk Procedures on GS/DGS Machines
 
+Stability: C3 - Structural / stable
+
 **Source:** https://wiki.anl.gov/gsdaq/Handeling_removable_disks_under_ESATA  
-**Stability:** C3 - Structural / stable  
 **Last Updated:** 2026-04-25
 
 ---

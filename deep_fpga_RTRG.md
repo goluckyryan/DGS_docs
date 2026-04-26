@@ -407,6 +407,7 @@ Each Router sends one 132-bit word to the MTRG per trigger cycle (2 µs), one wo
 - `knowledgeBase/vhdl/RTRG_top.md` — `TOP.VHD` analysis: top-level RTRG block wiring, port map, all sub-module instantiation
 - `knowledgeBase/vxworks_trigger_drivers.md` — VxWorks IOC trigger asyn drivers: `asynTrigRouterDriver` (RTRG, 188 params, ftype=6), firmware type code table, shared poll/VME mutex infrastructure
 - `knowledgeBase/vxworks_state_machines.md` — VxWorks state machines: inLoop/outLoop/MiniSender pipeline; trigger driver overview (summary level)
+- `knowledgeBase/multi_system_linking.md` — Cross-system clock/trigger sharing; RTRG LINK_LRU_CTL_REG (0x83C) DEN/REN/SYNC bits are the key per-system interlock for multi-system setups
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Rtr4704*/` — VHDL source + bitfiles. Created: 2026-04-05.*

@@ -226,6 +226,88 @@ Note `e_raw/350` — divides raw sum by trapezoid gap (350 samples) to get per-s
 - **Argument hints** — press Tab at the start of each argument to see what's expected ✅ verified 2026-04-18 — `dgs_analysis/working/README.md:L229`
 - Persistent history (`parquetCLI.history`)
 - Rectangle zoom: left-drag to zoom, right-click to reset
+- **Right-drag** on a 1D histogram → inline Gaussian fit in the dragged range (prints µ, FWHM, area, χ²/ndf)
+- **Middle-click** → toggle log/linear Y scale (1D) or log/linear Z scale (2D)
+- Crosshair cursor tracks mouse position in all 1D histogram windows
+
+### Implementation Details (from source)
+
+_Source: `dgs_analysis/working/parquetCLI` (2789 lines, Python 3). Read 2026-04-25._
+
+**Data classes:**
+- `Hist1D` — counts/edges/centers/binwidth/col/label/underflow/overflow; `zoom_xlim` set by rectangle-select zoom
+- `Hist2D` — h (2D ndarray)/xedges/yedges; displayed with `LogNorm(vmin=1)` viridis colormap
+- `Cal1D` — gain/offset/isotope/hist; **callable**: `cal88(e_raw)` applies linear calibration in formulas
+
+**Three data load paths (nested vs flat):**
+
+| Path | Trigger | Mechanism |
+|------|---------|----------|
+| **Fast flatten** | Nested, all-list-col, no CS | `pc.list_flatten()` per column; per-column numpy cache; gate in numpy |
+| **Chunked** | Nested + CS, or mixed list/scalar | Read full nested table; slice in 1M-event batches; flatten each; gate in pyarrow |
+| **Flat** | Non-nested file | `pq.read_table()` with additive column cache; gate via pyarrow compute |
+
+- **Additive column cache:** columns read from disk are kept in `_table`; subsequent commands that need additional columns extend the table without re-reading already-loaded ones
+- **Numpy cache (`_np_cache`):** fast-path stores flattened numpy arrays per column; survives across commands; invalidated only on `loadParquet`/`unloadParquet`
+- **`_flatten_table`:** converts list-column (nested event) parquet to one row per hit; uses `pc.list_parent_indices()` to build `__evt_idx__` tracking which hit belongs to which event
+
+**Compton suppression (`CS`) implementation:**
+- Negative `detID`/`tid` values encode BGO veto hits (convention: detector N BGO veto → `tid = -N`)
+- CS: find all `__evt_idx__` values where any hit has `tid == -N` for gate target N; filter out all hits from those events; applied before the main gate
+- Requires nested parquet (events structure) with `__evt_idx__` tracking
+
+**Gate parsing:**
+- Gates: `col OP val` terms joined by `&&`/`||` (no spaces required inside `G()`)
+- `_GATE_RE` regex: `^(\w+)\s*(==|!=|>=|<=|>|<)\s*(-?[\d.]+)$`
+- Ops map to `pyarrow.compute` functions in Arrow path; `numpy` comparison operators in fast-numpy path
+
+**Peak fitting (`fit` / `_fit_peaks_core`):**
+- Uses `scipy.signal.find_peaks` with height threshold = max × threshold%
+- `peak_widths(rel_height=0.5)` → initial FWHM estimate; converts to σ₀ = FWHM/2.355
+- Fits `gauss + linear_bg(x)` over ±3σ window (min 5 bins each side)
+- Bounds: A≥0, µ∈[xf[0], xf[-1]], σ∈[bw/2, half], m and b unbounded
+- Reports centroid, FWHM, area (= A·σ·√(2π)), χ²/ndf
+- Zoom-restricted: if `h.zoom_xlim` is set (from rectangle drag), fits only in that range
+
+**Energy calibration matching (`_match_peaks_to_source`):**
+- Source gamma lines from JSON files in `armory/gray_apps/data/isotopes/sou-files/`
+- Tries all C(N,2) centroid pairs × C(M,2) source energy pairs to find best linear gain/offset
+- Anchor modes: `Mx` (highest-channel peak must appear in anchor pair), `My` (highest-area peak), `Mxy` (both), `None` (unconstrained)
+- Scoring (lexicographic, all maximized): most matches → fewest RI-rank inversions → lowest residual sum
+- Final calibration: `np.polyfit` on all matched pairs (refines gain/offset from best-pair seed)
+- Isotope lookup: tries `<elem><mass>.json` filename; fallback scans JSON `isotope` field
+
+**`saveParquet` (nested path):**
+- Flattens nested events in 1M-event chunks; applies gate; collects surviving `__evt_idx__` values (offset-adjusted to absolute indices)
+- Builds boolean mask from `pc.is_in()` over all events; writes only surviving complete events (structure preserved)
+- Optional `CAL(col, file.cal)`: adds `e_cal` list column using per-crystal gain/offset; ID column detected as first of `tid`/`detID`/`gs_cryid`
+
+**Python script API namespace (`_exec_python_script`):**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `cmd(line)` | func | Run any CLI command string |
+| `loadParquet(*paths)` | func | Load parquet file(s) |
+| `unloadParquet()` | func | Unload current file |
+| `plot1D(col, bw, xmin, xmax, gate, store)` | func | Returns stored Hist1D if `store=` given |
+| `plot2D(col1, col2, bw, store)` | func | 2D histogram |
+| `lsID()` | func | Print + return list of crystal IDs |
+| `cal(name, isotope, threshold, anchor, store)` | func | Calibrate histogram; return Cal1D if `store=` given |
+| `fit(name, threshold)` | func | Auto-fit peaks |
+| `save_cal(cal_name, filepath, gsid, append)` | func | Write/append .cal line |
+| `loadCal(path)` | func | Load .cal file into store |
+| `store` | dict | Direct access to CLI object store |
+| `rm(*names)` | func | Delete stored objects |
+| `plot(*names)` | func | Display stored histograms |
+| `overlay(*names)` | func | Overlay 1D histograms |
+| `ls()` | func | List columns + store |
+| `info` | func | File metadata |
+| `newWindow()` | func | Next plot in new window |
+
+Full Python `__builtins__` available (not sandboxed like formula expressions).
+
+**Formula expression sandbox:**
+Formulas in `plot1D`/`saveParquet` are `eval()`-ed with `__builtins__={}` (sandboxed); available names: schema columns as numpy arrays, `np`, `sqrt`, `abs`, `log`, `log10`, `exp`, `sin`, `cos`, and all `Cal1D` objects from store.
 
 _Source: `dgs_analysis/working/README.md` commit b609604 (2026-04-07)_
 
@@ -281,9 +363,10 @@ python working/pz_from_parquet.py $expFolder/Parquet/decode/exp2008_003_dgs.parq
 
 **Pipeline per crystal:**
 1. Read `sum1`, `sum2`, `tid` columns from parquet
-2. Build 2D numpy histogram (S1 × S2, 512×512 default bins)
-3. `estimate_pz_from_histogram()` → `DetResult` dataclass with `.pz` coefficient
-4. `write_pz_cal(path, pz_map)` → `dgs_pz.cal` (format: `det  pz`, one line per crystal)
+2. Build 2D numpy histogram (S1 × S2, 512×512 default bins) ✅ verified 2026-04-25 — `pz_from_parquet.py:L64-80` (`np.histogram2d`, 1st/99th percentile auto-range)
+3. Skip crystals with <1000 hits ✅ verified 2026-04-25 — `pz_from_parquet.py:L107-109`
+4. `estimate_pz_from_histogram()` → `DetResult` dataclass with `.pz` coefficient
+5. `write_pz_cal(path, pz_map)` → `dgs_pz.cal` (format: `det  pz`, one line per crystal)
 
 For event-level parquet (list columns), use `pz_from_evtparquet.py` instead.
 
@@ -366,11 +449,11 @@ Performance comparison script for the three event-building approaches:
 ```bash
 ./working/BenchmarkTAC2_021.sh [THREADS]
 ```
-- Runs `EventBuilder_Q`, `EventBuilder_PQ`, and `parquet_pysort` against the `TAC2_021` dataset
-- Reports wall time + output size for each; prints Q/PQS, PQ/PQS, and Q/PQ speedup ratios
-- Default: 8 threads; uses `TIMEWIN=1000` (ticks) for fair apples-to-apples comparison
-- Requires ROOT environment (`/opt/root/bin/thisroot.sh`) and Python venv (`.venv/`)
-- Output log: `working/benchmark_output/benchmark_<timestamp>.log`
+- Runs `EventBuilder_Q`, `EventBuilder_PQ`, and `parquet_pysort` against the `TAC2_021` dataset ✅ verified 2026-04-25 — `BenchmarkTAC2_021.sh:L54`
+- Reports wall time + output size for each; prints Q/PQS, PQ/PQS, and Q/PQ speedup ratios ✅ verified 2026-04-25 — `BenchmarkTAC2_021.sh:L277-292` (ratio labels: `Ratio Q / PQS`, `Ratio PQ / PQS`, `Ratio Q / PQ`)
+- Default: 8 threads ✅ verified 2026-04-25 — `BenchmarkTAC2_021.sh:L26` (`THREADS="${1:-8}"`) ; uses `TIMEWIN=1000` (ticks) ✅ verified 2026-04-25 — `BenchmarkTAC2_021.sh:L34`
+- Requires ROOT environment (`/opt/root/bin/thisroot.sh`) ✅ verified 2026-04-25 — `BenchmarkTAC2_021.sh:L13` and Python venv (`.venv/`) ✅ verified 2026-04-25 — `BenchmarkTAC2_021.sh:L18`
+- Output log: `working/benchmark_output/benchmark_<timestamp>.log` ✅ verified 2026-04-25 — `BenchmarkTAC2_021.sh:L44` (`benchmark_$(date +%Y%m%d_%H%M%S).log`)
 
 ---
 

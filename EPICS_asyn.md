@@ -227,6 +227,7 @@ For raw whole-register reads (no sub-field), the mask is a standard bitmask with
 - `knowledgeBase/VME_registers.md` — VME byte-offset addresses used in driver `ReadReg`/`WriteReg` calls
 - `knowledgeBase/vxworks_vme_devlayer.md` — VME hardware abstraction below the asyn layer: `devGVME.c` board init, `VMERead32`/`VMEWrite32`, flash ops, `daqBoards[]` global array, `DGS_DEFS.h` constants
 - `knowledgeBase/vxworks_trigger_drivers.md` — asyn trigger driver deep-dive (`asynTrigCommonDriver`, `asynTrigMasterDriver`, `asynTrigRouterDriver`): same `0xaaaa0000` sub-field mask pattern as the digitizer driver, applied to MTRG/RTRG VME registers
+- `knowledgeBase/vxworks_state_machines.md` — full `asynDigitizerDriver` section: board-type detection, `simTask()` poll loop, `viIn32`/`viOut32`, `address_list[]` map, debug variables; also covers `inLoop`/`outLoop`/`MiniSender` pipeline
 - `knowledgeBase/snapshot_pv.md` — uses `epics.caput`/`caget` (Python-side of the same asyn chain)
 
 *Created: 2026-04-06 from conversation with Ryan Tang.*

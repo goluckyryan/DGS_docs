@@ -279,4 +279,15 @@ The RTRG `link_init.vhd` manages the **8 downward links** to digitizers. The MTR
 
 ---
 
+## Cross-References
+
+- `knowledgeBase/deep_fpga_RTRG.md` — RTRG FPGA overview: firmware type codes, register map summary, top-level architecture
+- `knowledgeBase/260E_trigger_scheme.md` — End-to-end RTRG/MTRG trigger scheme (chan_in, disc_mach, router_data_path documented there; this file covers support modules)
+- `knowledgeBase/vhdl/MTRG_link_init_and_input_pipeline.md` — MTRG equivalent `link_init.vhd` + `mstr_trigger_input_pipeline.vhd`
+- `knowledgeBase/vhdl/RTRG_support_modules.md` — this file (self-reference for README)
+- `knowledgeBase/VME_registers.md` — RTRG VME register map (DISC_DELAY, I/O control, status)
+- `knowledgeBase/fpga.md` — FPGA firmware overview; RTRG's role in the 3-tier hierarchy
+
+---
+
 *Source: `FPGA/RTRG/Firmware/DGS_Version/MAIN_FPGA/Source/`*

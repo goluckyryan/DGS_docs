@@ -276,6 +276,80 @@ Note: Much information is duplicated across screens by design — same data pres
 
 ---
 
+## Shift Operator Guide (8-Hour Shift)
+
+**Source:** https://wiki.anl.gov/gsdaq/User_Guides_for_Experiments
+
+### Things to Watch During a Run
+
+- **Run Control box** in DGS Main Controller (top right) must show **"Start; Save; Sort"** during a run — if not, data is not being recorded.
+- **TCP/IP rates** (center grey boxes) should be changing; **Buffs Avail** ("Buffers" column in ANLDAQ GUI, PV `DAQCX_CV_BuffersAvail`) should stay near **200** ⚠️ Correction: wiki says 400, but pool was reduced from 400 → 200 on 2023-04-12 (JTA). ✅ verified 2026-04-26 — `DGS_DEFS.h:L48` (`#define RAW_Q_SIZE 200 //changed from 400 to 200 20230412 JTA`); `QueueManagement.c:L83` (qFree created with RAW_Q_SIZE); `DGS_DEFS.h:L113` (bypass threshold comment: "changed from 150/400 to scale with # bufs 20230412 JTA").
+- Each VME terminal (one per IOC receiver) should update every 15 seconds showing Mb/sec written to disk.
+
+### Start/Stop Runs During Shift
+
+Recommended: start a new run approximately **every hour** (limits data loss if a run is corrupted).
+
+```bash
+cd /dgsdata
+./stop_run.sh              # stop current run
+# Wait 5-10 sec for all Buffs Avail to show 200 in Big Summary (pool = 200 since 2023-04-12)
+./start_run.sh ###         # start new run (### = next run number)
+```
+
+Log in the logbook/elog: stop/start times, trigger rate, beam current.
+
+Check disk capacity if advised:
+```bash
+df -h
+```
+
+### Quality Control — Histograms
+
+DGS does **not** display live histograms for users. Users must merge, sort, and display in ROOT while data is being collected — see `/gsdaq/Analysis_codes` for details. Contact the person **ON CALL** if data appears nonsensical.
+
+---
+
+### Troubleshooting: VME Crash
+
+**Signs:** TCP/IP rate drops to 0.0; Buffs Avail continuously fall below ~190 without recovering. (Old wiki threshold was 380/400; pool is now 200 — adjust proportionally.)
+
+**Prevention:** Stop the run and start a new one before Buffs Avail reach 0. If they reach 0.0, the VME has crashed and needs a restart. ✅ verified 2026-04-26 — pool = 200 (`DGS_DEFS.h:L48`); Buffs Avail = `getFreeBufCount()` → PV `DAQCX_CV_BuffersAvail` (`outLoop.st:L97,L473`).
+
+**Recovery procedure:**
+
+1. **Stop the current run.**
+2. In DGS Main Controller → **Terminals** → select the affected VME (IOC 1–11) → open terminal window.
+3. Hit **Return** to get a prompt, then **Ctrl+X** to start the auto-reboot countdown.
+   - Reboot takes >1 min; ignore non-fatal warning messages.
+   - When prompt reappears, the IOC is back up.
+   - If no auto-boot message or no prompt appears → hard reboot required (see below).
+4. In DGS Main Controller → **Scripts** → run **"Lock All Setup"** (>1 min).
+   - Verify Trigger Summary screen looks correct (accessible under **Trigger** in Main Controller and at the bottom of Big Summary).
+5. Scripts → run **"Digitizer Setup"** (>1 min; issues EPICS channel PV commands for digitizer channels).
+6. Buffs Avail should return to 200; start a new run.
+
+### Troubleshooting: Power Cycling the DAQ (Hard Reboot)
+
+Required when soft reboot fails.
+
+**If remote PCU is operational:** use [Network Accessible Power Control Units of DGS](/gsdaq/Network_Accessible_Power_Control_Units_of_DGS).
+
+**If physical access to Area 4 is required:**
+- Check the monitor above the cage entrance for room status on ARIS 2.0.
+- Faraday cup must be **IN** if the area is locked — contact operators at **2-4115** (ANL landline) for assistance.
+- Follow the [Sweep Area 4](/gsdaq/Sweep_Area_4) procedure.
+
+**Power cycle steps:**
+1. Go to DGS racks (inside the shack or next to the hemisphere).
+2. Turn off the crashed VME crate; wait **30 seconds** before turning power back on.
+3. Leave the shack and Sweep Area 4.
+4. Back in Data Room: reboot the **Trigger IOC** via DGS Main Controller → Terminals → Trigger IOC → Return → Ctrl+X.
+5. Run **"Lock All Setup"** then **"Digitizer Setup"** as above.
+6. If still failing, contact the person **ON CALL**.
+
+---
+
 *Created: 2026-04-05 from [wiki: Typical DGS Run Procedures](https://wiki.anl.gov/gsdaq/Typical_DGS_run_procedures)*
 *Updated: 2026-04-16 — moved verification note outside code fence (formatting fix); RunParquet defaults verified 2026-04-14*
 *Updated: 2026-04-20 — added DGS Commander EDM Screens section from wiki*

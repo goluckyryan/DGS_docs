@@ -1,10 +1,11 @@
 # MTRG Generated_top.vhd — Top-Level Integration
 
+Stability: C3 - Structural / stable
+
 **Source:** `~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/Generated_top.vhd`  
 **Lines:** 6,286 ✅ verified 2026-04-24 - Generated_top.vhd:L1 (`wc -l`)  
 **Entity:** `trigger_top` ✅ verified 2026-04-24 - Generated_top.vhd:L33  
-**Architecture:** `trigtop` ✅ verified 2026-04-24 - Generated_top.vhd:L200  
-**Stability:** C3 — Structural / stable
+**Architecture:** `trigtop` ✅ verified 2026-04-24 - Generated_top.vhd:L200
 
 **Note:** Despite the filename `Generated_top.vhd`, this is **not** auto-generated code. The file comment calls it `Spreadsheet_top.vhd` ("the file READ by the code generating spreadsheet") and was hand-authored by John Anderson. It is the true structural top of the DGS Master Trigger FPGA design.
 

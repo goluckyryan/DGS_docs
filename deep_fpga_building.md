@@ -86,30 +86,10 @@ See [`deep_fpga_MTRG_VIVADO.md`](deep_fpga_MTRG_VIVADO.md) for the Vivado projec
 ---
 
 ## Trigger System VHDL Simulation
-_Source: `DGS_tools_pack/FPGA/others/Trig_sys_sim/` — documented 2026-04-12_
 
-A standalone VHDL testbench (`ISE 13.4` project) that simulates two MTRG boards communicating over SERDES links. Useful for validating trigger command logic and SERDES state machine behavior without hardware.
+> **Full documentation moved to [`trig_sys_sim.md`](trig_sys_sim.md)** (2026-04-24). That file covers all 6 VHDL source files, VME register stimulus walkthrough, SERDES init sequence, key design parameters, and verified BUILD_TYPE encodings.
 
-### Files
-
-| File | Purpose |
-|------|---------|
-| `trigger_data_types.vhd` | Common type definitions shared across MTRG, MyRIAD, Router |
-| `MstrTrig_pkg.vhd` | Component declaration for `trigger_top` (the MTRG Main FPGA entity) with `BUILD_TYPE` generic |
-| `bus_pkg.vhd` | Bus signal record definitions for test bench |
-| `bus_trans.vhd` | Bus transaction helpers (stimulate/check VME transactions) |
-| `crate_def_tb.vhd` | Top-level testbench: instantiates two `trigger_top` entities (LOCAL_MASTER + REMOTE_MASTER) as `BUILD_TYPE=4` (DGS Master Trigger) ✅ verified 2026-04-18 — `crate_def_tb.vhd:L36` (`BUILD_TYPE => 4`), `L42` (comment: `4-DGS Master Trigger`), `L19-20` (LOCAL_MASTER + REMOTE_MASTER ports) |
-| `regio_tb.vhd` | Register I/O testbench: verifies register reads/writes |
-| `top_tb1.VHD` | Alternate top-level testbench |
-| `MyRIAD_pkg.vhd` | Copy of MyRIAD package (for cross-system simulation) |
-
-### Usage
-
-Open in ISE 13.4 (`Work13_4/Work13_4.xise`), select the desired testbench as the simulation top, and run ISim (behavioral simulation). No synthesis target is needed.
-
-### Significance
-
-This simulation shares the same `trigger_top` component and `BUILD_TYPE` encoding as the production MTRG firmware (`BUILD_TYPE=4` for DGS Master Trigger) ✅ verified 2026-04-18 — `crate_def_tb.vhd:L36,L42`. It was used during development to validate the SERDES link initialization protocol and command routing logic without requiring physical hardware.
+Brief summary: A standalone ISE 13.4 VHDL testbench (`FPGA/others/Trig_sys_sim/`) simulating two MTRG boards over a fake SERDES link. Used to validate trigger command routing and SERDES state machine behavior without hardware. LOCAL_MASTER = BUILD_TYPE=4, REMOTE_MASTER = BUILD_TYPE=5. ✅ verified 2026-04-18/2026-04-24.
 
 ## Firmware_Tags Archive (`FPGA/Firmware_Tags/`)
 
@@ -167,6 +147,7 @@ Selected milestones (from directory names):
 - `knowledgeBase/deep_fpga_MTRG_VME.md` — MTRG VME FPGA: Spartan-3 VME interface firmware + tag history
 - `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: Virtex-4, ISE project
 - `knowledgeBase/vxworks.md` — VxWorks cross-compilation (IOC driver side of the build chain)
+- `knowledgeBase/trig_sys_sim.md` — Full MTRG VHDL simulation testbench documentation (split from this file 2026-04-24)
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/` + `DGS_tools_pack/fpga/`. Created: 2026-04-07.*

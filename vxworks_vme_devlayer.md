@@ -244,6 +244,32 @@ Global vars set by `outloop.st` (EPICS sequencer) and read by `outloopsupport.c`
 
 ---
 
+## Aug 2022 `rawEvt` Redesign — Historical Context
+
+**Source:** `DGS_tools_pack/vxworks/dgsDrivers/dgsDriverApp/src/ChangeNotes_20220801.txt` (email thread, Oberling ↔ Anderson, 2022-07-20 to 2022-08-01)
+
+**Decision:** Eliminated the old requirement that "trigger data must look like digitizer data." Before Aug 2022, trigger buffers had to be formatted to resemble digitizer data for the receiver to process them. The redesign decoupled trigger data from digitizer data at the sender/receiver boundary.
+
+**Key changes made (2022-08-01):**
+- Added `board_type` (uint16) and `data_type` (uint16) fields to `rawEvt` struct (replacing the old `char *board_type` pointer and removing `trig_buffer_converter.c`)
+- `inLoop` assigns `board_type` (from `daqBoards[]`) and `data_type` (0 = normal digitizer; FIFO index for triggers) when pulling buffers from the queue
+- `outLoopSupport.c` → `CheckAndMoveBuffers()` now uses a `switch(rawBuf->board_type)` to route by board type: digitizers decomposed normally, triggers and MYRIAD passed forward as-is, unknown type logs an error and returns
+- The receiver (`dgsReceiver` / gtReceiver) was updated to dump non-digitizer data to a `<run_name>_DIAG` file; the current production receiver (`tcpReceiverMT`) does not implement this DIAG file feature
+- `data_type = 0` = nominal for digitizers (previously implied `0xFF` was considered as the "unspecified" type but `0x00` was adopted for backwards compatibility)
+
+**Slot map for firmware upload (`uploadFW.cmd`)** — also confirmed 2022-08:
+
+| Slot | Board | File | Function |
+|------|-------|------|----------|
+| 3 (bdnum 0) | MDIG1 | `BUS_LEFT.bin` | DIG front bus sender |
+| 4 (bdnum 1) | MDIG2 | `BUS_RIGHT.bin` | DIG front bus receiver |
+| 6 (bdnum 4) | RTRG | `router_top.bin` (or `V4747_mod_router_top.bin`) | Router trigger FPGA |
+| 7 (bdnum 5) | MTRG | `trigger_top.bin` | Master trigger FPGA |
+
+Sequence: `ProgramFlash(bdnum, bank=0, file)` → `taskDelay(100)` → `ConfigureFlash(bdnum, 0)`. All four boards re-configured a second time at end of script for safety. ✅ verified 2026-04-26 — `ANLDAQ/ioc/firmware/uploadFW.cmd` (full file read)
+
+---
+
 ## Cross-References
 
 | File | Relationship |

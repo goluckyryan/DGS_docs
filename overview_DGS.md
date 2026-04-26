@@ -218,6 +218,24 @@ DGS is a full software+firmware+hardware stack:
 
 ---
 
+## Raspberry Pi Camera (darekpi02)
+
+- **Host:** `darekpi02` / `192.168.203.2` (onenet)
+- **Purpose:** Live video streaming inside the Gammasphere area
+- **Boot:** Connect Cat6 to onenet switch + USB power; keyboard/monitor optional
+- **Password:** Default DGS password (not the default Raspberry Pi password)
+- **Streaming software:** `motion` (installed by Kalle)
+- **Start stream:**
+  ```bash
+  sudo service motion stop
+  ./motion -c motion-mmalcam-both.conf
+  ```
+- **View stream:** <http://192.168.203.2:8081> (must be on onenet)
+- **Stop:** Ctrl-C in stream window, then `rm /dev/shm/*` to clean temp files
+- **Source:** wiki `/gsdaq/Raspberry_Pi_camera_use`
+
+---
+
 ## Key Elog References
 
 - InfluxDB write token: <https://elog.phy.anl.gov/GS+maintenance/39>

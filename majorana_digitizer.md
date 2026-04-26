@@ -124,11 +124,11 @@ A dedicated baseline tracking state machine, shared with standard DGS. States:
 
 Key behavior:
 - On power-up, delay chain fills with zeros, baseline is assumed from first ADC data
-- After a discriminator firing: idle for `BASELINE_DELAY × 10.24 µs` (length of T buffer)
-- Running sum is 24-bit (`RUNNING_BASELINE_SUM`); output `SAMPLED_BASELINE` is 24-bit
-- `BASELINE_SPEED[2:0]` controls tracking rate (filter speed)
-- `BASELINE_START[13:0]` sets the initial baseline seed (VME programmable)
-- Chain validity flag (`CHAIN_INVALID`) released after `2M + K + D + D2` samples
+- After a discriminator firing: idle for `BASELINE_DELAY × 10.24 µs` (length of T buffer) ✅ verified 2026-04-26 — `baseline_tracker.vhd:L34` (comment: "after a discriminator firing, the baseline tracker is idle for (BASELINE_DELAY) * 10.24us (length of T)")
+- Running sum is 24-bit (`RUNNING_BASELINE_SUM`); output `SAMPLED_BASELINE` is 24-bit ✅ verified 2026-04-26 — `baseline_tracker.vhd:L40,L55` (signal declarations)
+- `BASELINE_SPEED[2:0]` controls tracking rate (filter speed) ✅ verified 2026-04-26 — `baseline_tracker.vhd:L27`
+- `BASELINE_START[13:0]` sets the initial baseline seed (VME programmable) ✅ verified 2026-04-26 — `baseline_tracker.vhd:L25`; `L200`: `RUNNING_BASELINE_SUM <= BASELINE_START & "0000000000"` (14-bit seed × 1024 = 24-bit accumulator)
+- Chain validity flag (`CHAIN_INVALID`) released after `2M + K + D + D2` samples ✅ verified 2026-04-26 — `baseline_tracker.vhd:L81-82` (comment: "2M + K + D + D2 samples until ADC samples start filling the T buffer")
 
 ---
 
@@ -174,7 +174,7 @@ Board ID register layout (same convention as standard DGS):
 - `bits[7:4]` — major code revision (0xB)
 - `bits[3:0]` — minor code revision (0xB)
 
-Full code revision value: `0x00004CBB` (LED/master) or `0x00004DBB` (CFD/slave)
+Full code revision value: `0x00004CBB` (LED/master) or `0x00004DBB` (CFD/slave) ✅ verified 2026-04-26 — `Digitizer.vhd:L391` (`regin_code_revision <= X"00004" & X"D" & cCODE_VERSION_MAJOR & cCODE_VERSION_MINOR when(SLAVE_MODE = TRUE) else X"00004" & X"C" & cCODE_VERSION_MAJOR & cCODE_VERSION_MINOR`)
 
 ---
 

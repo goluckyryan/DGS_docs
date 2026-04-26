@@ -262,7 +262,7 @@ Read from register offset **0x15C** (`Code_Revision`) bits `[11:8]`:
 
 Bits `[7:4]` = major revision ordinal; bits `[3:0]` = minor revision ordinal.
 
-**Note:** The Master driver `devAsynTrigMasterCardInit` accepts both type 4 (DGS Master) and type 6 (DGS Router), but sets `board_type = BrdType_DGS_MTRIG` regardless. The Router driver `devAsynTrigRouterCardInit` accepts only type 6.
+**Note:** The Master driver `devAsynTrigMasterCardInit` accepts both type 4 (DGS Master) and type 6 (DGS Router), but sets `board_type = BrdType_DGS_MTRIG` regardless. The Router driver `devAsynTrigRouterCardInit` also accepts **both type 4 and type 6** (type 4 sets `router=0`, `mainOK=1`; type 6 sets `router=1`, `mainOK=1`). ✅ corrected 2026-04-26 — `asynTrigRouterDriver.cpp:L171-177` (`case 4: router=0, mainOK=1`; `case 6: router=1, mainOK=1`)
 
 ---
 
@@ -294,7 +294,9 @@ dbLoadRecords("RTrigUser.template",      "CRATE=01,BOARD=RTR1,PORT=VME01_RTR1")
 | `vxworks_state_machines.md` | inLoop/outLoop state machines (work above the trigger drivers) |
 | `vxworks_vme_devlayer.md` | VME device layer (devGVME.c) these drivers rely on |
 | `EPICS_asyn.md` | asyn framework explanation |
-| `EPICS_DB_templates.md` | RTrigRegisters/RTrigUser/MTrigUser templates loaded by these drivers |
+| `EPICS_DB_templates.md` | MTrigUser/MDig/SDig template overview (split — see EPICS_RTrig_templates.md for RTrig) |
+| `EPICS_RTrig_templates.md` | Complete RTrigRegisters + RTrigUser PV inventory (deep-dive, split from EPICS_DB_templates.md) |
+| `260E_trigger_scheme.md` | End-to-end RTRG/MTRG firmware trigger algorithm that the driver registers map to |
 | `deep_fpga_MTRG_MAIN.md` | MTRG FPGA internals (registers the MTRG driver reads/writes) |
 | `deep_fpga_RTRG.md` | RTRG FPGA internals (registers the RTRG driver reads/writes) |
 

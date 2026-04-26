@@ -1,7 +1,8 @@
 # EPICS DB Templates — DGS IOC
 
 **Source:** `ANLDAQ/ioc/db/` (all `.template` files) and `ANLDAQ/ioc/boot/vme*.cmd` (instantiation)
-**Date documented:** 2026-04-23
+**Date documented:** 2026-04-23  
+**Last reviewed:** 2026-04-26 (duplicate reference sections condensed; see ioc.md for user_package_data, boot sequence, CA ports, board type encoding)
 Stability: C2 - Active / semi-stable
 
 ---
@@ -22,8 +23,12 @@ Stability: C2 - Active / semi-stable
 12. [MTrigUser.template](#mtriguser-template)
 13. [dgsGlobals DB files](#dgsglobals-db-files)
 14. [Instantiation per VME Crate](#instantiation-per-vme-crate)
-15. [Board Type Encoding](#board-type-encoding)
-16. [Fifo Select Encoding](#fifo-select-encoding)
+15. [user_package_data Numbering](#user_package_data-numbering) → see ioc.md
+16. [IOC Boot Sequence](#ioc-boot-sequence) → see ioc.md
+17. [EPICS CA Port Assignments](#epics-channel-access-port-assignments) → see ioc.md
+18. [Board Type Encoding](#board-type-encoding) → see ioc.md
+19. [Fifo Select Encoding](#fifo-select-encoding)
+20. [`gretDet.dbd` — EPICS Database Definition File](#gretdetdbd--epics-database-definition-file)
 
 ---
 
@@ -161,17 +166,122 @@ These are used by inLoop to decide whether to read from a slot and which FIFO to
 
 ## MDigRegisters / SDigRegisters.template
 
-Raw hardware register readback PVs, prefix `VME$(CRATE):$(BOARD):reg_*`.
+Raw hardware register readback/write PVs for Master and Slave Digitizer boards.
+**Source:** `DGS_tools_pack/ANLDAQ/ioc/db/MDigRegisters.template` (2,738 lines, 359 records: 217 longin + 142 longout) ✅ verified 2026-04-25 — wc/grep confirmed
 
-Key readback PV families (suffix `_RBV`):
-- `reg_channel_controlN_RBV` — per-channel control register (channels 0–9)
-- `reg_CFD_fractionN_RBV` — per-channel CFD fraction register
-- `reg_baseline_delay_RBV` — baseline delay register
-- `reg_d3_windowN_RBV` — D3 coincidence window registers
-- `reg_channel_pulsed_controlN` — pulsed control (write-only style)
+Macros: `$(CRATE)`, `$(BOARD)`. PV prefix: `VME$(CRATE):$(BOARD):`.
+SDigRegisters.template is identical (byte-for-byte) to MDigRegisters.template.
 
-SDigRegisters.template is identical to MDigRegisters.template (same layout, both use `MDigRegisters`
-naming internally).
+Two naming prefixes are used:
+- `reg_*` — R/W registers (paired `longout` write + `longin` readback `_RBV`, scanned 1 second)
+- `regin_*` — read-only status/counter registers (`longin` only, scanned 1 second)
+
+### Board-Level Identity & Status
+
+| PV Suffix | Type | Description |
+|-----------|------|-------------|
+| `regin_board_id_RBV` | longin | Contains board address and firmware ID |
+| `reg_programming_done` / `_RBV` | longout/longin | FIFO status and firmware programming done flag |
+| `regin_hardware_status_RBV` | longin | DCM status info (clock lock, resets) |
+| `reg_master_logic_status` / `_RBV` | longout/longin | Global logic control/status |
+| `reg_trigger_config` / `_RBV` | longout/longin | Trigger configuration register |
+| `regin_code_revision_RBV` | longin | Firmware code revision |
+| `regin_code_date_RBV` | longin | Firmware code date (BCD or int) |
+
+### Per-Channel Configuration (channels 0–9)
+
+| PV Group | Type | Description |
+|----------|------|-------------|
+| `reg_channel_controlN` / `_RBV` | longout/longin | Channel N control register |
+| `reg_CFD_fractionN` / `_RBV` | longout/longin | CFD fraction for channel N |
+| `reg_led_thresholdN` / `_RBV` | longout/longin | LED threshold for channel N |
+| `reg_disc_widthN` / `_RBV` | longout/longin | Discriminator pulse width for channel N |
+| `reg_raw_data_delayN` / `_RBV` | longout/longin | Raw data (waveform) pre-trigger delay for channel N |
+| `reg_raw_data_lengthN` / `_RBV` | longout/longin | Raw data (waveform) window length for channel N |
+
+### Coincidence / Timing Windows (per-channel, 0–9)
+
+The digitizer firmware uses multiple named coincidence windows per channel. Each is a `longout`/`longin` pair:
+
+| Window Name | Description |
+|-------------|-------------|
+| `reg_d_windowN` | D window — primary coincidence gate |
+| `reg_k_windowN` | K window — second coincidence gate |
+| `reg_m_windowN` | M window — multiplicity coincidence gate |
+| `reg_d3_windowN` | D3 window — third-level coincidence gate |
+| `reg_p1_windowN` | P1 window — pileup/prompt coincidence gate 1 |
+| `reg_p2_windowN` | P2 window — pileup/prompt coincidence gate 2 |
+
+### Board-Level Timing & Readout
+
+| PV Suffix | Type | Description |
+|-----------|------|-------------|
+| `reg_win_comp_min` / `_RBV` | longout/longin | Window comparator lower bound |
+| `reg_win_comp_max` / `_RBV` | longout/longin | Window comparator upper bound |
+| `reg_baseline_delay` / `_RBV` | longout/longin | Baseline computation delay |
+| `reg_downsample_holdoff` / `_RBV` | longout/longin | Downsampler holdoff duration |
+| `reg_holdoff_control` / `_RBV` | longout/longin | Holdoff operation control |
+| `reg_veto_gate_width` / `_RBV` | longout/longin | Time window for veto gate |
+| `reg_vme_ext_delay` / `_RBV` | longout/longin | VME pulsed control delay |
+| `reg_user_package_data` / `_RBV` | longout/longin | User-defined data embedded in event header |
+| `reg_channel_pulsed_control` | longout | Write-only self-clearing pulsed control |
+
+### Timestamps (read-only)
+
+| PV Suffix | Description |
+|-----------|-------------|
+| `regin_lat_timestamp_lsb_RBV` | Latched timestamp lower 32 bits |
+| `regin_lat_timestamp_msb_RBV` | Latched timestamp upper 16 bits |
+| `regin_live_timestamp_lsb_RBV` | Live (running) timestamp lower 32 bits |
+| `regin_live_timestamp_msb_RBV` | Live (running) timestamp upper 16 bits |
+| `reg_ts_err_count_ctrl` / `_RBV` | longout/longin | Enable/disable timestamp error counting |
+| `regin_ts_err_count_RBV` | longin | Timestamp synchronization error count |
+
+### Per-Channel Counters (read-only, channels 0–9)
+
+| PV Group | Description |
+|----------|-------------|
+| `regin_dropped_event_countN_RBV` | Number of events dropped (FIFO overflow or gate rejection) |
+| `regin_accepted_event_countN_RBV` | Number of accepted (output) events |
+| `regin_ahit_countN_RBV` | Above-threshold hit count |
+| `regin_disc_countN_RBV` | Discriminator event count |
+| `regin_hihilolo_N_RBV` | ADC saturation counter — extreme rails (HIHI/LOLO) |
+| `regin_hilo_N_RBV` | ADC saturation counter — high/low threshold exceeded |
+
+### External Discriminator Control
+
+| PV Suffix | Description |
+|-----------|-------------|
+| `reg_external_discriminator_src` / `_RBV` | Selects source for external discriminator input |
+| `reg_external_disc_mode` / `_RBV` | How external discriminator is used (veto, gate, trigger…) |
+
+### SERDES / Phase / Diagnostics
+
+| PV Suffix | Description |
+|-----------|-------------|
+| `reg_sd_config` / `_RBV` | SERDES configuration register |
+| `regin_phase_value_RBV` | ADC clock to ACQ clock phase measurement |
+| `regin_phase_errors_RBV` | Phase hunter lock status / error flags |
+| `regin_phase_offset_a/b/c_RBV` | Per-channel phase offsets (three groups) |
+| `regin_serdes_phase_value_RBV` | Current SERDES phase offset applied |
+| `reg_ila_config` / `_RBV` | ILA (Integrated Logic Analyzer) mux control |
+| `reg_diag_mux_control` / `_RBV` | Selects diagnostic signal routing |
+| `reg_diag_channel_input` / `_RBV` | Diagnostic use: allows alternate channel input |
+
+### Front Panel / LED
+
+| PV Suffix | Description |
+|-----------|-------------|
+| `reg_led_control` / `_RBV` | Front panel LED operation control |
+| `regin_led_state_RBV` | Current front panel LED state readback |
+| `reg_rj45_spare_dout_control` / `_RBV` | Front panel RJ45 spare digital output control |
+| `reg_dac` / `_RBV` | DAC configuration register |
+
+### DAQ Board Identification
+
+| PV Suffix | Description |
+|-----------|-------------|
+| `regin_hardware_status_RBV` | DCM status info (ACQ lock, ADC lock, phase shift overflow, clock stopped) |
 
 ---
 
@@ -490,104 +600,42 @@ Note: VME66 and VME99 have no SDIG boards — only MDIG. VME10 has MTRG at board
 
 ## user_package_data Numbering
 
-After `iocInit()`, each digitizer (and VME12's RTR4) gets a unique 8-bit `user_package_data` value set via `dbpf`. This value is embedded in every data packet for offline crate/board identification.
+> **Reference:** Full table and formula in [`ioc.md` — *Boot Scripts* section](ioc.md#production-gs-crate-slot-map-vme01vme12). ✅ verified 2026-04-23
 
-Formula for digitizers: `[(crate# − 1) × 4] + 101 + board#`
-- Board# 0 = MDIG1, 1 = SDIG1, 2 = MDIG2, 3 = SDIG2
-
-| Crate | MDIG1 | SDIG1 | MDIG2 | SDIG2 | Other |
-|-------|-------|-------|-------|-------|-------|
-| VME01 | 101 | 102 | 103 | 104 | — |
-| VME02 | 105 | 106 | 107 | 108 | — |
-| VME03 | 109 | 110 | 111 | 112 | — |
-| VME04 | 113 | 114 | 115 | 116 | — |
-| VME05 | 117 | 118 | 119 | 120 | — |
-| VME06 | 121 | 122 | — | — | — |
-| VME07 | 123 | 124 | 125 | 126 | — |
-| VME08 | 127 | 128 | 129 | 130 | — |
-| VME09 | 131 | 132 | 133 | 134 | — |
-| VME10 | 135 | 136 | — | — | — |
-| VME11 | 137 | 138 | 139 | 140 | — |
-| VME12 | 141 | 142 | 143 | 144 | RTR4=154 |
-| VME66 | 170 | — | 171 | — | — |
-| VME99 | 160 | — | 161 | — | — |
-
-Master trigger: `USER_PACKAGE_DATA = 150` (fixed, applies globally to MTRG).
-Router triggers: RTR4 in VME12 = 154; future RTRs = 151, 152, etc. (per comment in vme01.cmd).
-Note: VME66/VME99 have non-sequential IDs (170/171 and 160/161); these are lab/special systems outside the main formula.
-
-✅ verified 2026-04-23 — cross-checked all `dbpf "VMExx:*:user_package_data"` lines in all `vme*.cmd` boot files
+Formula: `[(crate# − 1) × 4] + 101 + board#` (board# 0=MDIG1, 1=SDIG1, 2=MDIG2, 3=SDIG2).  
+MTRG = 150 (fixed). VME66=170/171, VME99=160/161 (lab systems, outside formula).
 
 ---
 
 ## IOC Boot Sequence
 
-Each VME crate runs the same boot sequence via its `vme<NN>.cmd` script:
+> **Reference:** Full 15-step boot sequence in [`ioc.md` — *Boot Script Details*](ioc.md#boot-script-details). ✅ verified 2026-04-23
 
-1. **cd** to boot directory; source `cdCommands` and `nfsCommands`
-2. **ld** the binary: `ld < gretDet.munch` (VxWorks image with all EPICS tasks + inLoop/outLoop/MiniSender)
-3. **dbLoadDatabase** `gretDet.dbd` — registers all DTYP/record types
-4. **dbLoadRecords** for every board (Registers → User → UserVME templates), then `daqSegment2`, `daqCrate`, `dgsGlobals`
-5. **InitializeDaqBoardStructure()** — sets up internal DAQ board mapping
-6. **asynDigitizerConfig / asynTrigRouterConfig1 / asynTrigMasterConfig1** — maps board name to board# and physical VME slot
-7. **asynDebugConfig("DBG",0)** — enables debug peek/poke interface
-8. **iocInit()** — starts EPICS IOC; all PVs become live
-9. **setupFIFOReader()** — initializes the three-queue buffer pool (see vxworks.md)
-10. **dbpf** `user_package_data` — sets board-ID values (digitizer formula above)
-11. **dbpf** `CS_Ena = 1` — software-enables all digitizer boards for readout (MTRG/RTR not set here)
-12. **seq &inLoop** — starts inLoop sequencer with `CRATE=NN,B0=…,B6=…` board list
-13. **seq &outLoop** — starts outLoop sequencer with `CRATE=NN`
-14. **seq &MiniSender** — starts MiniSender sequencer with `CRATE=NN`
-15. **dbl > vme<NN>_db.txt** — dumps all PV names to a text file (run in `/startup`)
-
-The `B0`–`B6` parameters in `seq &inLoop` map physical slot positions to board names. Slots with no board use `B<N>=X`. The value `X` causes inLoop to look for a PV `X_CS_Ena`, which doesn't exist and is silently skipped.
-
-✅ verified 2026-04-23 — cross-checked steps against `vme01.cmd`, `vme10.cmd`, `vme99.cmd`
+DB-loading steps relevant to templates (steps 3–4 of boot sequence):
+1. `dbLoadDatabase "dbd/gretDet.dbd"` — registers all DTYP/record types
+2. `dbLoadRecords` for every board (Registers → User → UserVME), then `daqSegment2`, `daqCrate`, `dgsGlobals`
+3. `iocInit()` — all PVs become live
+4. `dbpf user_package_data` — sets board-ID values; `dbpf CS_Ena = 1` enables all boards
+5. `seq &inLoop/outLoop/MiniSender` — starts DAQ state machines
 
 ---
 
 ## EPICS Channel Access Port Assignments
 
-The boot files for special/lab crates set non-default CA ports:
+> **Reference:** Full port table in [`ioc.md` — *EPICS CA Port Map*](ioc.md#epics-ca-port-map-from-cdcommands). ✅ verified 2026-04-23
 
-| System | CA Server Port | Repeater Port | Note |
-|--------|---------------|---------------|------|
-| DGS (standard) | 5064 | 5065 | Default EPICS ports (not set explicitly in vme01–12) |
-| DFMA | 5068 | 5069 | |
-| Xarray | 5072 | 5073 | |
-| G-wing | 5074 | 5075 | VME99 uses these (lab test stand) |
-| F-wing / microball | 5078 | 5079 | |
-
-These port values are from comments in `vme99.cmd`. Standard DGS crates (vme01–12) do not override ports and use the EPICS defaults (5064/5065).
-
-✅ verified 2026-04-23 — from `vme99.cmd` putenv comments; absence of putenv lines confirmed in `vme01.cmd`
+Key values: DGS=5064/5065 (default), Xarray=5072/5073, DUO=5080/5081, vme99 lab=5074/5075.
 
 ---
 
 ## Board Type Encoding
 
-Used by `DAQC$(CRATE)_BoardType0`–`6` (mbbi records). Value comes from `code_revision[11:8]`.
+> **Reference:** Full encoding table in [`ioc.md` — *Board Type Encoding*](ioc.md#board-type-encoding--code_revision118). ✅ verified 2026-04-23
 
-| Value | String | Meaning |
-|-------|--------|---------|
-| 0 | `0?` | Unknown |
-| 1 | `GRT` | GRETINA Router Trigger |
-| 2 | `GMT` | GRETINA Master Trigger |
-| 3 | `GD` | LBNL Digitizer (GRETINA digitizer) |
-| 4 | `DMT` | DGS Master Trigger |
-| 5 | `5?` | Unknown |
-| 6 | `DRT` | DGS Router Trigger |
-| 7 | `7?` | Unknown |
-| 8 | `MYR` | MyRIAD |
-| 9–11 | `9?`–`11?` | Unknown |
-| 12 | `AMD` | ANL Master Digitizer |
-| 13 | `ASD` | ANL Slave Digitizer |
-| 14–15 | `14?`–`15?` | Majorana Digitizer (unimplemented in mbbi) |
-
-Note: For ANL digitizers (`AMD`/`ASD`), the low 16 bits of `code_revision` encode `4XYZ` where
-`X`=master(0)/slave(1), `Y`=major rev, `Z`=minor rev.
+Key values used in DGS production: AMD (0xC) = ANL Master Digitizer; ASD (0xD) = ANL Slave Digitizer; DMT (4) = DGS Master Trigger; DRT (6) = DGS Router Trigger.
 
 ---
+
 
 ## Fifo Select Encoding
 
@@ -602,10 +650,52 @@ Used by `VME$(CRATE):$(BOARD):FifoNum` (mbbo, daqSegment2 + dummy in daqCrate).
 
 ---
 
+## `gretDet.dbd` — EPICS Database Definition File
+
+_Source: `vxworks/dgsIoc/tcDetApp/src/gretDet.dbd`. Loaded by each VME crate IOC at step 3 of the boot sequence above._
+
+The `.dbd` file registers all record types, device support entries, drivers, and registrars with the EPICS IOC. Key architectural notes from its inline comments:
+
+### Device Type (DTYP) Registrations
+
+| DTYP name | Status | Notes |
+|-----------|--------|-------|
+| `Soft Channel` | Active | Standard EPICS; used for analog-scaled PVs linked to hardware records |
+| `Raw Soft Channel` | Active | Same as above but uses `.RVAL` field instead of `.VAL` |
+| `Async Soft Channel` | Active (unused) | Same as Soft Channel but returns immediately; **no DGS PV uses this DTYP** as of 2026-04-25 |
+| `Soft Timestamp` | Active (unused) | EPICS time access; **no DGS PV uses this DTYP** |
+| `General Time` | Active (unused) | Real-time clock access; **no DGS PV uses this DTYP** |
+| `asynInt32`, `asynUInt32Digital`, `asynFloat64`, `asynOctet*`, `asynXxxArray` | Active | Asyn wrapper DTYPs — Tim Madden's VME I/O bridge; still required because asyn is linked in, even though the comment notes it "does nothing for us" |
+| `Gretina VME Board` | **Commented out** | Legacy Gretina flash-programming DTYPs (`devBoGVME`, `devLIGVME`, etc.); all references to `gretVME.template` were commented out in VME IOC boot scripts as of 2022-07-20 |
+| `VX stats` / `VX stats clusts` | **Commented out** | No references in any DGS database; leftover Gretina debris |
+| `asynRecordDevice` | Active | Backing device for the `asyn` record type |
+| `stdio` | Active | `devSoStdio` — `stringout` record that prints to VxWorks console |
+
+### Registrar Notes (inline comments)
+
+- **`equalSubRegistrar`** — removed 2026-04-25 (JTA); `equalSub.c` was previously registered here but is now removed from the IOC registrar list. ✅ verified 2026-04-26 — `gretDet.dbd` inline comment `<== JTA 20250425 REMOVED`
+- **`devGDigRestoreRegistrar`**, **`save_restoreRegister`**, **`dbrestoreRegister`**, **`asInitHooksRegister`** — all removed 2022-07-29 (MBO); save/restore functionality not used in DGS. ✅ verified 2026-04-26 — `gretDet.dbd` inline comments `<== MBO 20220729 REMOVED`
+- **`flashOpsRegistrar`** — Gretina flash ops registrar; removed (flash programming done via `devGVME.c` IOCshell commands, not Gretina's method)
+- **`BuildSendRegistrar`** — removed; replaced by `MiniSender` state machine
+- **`registerReboot`** — old Gretina junk; deleted
+- **Active registrars:** `asSub`, `asynRegister`, `asynInterposeFlushRegister`, `asynInterposeEosRegister`, `devGVMERegistrar`, `asynDebugRegister`, `asynDigitizerRegister`, `asynTrigMasterRegister`, `asynTrigRouterRegister`, `inLoopRegistrar`, `outLoopRegistrar`, `MiniSenderRegistrar`
+
+### EPICS Variables
+
+| Variable | Type | Notes |
+|----------|------|-------|
+| `asCaDebug` | int | Access Security CA debug flag |
+| `dbRecordsOnceOnly` | int | EPICS DB flag |
+| `dbBptNotMonotonic` | int | EPICS breakpoint table flag |
+
+---
+
 ## See Also
 
 - `knowledgeBase/ioc.md` — IOC startup: how `vme*.cmd` files instantiate these templates (cardno, IP, port assignments)
 - `knowledgeBase/IOC_cmd.md` — Full IOC shell command reference; asynDigitizerConfig, ProgramFlash, VMERead32 commands that accompany these DB records
+- `knowledgeBase/EPICS_RTrig_templates.md` — RTrig DB templates deep-dive: complete RTrigRegisters + RTrigUser PV inventory (split from this file)
+- `knowledgeBase/EPICS_implementation_tools.md` — DBGEN macro/substitution workflow that generates templates for new hardware
 - `knowledgeBase/EPICS.md` — EPICS primer: record types (mbbo, mbbi, longout, waveform) used throughout these templates
 - `knowledgeBase/EPICS_asyn.md` — How asyn translates caput/caget into VME register reads/writes (the underlying mechanism these templates rely on)
 - `knowledgeBase/DGS_PVs.md` — Full DGS PV list (all records instantiated from these templates for the 12-crate DGS system)

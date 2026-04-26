@@ -202,16 +202,18 @@ TRIG_TS = 10 * (TS_TrigHigh×2^32 + TS_TrigMid×2^16 + TS_TrigLow)
 ```
 TDC_COARSE_TS = 10 * (TS_TrigHigh×2^32 + TS_TrigMid×2^16 + TS_TDCLow)
 ```
-If `TDC_COARSE_TS < previous` (rollover at 65536 counts = 655360 ns), add 655360.
+If `TDC_PERIOD (= TDC_COARSE_TS - TDC_COARSE_TS_last) < TRIG_PERIOD (= TRIG_TS - TRIG_TS_last)`, rollover assumed: add 655360 to `TDC_COARSE_TS`. ✅ verified 2026-04-26 — `gebsort/bin_tac2.c:L226-233` (rollover guard uses period comparison, not direct < previous check; 655360 = 65536 × 10 ns ticks×10 ns/tick = 65536 × 4 ns × (10/4) — actually 655360 ns = 65536 × 10 ns is correct since TRIG_TS is in units of 10 ns × scaled by factor 10: 65536 × 4 ns = 262.144 µs, but `TDC_COARSE_TS` uses 10×TS_TDCLow at 10 ns units = 65536 × 10 ns = 655360 ns).
 
 **Step 3 — Modular coarse timestamp (MOD_TDC_COARSE_TS):**
 ```
-MOD_TDC_COARSE_TS = TDC_COARSE_TS mod 262144
+MOD_TDC_COARSE_TS = floor(TDC_COARSE_TS / 262144) × 262144
 ```
 (262144 ns = 4 ns × 65536 = 16-bit 4 ns counter range)
 
+> **⚠️ Correction:** Despite its name, `MOD_TDC_COARSE_TS` is **not** the modulo remainder — it is the floor-rounded base (`AI = TDC_COARSE_TS - AH`, where `AH` is the remainder). The effect is to strip the fractional overshoot and retain only the integer multiple of 262144. ✅ verified 2026-04-26 — `gebsort/bin_tac2.c:L247-256` (`d1 = TDC_COARSE_TS/262144; AH = TDC_COARSE_TS - (long long int)d1*262144; AI = TDC_COARSE_TS - AH; MOD_TDC_COARSE_TS = AI`).
+
 **Step 4 — Per-phase validity check:**
-Flags from `Val_A_B[15:12]` and `C_D[15:12]`. If unchanged from previous event, all 4 chains are marked invalid (-2).
+Flags from `Val_A_B[15:12]` only (bit15=D, bit14=C, bit13=B, bit12=A). `C_D` carries only vernier data for C and D — it has no validity flags. ✅ verified 2026-04-26 — `gebsort/bin_tac2.c:L267-274` (only `Val_A_B` masked with 0x8000/0x4000/0x2000/0x1000; no `C_D` validity check). If all four timestamps are unchanged from the previous event, all 4 chains are marked invalid (-2).
 
 **Step 5 — Per-phase 4 ns timestamps:**
 ```
@@ -228,6 +230,7 @@ TDC_VERNIER_B = 64 - (Val_A_B[5:0])    // chain B (90°)
 TDC_VERNIER_C = 64 - (C_D[11:6])       // chain C (180°)
 TDC_VERNIER_D = 64 - (C_D[5:0])        // chain D (270°)
 ```
+✅ verified 2026-04-26 — `gebsort/bin_tac2.c:L383-386` (`TDC_VERNIER_A = 64 - BQ; TDC_VERNIER_B = 64 - BR; TDC_VERNIER_C = 64 - BS; TDC_VERNIER_D = 64 - BT`)
 
 **Step 7 — Determine VERNIER_PATTERN (phase ordering):**
 Pattern (1–4) indicates which quadrant phase fires last (D>C>B>A=3, C>B>A>D=4, B>A>D>C=1, A>D>C>B=2). Currently forced to pattern 1 if >1 (per discussion with JTA 3/10/25 — still being validated experimentally). ✅ verified 2026-04-17 — `gebsort/bin_tac2.c:L420-422` (`if (VERNIER_PATTERN>1) { VERNIER_PATTERN=1; }` with comment "this may not be correct")
@@ -237,6 +240,7 @@ Pattern (1–4) indicates which quadrant phase fires last (D>C>B>A=3, C>B>A>D=4,
 TDC_VERNIER_A_ns = 0.050 × TDC_VERNIER_A   (50 ps per tap)
 ... (same for B, C, D)
 ```
+✅ verified 2026-04-26 — `gebsort/bin_tac2.c:L430` (`nspervernier = 0.050;`); L431-434 apply to all 4 chains
 
 **Step 9 — Net timestamp per phase:**
 ```
@@ -248,7 +252,7 @@ TDC_NET_TS_D = TDC_TS4D - TDC_VERNIER_D_ns + 3
 (+0/+1/+2/+3 ns phase offsets per quadrant) ✅ verified 2026-04-23 — `bin_tac2.c:L461-464`
 
 **Step 10 — Average valid chains → `dgs_tac2`:**
-If ≥ 2 valid chains, compute mean and set `dgs_tac2_valid = 1`. Otherwise `dgs_tac2 = -999999999` and `dgs_tac2_valid = 0`.
+If ≥ 2 valid chains, compute mean and set `dgs_tac2_valid = 1`. Otherwise `dgs_tac2 = -999999999` and `dgs_tac2_valid = 0`. ✅ verified 2026-04-26 — `gebsort/bin_tac2.c:L509-516` (`if (nn > 1) { dgs_tac2 /= nn; dgs_tac2_valid = 1; } else { dgs_tac2 = -999999999; dgs_tac2_valid = 0; }`)
 
 **Final output:**
 ```
@@ -258,7 +262,7 @@ dgs_trig_ts = TRIG_TS
 Result is relative timing of the NIM input signal w.r.t. the trigger timestamp. Output spectrum: `tac2dev` (4096 bins, ±2048 ns).
 
 ### When bin_tac2 is Not Valid
-- `TS_TDCLow == 0x0008` → TDC not enabled in this run
+- `TS_TDCLow == 0x0008` → TDC not enabled in this run (**debug print only** — `bin_tac2.c:L199-202` prints a message but does **not** return early; processing continues and the event will likely fail the pattern check or produce nn ≤ 1)
 - All 4 chains repeat from previous event → likely no new NIM hit
 - `VERNIER_PATTERN < 0` → invalid (monotonicity test fails for all 4 orderings)
 - Only 1 valid chain → insufficient for averaging

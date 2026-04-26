@@ -57,6 +57,31 @@ These PVs control the online data-saving state in the IOC.
 
 ---
 
+## TCP Wire Protocol (`get_data()`)
+
+Each polling cycle the Guceiver receiver sends a 4-byte big-endian request and reads a 16-byte reply header, then reads the payload:
+
+**Request** (4 bytes, big-endian `uint32`):
+```
+0x00000001  — poll request
+```
+
+**Reply header** (16 bytes, 4 × big-endian `uint32`):
+| Field | Size | Description |
+|---|---|---|
+| `reply_type` | uint32 | Response type code |
+| `record_size` | uint32 | Size of each record in bytes |
+| `status` | uint32 | Status code |
+| `num_record` | uint32 | Number of records to follow |
+
+The payload is `record_size × num_record` bytes, read in chunks until complete. The entire payload is then unpacked as big-endian `uint32` words and handed to the packet parser.
+
+Socket timeouts: 2 s for connect retries, 5 s for receive during operation.
+
+✅ verified 2026-04-26 — `class_Receiver.py:L226-264` (`get_data()`: `struct.pack(">I", 1)` request; `struct.unpack(">IIII", reply)` 4-field header; loop recv until `record_size * num_record`; `struct.unpack(f">{n}I", data)` big-endian uint32 array)
+
+---
+
 ## Packet Framing
 
 The receiver identifies packet type by the first word (magic):
@@ -170,6 +195,99 @@ Plot update interval: **50 ms default** (selectable via UI spinbox); paused when
 
 ---
 
+## Tab Internals
+
+### `class_dataTab.py` — DIG Header Inspection Tab
+
+_Source: `ANLDAQ/gui/Guceiver/class_dataTab.py` (400L, code-read 2026-04-26)_ ✅ verified 2026-04-26 — class_dataTab.py:L185-223 (16 GFlagDisplay flags), L307-313 (fillDataArray pause), L339-341 (printPayload+print)
+
+Displays all decoded fields from a single `DIG` event (type 7 or 8), selected by board/channel/data-index spinboxes. Data is pulled from `receiver.dataArray[]` under `data_mutex`.
+
+**Top controls:**
+- `Data Index` spinbox: selects which event in `dataArray` to show (auto-advances to latest when not paused)
+- `Dig` combobox: selects board by `board_id` (from `board_id_list`); sets `receiver.dig_index`
+- `Channel` spinbox (0–9): sets `receiver.channel_index`
+- `Update time [msec]` (min 20 ms): changes `plot_timer` interval
+- `Pause Update` button: freezes `receiver.fillDataArray = False`, enables index spinbox for manual stepping; also enables `Print Payload` checkbox (prints payload + header to stdout via `data.printPayload()` / `data.print()`)
+
+**Displayed fields (from `DIG` object):**
+
+| Group | Fields |
+|---|---|
+| Top row | `PACKET_LENGTH`, `GEO_ADDR`, `EVENT_TYPE`, `HEADER_TYPE` |
+| Row 2 | `PILEUP_COUNT`, `TRIG_MON_XTRA_DATA` (Multiplicity), `TRIG_MON_DET_DATA` (Target wheel), `MULTIPLEX_DATA` |
+| Timestamps | `EVENT_TIMESTAMP` (48-bit, x10 ns), `LAST_DISC_TIMESTAMP` (Previous), `PEAK_TIMESTAMP` (high 32 bits of event TS + 16-bit peak TS), `TS_OF_TRIGGER` (Accept, reconstructed similarly), `TS_OF_COARSE` (12-bit coarse) |
+| Energy | `PRE_RISE_ENERGY`, `POST_RISE_ENERGY`, `SAMPLED_BASELINE`, `P2_SUM`, `EARLY_PRE_RISE_ENERGY`, `LAST_POST_RISE_M_SUM` |
+| CFD (type 8 only) | `CFD_SAMPLE_0/1/2`, `TRIG_MON_DET_DATA`, `TIMESTAMP_MATCH_FLAG`, `CFD_VALID_FLAG`, `PREVIOUS_CFD_VALID`; group disabled for type 7 |
+
+**Flags (16 `GFlagDisplay` widgets, 4 rows x 4):**
+
+| Flag field | 0 meaning | 1 meaning |
+|---|---|---|
+| `P2_MODE` | Post-rise buffer len = m (separate); P2 buffer len = p2 | Post-rise buffer len = m-P2 (span); P2 buffer len = p2 | ✅ verified 2026-04-26 — class_dataTab.py:L186
+| `CAPTURE_PARST_TS` | Multiplex = extra pre-rise sum at coarse disc. time | Multiplex = bits 27:4 of PARST timestamp |
+| `SECOND_THRESH_DISC_FLAG` | Not fired | Coarse threshold also fired |
+| `PARST_TSM` | Multiplex is energy, not PARST timestamp | bits 48:28 of PARST TS match current TS |
+| `COARSE_FIRED` | No trigger between last/current disc. | Coarse disc. fired between events |
+| `PEQ_BYPASS` | Selected by trigger (TTCL mode) | Internal accept-all mode |
+| `TRIG_TS_MODE` | Trigger TS = when message arrived at digitizer | Trigger TS = from trigger accept message |
+| `CFD_ESUM_MODE` | Pre/post-rise sampled at threshold then at CFD | Pre/post-rise only at threshold + delay d |
+| `EARLY_PRE_RISE_SELECT` | Sampled at TS_OF_COARSE + M(pre) | Sampled at TS_OF_COARSE + M(post) + K0 |
+| `WRITE_FLAGS` | Waveform bits 15:2 = integer, 1:0 = fractional | Waveform bits 15/14 = timing marks, 13:0 = ADC data |
+| `VETO_FLAG` | Not a veto event | Router vetoed but digitizer not honoring veto |
+| `EXTERNAL_DISC_FLAG` | Internal discriminator logic | External discriminator source |
+| `PEAK_VALID_FLAG` | No peak found; peak TS = 0 | Peak found before holdoff elapsed |
+| `OFFSET_FLAG` | Normal readout | Readout delayed due to readout interference |
+| `PILEUP_ONLY_FLAG` | Non-pileup events: waveforms suppressed | Waveforms stored only for pileup events |
+| `PILEUP_FLAG` | Not pileup | Pileup detected; digitizer set to accept |
+
+---
+
+### `class_waveTab.py` — Waveform Display Tab
+
+_Source: `ANLDAQ/gui/Guceiver/class_waveTab.py` (308L, code-read 2026-04-26)_ ✅ verified 2026-04-26 — class_waveTab.py:L96-98 (Reset Plot Scale button), L117 (RectangleSelector), L128 (button_press_event), L217-222 (onselect syncs Y spinboxes), L226-227 (right-click resets scale)
+
+Displays live ADC waveform traces from `receiver.waveformArray[]` for the selected board/channel using matplotlib.
+
+**Controls:**
+- `Wave Index` spinbox: selects waveform from array (auto-advances to latest when not paused)
+- `Dig` combobox + `Channel` spinbox: changing either clears `receiver.waveformArray` and resets spinbox
+- `Update time [msec]` (min 20 ms): adjustable timer interval
+- `Y-min` / `Y-max` spinboxes (range -100000 to +100000): manual Y-axis range; synced to auto-scale result on each update
+- `Trace Length` / `Trace Delay`: live EPICS PV widgets reading `{board_name}:raw_data_length{ch}` / `{board_name}:raw_data_delay{ch}`; updated on every redraw
+- `Pause Waveform Update` button: freezes `receiver.fillWaveformArray = False`, enables index spinbox
+- `Reset Plot Scale` button: rescales Y to waveform data range (5% margin)
+
+**Plot mechanics:**
+- Matplotlib `FigureCanvasQTAgg` + `NavigationToolbar2QT` for pan/zoom
+- Left-click drag: rectangle-select zoom via `RectangleSelector` (syncs Y spinboxes to zoomed range)
+- Right-click: resets plot scale
+- X-axis: sample index (clock ticks, 10 ns each); Y-axis: ADC counts
+- Auto Y-range computed from waveform min/max with 5% margin on every plot_waveform() call
+- Data source: `receiver.waveformArray` under `data_mutex`; array cleared on board/channel change
+
+---
+
+### `class_tacTab.py` — TAC-II Inspection Tab
+
+_Source: `ANLDAQ/gui/Guceiver/class_tacTab.py` (233L, code-read 2026-04-26)_ ✅ verified 2026-04-26 — class_tacTab.py:L109-132 (trigType/wheel/triggerBitMask/multiplicity fields), L178-184 (fillTACArray pause), L210-211 (printPayload), L224-230 (phaseTime/avgPhaseTime/trigType/wheel/userRegister display)
+
+Displays decoded fields from a `TAC` event selected from `receiver.TACArray[]`. No board/channel selector — TAC-II data is global, not per-channel.
+
+**Displayed fields:**
+
+| Group | Fields |
+|---|---|
+| Top | `timestampTrig` (trigger TS, hex / 10 + raw ns), `coarseTime` (hex + decimal) |
+| Row 2 | `timestampTDC` (TDC-derived TS, hex / 10 + raw), `baseTime` (ns) |
+| Phase Time group (4 phases) | `fourNanoSecCounter[i]`, `vernier[i]`, `valid[i]`, `phaseTime[i]` (ns, 2dp or N/A if 0) |
+| Phase Time row 5 | `avgPhaseTime` (ns, 2dp, or N/A) |
+| Misc | `trigType`, `wheel` (target wheel), `userRegister`, `triggerBitMask`, `multiplicity` |
+
+**Pause/index behavior:** identical to Data tab — pause freezes `receiver.fillTACArray = False`, enables spinbox for manual event stepping. `Print Payload` checkbox calls `tac.printPayload()` + `tac.print()` when stopped.
+
+---
+
 ## Board ID Lookup
 
 At startup, Guceiver reads `{board_name}:user_package_data` via EPICS CA for each board in the `dig_board_list` argument. This maps board name → integer board ID used to filter events in the receiver. ✅ verified 2026-04-11 — `Guceiver.py:L35-38` (`pv_name = f"{bd_name}:user_package_data"`, `board_id = epics.caget(pv_name, timeout=1)`)
@@ -206,3 +324,4 @@ See `knowledgeBase/DIG_firmware_expert.md` for DIG header type 7/8 field definit
 - [`data_structures.md`](data_structures.md) — Full binary event format: DIG (0xAAAAAAAA) and TAC-II (0x0000AAAA) packets
 - [`DIG_firmware_expert.md`](DIG_firmware_expert.md) — DIG header type 7/8 field definitions decoded by Guceiver
 - [`tac2.md`](tac2.md) — TAC-II TDC: vernier interpolation, data format decoded by the TAC-II tab
+- [`gebsort.md`](gebsort.md) — GEBMerge/GEBSort offline analysis: processes the same TCP data stream written to disk by tcpReceiverMT

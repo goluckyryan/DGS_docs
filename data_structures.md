@@ -377,6 +377,63 @@ fastEventConstructor / parquet_pysort (post-run)
 
 ---
 
+## DataExtract.c — GEBSort Reference Header Decoder
+
+_Source: `gebsort/DataExtract.c` (685 lines). Code-read 2026-04-26._
+
+`DataExtract.c` is the canonical reference implementation for decoding all ANL digitizer header formats within the GEBSort analysis framework. It provides the `DecodeHeader()` dispatch function and one decoder per header format family.
+
+### Function Hierarchy
+
+| Function | Header Types | Era | Notes |
+|----------|-------------|-----|-------|
+| `DecodeHeader()` | All (dispatcher) | All | Extracts `HEADER_TYPE` from Word 3 bits 19:16; dispatches to format-specific decoder |
+| `DecodeOldHeader()` | 1, 2 | 2013–Jul 2015 | Original LED (type 1) and CFD (type 2) design; legacy ✅ verified 2026-04-26 — `DataExtract.c:L143,L174` ("Standard LED Header used from 2013 to July 2015") |
+| `DecodeHeader_3_4()` | 3, 4 | Jul 2015–May 2018 | July 2015 LED/CFD revision; rewritten 20161222 and again 20180326 ✅ verified 2026-04-26 — `DataExtract.c:L1-2` (header comments: "20180326: types 3/4 continue since 20150724") |
+| `DecodeHeader_5_6()` | 5, 6 | May 2018+ | Post-May-2018 LED/CFD; adds `TRIG_TS_MODE`, `PEQ_BYPASS`, `PU_TIME_ERROR`, `TRIG_MON_DET_DATA` scatter ✅ verified 2026-04-26 — `DataExtract.c:L209` ("header types used up until May 2018"), `L300` ("after May 1 2018") |
+| `DecodeHeader_7_8()` | 7, 8 | Jan 2021+ | Current production format; adds preamp reset TS, multi-sample P_SUM, `COARSE_FIRED`, `CFD_ESUM_MODE` ✅ verified 2026-04-26 — `DataExtract.c:L488` ("firmware version of January 2021") |
+| `DecodeHeader_E()` | 0xE (14) | ~2019 | Majorana digitizer (LED only; type left at 3 in firmware, but 0xE in this file) |
+
+**Note:** `DecodeHeader_7()` (type 7 only, multi-sampling buffer 2019 design) exists in `DataExtract.c` inside `#if 0` — it was never released to production. `DecodeHeader_7_8()` (Jan 2021) superseded it and handles both types 7 (LED) and 8 (CFD). ✅ verified 2026-04-26 — `DataExtract.c:L408-481` (`#if 0` block)
+
+### Global Outputs from DecodeHeader()
+
+After dispatch, two globals are set from the decoded header:
+- `LengthOfHeader` — number of 32-bit words to read for the rest of the header after the `0xAAAAAAAA` sync word. GRETINA convention: `HEADER_LENGTH` is in 16-bit words, so divide by 2 to get 32-bit read count. Does **not** include the `0xAAAAAAAA` word itself. ✅ verified 2026-04-26 — `DataExtract.c:L64-70` (GRETINA fiat comment)
+- `LengthOfData` — number of 32-bit words to read for the waveform/data payload = `PACKET_LENGTH − LengthOfHeader`.
+
+### FORMAT_7_8 — Advanced Fields (Types 7 & 8, Jan 2021+)
+
+These fields exist only in FORMAT_7_8 and are absent from all earlier formats:
+
+| Field | Type 7 (LED) | Type 8 (CFD) | Description |
+|-------|-------------|-------------|-------------|
+| `CFD_ESUM_MODE` | 0 (unused) | Word 3 bit 22 | New in firmware 20210817: CFD energy-sum mode flag |
+| `PU_TIME_ERROR` | Word 4 bit 4 | Word 4 bit 4 | Pileup timing error |
+| `PILEUP_COUNT` | Word 6 bits 27:24 | Word 7 (31:30)+(15:14) | Pileup count; split differently in CFD vs LED |
+| `TRIG_MON_DET_DATA` | Word 7 bits 31:16 | Words 4+5+6 scattered | Trigger monitor detector data (CFD: scattered across 3 words) |
+| `TRIG_MON_XTRA_DATA` | Word 7 bits 15:0 | 0 (not in CFD) | Trigger monitor extra data (LED only) |
+| `P_SUM` | Word 13(9:0)+Word 10(13:0) | Same | 24-bit: trapezoid P-sum (pre-rise sum accumulator) |
+| `LAST_POST_RISE_M_SUM` | Words 11(31:24)+12(31:24)+13(31:24) | Same | 24-bit: last M-sum of post-rise window |
+| `TS_OF_PARST` | Word 11 bits 23:0 | Same | Timestamp of preamp reset event |
+| `CAPTURE_PARST_TS` | Word 10 bit 15 | Same | Flag: preamp reset TS was captured |
+| `EARLY_PRE_RISE_ENERGY` | Word 12 bits 23:0 | Same | Early pre-rise energy accumulator |
+| `TS_OF_COARSE` | Word 13 bits 23:14 | Same | 10-bit timestamp of coarse trigger |
+| `COARSE_FIRED` | Word 13 bit 13 | Not present | LED only: coarse discriminator fired |
+| `P2_MODE` | Word 10 bit 14 | Same | P2-mode flag |
+
+✅ verified 2026-04-26 — `DataExtract.c:L501-637` (full FORMAT_7_8 LED and CFD extraction)
+
+### Header Type 0xF — DAQ System Headers
+
+Type `0xF` (15) is **reserved for DAQ system headers** injected by VME readout software — not detector data. These indicate events like "digitizer was empty at poll" or "last packet after run shutdown." GEBSort/GammaWare should never process type 0xF events as detector hits. ✅ verified 2026-04-26 — `DataExtract.c:L44-49` (January 2019 reservation comment)
+
+### Majorana Digitizer (Type 0xE)
+
+Type 0xE (14) was intended to be unique for Majorana digitizers, but the firmware was left at type 3 in practice. `DataExtract.c` defines `DecodeHeader_E()` matching the type 5/6 LED structure (no CFD variants, no `TRIG_MON` fields, same energy/sample layout as FORMAT_5_6 LED). ✅ verified 2026-04-26 — `DataExtract.c:L640-685`
+
+---
+
 ## References & Cross-References
 
 **Primary sources:**
@@ -389,8 +446,10 @@ fastEventConstructor / parquet_pysort (post-run)
 - `knowledgeBase/guceiver.md` — Guceiver live GUI; decodes DIG and TAC-II packets from TCP stream
 - `knowledgeBase/dgs_analysis.md` — fastEventConstructor and parquet_pysort; consume GEB binary data
 - `knowledgeBase/DIG_firmware_expert.md` — Full DIG event header field definitions + readout modes (expert reference)
+- `knowledgeBase/deep_fpga_DIG_eventpacket.md` — FPGA-level DIG event packet format: LED/CFD header layout, WF bit encoding, pole-zero, waveform samples, integration timelines
 - `knowledgeBase/ttcl.md` — TTCL spec; timestamp generation that populates GEB timestamp field
 - `knowledgeBase/gebsort.md` — GEBSort event builder; reads GEB format, builds coincidence events
+- `gebsort/DataExtract.c` — canonical decoder for all ANL DIG header formats (types 1–8, 0xE); used by GEBSort
 
 ---
 *Created: 2026-04-06. Source: class_DIG.h + class_Hit.h + class_TDC.h. Last updated: 2026-04-17 (merged duplicate References/Cross-References sections).*

@@ -421,18 +421,110 @@ All three hold pointers to `rawEvt` structs (not inline data) — messages are `
 
 ---
 
+## `asynDigitizerDriver` — DIG VME Asyn Driver
+
+_Source: `dgsDrivers/dgsDriverApp/src/asynDigitizerDriver.{cpp,h}` (600 + 107 lines). Code-read 2026-04-26._
+
+The **`asynDigitizerDriver`** is the VxWorks asyn port driver for ANL digitizer boards. It handles all EPICS CA ↔ VME register I/O for the DIG FPGA. Unlike the trigger drivers (which inherit from `asynTrigCommonDriver`), the digitizer driver inherits directly from `asynPortDriver`.
+
+### Initialization — `asynDigitizerConfig()` / `devAsynDigCardInit()`
+
+Called from the VME crate boot script (`.cmd` file):
+
+```
+asynDigitizerConfig(portName, card_number, slot)
+```
+
+This calls `devAsynDigCardInit(cardno, slot)` first, then constructs a new `asynDigitizerDriver` instance.
+
+**`devAsynDigCardInit()` steps:**
+1. Calls `initVmeDrvMutex()` — ensures the VME bus mutex is created (shared with trigger drivers).
+2. Calls `devGVMECardInit(cardno, slot)` — fills `daqBoards[cardno].base32`, `.vmever`, `.board`, `.registers`, and `.vmeRegisters[]` (flash addresses).
+3. Sets `daqBoards[cardno].FIFO = base32 + 0x1000/4` — FIFO buffer pointer.
+4. Probes `base32 + 0x1000/4` via `devReadProbe()`: if readable → `mainOK=1`; bus error → `mainOK=0`.
+5. Reads `base32[0x600/4]` → `daqBoards[cardno].rev` (Main FPGA code revision).
+6. Reads `base32[0x604/4]` → `daqBoards[cardno].subrev` (Main FPGA code date).
+7. Determines **board type** from `rev` bits [15:8]:
+
+| `rev[15:8]` | Board Type Constant | Description |
+|---|---|---|
+| `0x4C` | `BrdType_ANL_MDIG` | ANL (DGS) Master Digitizer |
+| `0x4D` | `BrdType_ANL_SDIG` | ANL (DGS) Slave Digitizer |
+| `0xFC` | `BrdType_MAJORANA_MDIG` | ANL Majorana Master Digitizer |
+| `0xFD` | `BrdType_MAJORANA_SDIG` | ANL Majorana Slave Digitizer |
+| other | `0` | Unknown type |
+
+Board type `0x4C`/`0x4D` encode `'C'`/`'D'` (Master/Slave) after nibble `0x4` (ANL). Majorana uses nibble `0xF`.
+
+### Constructor — `asynDigitizerDriver(portName, card_number)`
+
+- Inherits from `asynPortDriver` with 1024 max parameters (enlarged from 256 by MPC, Oct 2015). ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L298` (`1024, // changed from 256 by mpc 10/29/15 per tm`)
+- Allocates `address_list[]` array (up to 256 entries) — the param-to-VME-offset map. As of 2025-04-24 the driver has 222 whole-register parameters, safely under the limit. ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L313` (`new int_int[256]`); L315 comment (`Digitizer as of this date has 222.`)
+- Creates `run_counter` param (incremented by poll task, used as a heartbeat indicator). ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L321-322`
+- **Textual include:** `#include "asynDigParams.c"` — registers all DIG parameters by calling `createParam()` + `setAddress()` for each. As of 2025-08-15, reverted to a single file: `asynDigParamsVME.c` include was wrapped in `#if 0` (disabled) since the VME FPGA is considered stable; all VME FPGA registers now handled as EPICS-only objects in the digitizer spreadsheet. ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L333,L337-340` (only `#include "asynDigParams.c"` is active; `#include "asynDigParamsVME.c"` is inside `#if 0` block with comment `20250815`)
+- Spawns `asynDigitizerDriver_Task` thread at medium priority. ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L347-350` (`epicsThreadPriorityMedium`)
+
+### Poll Task — `simTask()` (background thread)
+
+Despite the name, not a simulation — this is the **live PV update task**:
+- Sleeps 2 seconds per iteration → **2-second update rate** for all digitizer PVs. ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L253` (`epicsThreadSleep(2.0)`)
+- Increments `run_counter` each cycle (visible from EPICS as a heartbeat). ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L255`
+- Iterates over `address_list[]` (all params registered with `setAddress()`), reads each VME register via `viIn32()`, updates the asyn parameter via `setUIntDigitalParam()`. ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L259-263`
+- Calls `callParamCallbacks()` at end of each cycle to propagate changes to EPICS CA. ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L266`
+- Holds `vme_driver_mutex` during the full read loop to prevent bus contention with other drivers. ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L258,L265` (`epicsMutexLock/Unlock`)
+
+### VME I/O — `viIn32()` / `viOut32()`
+
+Thin wrappers around raw pointer dereference:
+- `viIn32(slot, adr_space, reg_adr, *data)` → `*data = *(daqBoards[slot].base32 + reg_adr/4)` ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L528-537`
+- `viOut32(slot, adr_space, reg_adr, data)` → `*(daqBoards[slot].base32 + reg_adr/4) = data` ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L490-503`
+- `adr_space` parameter is unused (always 0); legacy from GRETINA heritage. ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L261` (always passes `0` for `adr_space`)
+- Debug print if `asyn_debug_level_d > 1`. ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L503,L537`
+
+### Sub-Field Mask Encoding — `0xaaaa0000` sentinel
+
+The same sub-field mask scheme as the trigger drivers (see `vxworks_trigger_drivers.md`):
+- Masks with `(mask & 0xffff0000) == 0xaaaa0000` signal a sub-field extraction.
+- `(mask & 0x0000ff00) >> 8` = number of bits in field.
+- `(mask & 0x000000ff)` = bit shift (LSB position within register).
+- **Read:** value is masked then right-shifted by `shift` before returning.
+- **Write:** value is left-shifted by `shift` before writing to VME.
+
+### Parameter ↔ VME Address Map — `address_list[]` / `setAddress()` / `findAddress()`
+
+- `setAddress(param, address)` — appends `{param_num, address}` pair to `address_list[]`. Called by `#include "asynDigParams.c"` during construction. ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L577-579`
+- `findAddress(param)` — linear scan through `address_list[]`; returns VME offset or `-1` if not found (write skipped). ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L588-593`
+- `param_address_cnt` tracks current number of registered (address-mapped) parameters. ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L317,L579`
+- Note: not all parameters need addresses (counters, status fields); only those needing VME writes call `setAddress()`.
+
+### Global Debug Variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `asyn_debug_level_d` | 0 | Print VME r/w details when > 1 |
+| `printevery_d` | 1024 | (legacy, unused in current code) |
+| `prog_flip_endian_d` | 1 | (legacy endian-flip flag, `flipEndian()` utility present but not used in main path) |
+| `asyn_sleepusec_d` | 0 | Extra sleep in µs (debugging only) |
+| `maddog_d` | pointer | Global pointer to last-created driver instance (Tim Madden debug handle) |
+| `recLenGDig` | 25 | Record length for GRETINA DIG (legacy reference) |
+
+_All defaults ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L65-73`_
+
+---
+
 ## Cross-References
 
 - `knowledgeBase/ioc.md` — IOC config, boot scripts, firmware versions, MVME5500 setup
 - `knowledgeBase/vxworks_migration.md` — Detailed migration notes from Solaris/con6 to Ubuntu 24
 - `knowledgeBase/vxworks_fifo_readout.md` — DMA buffer architecture, trigger FIFO readout, Type-F headers
 - `knowledgeBase/EPICS_asyn.md` — asyn driver internals: port model, worker threads, write flow
-- `knowledgeBase/VME_registers.md` — VME register addresses used by the IOC driver
+- `knowledgeBase/VME_registers.md` — VME register addresses used by the IOC driver; full register map extracted from `asynDigParams.c` / `MergedAsynDigParams.c`
 - `knowledgeBase/fpga.md` — FPGA firmware overview; the firmware binaries loaded by VxWorks
 - `knowledgeBase/ANLDAQ.md` — High-level pipeline overview (inLoop/outLoop/MiniSender data flow diagram + key PVs); complements the detailed state machine docs in this file
 - `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiverMT protocol; the TCP receiver MiniSender connects to
 - `knowledgeBase/deep_fpga_RTRG.md` / `knowledgeBase/deep_fpga_MTRG_MAIN.md` — RTRG/MTRG FPGA firmware; maps to trigger driver params in this file
 - `knowledgeBase/vxworks_trigger_drivers.md` — **Deep-dive into the trigger asyn drivers** (`asynTrigCommonDriver`, `asynTrigMasterDriver`, `asynTrigRouterDriver`): poll loop internals, `address_list[]` map, `0xaaaa0000` sub-field mask, firmware type code table, boot sequence; split from the summary in this file
-- `knowledgeBase/vxworks_vme_devlayer.md` — VME hardware abstraction layer (`devGVME.c`/`devGData.c`/`DGS_DEFS.h`): board init, VMERead32/VMEWrite32, flash programming, `daqBoard`/`daqRegister` structs, board type codes; foundational layer below the state machines and asyn drivers
+- `knowledgeBase/vxworks_vme_devlayer.md` — VME hardware abstraction layer (`devGVME.c`/`devGData.c`/`DGS_DEFS.h`): board init, VMERead32/VMEWrite32, flash programming, `daqBoard`/`daqRegister` structs, board type codes (`BrdType_*`); foundational layer below the state machines and asyn drivers
+- `knowledgeBase/vxworks_utility_modules.md` — `MergedAsynDigParams.c` / `asynDigParams.c` parameter registration; `MergedAsynDigParams` asyn class details
 
 *Created (split): 2026-04-23 | Last reviewed: 2026-04-24*

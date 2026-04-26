@@ -316,7 +316,7 @@ Prior header types: 1&2 (pre-May 2015), 3&4, 5&6, 7&8 (Aug 2021).
 | PV | Peak Valid: peak found before holdoff expired |
 | ED | External Discriminator Flag: event caused by external discriminator |
 | VF | Veto Flag: would have been vetoed if router vetoes enabled |
-| WF | Write Flags: 0=14-bit ADC with flag bits, 1=14.2 format no flags |
+| WF | Write Flags (= NOT `write_flags` port): WF=0 → 14-bit ADC + 2 flag bits; WF=1 → 16-bit ADC, no flags ✅ verified 2026-04-26 — `Event_Header_FIFO.vhd:L343` (`header(4)(5) <= not write_flags`); `Channel_Readout_Mach.vhd:L49` (1=14-bit+flags, 0=16-bit) |
 | PTE | Pileup Time Error: illegal holdoff/pileup combination; must reset |
 | P2M | P2 Buffer Mode: 0=P2 set by reg_p_window, 1=P2+Post set by M |
 | CF | Coarse Fired: coarse discriminator fired for this event |
@@ -363,6 +363,8 @@ Prior header types: 1&2 (pre-May 2015), 3&4, 5&6, 7&8 (Aug 2021).
 32-bit word = two 16-bit halves. ADC data = 14-bit unsigned offset binary (0 = most negative, 0x3FFF = most positive). Bit 14 = timing mark, bit 15 = down-sampling marker.
 - Bits 13:0 = earlier sample
 - Bits 29:16 = sample captured one 10ns tick later
+
+✅ verified 2026-04-26 — `event_data_fifo.vhd:L64-65` (out(0)=[15:0]=sample1, out(1)=[31:16]=sample2); `event_packer.vhd:L236` (VME word [31:16]=out(0)=later, [15:0]=out(1)=earlier — note: index 0/1 is swapped at output so earlier sample lands in [15:0]); `Channel_Readout_Mach.vhd:L427` (write_flags=1: event_data_in = dec_timing_mark(1:0) & dec_data(15:2) → bit15=timing_mark(1), bit14=timing_mark(0), bits13:0=ADC); `event_packer.vhd:L424-426` comment: bit 14 = timing mark, bit 15 = dec_pause (down-sampling marker).
 
 ---
 

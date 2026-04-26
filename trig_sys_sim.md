@@ -216,7 +216,9 @@ The testbench exercises a specific init + manual trigger sequence:
 
 ## See Also
 
-- `knowledgeBase/vhdl/MTRG_registers.md` — production MTRG register map (same addresses)
+- `knowledgeBase/vhdl/MTRG_registers.md` — production MTRG register map (same addresses used in regio_tb.vhd stimulus)
 - `knowledgeBase/vhdl/MTRG_Generated_top.md` — `trigger_top` entity (what's being simulated)
 - `knowledgeBase/fpga.md` — FPGA firmware overview and build type table
 - `knowledgeBase/myriad.md` — MyRIAD module documentation
+- `knowledgeBase/deep_fpga_building.md` — FPGA build toolchain (ISE/Vivado); Firmware_Tags archive; original brief simulation note (stub points here)
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — production ISE MTRG Main FPGA internals; same `trigger_top` component

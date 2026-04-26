@@ -188,7 +188,7 @@ For each RTRG (Router):
 **4A:** Initialize all DIGs (Digitizers) on their local oscillator:
 - `clk_select=1` (OSC) — each DIG uses its own on-board crystal oscillator as clock source (see Glossary: `clk_select`) ✅ verified 2026-04-23 — `MDigUserVME.template:L84` (`ONVL=1, ONST="OSC"`)
 - Disable loopbacks — loopback mode routes the TX signal back to RX internally, used only for testing; must be off for normal operation
-- Set pre-emphasis to minimum — a safe starting point; can be tuned if link quality is poor
+- Set pre-emphasis to OFF (`sd_pem=0` = "OFF") — pre-emphasis fully disabled initially; not "minimum", value 0 is completely off per the mbbo enum (OFF/LOW/MID/HIGH). ✅ verified 2026-04-25 — `MDigUser.template:L10578-10582` (`ZRST="OFF", ZRVL=0`)
 - `dc_balance_enable=0` — DC balance encoding is disabled initially
 - `master_logic_enable=0` — keeps DIG trigger logic inactive during init
 - `sd_sync=1` — each DIG transmits a constant SYNC pattern instead of real detector hit data
@@ -199,7 +199,7 @@ For each RTRG (Router):
 
 **4C:** Check all active RTRG links are locked (only performed if `perform_error_checks=True` in the script configuration).
 
-**4D:** Check MDIG (Master Digitizer) SERDES lock status (`serdes_lock_RBV == "Lock"`).
+**4D:** Check MDIG (Master Digitizer) SERDES lock status (`serdes_lock_RBV == "Lock"`). ✅ verified 2026-04-25 — `link_sys.py:L563-574` (`if "MDIG" not in dig_name: continue` — only MDIGs iterated)
 - Only the MDIG is checked, not the SDIG (Slave Digitizer / front-bus receiver partner)
 - *Why MDIG only:* the SDIG does not transmit upstream — it only receives the trigger/clock signal from the MDIG on the front bus. The SDIG locks passively via the MDIG's transmit clock, so checking the MDIG is sufficient.
 

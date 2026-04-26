@@ -1,4 +1,4 @@
-# VxWorks Utility Modules — profile, asynDebugDriver, FlashMaintenance, equalSub, restoreSub
+# VxWorks Utility Modules — profile, asynDebugDriver, FlashMaintenance, equalSub, restoreSub, MergedAsynDigParams, QueueManagement
 
 Stability: C2 - Active / semi-stable
 
@@ -17,6 +17,8 @@ _Documented: 2026-04-25_
 3. [FlashMaintenance.c — Flash Register Constants](#flashmaintenancec--flash-register-constants)
 4. [equalSub.c — EPICS Equality Sub-routine](#equalSubc--epics-equality-sub-routine)
 5. [restoreSub.c — EPICS PV Restore Sub-routine](#restoreSubc--epics-pv-restore-sub-routine)
+6. [MergedAsynDigParams.c — DIG Asyn Parameter Registration](#mergedasyndigparamsc--dig-asyn-parameter-registration)
+7. [QueueManagement.c — Three-Queue Event Buffer Pool](#queuemanagementc--three-queue-event-buffer-pool)
 
 ---
 
@@ -258,6 +260,39 @@ A background epicsThread (`asynDebugDriver_Task`) at medium priority runs a `whi
 
 ---
 
+## MergedAsynDigParams.c — DIG Asyn Parameter Registration
+
+**File:** `MergedAsynDigParams.c` (672 L) ✅ verified 2026-04-22 — `wc -l MergedAsynDigParams.c` (222 `createParam()` calls)
+**Purpose:** Registers all DIG EPICS PV names with the asyn framework. Not a standalone translation unit — `#include`d directly into the `drvAsynDigitizer.c` constructor body.
+
+### Design
+
+Each `createParam()` call maps a string PV name to an integer parameter ID:
+```c
+createParam("reg_led_threshold0", asynParamUInt32Digital, &reg_led_threshold0);
+```
+All 222 parameters use type `asynParamUInt32Digital`. Integer handles are member variables declared in `asynDigParams.h` / `MergedAsynDigParams.h`.
+
+### Naming Conventions
+
+| Prefix | Scope | Description |
+|--------|-------|-------------|
+| `reg_<name>N` | Per-channel (N = 0–9) | Writable register. E.g. `reg_led_threshold0`–`reg_led_threshold9` |
+| `regin_<name>N` | Per-channel | Read-back-only register |
+| (no suffix) | Board-level | E.g. `reg_programming_done`, `regin_board_id`, `SERIAL_NUMBER`, `vme_clk_ctrl` |
+
+### Parameter Groups (35 unique base names)
+
+**Per-channel (×10 each):** `reg_channel_control`, `reg_channel_pulsed_control`, `reg_led_threshold`, `reg_CFD_fraction`, `reg_raw_data_delay`, `reg_raw_data_length`, `reg_d_window`, `reg_k_window`, `reg_m_window`, `reg_d3_window`, `reg_disc_width`, `reg_baseline_delay`, `reg_downsample_holdoff`, `reg_led_control`, `reg_holdoff_control`, `reg_veto_gate_width`, `reg_p1_window`, `reg_p2_window`, `reg_dac`, `reg_diag_channel_input`, `reg_diag_mux_control`, `reg_sd_config`, `reg_trigger_config`, `reg_external_disc_mode`, `reg_ila_config`, `regin_disc_count`, `regin_ahit_count`, `regin_led_state`, `regin_hilo_*`, `regin_hihilolo_*`, `regin_phase_offset_a/b/c`, `regin_serdes_phase_value`, `regin_phase_value`, `regin_phase_errors`
+
+**Board-level (no digit suffix):** `regin_board_id`, `regin_code_revision`, `regin_code_date`, `regin_hardware_status`, `regin_accepted_event_count`, `regin_dropped_event_count`, `regin_lat_timestamp_lsb/msb`, `regin_live_timestamp_lsb/msb`, `regin_ts_err_count`, `reg_ts_err_count_ctrl`, `reg_master_logic_status`, `reg_programming_done`, `reg_external_discriminator_src`, `reg_vme_ext_delay`, `reg_user_package_data`, `reg_win_comp_min`, `reg_win_comp_max`, `reg_rj45_spare_dout_control`, `SERIAL_NUMBER`, `vme_clk_ctrl`, `vme_gp_ctrl`, `VME_MON_STATUS`
+
+**Role:** After `createParam()`, the driver's `readInt32`/`writeInt32` dispatch table routes `caput`/`caget` traffic to the matching VME register read/write in `drvAsynDigitizer.c`.
+
+**Cross-reference:** `drvAsynDigitizer.c` → VME register map in [`VME_registers.md`](VME_registers.md); PV naming convention in [`ANLDAQ.md`](ANLDAQ.md).
+
+---
+
 ## Cross-References
 
 - [`vxworks_vme_devlayer.md`](vxworks_vme_devlayer.md) — `daqBoards[]`, `devGVMECardInit()`, VME hardware abstraction used by `asynDebugDriver`
@@ -265,3 +300,104 @@ A background epicsThread (`asynDebugDriver_Task`) at medium priority runs a `whi
 - [`EPICS_asyn.md`](EPICS_asyn.md) — asyn driver architecture; `asynDigitizerDriver` as a fuller example of the same `asynPortDriver` pattern
 - [`VME_registers.md`](VME_registers.md) — full digitizer/trigger register maps; FlashMaintenance 0x09xx range is in the VME FPGA config block
 - [`ioc.md`](ioc.md) — boot script where `asynDebugConfig`, `asynDebugCard`, `devGDigSetRestFile` are called
+- [`vxworks_fifo_readout.md`](vxworks_fifo_readout.md) — FIFO readout pipeline (DMA buffer arch, readTrigFIFO.c, Type-F headers); QueueManagement section there is older (2026-04-22) — this file has the authoritative updated version
+
+---
+
+## QueueManagement.c — Three-Queue Event Buffer Pool
+
+**File:** `QueueManagement.c` (495 L), `QueueManagement.h` (61 L) ✅ verified 2026-04-26 — `wc -l QueueManagement.c QueueManagement.h`  
+**Author:** Michael Oberling  
+**Purpose:** Manages the VxWorks message-queue-based event buffer pool that mediates data flow between the inLoop FIFO reader, the outLoop data packer, and the MiniSender TCP transmitter.
+
+### Architecture: Three-Queue Buffer Pool
+
+The DGS IOC VxWorks data pipeline moves raw digitizer/trigger events between tasks using a **fixed-size pool** of `rawEvt` buffer descriptors shared across three VxWorks `MSG_Q_ID` message queues:
+
+```
+  qFree  ──► inLoop reads FIFO ──► qWritten ──► outLoop packs ──► qSender ──► MiniSender sends ──► qFree
+              (getFreeBuf)            (putWrittenBuf)              (putSenderBuf)                   (putFreeBuf)
+```
+
+| Queue | VxWorks Handle | Direction | Description |
+|-------|---------------|-----------|-------------|
+| `qFree` | `MSG_Q_ID` | recycled in | Pool of available (empty) buffers — inLoop dequeues from here |
+| `qWritten` | `MSG_Q_ID` | written-to | Buffers filled by inLoop and ready for outLoop |
+| `qSender` | `MSG_Q_ID` | ready-to-send | Buffers packed by outLoop and ready for MiniSender |
+
+**Buffer count:** `RAW_Q_SIZE` (defined in `DGS_DEFS.h`) buffers exist total. The pool is pre-allocated at startup and never grows — all buffers are `rawEvt` structs with a `data[]` field of size `RAW_BUF_SIZE` bytes. ✅ verified 2026-04-26 — `DGS_DEFS.h:L48` (`RAW_Q_SIZE = 200`, changed from 400 on 2023-04-12 JTA); `DGS_DEFS.h:L34` (`RAW_BUF_SIZE = 1024*1024` bytes = 1 MB, changed from 512 KB on 2023-04-12 JTA)
+
+### Buffer Lifecycle
+
+Each buffer has an `owner` field (enum) that tracks who currently holds it:
+
+| State | `owner` value | Set by |
+|-------|--------------|--------|
+| In free queue | `OWNER_Q_FREE` | `putFreeBuf()` |
+| Dequeued by inLoop | `OWNER_INLOOP` | `getFreeBuf()` |
+| In written queue | `OWNER_Q_WRITTEN` | `putWrittenBuf()` |
+| Dequeued by outLoop | `OWNER_OUTLOOP` | `getWrittenBuf()` |
+| In sender queue | `OWNER_Q_SENDER` | `putSenderBuf()` |
+| Dequeued by MiniSender | `OWNER_SENDER` | `getSenderBuf()` |
+| Undefined | `OWNER_UNDEF` | `newEventBuffer()` at alloc time |
+
+### Key Functions
+
+| Function | Description |
+|----------|-------------|
+| `setupFIFOReader()` | Called once from VxWorks startup script (`vme01.cmd`) before sequencers. Creates all three message queues, allocates all `rawEvt` buffers, puts them all on `qFree`. Re-callable (deletes and re-creates queues; buffers are not reallocated). |
+| `getFreeBuf(rawEvt **)` | Removes a buffer from `qFree` (NO_WAIT). Sets `data[0]=0x87654321` sentinel, marks `OWNER_INLOOP`. Returns `NoBufferAvail` if queue empty. ✅ verified 2026-04-26 — `QueueManagement.c:L244-245` |
+| `putWrittenBuf(rawEvt *)` | Puts filled buffer onto `qWritten`. Marks `OWNER_Q_WRITTEN`. |
+| `getWrittenBuf(rawEvt **)` | Removes buffer from `qWritten`. Marks `OWNER_OUTLOOP`. |
+| `putSenderBuf(rawEvt *)` | Puts packed buffer onto `qSender`. Marks `OWNER_Q_SENDER`. |
+| `getSenderBuf(rawEvt **)` | Removes buffer from `qSender`. Marks `OWNER_SENDER`. |
+| `putFreeBuf(rawEvt *)` | Returns used buffer to `qFree`. Resets `len=0`, `board=-1`, `data[0]=0x12345678`. Marks `OWNER_Q_FREE`. ✅ verified 2026-04-26 — `QueueManagement.c:L298-301` |
+| `getFreeBufCount()` | Returns `msgQNumMsgs(qFree)` — available buffer count. |
+| `getWrittenBufCount()` | Returns `msgQNumMsgs(qWritten)`. |
+| `getSenderBufCount()` | Returns `msgQNumMsgs(qSender)`. |
+| `DumpRawEvt(rawEvt*, char*, int, int)` | Debug: prints `id`, `board`, `len`, `owner`, and optionally dumps `data[]` words. |
+| `bufDiag(rawEvt*, char*, ...)` | Internal diagnostic: checks for NULL pointer, data pointer corruption, short-length buffers, invalid `0xAAAA...` sentinel — compiled in only when `PRINT_BUFFER_ERRORS` is defined. |
+| `newEventBuffer(rawEvt **)` | Internal: `calloc(sizeof(rawEvt), 1)` + `calloc(RAW_BUF_SIZE, 1)` for `data`. DMA variant: `cacheDmaMalloc` + 256-byte alignment (for CES rio3 DMA engine). |
+
+### DMA Support (Conditional)
+
+When `READOUT_USE_DMA` + `MV5500` are both `#define`d at build time:
+- `setupFIFOReader()` initializes the **Universe VME DMA engine** (`sysVmeDmaInit()`)
+- DMA is configured as A32, 32-bit wide, block transfer (`DCTL_VDW_32 | DCTL_VCT_BLK`)
+- A DMA semaphore `DMASem` (type `epicsEventId`) is created for DMA-completion signaling
+- Buffers are allocated with `cacheDmaMalloc` instead of `calloc`, with 256-byte alignment padding
+
+In the current production build (non-DMA PIO mode), all three of these are skipped and standard `calloc` is used.
+
+✅ verified 2026-04-26 — `QueueManagement.c:L22-24` (`READOUT_USE_DMA`+`MV5500` guard); `L63-65` (`sysVmeDmaInit()`, `DCTL_VDW_32|DCTL_VCT_BLK`, `DCTL_VAS_A32`); `L67` (`DMASem = epicsEventCreate(epicsEventFull)`); `L150-158` (`cacheDmaMalloc(RAW_BUF_SIZE + 256)`, 256-byte alignment for CES rio3 DMA engine)
+
+### Message Queue Internals (Developer Note)
+
+The file contains an extended comment block (L411–L495) explaining how VxWorks `MSG_Q_ID` works at the implementation level — included verbatim in the source for developer reference:
+- `MSG_Q_ID` is `struct msg_q *` (defined in `private/msgQLibP.h`)
+- `msgQNumMsgs()` is the correct way to query current queue depth
+- `msgQInfoGet()` provides `MSG_Q_INFO` struct with `numMsgs`, `numTasks`, `sendTimeouts`, `recvTimeouts`, `maxMsgs`, `maxMsgLength`
+
+### Startup Sequence
+
+From `vxworks/dgsIoc/iocBoot/iocArray/vme01.cmd`:
+```
+iocInit()           # EPICS IOC init
+dumpFIFO = 0        # FIFO dump flag (0 = normal, 1 = dump to stdout)
+setupFIFOReader()   # creates queues + allocates buffer pool
+seq &inLoop,...     # starts FIFO reader (uses getFreeBuf/putWrittenBuf)
+seq &outLoop,...    # starts packer (uses getWrittenBuf/putSenderBuf)
+seq &MiniSender,... # starts TCP sender (uses getSenderBuf/putFreeBuf)
+```
+✅ verified 2026-04-26 — `vxworks/dgsIoc/iocBoot/iocArray/vme01.cmd:L121-139` (setupFIFOReader + seq calls)
+
+### Board Type Validation in `bufDiag`
+
+When buffer validation is enabled (`PRINT_BUFFER_ERRORS`), `bufDiag()` checks the `0xAAAAAAAA` sentinel that the FIFO readout code writes at `data[0]` per board type:
+
+| Board type | Expected `data[0]` |
+|------------|-------------------|
+| `BrdType_ANL_MDIG`, `BrdType_ANL_SDIG`, `BrdType_MAJORANA_MDIG`, `BrdType_MAJORANA_SDIG`, `BrdType_LBNL_DIG` | `0xAAAAAAAA` |
+| `BrdType_DGS_MTRIG` | `0x0000AAAA` (lower 16-bit only, upper 16-bit must be 0) |
+
+This is consistent with the FIFO readout formats in [`vxworks_fifo_readout.md`](vxworks_fifo_readout.md).

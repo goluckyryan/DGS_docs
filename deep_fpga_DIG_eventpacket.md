@@ -90,7 +90,7 @@ Note: `MPX_FIELD[23:0]` in Word 11 is the multiplexed field — when `CP` (Word 
 | 9 | PV | Peak valid: peak-finding algorithm found a clean peak (`peak_valid_flag`) |
 | 8 | ED | External discriminator flag: event was triggered externally (`external_disc_flag`) |
 | 6 | VF | Veto flag (filled at readout; '0' in FIFO) |
-| 5 | WF | ADC sample mode: WF=1 → 14-bit ADC data + 2 flag bits per sample; WF=0 → 16-bit ADC, no flags. (Packet bit = `NOT write_flags` port; `write_flags=1` selects 14-bit+flags mode per `Channel_Readout_Mach.vhd:L49,L427`) |
+| 5 | WF | ADC sample mode: WF=0 → 14-bit ADC data + 2 flag bits per sample; WF=1 → 16-bit ADC, no flags. (`Packet WF = NOT write_flags`; `write_flags=1` selects 14-bit+flags mode — `Channel_Readout_Mach.vhd:L49,L427`; `Event_Header_FIFO.vhd:L343` `header(4)(5) <= not write_flags`.) ✅ verified 2026-04-26 — corrected from prior inverted mapping |
 | 4 | PE | `EARLY_PRE_M_SEL`: which early pre-rise window was used |
 
 **Status flag bits (Word 13):** ✅ verified 2026-04-24 — `Event_Header_FIFO.vhd:L377–383` (LED header); L473–479 (CFD)
@@ -433,20 +433,20 @@ Additional CFD status bits in Word 4:
 
 | Bit | Abbrev | Meaning |
 |-----|--------|---------|
-| 11 | CV | `CFD_VALID_FLAG`: the zero-crossing was clean and valid |
-| 7 | TF | `TSM_FLAG`: upper bits of timestamp match previous event (pileup proximity check) |
+| 11 | CV | `CFD_VALID_FLAG`: the zero-crossing was clean and valid ✅ verified 2026-04-26 — `Event_Header_FIFO.vhd:L430` (`header(4)(11) <= event_data.cfd_valid_flag` — CFD HEADER) |
+| 7 | TF | `TSM_FLAG`: upper bits of timestamp match previous event (pileup proximity check) ✅ verified 2026-04-26 — `Event_Header_FIFO.vhd:L434` (`header(4)(7) <= event_data.tsm_flag` — CFD HEADER) |
 
 Note: In CFD mode `TS_OF_LAST_EVENT` is only 30 bits (not 48). `TRIG_MON_DET_DATA` replaces the `PU_CNT + SAMPLED_BASELINE` slot in Words 4/6; SAMPLED_BASELINE is still in W6[23:0]. `PILEUP_COUNT` is split across Word 7 flanking the two CFD samples. See reconstruction formulas above.
 
 ## CFD zero-crossing interpolation
 
-The three CFD samples are 14-bit signed values of `LOCAL_DIFFERENCE = CFD_SUBTRACTION − LOCAL_ZERO`, the shifted CFD waveform. They are captured at the sign-flip clock:
+The three CFD samples are 14-bit signed values of `LOCAL_DIFFERENCE = CFD_SUBTRACTION − LOCAL_ZERO`, the shifted CFD waveform. They are captured at the sign-flip clock. ✅ verified 2026-04-26 — `cfd_disc.vhd:L334` (`INT_CFD_SAMPLES(0) <= LOCAL_DIFFERENCE` each clock); `L332-333` (shift register: `(2)<=(1)<=(0)`); `L190-191` (at sign flip: `CFD_SAMPLES(2..1) <= INT_CFD_SAMPLES(1..0)`, `CFD_SAMPLES(0) <= LOCAL_DIFFERENCE`):
 
 | Sample | Clock relative to sign flip | Sign | Description |
 |--------|-----------------------------|------|-------------|
-| `CFD_SAMPLE(1)` | T − 1 (10 ns before) | **positive** | Last sample above zero |
-| `CFD_SAMPLE(0)` | T = `TIMESTAMP_OF_EVENT` | **negative** | First sample below zero |
-| `CFD_SAMPLE(2)` | T − 2 (20 ns before) | positive | Earlier sample (quadratic correction) |
+| `CFD_SAMPLE(1)` | T − 1 (10 ns before) | **positive** | Last sample above zero — `INT_CFD_SAMPLES(0)` at capture |
+| `CFD_SAMPLE(0)` | T = `TIMESTAMP_OF_EVENT` | **negative** | First sample below zero — current `LOCAL_DIFFERENCE` at capture |
+| `CFD_SAMPLE(2)` | T − 2 (20 ns before) | positive | Earlier sample (quadratic correction) — `INT_CFD_SAMPLES(1)` at capture |
 
 `TIMESTAMP_OF_EVENT` is latched at the same clock as `CFD_SAMPLE(0)`, so the actual zero-crossing lies somewhere in the 10 ns interval `[T−1, T]`.
 
@@ -488,7 +488,7 @@ After word 13, zero or more waveform words follow. The number of samples is cont
 
 | Bits | Field | Description |
 |------|-------|-------------|
-| 31:16 | Sample N | ADC sample (16-bit, sign-extended from 14-bit ADC) |
+| 31:16 | Sample N | ADC sample (16-bit, sign-extended from 14-bit ADC) ✅ verified 2026-04-26 — `event_packer.vhd:L236` (`acptd_event_fifo_din(31 downto 0) <= event_data(0) & event_data(1)` — first sample in upper 16 bits, second in lower 16) |
 | 15:0 | Sample N+1 | Next ADC sample |
 
 Two consecutive ADC samples (100 MHz, 10 ns/sample) are packed into each 32-bit word. The waveform window is positioned relative to the discriminator fire by `reg_raw_data_window`. Decimation (1×, 2×, 4×, …, 128×) is applied by `decimator.vhd` and automatically pauses around the pulse rise time to preserve full-rate timing accuracy near the discriminator crossing.

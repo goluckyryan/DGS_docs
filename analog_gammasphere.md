@@ -1,8 +1,10 @@
 # Analog Gammasphere (Legacy DAQ)
 
+Stability: C3 - Structural / stable
+
 **Source:** https://wiki.anl.gov/gsdaq/Analog_Gammasphere  
 **Last fetched:** 2026-04-25  
-**Stability: C3 - Structural / stable** (legacy/decommissioned system; facts don't change)
+*(Legacy/decommissioned system — facts unlikely to change)*
 
 ## Overview
 

@@ -33,6 +33,7 @@ Stability: C2 - Active / semi-stable
     - [Terminal Server Assignments](#terminal-server-assignments)
 14. [Operational Notes](#operational-notes)
 15. [Cross-References](#cross-references)
+16. [Full Build & Deployment Procedure (Gammasphere System)](#full-build--deployment-procedure-gammasphere-system)
 
 ## What It Is
 
@@ -95,6 +96,15 @@ Old template names (historical, pre-Git migration, from `DGS_SVN/dgs/Documentati
 | DuoGe | 5080 | 5081 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L16-17` |
 
 NTP server: `192.168.203.56` ✅ verified 2026-04-06 — `ioc/boot/cdCommands:L23` | Timezone: CDT (UTC-6, `EPICS_TS_MIN_WEST=360`) ✅ verified 2026-04-06 — `ioc/boot/vme99.cmd:L52`
+
+**EPICS CA tuning parameters (set in `cdCommands` and `vme99.cmd`):**
+
+| Parameter | Value | EPICS Default | Purpose |
+|-----------|-------|---------------|--------|
+| `EPICS_CA_CONN_TMO` | **40 s** | 30 s | Connection timeout — gives IOCs extra 10 s to reconnect after a network hiccup before CA declares the link broken |
+| `EPICS_CA_BEACON_PERIOD` | **2 s** | 15 s | How often the IOC broadcasts its heartbeat beacon — shorter period means faster re-discovery by clients after an IOC restart |
+
+✅ verified 2026-04-26 — `ioc/boot/cdCommands:L17-18`; `ioc/boot/vme99.cmd:L19-20`
 
 ---
 
@@ -552,6 +562,12 @@ gnome-terminal -- bash -c "telnet 192.168.203.54 2001; exec bash"
 - `knowledgeBase/vxworks_migration.md` — Migration from Solaris/con6 to Ubuntu 24; all path/source fixes
 - `knowledgeBase/EPICS.md` — EPICS record types, CA tools, Python integration
 - `knowledgeBase/EPICS_asyn.md` — asyn driver: caput/caget flow, port concept, worker threads
+- `knowledgeBase/EPICS_implementation_tools.md` — DBGEN macro/substitution workflow: how `make_Substitutions.pl` + `gen_db.pl` generate new template files for new hardware
+- `knowledgeBase/EPICS_DB_templates.md` — All 8 IOC `.template` files documented: PV naming scheme, per-board instantiation, record counts
+- `knowledgeBase/EPICS_RTrig_templates.md` — RTrig EPICS DB templates deep-dive: RTrigRegisters + RTrigUser complete PV inventory (created 2026-04-25)
+- `knowledgeBase/trig_setup_scripts.md` — 5-stage trigger setup scripts (trig_setup_Stage1–5.sh); system bring-up from cold
+- `knowledgeBase/snapshot_pv.md` — PV snapshot utility (`dumpPVs.py` / `putPVs.py`) invoked by `start_run.sh`
+- `knowledgeBase/guceiver.md` — Guceiver live diagnostic GUI (waveform/spectrum/TAC-II tabs); companion to the ANLDAQ GUI
 - `knowledgeBase/VME_registers.md` — Complete VME register addresses extracted from asyn driver source
 - `knowledgeBase/IOC_cmd.md` — IOC shell commands available in DGS VxWorks IOC
 - `knowledgeBase/fpga.md` — FPGA firmware overview; firmware revisions that must match IOC boot scripts
@@ -559,3 +575,64 @@ gnome-terminal -- bash -c "telnet 192.168.203.54 2001; exec bash"
 - `knowledgeBase/vxworks_fifo_readout.md` — DMA buffer architecture, trigger FIFO readout, Type-F synthetic headers, FIFO index map
 - `knowledgeBase/vxworks_trigger_drivers.md` — Deep-dive into trigger asyn drivers (`asynTrigCommonDriver`, `asynTrigMasterDriver`, `asynTrigRouterDriver`); firmware type code table
 - `knowledgeBase/troubleshooting.md` — IOC connectivity issues, SYNC bit gotcha
+
+---
+
+## Full Build & Deployment Procedure (Gammasphere System)
+
+*Source: wiki.anl.gov/gsdaq/Building_the_Entire_System (fetched 2026-04-25)*
+
+### Shared File System — /global Mapping
+
+Machine DGS1 and other machines share a file server. `/global` maps to different locations depending on OS:
+
+| Machine type | /global maps to |
+|---|---|
+| 64-bit OS (e.g., Rocky Linux) | `/dk/fs2/dgs/global_64` |
+| Scientific Linux 6 (e.g., DGS1) | `/dk/fs2/dgs/global_32` |
+| CON6 (Solaris build machine) | `/dk/fs2/dgs/global_sandbox` |
+
+⚠️ **DO NOT TOUCH `/dk/fs2/dgs/global_sandbox` directly.** CON6 uses it as its `/global`. 
+
+### Boot Host for Gammasphere VME IOCs
+
+- Machine **DGS1** is the boot host for VME01–VME12 (Gammasphere)
+- VxWorks OS image + boot scripts for all VME processors located at `/global/ioc/` on DGS1
+- Boot sub-folders: `bin/`, `boot/`, `db/`, `dbd/`, `dgsSoftIOC/`, `epics/`, `FW_Maint/` (deprecated), `gui/`
+
+### Build Sequence (VME IOC Binary)
+
+1. `ssh dgs@dgs1`
+2. `cd /dk/fs2/dgs/global_sandbox/devel/dgsDrivers/dgsDriverApp/src`
+3. `./Export_SVN_ParameterFiles_from_dgs1.sh` — pulls latest asynParams.c/.h from SVN
+4. `ssh dgs@con6`
+5. `cd /global/devel/dgsDrivers && make clean && make` — **ZERO errors/warnings required**
+6. `cd ../dgsIoc && make clean && make` — **ZERO errors/warnings required**
+7. Log out of con6; log back into dgs1
+8. `cd /global/ioc/bin/vxWorks-ppc604_long && ./CopyNewMunch.sh` — deploys new munch binary
+
+### Deploying Updated EPICS Databases
+
+```sh
+ssh dgs@dgs1
+cd /global/ioc/db
+./Export_SVN_Databases.sh
+# Then: reboot all VME IOCs + restart Soft IOC to load new databases
+```
+
+### Deploying Updated Soft IOC Database
+
+```sh
+cd /global/ioc/dgsSoftIOC/db
+./Export_SVN_SoftIOC_Database.sh
+```
+
+### Spreadsheet → Boot Full Sequence
+
+1. Update the code-generating spreadsheet on Windows PC (SVN repo: `psg/CodeGeneratingSpreadsheetsGeneric`)
+2. Commit all outputs under `SS_output/` to SVN
+3. Export `asynParams.c` / `asynParams.h` to CON6 via the export script
+4. Compile on CON6 (dgsDrivers → dgsIoc); run CopyNewMunch.sh on DGS1
+5. Export `Registers.template`, `User.template`, `VMExx.db` files: run `Export_SVN_Databases.sh` on DGS1
+6. Export `JustGlobals.db`: run `Export_SVN_SoftIOC_Database.sh` on DGS1
+7. Reboot all VME IOCs + restart Soft IOC

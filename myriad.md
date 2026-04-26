@@ -1,8 +1,29 @@
 # MyRIAD — Trigger Expansion Module
 
-**Stability: C3 - Structural / stable**
+Stability: C3 - Structural / stable
 
 Source: `DGS_tools_pack/FPGA/others/MyRIAD/`
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [FPGA Structure](#fpga-structure)
+- [MAIN FPGA Source Files](#main-fpga-source-files)
+- [Firmware Command Formats (Generic)](#firmware-command-formats-generic)
+- [Hardware I/O (MAIN FPGA Top Level)](#hardware-io-main-fpga-top-level)
+- [TDC (Time-to-Digital Converter)](#tdc-time-to-digital-converter)
+- [Key Internal Registers](#key-internal-registers-from-registersvhd-and-myr-reg-notestxt)
+- [Hardware Status Register (0x0020) Bit Map](#hardware-status-register-0x0020-bit-map)
+- [Pulsed Control Register (0x040C) Bit Map](#pulsed-control-register-0x040c-bit-map)
+- [SERDES Config Register Bit Map](#serdes-config-register-bit-map)
+- [Coincidence Logic](#coincidence-logic)
+- [TTCL Trigger Interface](#ttcl-trigger-interface)
+- [GITMO (Gammasphere Interface to Trigger Module)](#gitmo-gammasphere-interface-to-trigger-module)
+- [FIFO Data Write State Machine](#fifo-data-write-state-machine)
+- [Diagnostic / Debug Features](#diagnostic--debug-features)
+- [Cross-References](#cross-references)
 
 ---
 
@@ -277,10 +298,20 @@ Data written per trigger event: header (A+B words) + 3× 32-bit data words (A an
 
 ---
 
-## Relationship to Other DGS Components
+## Cross-References
 
+**Role in system:**
 - Receives TTCL data stream from MTRG (DGS Master Trigger) via SERDES
 - Sends event data via VME bus (through VME FPGA)
 - Can operate in DGS Master, DGS Router, or GRETINA Master mode
 - GITMO variant bridges analog GS master trigger crate to digital DGS trigger infrastructure
-- Not to be confused with MTRG (deep_fpga_MTRG.md) or RTRG (deep_fpga_RTRG.md) — MyRIAD is an *auxiliary* expansion module, not a primary trigger processor
+- Not to be confused with MTRG or RTRG — MyRIAD is an *auxiliary* expansion module, not a primary trigger processor
+
+**Related files:**
+- `knowledgeBase/ttcl.md` — TTCL protocol specification; MyRIAD is a TTCL client that also sends triggers back to MTRG via Link U
+- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA that drives the TTCL stream MyRIAD receives; also handles MYRIAD_RCV_MACH and MYRIAD_TRIGGER algorithms
+- `knowledgeBase/fpga.md` — FPGA firmware overview; firmware type codes including 0xB (MyRIAD)
+- `knowledgeBase/VME_registers.md` — VME register map reference for DIG/MTRG/RTRG boards
+- `knowledgeBase/XIA_1SFP.md` — Another auxiliary SERDES-based trigger interface (receive-only; no Link U back-channel unlike MyRIAD)
+- `knowledgeBase/analog_gammasphere.md` — GITMO context: MyRIAD GITMO bridges analog master trigger crate to DGS
+- `knowledgeBase/multi_system_linking.md` — Cross-system trigger sharing; Link U used by MyRIAD

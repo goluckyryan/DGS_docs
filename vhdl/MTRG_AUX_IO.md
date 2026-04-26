@@ -1,9 +1,10 @@
 # MTRG AUX_IO.VHD — Auxiliary I/O & Target Wheel Interface
 
+Stability: C3 - Structural / stable
+
 **Source:** `FPGA/MTRG/Firmware/MAIN_FPGA/trunk/Source/AUX_IO.VHD` (786 lines)  
 **Entity:** `aux_io`  
 **Author:** John Anderson (ANL)  
-**Stability:** C3 - Structural / stable  
 **Last analyzed:** 2026-04-24
 
 ---

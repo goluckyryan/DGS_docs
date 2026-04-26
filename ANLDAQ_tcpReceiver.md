@@ -170,6 +170,29 @@ Decodes the full DIG event packet header (words 0–13 + optional trace words):
 
 `tcpReceiverUDP` overrides `OnRecord()` to push each event into its per-IOC `UDPSender` ring buffer for live forwarding to an online sort process. ✅ verified 2026-04-17 — `receiver.h:L234-238` (virtual hooks), `tcpReceiverUDP.cpp` (override)
 
+### `tcpReceiverUDP` — `RingBuffer` and `UDPSender` Internals
+
+**`RingBuffer` (SPSC, 4 MB, lock-free):** ✅ verified 2026-04-26 — `tcpReceiverUDP.cpp:L14-79`
+- Fixed 4 MB (`4 * 1024 * 1024` bytes) in-class `char buffer[CAPACITY]`
+- `head` (atomic, producer-side) and `tail` (atomic, consumer-side) — true lock-free SPSC with `memory_order_relaxed`/`memory_order_acquire`/`memory_order_release`
+- `Push(data, len)`: writes 4-byte little-endian length prefix then `len` bytes; wraps modulo CAPACITY; rejects if not enough free space (returns `false`)
+- `Pop(out, maxLen)`: reads 4-byte length, copies data; if `len > maxLen` the record is **silently discarded** (tail advanced past the data) — no error reported
+- Both `Push`/`Pop` handle circular wrap byte-by-byte
+
+**`UDPSender` — packing and flushing:** ✅ verified 2026-04-26 — `tcpReceiverUDP.cpp:L82-200`
+- One `UDPSender` per IOC thread; socket is `SOCK_DGRAM`; dest = `udpDestIP:UDP_BASE_PORT+ioc_index`
+- Internal `sendBuf[1472]` + `sendBufLen` accumulate records greedily until the buffer would overflow:
+  - If `sendBufLen + len <= 1472`: `memcpy` record into `sendBuf`, advance `sendBufLen`
+  - Else: `Flush()` (send current buffer), start new buffer with this record
+- Records larger than 1,472 bytes are silently dropped in `Push()` (`len > MAX_UDP_PAYLOAD` check)
+- `SenderLoop()` runs until `running=false` AND ring is empty:
+  - Drains ring into UDP frames; if no data was popped: `Flush()` + `usleep(100)` (100 µs idle wait)
+  - Final `Flush()` after loop to send any partial buffer
+- Thread lifecycle: `Start()` sets `running=true` and launches `senderThread`; `Stop()` sets `running=false` + joins
+- `OnRunStart()` calls `udpSender.Start()`; `OnRunEnd()` calls `udpSender.Stop()` — guarantees ring is fully drained before files close
+
+**Key implication:** multiple event records can be packed into a single UDP datagram (bin-packed up to 1,472 bytes). The receiver side must re-split them by reading the packed stream — there is no per-record delimiter in the UDP payload; records are simply concatenated.
+
 ### `class_TDC.h` — TAC-II Hit Decoder
 
 Decodes the MTRG TDC/TAC-II packet (10 words after repacking):
@@ -327,8 +350,10 @@ The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet for
 - `knowledgeBase/data_structures.md` — GEB header format + DIG event packet layout
 - `knowledgeBase/dgs_analysis.md` — downstream analysis consuming tcpReceiverMT output
 - `knowledgeBase/run_procedures.md` — operator-level run procedures (uses `start_run.sh`/`stop_run.sh` as the key start/stop mechanism)
+- `knowledgeBase/gebsort.md` — GEBSort/GEBMerge: downstream consumers of the raw GEB files tcpReceiverMT writes; also gtReceiver (Tim Lauritsen's alternative test receiver)
+- `knowledgeBase/ANLDAQ_tcpReceiver_Aux.md` — auxiliary receivers: tcpReceiverSingle, DFMA receiver, auxiliary data streams
 
-*Created: 2026-04-14 | Last reviewed: 2026-04-24*
+*Created: 2026-04-14 | Last reviewed: 2026-04-26*
 
 ---
 

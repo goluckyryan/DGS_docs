@@ -184,7 +184,7 @@ Local archive at `DGS_tools_pack/ln2con/` (key files only):
 
 | Option | Description | Feasibility |
 |--------|-------------|-------------|
-| A | **Same cross-compiler as DAQ VxWorks build** ← *check `ioc/` Makefile* | Most likely — already proven on Linux |
+| A | **Same cross-compiler as DAQ VxWorks build** | ❌ Not applicable — DAQ VxWorks targets MVME5500 (PowerPC 604) via `vxworks/x86-linux/` PPC toolchain; lnfill IOC targets MVME167 (68040); architectures are incompatible. ✅ verified 2026-04-25 — `DGS_tools_pack/vxworks/Makefile:L2-3` ("Target: Motorola MVME5500 (PowerPC 604)"); `ln2con/Plan.md:L200` ("VxWorks CPU: Motorola MVME167 (68040)") |
 | B | `gcc-m68k-linux-gnu` (Ubuntu package) | Available but targets Linux ABI, not VxWorks — may need adjustments |
 | C | Wind River commercial toolchain | Most accurate but least accessible |
 | D | Build GCC m68k-vxworks from source | Possible, complex |

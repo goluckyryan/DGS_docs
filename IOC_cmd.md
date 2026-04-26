@@ -42,6 +42,7 @@ Access via terminal server: `telnet <ts-ip> <port>` — see `ANLDAQ/EPICS_para.s
   - [Dangerous VxWorks Built-ins](#dangerous-vxworks-built-ins)
 - [Safety Classification](#safety-classification)
 - [Terminal Server Map](#terminal-server-map)
+- [Legacy VxWorks Trigger FPGA Reload Scripts](#legacy-vxworks-trigger-fpga-reload-scripts)
 
 ---
 
@@ -614,6 +615,7 @@ On the MVME5500, the VME A32 window is mapped at local offset **0xe8000000**. Co
 - `knowledgeBase/EPICS_asyn.md` — asyn driver internals: port concept, worker threads, bulk writes
 - `knowledgeBase/VME_registers.md` — complete VME register address map for DIG/RTRG/MTRG
 - `knowledgeBase/EPICS.md` — EPICS record types, CA tools, Python integration
+- `knowledgeBase/EPICS_implementation_tools.md` — DGS/DFMA EPICS implementation workflow: PSG spreadsheet → DB/template generation → IOC deployment
 - `knowledgeBase/troubleshooting.md` — IOC connectivity issues, common failures
 
 ---

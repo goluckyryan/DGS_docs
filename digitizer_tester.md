@@ -79,6 +79,23 @@ Stability: C3 - Structural / stable
   - Test digitizer firmware response to known waveforms
   - Exercise the DAQ data path end-to-end without beam
 
+## Operational Notes (from wiki, 2013-02-10 — JTA)
+
+- **Current installation:** Crate 10 of the DFMA system (as of 2013-02-10)
+- **Control software:** No page in the DGS Commander EDM screens — must use **GammaWareR2** program on the engineering PC in the data room
+- **Power cycle warning:** This board **completely loses its FPGA program** (goes blank) if power is cycled. Known PCB issue. If power was cycled:
+  - Use the old beater laptop to re-load the FPGA while board is powered
+  - FPGA image: `dig_tester.bit` (on the laptop desktop)
+  - Contact John Anderson or Mike Oberling for password and reload sequence
+- **LED status check:** Visually verify FPGA loaded state — yellow LEDs at bottom-right:
+  - **Illuminated** → FPGA has valid program
+  - **Dark** → FPGA lost its mind; reload needed
+- **VME access activation:** Normal IOC 10 boot script does **not** map the Digitizer Tester to VME. ✅ verified 2026-04-25 — `ANLDAQ/ioc/boot/vme10.cmd` (no `asynDebugCard` call in boot script; only `asynDebugConfig("DBG",0)` at L115 but no card mapped). To enable engineering PC access, type at the IOC 10 terminal:
+  ```
+  asynDebugCard(4,7)
+  ```
+  After this, GammaWareR2 can reach the board. ✅ verified 2026-04-25 — `asynDebugDriver.cpp:L472` (`asynDebugCard(cardno, slot)` exists; maps card #4, slot 7 to `daqBoards[]` for debug register access)
+
 ---
 
 *Created: 2026-04-05 (from SVN Digitizer_Tester VHDL source)*

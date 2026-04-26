@@ -113,6 +113,8 @@ Monitors TCP data output buffer health for each DAQ computer (IOC):
 | Send Buffs | `CV_NumSendBuffers` | Number of pending send buffers |
 | TCP Rate | `CV_SendRate` | Current TCP transfer rate |
 
+✅ verified 2026-04-25 — `gui_SYS.py:L337,L341,L345` (all three PV names confirmed)
+
 Uses `isDAQ=True` path in `FindPV()` (strips leading segment from PV name).
 One row per entry in `DAQ_list`.
 
@@ -155,7 +157,7 @@ Detector type → board/channel mapping:
 | `Ge Side` (GeS)   | SDIG boards | 5–9 |
 | `Aux`             | SDIG boards | 0–4 |
 
-Parameters (20 total):
+Parameters (20 total): ✅ verified 2026-04-25 — `gui_SYS.py:L459-478` (20 entries confirmed)
 
 | Label | PV Name | Type |
 |-------|---------|------|
@@ -184,7 +186,7 @@ Parameters (20 total):
 
 Sets a named PV on **all boards** simultaneously (no per-detector-type filtering).
 
-Parameters (15 total):
+Parameters (15 total): ✅ verified 2026-04-25 — `gui_SYS.py:L518-534` (15 entries confirmed)
 
 | Label | PV Name | Type / Options |
 |-------|---------|----------------|

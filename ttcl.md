@@ -612,3 +612,4 @@ Pulse Delay units: 100s of ns (time from end of pulse n to beginning of pulse n+
 - `knowledgeBase/data_structures.md` — GEB binary data format; TTCL-driven event timestamps
 - `knowledgeBase/XIA_1SFP.md` — XIA 1-SFP FPGA: receive-only TTCL client for XIA Pixie; uses PROPAGATION_CONTROL to pass frames 0 (sync) and 1–8 (trigger accept) while ignoring higher-level commands
 - `knowledgeBase/myriad.md` — MγRIAD module: TTCL client + auxiliary trigger input via Link U; sends triggers back to MTRG (unlike XIA 1-SFP)
+- `knowledgeBase/multi_system_linking.md` — Multi-system clock/trigger sharing; TTCL ImpSync (frame content) and clock propagation across Link L/R/U in cross-system configurations

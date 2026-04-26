@@ -536,6 +536,7 @@ In the DGS collector box IOC:
 - `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC, PXE boot, HV control
 - `knowledgeBase/vxworks.md` — VxWorks build pipeline (the RTOS running the VME IOCs)
 - `knowledgeBase/DGS_PVs.md` / `knowledgeBase/collectorbox_PVs.md` — Full PV lists for DGS and collector box
+- `knowledgeBase/EPICS_implementation_tools.md` — DGS/DFMA EPICS implementation workflow: PSG spreadsheet → DB generation → IOC deployment
 
 ---
 

@@ -197,6 +197,8 @@ A helper function `PushTypeFToQueue()` sets `rawBuf->board`, `rawBuf->len = 16`,
 ## QueueManagement.c — Buffer Lifecycle & Key Structures
 _Source: `dgsDrivers/dgsDriverApp/src/QueueManagement.c` + `DGS_DEFS.h` — code-read 2026-04-22_
 
+> **Note:** An updated, more detailed version of QueueManagement.c documentation (including corrected RAW_Q_SIZE=200 and DMA buffer sizing) is in [`vxworks_utility_modules.md`](vxworks_utility_modules.md). That file is authoritative for QueueManagement facts verified 2026-04-26.
+
 ### `rawEvt` Structure (buffer descriptor)
 
 Each buffer slot is described by a `rawEvt` struct (defined in `DGS_DEFS.h`). Queues pass **pointers to rawEvt**, not the data itself.
@@ -321,3 +323,4 @@ Values 5, 7, 9–11 are undefined (`BrdType_UNDEF_*`). ✅ verified 2026-04-22 �
 - `knowledgeBase/fpga.md` — FPGA firmware overview; counterpart to the IOC driver
 - `knowledgeBase/deep_fpga_DIG_eventpacket.md` — Digitizer event packet format (counterpart to Type-F headers)
 - `knowledgeBase/vxworks_vme_devlayer.md` — VME hardware abstraction layer (`devGVME.c`/`devGData.c`/`DGS_DEFS.h`): board init, VMERead32/VMEWrite32, flash programming, `daqBoard` struct, board type codes, `rawEvt` struct definition
+- `knowledgeBase/vxworks_utility_modules.md` — `asynDebugDriver`, `FlashMaintenance`, and QueueManagement.c (authoritative/updated version with verified RAW_Q_SIZE=200, DMA sizing, sentinel values)

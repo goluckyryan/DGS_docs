@@ -357,7 +357,7 @@ Max cable length:   ~10 µs × 2×10⁸ m/s (speed of light in fiber)  ≈  2 km
 
 TRIG_DELAY uses **two** 1K BRAMs in series (`TRIG_DELAY_T1_EXP` + `TRIG_DELAY_T2`) rather than one: doubling the delay from ~10 µs to ~20 µs doubles the tolerable cable length, at the cost of halving the maximum sustainable event rate per PEQ slot (from ~1.6 MHz to ~800 kHz). It is a deliberate design trade-off between physical reach and maximum count rate. ✅ verified 2026-04-19 — `jta_channel.vhd:L1040-1097` (20211118 tag: comment "Two BRAMs stitched together to give 20us delay"; `TRIG_DELAY_T1_EXP` each 1K×18 BRAM, chained T1→T2)
 
-**What happens if the PEQ fills up?** If a new `ACCEPTED_HIT` arrives while the Filler is still busy (PEQ full), the firmware asserts `GENERAL_ERROR_FLAG` and resets the PEQ — that event is **lost**. This is an error condition, not normal operation. It is prevented by two mechanisms: (1) pileup rejection in the channel logic limits the rate of `ACCEPTED_HIT` pulses, and (2) the throttle mechanism signals the MTRG to raise the trigger threshold if the downstream readout FIFO approaches full, reducing the overall hit rate before the PEQ saturates.
+**What happens if the PEQ fills up?** If a new `ACCEPTED_HIT` arrives while the Filler detects `PEQ_TOP + 1 = PEQ_BOTTOM` (PEQ full), the Filler sets `ERROR_FLAGS(0) <= '1'` and transitions to the `ERROR` state — **the channel freezes until an external reset (`RST`) is applied**. That event is **lost**, and `GENERAL_ERROR_FLAG` is asserted in subsequent event headers (bit 13 of header word 4, injected at readout time). ✅ verified 2026-04-25 — `chan_trigger_control.vhd:L873` (PEQ full check: `PEQ_TOP + 1 = PEQ_BOTTOM → ERROR_FLAGS(0) <= '1'`; `MASTER_STATE <= ERROR`), `Digitizer.vhd:L907` (`general_error_flag(i) <= peq_diag_reg(i)(26)`), `Event_Header_FIFO.vhd:L726` (header bit 13 injected at readout). The ERROR state has no self-recovery: `MASTER_MACH` only exits ERROR via async `RST` signal (`chan_trigger_control.vhd:L710`). This is an error condition, not normal operation. It is prevented by two mechanisms: (1) pileup rejection in the channel logic limits the rate of `ACCEPTED_HIT` pulses, and (2) the throttle mechanism signals the MTRG to raise the trigger threshold if the downstream readout FIFO approaches full, reducing the overall hit rate before the PEQ saturates.
 
 #### Maximum per-channel event rate
 
@@ -452,7 +452,7 @@ Host Computer (VME Controller)
     └──► DIG  VME FPGA (XC3S400) ──► DIG  Main FPGA (XC3S5000)
 ```
 
-All VME FPGAs share the same architecture (Spartan-3 XC3S400): they present an A32/D32 VME slave interface, store the main FPGA bitstream in external flash, and program the main FPGA via serial configuration on power-up or on demand.
+All VME FPGAs share the same architecture (Spartan-3 XC3S400): they present an A32/D32 VME slave interface, store the main FPGA bitstream in external flash, and program the main FPGA via serial configuration on power-up or on demand. ✅ verified 2026-04-25 — all three VME FPGA `.xise` project files confirm `xc3s400`: DIG (`VME_FPGA_ANL/Work11/vme_A32_D32.xise:Device=xc3s400`), RTRG (`Router/VME_FPGA/Work13.4/vme_A32_D32.xise:Device=xc3s400`), MTRG (`MasterTrigger/Release_Dec_2014/Firmware/VME_FPGA/A32D32_VME_FPGA/Work13.4/vme_A32_D32.xise:Device=xc3s400`)
 
 ---
 

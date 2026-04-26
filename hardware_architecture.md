@@ -90,7 +90,7 @@ Slot 7: MTRG
 - **4 RTRGs total** service all 11 DIG VME systems; each RTRG shares a VME system with DIGs (not a dedicated VME system): RTR1 (IOC1/slot 7) → IOC1/2/3; RTR2 (IOC4/slot 3) → IOC4/5/6; RTR3 (IOC32/slot 6, same VME as MTRG) → IOC7/8; RTR4 (IOC10/slot 3) → IOC9/10/11 ✅ verified 2026-04-20 — `DGS_SVN/dgs/daq_system_tags/SL6_DGS_20220923/ioc/boot/vme32.cmd:L48-51`
 - Each VME backplane also has **one IOC board (MVME5500)** ✅ verified 2026-04-19 — `ioc/boot/vme66.cmd:L133-140` (Slot 1 = IOC MVME5500); all other crate cmd files follow same slot-1 IOC pattern
 - **VME Fiber Expander** board (PCB #3174, ANL part `21pc032`, Rev A, Sept 2021) provides fully optical interface between MTRG (System Trigger) and RTRGs — replaced original copper/Cat5 Trigger Paddle Cards; installed July 2022. Requires DC balance enabled (`EN_RTR_DCBAL`, `LinkL_DCbal`) and cable pre-emphasis **disabled** (`PEHLRU=PEEFG=PEABCD=0`). ✅ verified 2026-04-17 — `knowledgeBase/DGS_SVN.md` (PCB #3174), `knowledgeBase/link_sys_analysis.md:1I`, `knowledgeBase/trig_setup_scripts.md` (fiber expander notes)
-- Prior to digital upgrade (before 2023): VXI crates used (larger, housed in a separate electronics "shack" room); VXI system dismantled post-upgrade
+- Prior to digital upgrade: VXI crates used (larger, housed in a separate electronics "shack" room); VXI system dismantled post-upgrade. VXI5 specifically decommissioned by September 2021 (wiki: Digital_Gammasphere_Upgrade_Project), allowing grey cables for GS 81-109 to be removed from array. [Note: "before 2023" may reflect full teardown date vs. partial VXI5 decommission in Sept 2021 - unverified]
 
 ### VME Backplane
 

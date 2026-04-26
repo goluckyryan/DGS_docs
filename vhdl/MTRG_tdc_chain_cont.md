@@ -2,7 +2,7 @@
 
 **Source:** `~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/tdc_chain_cont.vhd` (1036 lines)  
 **Entity:** `tdc_chain_cont`  
-**Stability:** C3 — Structural / stable  
+Stability: C3 - Structural / stable  
 **Last analyzed:** 2026-04-24
 
 ---

@@ -9,6 +9,9 @@ Stability: C1 - Operational / volatile
 
 ## Wiki Structure
 
+### Legacy / Historical
+- [Analog Gammasphere](https://wiki.anl.gov/gsdaq/Analog_Gammasphere) — legacy analog DAQ system ✅ visited 2026-04-25 → created `analog_gammasphere.md`: startup procedure, c1.cmd format, GSSort monitoring, VXI proc boot params (dgs6, niCpu030-t, 192.168.203.170–173), CES event builder
+
 ### Understanding Gammasphere Interactively
 - [Interactive Image Map](https://wiki.anl.gov/gsdaq/Interactive_Image_Map) — clickable block diagram of the system
 - [Gammasphere](https://wiki.anl.gov/gsdaq/Gammasphere) — overview of GS hardware and DAQ

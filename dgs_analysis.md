@@ -75,17 +75,17 @@ git clone --recursive git@gitlab.phy.anl.gov:dgs-tools-pack/dgs_analysis.git
 - **Benchmark**: 659.7s for 17.4 GB / 228M hits (TAC2_054, 30 workers) — much slower than PQ (32.2s). EventBuilder_S output verified to match PQ: 26,656,402 events ✅ verified 2026-04-12 — `README.md`
 
 **EventBuilder_Q optimizations:**
-- Batch pre-decoding (not per-hit)
-- ReadPool: async pre-fills next batch while current is consumed (double buffering)
-- Lightweight merge heap: `{timestamp, groupIndex}` only (16 bytes vs full DIG struct)
-- 4 pipelined ROOT writers (round-robin)
+- Batch pre-decoding (not per-hit) ✅ verified 2026-04-26 — `EventBuilder_Q.cpp:L95-99` (`GroupReader: pre-decodes batches, async pre-fill, no double decode`)
+- ReadPool: async pre-fills next batch while current is consumed (double buffering) ✅ verified 2026-04-26 — `EventBuilder_Q.cpp:L99-124` (ReadPool class); `L190,202` (startBackFill on every decode)
+- Lightweight merge heap: `{timestamp, groupIndex}` only (16 bytes vs full DIG struct) ✅ verified 2026-04-26 — `EventBuilder_Q.cpp:L228-237` (struct MergeEntry); `L595` (comment: `16 bytes: {timestamp, groupIdx}`)
+- 4 pipelined ROOT writers (round-robin) ✅ verified 2026-04-26 — `EventBuilder_Q.cpp:L37` (`#define N_WRITERS 4`); `L500` (`ch = item->evID % N_WRITERS` — round-robin assignment)
 
 **EventBuilder_PQ optimizations (extends Q):**
-- **QuickBounds phase**: reads only the first+last GEB header of each file to get per-file timestamp bounds and compute hit count from `fileSize / blockSize`. Sector seeking uses binary search on the file (fixed block size → any hit N is at byte offset `N × blockSize`). Falls back to full scan for files with inconsistent payload sizes.
-- Sector partitioning: divides time span into N sectors with ghost regions (width = `timeWindow`) at boundaries to avoid splitting coincidence events
-- N parallel merge threads × M pipelined writers per thread (N×M partial files, merged at end)
-- Per-sector double-buffered ReadPool
-- Hits whose first event falls in a ghost region are discarded to prevent duplicates across sector boundaries
+- **QuickBounds phase**: reads only the first+last GEB header of each file to get per-file timestamp bounds and compute hit count from `fileSize / blockSize`. Sector seeking uses binary search on the file (fixed block size → any hit N is at byte offset `N × blockSize`). Falls back to full scan for files with inconsistent payload sizes. ✅ verified 2026-04-26 — `BinaryReader.h:L48,L271-302` (QuickBounds: first+last GEB header read; `totalNumHits = fileSize/blockSize`); `L538-558` (binary search on file using blockSize); `L292` (payload mismatch → fall back to `Scan(true)`)
+- Sector partitioning: divides time span into N sectors with ghost regions (width = `timeWindow`) at boundaries to avoid splitting coincidence events ✅ verified 2026-04-26 — `EventBuilder_PQ.cpp:L3,8` (file header comments); `L726-751` (sector boundary computation)
+- N parallel merge threads × M pipelined writers per thread (N×M partial files, merged at end) ✅ verified 2026-04-26 — `EventBuilder_PQ.cpp:L552,763-775` (sector threads launched; `nWriters` writers per sector)
+- Per-sector double-buffered ReadPool ✅ verified 2026-04-26 — `EventBuilder_PQ.cpp:L771,782` (`ReadPool sectorPool(1)` per sector thread)
+- Hits whose first event falls in a ghost region are discarded to prevent duplicates across sector boundaries ✅ verified 2026-04-26 — `EventBuilder_PQ.cpp:L916-917` (`firstTS < bounds.startTS || firstTS >= bounds.endTS` → discard); `L1001,1088` (discard counter reported)
 
 ```sh
 # Build
@@ -211,7 +211,7 @@ Key facts:
 - Run: `graycal` (installed) or `python main.py`
 - GrayMAN uses matplotlib; GrayCAL uses Plotly
 - `grayfit` provides `AutoFitter`, `FittingRunner`, `PeakFinder`, `CalibrationPoints`, `pole_zero_fitter`
-- ⚠️ GrayMAN `peak_detection.py` is a known placeholder — use GrayCAL's `AutoFitter` for production
+- ⚠️ GrayMAN `peak_detection.py` is a known placeholder — use GrayCAL's `AutoFitter` for production ✅ verified 2026-04-26 — `gray_apps/src/GrayMAN/core/peak_detection.py`: `find_peak_centroids` defined twice (second overwrites first), body comment "Need to replace this with something more realistic", uses naive `np.argmax` with no actual fitting; not integrated into any GUI caller
 - `Euautocal.json` (16 152Eu lines, 121.8–1408.0 keV) is the default calibration source
 
 > **Full details:** → [`dgs_analysis_grayapps.md`](dgs_analysis_grayapps.md)
