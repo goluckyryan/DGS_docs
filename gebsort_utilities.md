@@ -297,7 +297,7 @@ Standalone filter. Reads a GEB binary file, applies transforms/filters from a ch
 
 **Main loop:** Raw `read()`/`write()` FDs. First 20 events printed. `writeOK=0` suppresses output for GT2AGG4-consumed events or veto-cube-zeroed mode2 events.
 
-**Veto cube energy redistribution:** `e_good_new = e_good * (1 + ebad/esum)` — bad point energy redistributed to survivors.
+**Veto cube energy redistribution:** `e_new = e_old * (1 + ff)` where `ff = ebad / egood`, `egood = esum - ebad` — surviving interaction-point energies scaled up to conserve total. ✅ corrected 2026-04-27 — prior KB said `ebad/esum`; actual code uses `ff = ebad / egood` (`egood = esum - ebad`), i.e., divided by the surviving energy, not total. Source: `GEBFilter.c:L659-660,L699`.
 
 **Crystal ID decode:** `holeNum = (crystal_id & 0xfffc) >> 2`; `crystalNum = crystal_id & 0x0003`; `detNo = 4*holeNum + crystalNum`.
 
