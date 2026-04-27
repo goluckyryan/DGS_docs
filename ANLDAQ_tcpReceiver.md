@@ -25,6 +25,8 @@ _Split from `ANLDAQ.md` on 2026-04-16. Source: `DGS_tools_pack/ANLDAQ/tcpReceive
   - [class_TDC.h — TAC-II Hit Decoder](#class_tdch--tac-ii-hit-decoder)
   - [Run Control Scripts](#run-control-scripts)
   - [Packet Consistency: Receiver vs FPGA Firmware](#packet-consistency-receiver-vs-fpga-firmware)
+- [Legacy Receiver Code (`tcpReceiver/legacy/`)](#legacy-receiver-code-tcpreceiverlowlegacy)
+- [UDP Testing Tools (`tcpReceiver/udp_testing/`)](#udp-testing-tools-tcpreceiverudp_testing)
 - [Run Control Scripts — start_run.sh, stop_run.sh, run_control_gui.py](#run-control-scripts--start_runsh-stop_runsh-run_control_guipy)
   - [Overview](#overview)
   - [expInfo.sh — Experiment Configuration](#expinfosh--experiment-configuration)
@@ -455,6 +457,128 @@ Stop: "Online_CS_StartStop Stop" → "Stopping DAQ...", "flush data" → "Waitin
 
 ---
 
+## Legacy Receiver Code (`tcpReceiver/legacy/`)
+
+_Source: `ANLDAQ/tcpReceiver/legacy/`. Code-read 2026-04-27._ ✅ verified 2026-04-27
+
+This directory contains **pre-ANLDAQ legacy TCP receiver code** — the original single-threaded receiver that predates the current `tcpReceiverMT`/`tcpReceiverUDP` architecture. Retained for reference.
+
+### Files
+
+| File | Lines | Description |
+|------|-------|-------------|
+| `dgsReceiver.h` | 67 | C API header for the legacy receiver library |
+| `dgsReceiver.cpp` | 2633 | Legacy single-threaded receiver implementation |
+| `dgsReceiver_Ryan.cpp` | 1567 | Ryan's variant/fork of the legacy receiver |
+| `psNet.h` | 68 | Network utility macros (legacy platform compat) |
+| `PyReceiver.py` | 141 | Python 3 receiver client — connects to IOC TCP server, decodes DIG events |
+
+### `dgsReceiver.h` — Legacy C API
+
+Defines the public API for the old receiver library:
+- **`initReceiver(server)`** — connect to IOC at dotted-decimal address; port hardcoded to `9001` ✅ verified 2026-04-27 — `dgsReceiver.h:L11` (`#define SERVER_PORT 9001`)
+- **`getReceiverData(instance, len, dat)`** — blocking call; returns data for `len` seconds (range 0.1–1.0); fills contiguous buffer
+- **`getEvent(instance, buffer)`** — pop single event from received pool; return codes: `0=OK`, `-4=OUTOFEVENTS`, `-5=BUFFERSMALL`
+- **`stopReceiver(instance)`** — close socket
+- **`EVENT_MARKER`** — `0xAAAAAAAA` sync word (same as current architecture) ✅ verified 2026-04-27 — `dgsReceiver.h:L40`
+- **`INBUFSIZE`** — `64 * 1024` bytes
+- **Internal `inbuf` struct**: singly-linked list nodes (`next`, `type`, `evtlen`, `recs`, `*pdata`)
+
+### `PyReceiver.py` — Python 3 TCP Receiver Client
+
+Lightweight Python 3 diagnostic receiver. Connects to an IOC TCP server, requests data in a loop, and decodes DIG events using `class_DIG`. ✅ verified 2026-04-27 — full code-read
+
+**Wire protocol understood by PyReceiver:**
+- Request: 4-byte big-endian word (`1` = data request)
+- Reply header: 4×`uint32` big-endian: `[reply_type, record_size, status, num_record]`
+  - `reply_type=4` → `SERVER_SUMMARY` (normal data)
+  - `reply_type=5` → `INSUFF_DATA` (no data yet)
+- Payload: `record_size × num_record` bytes, big-endian `uint32` words
+
+**DIG event parsing logic:**
+- Iterates word-by-word through the flat payload
+- Word 1 (index 1): bits `[26:16]` = `PACKET_LENGTH` (packet boundary marker)
+- Word 3 (index 3): bits `[19:16]` = `HEADER_TYPE`
+  - Types 7 (`LED`) and 8 (`LED+PILEUP`) are valid event types → decoded via `DIG.decode_data()`
+  - Any other header type with `channel_id=0xD` → "run done" signal → stops loop
+  - Other unrecognized types → skipped
+- After collecting `packet_length` words → calls `dig.decode_data(payload)` + `dig.print()`
+
+**Usage:** `python3 PyReceiver.py [IP] [Port]`
+
+---
+
+## UDP Testing Tools (`tcpReceiver/udp_testing/`)
+
+_Source: `ANLDAQ/tcpReceiver/udp_testing/`. Code-read 2026-04-27._ ✅ verified 2026-04-27
+
+Three tools for end-to-end testing of the `tcpReceiverUDP` pipeline **without live hardware**. Together they simulate a full IOC→receiver→analysis chain using local TCP and UDP sockets.
+
+### Files
+
+| File | Lines | Description |
+|------|-------|-------------|
+| `iocSimulator.py` | 204 | Fake IOC TCP server — sends synthetic DIG LED events |
+| `udpReceiver.cpp` | 168 | UDP listener — prints stats for UDP packets from tcpReceiverUDP |
+| `test_udp.sh` | 126 | End-to-end test harness orchestrating all three components |
+
+### `iocSimulator.py` — Fake IOC TCP Server
+
+Simulates a DGS VME IOC digitizer board over TCP. Responds to data requests with synthetic DIG LED (HEADER_TYPE=7) events. ✅ verified 2026-04-27
+
+**Usage:** `python3 iocSimulator.py [port] [num_batches] [num_trace_words]`  
+**Defaults:** port=9001, num_batches=100, num_trace_words=4
+
+**Wire protocol:**
+- Waits for 4-byte request from receiver per batch
+- Sends reply header (4×`uint32` big-endian): `[type=4, total_bytes, status=0, num_record=1]`
+- Sends DIG LED record: `0xAAAAAAAA` marker (native endian) + 13 data words (network byte order) + optional trace words
+
+**Synthetic event structure (HEADER_TYPE=7 / LED mode):**
+- Word 1: `CH_ID[3:0] | USER_DEF[15:4] | PACKET_LENGTH[26:16] | GEO_ADDR[31:27]`
+- Word 2: `EVENT_TIMESTAMP` low 32 bits
+- Word 3: `TS_HIGH[15:0] | HEADER_TYPE=7[19:16] | EVENT_TYPE[25:23] | HEADER_LENGTH[31:26]`
+- Word 4: `flags | LAST_DISC_TIMESTAMP[31:16]`
+- Word 5: `LAST_DISC_TIMESTAMP[47:16]` (full 48-bit LED timestamp, upper 32 bits)
+- Word 6: `SAMPLED_BASELINE[23:0] | PILEUP_COUNT[27:24]`
+- Word 7: `TRIG_MON_XTRA_DATA[15:0] | TRIG_MON_DET_DATA[31:16]`
+- Word 8: `PRE_RISE_ENERGY[23:0] | POST_RISE_ENERGY[31:24]` (low byte)
+- Word 9: `POST_RISE_ENERGY[15:0]` (bits 23:8) `| PEAK_TIMESTAMP[31:16]`
+- Word 10: `P2_SUM[13:0] | P2_MODE[14] | CAPTURE_PARST_TS[15] | TS_OF_TRIGGER[31:16]`
+- Word 11: `MULTIPLEX_DATA[23:0] | LAST_POST_RISE_M_SUM[31:24]` (bits 23:16)
+- Word 12: `EARLY_PRE_RISE_ENERGY[23:0] | LAST_POST_RISE_M_SUM[31:24]` (bits 15:8)
+- Word 13: `P2_SUM_HIGH[9:0] | flags | TS_OF_COARSE[23:14] | LAST_POST_RISE_M_SUM[31:24]` (bits 7:0)
+- Words 14+: optional trace — 2 unsigned 14-bit samples per 32-bit word (`bits[13:0]=sample1`, `bits[29:16]=sample2`); Gaussian-shaped synthetic waveform
+
+**Run-done signal:** After all batches, sends a packet with `channel_id=0xD` and `HEADER_TYPE=0` to signal end-of-run.
+
+### `udpReceiver.cpp` — UDP Packet Inspector
+
+Multi-port UDP listener for diagnostic monitoring of `tcpReceiverUDP` output. ✅ verified 2026-04-27
+
+**Usage:** `./udpReceiver [port]` or `./udpReceiver [port] [num_ports]`
+- Multi-port mode: spawns one thread per port (`port` to `port + num_ports - 1`)
+- Each thread prints received packets as hex words and prints per-second throughput stats
+- **UDP payload format**: first 16 words (64 bytes) = fixed header; remaining = trace data
+- Max UDP payload: 1472 bytes (MTU-safe)
+- Throughput: printed per 1-second interval as MB/s; total packet count + byte count displayed on stop
+
+### `test_udp.sh` — End-to-End Test Harness
+
+Orchestrates all three components for a local self-contained integration test. ✅ verified 2026-04-27
+
+**Test flow:**
+1. Builds `tcpReceiverUDP` and `udpReceiver` via `make`
+2. Starts `iocSimulator.py` on TCP port 9001 (16 batches, 4 trace words)
+3. Starts `udpReceiver` on UDP port 12300
+4. Starts `tcpReceiverUDP` with config `127.0.0.1 9001 8` → `tcpReceiverUDP` connects to fake IOC, receives data, writes to `/tmp/test_udp_run/test_000_*`, forwards via UDP to `127.0.0.1:12300`
+5. After `tcpReceiverUDP` exits: hexdumps saved data file; runs ROOT macro using `Aux/reader.h` to decode channel-0 file and call `digHit.PrintTrace()`
+6. Cleanup: kills all background processes, removes temp files
+
+**Config file format** (line per IOC): `IP  TCP_PORT  num_channels`
+
+---
+
 ## See Also
 
 - `knowledgeBase/ANLDAQ.md` — parent overview, VxWorks pipeline, EPICS config
@@ -465,4 +589,4 @@ Stop: "Online_CS_StartStop Stop" → "Stopping DAQ...", "flush data" → "Waitin
 - `knowledgeBase/gebsort.md` — GEBSort/GEBMerge: downstream consumers of the raw GEB files tcpReceiverMT writes; also gtReceiver (Tim Lauritsen's alternative test receiver)
 - `knowledgeBase/ANLDAQ_tcpReceiver_Aux.md` — auxiliary receivers: tcpReceiverSingle, DFMA receiver, auxiliary data streams
 
-*Created: 2026-04-14 | Last reviewed: 2026-04-26*
+*Created: 2026-04-14 | Last reviewed: 2026-04-27*
