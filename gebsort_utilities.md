@@ -28,6 +28,12 @@ _Author: T. Lauritsen (ANL) and contributors._
 - [GEBFilter.c](#gebfilterc--gretina-mode2-event-filter-and-transform-767-lines)
 - [GEBSplit.c](#gebsplitc--geb-stream-splitter-by-event-type-144-lines)
 - [GEBHeader.c](#gebheaderc--dgs-file-header-printer-30-lines)
+- [GRETINA Tracking Output Writers](#gretina-tracking-output-writers-writetrack_addtrack--writetrack_repeat)
+- [G4toMode2.c](#g4tomode2c--geant4-simulation-to-mode2-converter-2151-lines)
+- [get_dead_layer_corrections2.cpp](#get_dead_layer_corrections2cpp--dfma-silicon-dead-layer-calculator-533-lines)
+- [fwhm511.c / fwhm_511.c](#fwhm511c--fwhm_511c--511-kev-peak-fwhm-analysis)
+- [get_eraw.cc / get_pz.cc](#get_erawcc--get_pzcc--batch-spe-extractor-scripts-27-lines-each)
+- [curEPICS](#curepics--symbolic-link)
 - [utils.c](#utilsc--24-bit-integer-conversion-utilities-187-lines)
 - [spe_fun.c](#spe_func--spe-spectrum-file-io-221-lines)
 - [tlutil.c](#tlutilc--general-math--utility-library-v1-514-lines)
@@ -392,7 +398,133 @@ Pure library, no `main()`. Provides numerical and sorting utilities used across 
 ✅ verified 2026-04-27 — `tlutil.c:L1-514`
 
 ---
+
+## GRETINA Tracking Output Writers (`writeTrack_addtrack` / `writeTrack_repeat`)
+
+_Source: `gebsort/writeTrack_addtrack.c` (408 L), `writeTrack_repeat.c` (303 L). Code-read 2026-04-27._
+
+Two companion C files that serialize GRETINA gamma-ray tracking results into GEB binary output streams. Used exclusively in **offline** GRETINA tracking pipelines (the online path uses `serializeTrack()` instead).
+
+### `writeTrack_addtrack.c` (408 L)
+
+Writes **only the tracked result** to the output stream, discarding the original raw CRYS_INTPTS data.
+
+- Entry point: `writeTrack_addtrack(trackStatus, track, Clstr, nClusters, ctkStat)`
+- For each successfully tracked gamma in `track->n`, constructs a `TRACKED_GAMMA_RAY` struct and packs it into a GEB payload.
+- Output: `GEB_TYPE_TRACK` event with `trackGeb.type = GEB_TYPE_TRACK`; payload = `(int nGammas) + (int nClusters) + ng × sizeof(TRACKED_GAMMA_RAY)` bytes.
+- Uses `fwrite()` to `Pars.trackDataStream` (a FILE* set by calling code).
+- Also exports `serializeTrack()` — produces identical byte layout as a heap buffer (no file I/O), for online use.
+
+### `writeTrack_repeat.c` (303 L)
+
+Writes **both** the original raw crystal data and the tracked result, creating a dual-stream output.
+
+- Entry point: `writeTrack_repeat(track)` — no clusters/nClusters argument.
+- First passes through each original `CRYS_INTPTS` hit (GEB_TYPE_DECOMP events) verbatim, then appends the tracked `GEB_TYPE_TRACK` event.
+- Useful for cross-checking tracking algorithms against input data.
+
+**Key types:** `TRACK_STRUCT`, `CLUSTER_INTPTS`, `TRACKED_GAMMA_RAY`, `CRYS_INTPTS`, `GEBDATA` — all defined in `ctk.h` / `gdecomp.h`.
+
+---
+
+## `G4toMode2.c` — GEANT4 Simulation to Mode2 Converter (2,151 L)
+
+_Source: `gebsort/G4toMode2.c`. Code-read 2026-04-27._
+
+Converts **GEANT4 simulation output** (raw energy depositions) into **GRETINA Mode2 (CRYS_INTPTS GEB stream)** format, enabling GEBSort to process simulated data with the same pipeline as real data.
+
+**Physics context:** simulates AGATA/GRETINA detector responses — used for Compton tracking efficiency studies, angular correlation simulations, and detector characterization.
+
+**Key features:**
+- Reads GEANT4 hit-list files (energies + positions per interaction point)
+- Applies realistic detector simulation: energy smearing (`eSmear_seg`, `eSmear_CC`), position smearing (`pSmear`), thresholds (`e_th[det]`, `e_0[det]`), Doppler correction
+- Enforces interaction-point count limits (`minNoInteractions`–`maxNoInteractions`) and crystal limits (`minNoCrystals`–`maxNoCrystals`)
+- Applies crystal-rotation matrices from `crmat.LINUX` / `crmat.dat` (same format as GRETINA tracking code)
+- Produces GEB binary output with `GEB_TYPE_DECOMP = 1` events containing properly formatted `CRYS_INTPTS` payloads
+- Configurable via a **chat file** (`G4toMode2.chat`) using `readChatFile()` with options: `emin`, `eSmear_seg/CC`, `pSmear`, `minr`, `maxdist`, `minNoInteractions`, `maxNoInteractions`, `thresholds`, etc.
+- Histograms: `sp_obs[]` (observed energy spectrum), `sp_emit[]` (emitted), `sp_obs_nosmear[]`, `sp_emit_nosmear[]` — 2000 channels each
+- Tracks conversion efficiency: `nphoto` (photo-peak), `ncompton` (Compton)
+
+**Internal helpers:**
+- `readChatFile()` — chat-file parser (lines 673–897)
+- `findClosestDetector()` — nearest detector geometry lookup
+- `distToClosestCrystal()` — inter-crystal distance check
+- `CheckNoArgs()` — argument validation
+
+---
+
+## `get_dead_layer_corrections2.cpp` — DFMA Silicon Dead-Layer Calculator (533 L)
+
+_Source: `gebsort/get_dead_layer_corrections2.cpp`. Code-read 2026-04-27._
+
+C++ library computing **alpha particle energy-loss corrections** for DSSD (Double-Sided Silicon Strip Detector) dead layers and a silicon box detector — used in DFMA (Digital Focal-plane Multi-channel Analyzer) alpha-decay correlation analysis.
+
+**Physics context:** When an alpha particle passes through the inactive dead layer of a silicon detector, its measured energy is lower than its true energy. This code corrects for that loss using tabulated alpha ranges in silicon.
+
+**Data source:** `alpha_ranges.txt` — table of alpha energy (MeV) vs range (µm) in silicon. Loaded into global `ranges[100][2]` by `load_ranges()`.
+
+**API — exported functions (called by `bin_dfma.c` / `functions_dfma.h`):**
+
+| Function | Physics scenario | Returns |
+|----------|-----------------|--------|
+| `get_dead_layer_corrections(dssd_E, dssd_x, dssd_y, box_E, box_wall, box_strip, box_det)` | Single alpha escape from DSSD into box | `[0]` initial energy, `[1]` DSSD dead-layer loss, `[2]` box dead-layer loss, `[3]` DSSD angle (rad) |
+| `single_escape_one_nonescape(...)` | One alpha escapes DSSD, one stays | `[0]` non-escape energy, `[1]` escape active-layer loss, `[2]` escape DSSD dead-layer, `[3]` escape box dead-layer |
+| `double_escape(...)` | Both alphas escape DSSD into box | 6-element array of dead-layer losses for both tracks |
+
+The `main()` function contains test-harness code (lines 40–94) but is commented out with `*/` — the file is used as a **pure library**, not a standalone executable.
+
+---
+
+## `fwhm511.c` / `fwhm_511.c` — 511 keV Peak FWHM Analysis
+
+_Source: `gebsort/fwhm511.c` (118 L), `gebsort/fwhm_511.c` (210 L). Code-read 2026-04-27._
+
+Two related programs for measuring the **511 keV annihilation gamma-ray peak resolution** across all GS germanium detectors.
+
+### `fwhm511.c` (118 L) — `pt511` executable
+
+**Purpose:** Reads `.spe` spectra for each GS Ge detector, calls `fwhm_511()` to locate and measure the 511 keV peak, reports per-detector FWHM and average.
+
+- Usage: `pt511 <ge_list> <lo_ch> <bgskip> <bgwidth> <hi_ch> <kev/ch>`
+- Reads `ehi<NNN>.spe` files (one per detector)
+- Reports: peak channel, FWHM (from sigma and direct), area, skewness per detector
+- Writes a display script `d.cmd` for visual inspection
+- Requires `>500` counts in peak for a valid result
+
+### `fwhm_511.c` (210 L) — `fwhm_511()` function library
+
+**Purpose:** The peak-finding and fitting engine used by `fwhm511.c` and potentially other tools.
+
+- Finds peak max in `[lo, hi]` channel range; rejects if max < 30 counts
+- Subtracts linear background using `bgskip`+`bgwidth` sidebands on each side
+- Computes: centroid `*peak`, `*area`, Gaussian sigma `*sig`, skewness `*skew`
+- Also computes a **direct FWHM** (`*fwhm`) by linear interpolation to half-max on both sides — more robust than `2.3548×sigma` for asymmetric peaks
+- Returns 0 on success, -1 on failure
+
+---
+
+## `get_eraw.cc` / `get_pz.cc` — Batch SPE Extractor Scripts (27 L each)
+
+_Source: `gebsort/get_eraw.cc`, `gebsort/get_pz.cc`. Code-read 2026-04-27._
+
+Not C++ source files despite the `.cc` extension — these are **GEBSort inline script fragments** (no `#include`, no `main()`) intended to be pasted or sourced into an interactive GEBSort session (like a `GEBSort.chat` function body).
+
+- **`get_eraw.cc`:** loops GS detectors 0–110, calls `pjx("EhiRawRaw","p",i,i)` to project a 1D spectrum from the `EhiRawRaw` histogram, then `wrspe("p","ehi<NNN>.spe")` to write it out. Produces `ehi000.spe`–`ehi110.spe`.
+- **`get_pz.cc`:** same pattern for `pzraw` histogram — calls `pjy("pzraw","p",i,i)` and writes `pz<NNN>.spe`. Produces pole-zero correction spectra for all detectors.
+
+Both use GEBSort internal functions (`pjx`, `pjy`, `wrspe`) that are only available inside a running GEBSort session.
+
+---
+
+## `curEPICS` — Symbolic Link
+
+_Source: `gebsort/curEPICS` → `/global/base/base-3.14.12.8/` (broken on spark-ca9f)._
+
+A symbolic link to the EPICS base installation used when building GEBSort on the ANL GS network (`/global` NFS). Broken on spark-ca9f where `/global` is not mounted. Present only for the `Makefile` build environment; no runtime significance.
+
+---
 *Created: 2026-04-07. Source: `DGS_tools_pack/gebsort/` README + source files.*
 *Utility programs section added: 2026-04-27.*
 *time_stamp.c, temp_ge.c, trig_fun.c, tlutil2.c, 2d_fun.c documented: 2026-04-27.*
 *GEBCrop, GEBFilter, GEBSplit, GEBHeader, utils.c, spe_fun.c, tlutil.c documented: 2026-04-27.*
+*writeTrack_addtrack/repeat, G4toMode2, get_dead_layer_corrections2, fwhm511/fwhm_511, get_eraw/pz, curEPICS documented: 2026-04-27.*
