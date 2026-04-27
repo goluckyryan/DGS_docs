@@ -132,9 +132,26 @@ Selected milestones (from directory names):
 | `EXPERIMENT_SEP_2012` | Earliest archived experiment tag |
 | `Release_20130829` | First named release |
 | `Release_20140318` | Also present in MasterTrigger and Router |
-| `20180507` | Present in DIG, MTRG, RTRG — major synchronized release |
+| `20180507` | Present in DIG, MTRG, RTRG — major synchronized release; also contains `TestBranches/` (see below) |
 | `20211118` | Historical tag — NOT the deployed firmware |
 | `20230809` | Most recent DIG tag in the Firmware_Tags archive — ⚠️ **not** the currently deployed version |
+
+### MAIN_FPGA_TAGS/20180507/TestBranches — LBNE-Style Redesign Experiment
+
+_Source: `FPGA/Firmware_Tags/Digitizer/MAIN_FPGA_TAGS/20180507/TestBranches/Cross_Arch_Test_Branch/`. Code-read 2026-04-27._
+
+The `20180507` tag also contains a `TestBranches/Cross_Arch_Test_Branch/` subdirectory — a 2013 experimental redesign of the DIG Main FPGA signal-processing chain by **Michael Oberling**, developed in the context of the **LBNE (Long-Baseline Neutrino Experiment)** collaboration at ANL.
+
+**Key characteristics:**
+- **Same hardware target:** XC3S5000 Spartan-3, ISE 14.x — the name "Cross_Arch" refers to the signal-processing *architecture* (not an FPGA family port)
+- **LBNE-labeled IP cores:** All DSP primitives have `lbne_` prefix — `lbne_DSP_14BIT_SUB`, `lbne_fir_adc_data`, `lbne_accumulator_multiplier`, `lbne_threshold_multiplier`, `lbne_delay_line_srl_18x128`, `lbne_SRLC32E`
+- **New VHDL signal-processing library** (`LBNE Source/` subdirectory): 17 modules — `lbne_baseline_tracker`, `lbne_cfd`, `lbne_channel_delay_line`, `lbne_channel_front_end`, `lbne_energy`, `lbne_event_processor`, `lbne_pehq`, `lbne_pileup_monitor`, `lbne_triple_filter`, etc.
+- **Different filter chain naming:** Descriptive tap names like `X_P_K1_Q1_I1_M1_D1_K2_D2_Q2_Q3` vs DGS production names. Three M windows (`M1`, `M2`, `M3`) and two I (integration) windows (`I1`, `I3`) are used — more flexible than the production DGS design
+- **New energy module features:** `peak_sum_mode`, `running_energy` (25-bit), `peak_offset`, `integrated_post_sum`/`integrated_pre_sum`/`pre_sum` (24-bit each), BRAM-based per-channel history (`integrated_pre_sum_ram`, `integrated_post_sum_ram` — 64-entry arrays)
+- **Create date:** 2013-11-14 (per VHDL headers), long before this branch snapshot date
+- **Status:** Historical dead-end — never merged to production DGS firmware. The DGS production builds (`DGS/`, `DoubleSampleTag`, etc.) retained the original naming and structure
+
+**Architecture insight:** This branch served as ANL's exploration of a more modular, LBNE-compatible DSP pipeline. It represents the only known attempt to redesign the DGS filter chain from scratch within the DGS_tools_pack. The LBNE project used digitizers with similar requirements (fast ADC + digital pulse processing), and this branch may have been a shared-codebase exploration. ✅ verified 2026-04-27 — `lbne_component_lib.vhd:L6` ("Create Date: 11/14/2013"); `Work.xise:Device=xc3s5000,Spartan3`; `lbne_energy.vhd:L56-66` (multiple M/I windows, BRAM energy RAM)
 
 > ✅ verified 2026-04-20 — `ioc/README.md:L28-29`: deployed DIG Main FPGA date = `20250704`, rev = `0x4CD8`. The `20250704` build is **not** present in the Firmware_Tags archive (archive only goes to `20230809`). The firmware binary is stored in `ioc/` via git-LFS, not in the Firmware_Tags snapshot archive.
 
