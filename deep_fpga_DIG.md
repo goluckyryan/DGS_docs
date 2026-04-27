@@ -245,7 +245,9 @@ All branches target `xc3s5000-fg900-5`.
 |------|-------------|
 | `event_packer.vhd` | "Accordion" FIFO controller: injects event headers then transfers waveform sample pairs into `acptd_event_fifo`; manages decimator enable/pause via timing-mark-driven logic. **Fully documented in `deep_fpga_DIG_modules.md` → § event_packer.** |
 | `Fifo.vhd` | External dual-clock FIFO interface (IDT 7007, 36-bit); bridges CLK100 write domain to CLK50 VME read domain |
-| `CLOCK_MANAGER.vhd` | Differential ADC/DAC clock output generation |
+| `CLOCK_MANAGER.vhd` | DIG clock network: two DCMs (ACQ 50/100/200 MHz + ADC phase-shiftable 100 MHz), SERDES TX clock (ODDR divider), DAC clock (ODDR), two Phase Hunter instances, reset sequencing. **Fully documented in `deep_fpga_DIG_modules2.md` → § CLOCK_MANAGER.** |
+| `Phase_Hunter.vhd` | ADC DCM auto-phase-hunt: 8-state FSM sweeps DCM phase shift to find window where all 10 ADC DRDY signals are stable for 100×32K clock cycles. Entity: `COMP_PHASE_HUNTER`. **Fully documented in `deep_fpga_DIG_modules2.md` → § Phase_Hunter.** |
+| `Phase_Hunter_SerDes.vhd` | Manual SERDES DCM phase controller: 4-state FSM responds to `phase_inc`/`phase_dec` VME pulse controls; no auto-sweep. Entity: `COMP_PHASE_HUNTER_SERDES`. **Fully documented in `deep_fpga_DIG_modules2.md` → § Phase_Hunter_SerDes.** |
 | `DCM_CONTROLLER.vhd` | DCM lock/unlock/reset management |
 
 ### VME Register Interface

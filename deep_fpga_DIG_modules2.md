@@ -596,6 +596,142 @@ All 199 registers are defined in a constant `R : tREGISTER_CONFIG_ARRAY(1 to 199
 
 ---
 
+## CLOCK_MANAGER.vhd — Digitizer Clock Network Generator
+
+_Source: `FPGA/DIG/MAIN_FPGA/BuildBranches/DGS/Source/CLOCK_MANAGER.vhd` (499 lines). Author: Michael Oberling. Fully read 2026-04-27._
+
+**Entity:** `CLOCK_MANAGER`
+
+The CLOCK_MANAGER generates and manages the entire clock network for the DIG Main FPGA. It contains two DCMs (Digital Clock Managers), a SERDES TX clock divider via ODDR, and two Phase Hunter instances.
+
+### Clock Domains and DCMs
+
+| DCM | Source | Outputs | Purpose |
+|-----|--------|---------|---------|
+| `ACQ_DCM` | `MUX_CLK_IN` (ext mux — SERDES or OSC) | 1× (50 MHz), 2× (100 MHz), 4× (200 MHz) | Main acquisition logic clock; drives all signal processing |
+| `ADC_DCM` | `ACQ_DCM_1X_BUF` (50 MHz) | 100 MHz phase-shiftable | ADC sampling clock; phase adjusted by COMP_PHASE_HUNTER |
+| — | `OSC_CLK_IN` | `OSC_CLK_BUF` (50 MHz) | Register-access / reset domain (most reliable clock for DCM control logic) |
+
+**ACQ_DCM configuration:** ✅ verified 2026-04-27 — `CLOCK_MANAGER.vhd:L230-260`
+- `CLK_FEEDBACK = "1X"`, `CLKOUT_PHASE_SHIFT = "VARIABLE"`, `CLKIN_PERIOD = 20.0 ns` (50 MHz)
+- CLK0 → 50 MHz (`ACQ_DCM_1X_BUF`); CLK2X → 100 MHz (`ACQ_DCM_2X_BUF`); CLKFX×4 → 200 MHz (`ACQ_DCM_4X_BUF`)
+- 100 MHz is the main logic clock; 200 MHz used for high-speed paths (SERDES)
+- `CLKFX_DIVIDE=1`, `CLKFX_MULTIPLY=4`
+
+**ADC_DCM:** A second `DCM` instance with `CLKOUT_PHASE_SHIFT = "VARIABLE"` that drives `ADC_CLOCKP_OUT`/`ADC_CLOCKN_OUT`. Phase adjusted dynamically by `COMP_PHASE_HUNTER` until all 10 ADC DRDY signals are valid. ✅ verified 2026-04-27 — `CLOCK_MANAGER.vhd:L354-476`
+
+### SERDES TX Clock
+
+Generated via `OFDDRCPE` (IOB D-flip-flop): alternates `D0=1`/`D1=0` on both edges of `ACQ_DCM_1X_BUF` (50 MHz) → 50 MHz SERDES TX clock output to pin. Uses IOB placement to minimize skew. ✅ verified 2026-04-27 — `CLOCK_MANAGER.vhd:L310-325`
+
+### DAC Clock
+
+Similar ODDR approach with `ACQ_DCM_2X_BUF` (100 MHz) → differential DAC clock (`DAC_CLOCKP_OUT` / `DAC_CLOCKN_OUT`). ✅ verified 2026-04-27 — `CLOCK_MANAGER.vhd:L326-349`
+
+### Reset Logic
+
+| Signal | Source | Target |
+|--------|--------|--------|
+| `REG_LOGIC_RESET` | 4-cycle OSC_CLK_BUF delay after POR | Register-access domain reset (OSC clock) |
+| `ACQ_LOGIC_RESET` | `DCM_CONTROLLER` instance controlling ACQ_DCM | Signal-processing domain reset (ACQ clock) |
+| `ACQ_SYNC_RESET` | `ACQ_DCM_STATUS(1)` (clock stopped) OR (SERDES not ready AND SERDES clock selected) | Triggers ACQ_DCM_CTRL reset |
+| `ASYNC_RESET` | `POR_RESET OR MUX_CLK_WARN` | Async input to ACQ_DCM_CTRL |
+
+`DCM_CONTROLLER` is a shared component (also used in RTRG) that sequences DCM reset/lock-wait/logic-reset in the correct order. ✅ verified 2026-04-27 — `CLOCK_MANAGER.vhd:L358-380`
+
+### STATUS_REG Bit Map
+
+| Bits | Source |
+|------|--------|
+| [5:0] | `phase_status[5:0]` — ADC Phase Hunter FSM flags (success, failure, hunting_up/down, psdone, psoverflow) |
+| [7:6] | `serdes_phase_status[7:6]` — SERDES Phase Hunter: bit6=psoverflow, bit7=psdone |
+| 12 | `ACQ_DCM_LOCK` |
+| 13 | `ACQ_DCM_RESET` |
+| 14 | `ACQ_DCM_STATUS(0)` — Fixed Phase Shift Overflow |
+| 15 | `ACQ_DCM_STATUS(1)` — CLKIN Stopped |
+| 20 | `ADC_DCM_LOCK` |
+| 21 | `ADC_DCM_RESET` |
+| 22 | `ADC_DCM_STATUS(0)` — Phase Shift Overflow |
+| 23 | `ADC_DCM_STATUS(1)` — CLKIN Stopped |
+
+✅ verified 2026-04-27 — `CLOCK_MANAGER.vhd:L148-162` (STATUS_REG concurrent assignments)
+
+---
+
+## Phase_Hunter.vhd — ADC DCM Phase Alignment
+
+_Source: `FPGA/DIG/MAIN_FPGA/BuildBranches/DGS/Source/Phase_Hunter.vhd` (423 lines). Fully read 2026-04-27._
+
+**Entity:** `COMP_PHASE_HUNTER`  
+**Instantiated in:** `CLOCK_MANAGER.vhd` as `PHASE_HUNTER` (at L476)
+
+**Purpose:** Automatically hunts for a DCM phase-shift value where all 10 ADC `DRDY` signals are simultaneously valid. Uses the Spartan-3 DCM's variable phase-shift (`PSEN`/`PSINCDEC`/`PSDONE`) interface to walk the ADC clock phase until data setup/hold is satisfied.
+
+### FSM States
+
+| State | Description |
+|-------|-------------|
+| `ST_START` | Reset all counters; transition to ST_INCREMENT |
+| `ST_INCREMENT` | Assert `PSEN + PSINCDEC=1` (increment phase); go to ST_INC_WAIT |
+| `ST_INC_WAIT` | Wait for `PSDONE`; if `psoverflow` → go to ST_DECREMENT; else increment again |
+| `ST_DECREMENT` | Assert `PSEN + PSINCDEC=0` (decrement phase by 1 step); go to ST_DEC_WAIT |
+| `ST_DEC_WAIT` | Wait for `PSDONE`; if `psoverflow` → ST_FAILURE; if DRDY bad → ST_DECREMENT; if DRDY OK → ST_CHECK |
+| `ST_CHECK` | Count 32,768 consecutive cycles with all DRDY=1; repeat `cNUM_RECHECKS=100` times. Any DRDY failure → ST_DECREMENT |
+| `ST_TOTAL_SUCCESS` | Terminal success state: all 10 ADC DRDY stable across 100×32K checks |
+| `ST_FAILURE` | Terminal failure: entire DCM phase range swept without finding valid window |
+
+**Phase sweep direction:** Increments to `psoverflow` (maximum shift), then decrements to find valid window from the high end down. ✅ verified 2026-04-27 — `Phase_Hunter.vhd:L254-395` (FSM process)
+
+**Verification robustness:** `cNUM_RECHECKS = 100` × 32,768 cycles = 3,276,800 clock cycles of DRDY validation at 100 MHz ≈ 32.8 ms total before declaring success. This guards against metastable edge cases. ✅ verified 2026-04-27 — `Phase_Hunter.vhd:L60` (`constant cNUM_RECHECKS : integer := 100`) and L371 (`check_count(15) = '1'` = 32768 cycles)
+
+### Key Outputs
+
+| Port | Description |
+|------|-------------|
+| `phase_status[7:0]` | FSM flags: [0]=success, [1]=failure, [2]=hunting_up, [3]=hunting_down, [4]=psoverflow, [5]=psdone |
+| `phase_value[31:0]` | Current phase step count (counts down from overflow, effectively the DCM shift applied) |
+| `phase_errors[31:0]` | Count of DRDY failures seen in ST_TOTAL_SUCCESS or ST_FAILURE states (diagnostic) |
+| `phase_offsets[2:0]` | Three 32-bit words (8-bit fields per ADC channel) — latched `value[7:0]+1` at the moment each channel's DRDY went low. Provides per-channel timing offset diagnostic |
+| `latched_adc_data_ready[9:0]` | Registered copy of all 10 DRDY inputs |
+| `phase_chipscope[17:0]` | ChipScope diagnostic: FSM state flags + lower 8 bits of value |
+
+### Debug Mode
+
+`phase_hunt_debug=1` enables manual single-step mode: FSM waits in ST_DECREMENT for `phase_hunt_proceed=1` before each step. In terminal states (SUCCESS/FAILURE), `phase_dec`/`phase_inc` allow manual fine-tuning of the DCM phase. ✅ verified 2026-04-27 — `Phase_Hunter.vhd:L200-212` (DEBUG_MODE_LATCH) and L351-358 (ST_DECREMENT gating)
+
+---
+
+## Phase_Hunter_SerDes.vhd — Manual SERDES DCM Phase Controller
+
+_Source: `FPGA/DIG/MAIN_FPGA/BuildBranches/DGS/Source/Phase_Hunter_SerDes.vhd` (158 lines). Fully read 2026-04-27._
+
+**Entity:** `COMP_PHASE_HUNTER_SERDES`  
+**Instantiated in:** `CLOCK_MANAGER.vhd` as `SERDES` (at L354)
+
+**Purpose:** Unlike `COMP_PHASE_HUNTER` (which auto-hunts), this is a **manual-only** controller — it does not auto-sweep. It simply exposes `phase_inc`/`phase_dec` controls to allow the operator to manually shift the SERDES DCM phase via VME register writes.
+
+### FSM States
+
+| State | Description |
+|-------|-------------|
+| `ST_IDLE` | Wait for `phase_inc` or `phase_dec` edge |
+| `ST_INCREMENT` | Assert `PSEN + PSINCDEC=1`; skip if `psoverflow`; go to ST_WAIT |
+| `ST_DECREMENT` | Assert `PSEN + PSINCDEC=0`; skip if `psoverflow`; go to ST_WAIT |
+| `ST_WAIT` | Wait for `PSDONE=1`; return to ST_IDLE |
+
+Edge detection: 3-stage pipeline (`xphase → xxphase → xxxphase`) on `phase_inc`/`phase_dec` to generate one-shot pulses and handle clock domain crossing from the VME register domain. ✅ verified 2026-04-27 — `Phase_Hunter_SerDes.vhd:L85-111` (INC_DEC_EDGE_DETECT process)
+
+### Key Outputs
+
+| Port | Description |
+|------|-------------|
+| `phase_value[31:0]` | Running count of net phase steps applied (increments on INC, decrements on DEC) |
+| `phase_status[7:0]` | bits[5:0]=0 (unused); bit6=`dcm_psoverflow`; bit7=`dcm_psdone` |
+
+**No auto-hunt:** This module has no DRDY feedback, no FSM terminal states, no automatic sweep. The operator manually tunes the SERDES clock phase using VME register pulse controls (`serdes_phase_dec`/`serdes_phase_inc`), typically guided by ChipScope or link error monitoring. ✅ verified 2026-04-27 — `Phase_Hunter_SerDes.vhd` — no `adc_data_ready` port; entity ports are purely DCM control + manual step signals
+
+---
+
 ## See Also
 
 - [deep_fpga_DIG_modules.md](deep_fpga_DIG_modules.md) — Part 1: signal chain, SERDES_TX, event_packer, pileup, SERDES_RX, Timestamp, Trigger_Mux, Channel_Readout_Controller/Mach
