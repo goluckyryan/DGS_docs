@@ -120,13 +120,14 @@ CollectorBox-specific variant of `ioc/findAllPV.py`. Parses `.cmd` boot files an
 **PV naming convention:** `GS<DetNbr>_<pvname>` (e.g. `GS201_ctl_reset_startup_rom`). Only prefixes starting with `GS` or `MOD` are kept; others are silently skipped ✅ verified 2026-04-23 — `collectorBox/findAllPV.py:L35-37`
 
 ### `collectorBox/rsyncDB.sh` — Download CollectorBox DB Files
-_Source: `DGS_tools_pack/ANLDAQ/collectorBox/rsyncDB.sh` (15 lines). Code-read 2026-04-23._ ✅ verified 2026-04-23
+_Source: `DGS_tools_pack/ANLDAQ/collectorBox/rsyncDB.sh` (19 lines). Code-read 2026-04-23; corrected 2026-04-27._ ✅ verified 2026-04-27 — `rsyncDB.sh` (line count + IPs confirmed)
 
-One-shot sync script to download the live CollectorBox DB and cmd files from the running IOC host:
+One-shot sync script to download the live CollectorBox DB and cmd files from **all 4 running CollectorBox Pi IOC hosts**:
 - Requires `ANLDAQ_DIR` environment variable (set by `EPICS_para.sh`); exits with error if absent ✅ verified 2026-04-23 — `rsyncDB.sh:L3-6`
-- Target host: **192.168.203.42** (CollectorBox IOC host); user: `dgs`; key: `~/.ssh/id_ed25519` ✅ verified 2026-04-23 — `rsyncDB.sh:L11-14`
-- Downloads: `db/*.db` and `iocBoot/iocCollectorApp/*.cmd` from `/shared/EPICS/CollectorBox_RevA/` on the remote ✅ verified 2026-04-23 — `rsyncDB.sh:L13-14`
-- Run after deploying a new CollectorBox firmware/IOC to refresh the local templates before re-running `findAllPV.py`
+- **Target hosts:** IPs 192.168.203.**42** (pi0), **.26** (pi1), **.88** (pi2), **.149** (pi3); user: `dgs`; key: `~/.ssh/id_ed25519` — iterates all 4 in a loop ✅ verified 2026-04-27 — `rsyncDB.sh:L10,L14-17` (`IPs="42 26 88 149"`; `for IP in $IPs`)
+- **⚠️ Correction:** Prior doc said "Target host: 192.168.203.42" (single host) — wrong. Script loops over all 4 Pi IPs and was also documented as 15 lines; actual line count is 19.
+- Downloads from each Pi: `db/*.db` and `iocBoot/iocCollectorApp/*.cmd` from `/shared/EPICS/CollectorBox_RevA/` → local `ANLDAQ_DIR/collectorBox/` ✅ verified 2026-04-27 — `rsyncDB.sh:L15-16`
+- Run after deploying new CollectorBox firmware/IOC to refresh local templates before re-running `findAllPV.py`
 
 ### `collectorBox/cb_json2pv.py` — CollectorBox PV Loader (GUI)
 _Source: `DGS_tools_pack/ANLDAQ/gui/cb_json2pv.py` (65 lines). Code-read 2026-04-23._ ✅ verified 2026-04-23
