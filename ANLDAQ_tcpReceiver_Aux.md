@@ -4,6 +4,20 @@
 Stability: C2 - Active / semi-stable
 **Last updated:** 2026-04-25
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Files](#files)
+- [DIG_Hit (class_DIG.h)](#dig_hit-class_digh)
+- [TDC_Hit + TDC200MHz (class_TDC.h)](#tdc_hit--tdc200mhz-class_tdch)
+- [Reader (reader.h)](#reader-readerh)
+- [script.cpp — Offline Analysis Script](#scriptcpp--offline-analysis-script)
+- [script_LED.cpp](#script_ledcpp)
+- [Notes](#notes)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 `tcpReceiver/Aux/` is a standalone offline ROOT-based analysis framework for reading and processing DGS binary data files. It is separate from the production `tcpReceiverMT` receiver — it is used for **post-hoc inspection, timing analysis, and calibration** of DIG and TAC-II data files written by `tcpReceiverMT`.

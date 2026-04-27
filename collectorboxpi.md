@@ -39,8 +39,6 @@ Stability: C2 - Active / semi-stable
 14. [Collector Box → GS Hole Assignments](#collector-box--gs-hole-assignments)
 15. [db/ Template Files (18 templates)](#db-template-files-18-templates)
 16. [Commissioning Workflow — Adding / Removing Detectors](#commissioning-workflow--adding--removing-detectors)
-    - [Add_Remove_Detectors.sh (must run as root)](#add_remove_detectorssh-must-run-as-root)
-    - [Pre_EPICS_Collector/ — Commissioning Utilities](#pre_epics_collector--commissioning-utilities)
 17. [Connections to Other Subsystems](#connections-to-other-subsystems)
 18. [Cross-References](#cross-references)
 
@@ -478,7 +476,7 @@ First index (32) = DEVSEL device number. Second index = register/data slot.
 
 ## Collector Box → GS Hole Assignments
 
-There are **4 collector boxes** total. This repo contains `st_201.cmd` through `st_204.cmd`, but **only 201 and 202 have per-detector records**; 203 and 204 have no detector entries in the current repo (odd-numbered GS holes use an older piserver).
+There are **4 collector boxes** total. This repo contains `st_201.cmd` through `st_204.cmd`, **all with active per-detector records** as of commit 2309422 (2026-04-13). All 4 Pi collector boxes (pi0–pi3) are deployed. ✅ verified 2026-04-26 — `st_201.cmd` (179 dbLoadRecords), `st_202.cmd` (196), `st_203.cmd` (229), `st_204.cmd` (175)
 
 | Pi | IOC # | Location | GS Holes | Status |
 |----|-------|----------|-----------|--------|
@@ -520,105 +518,11 @@ EPICS CA port is set via `EPICS_env.sh`: **5064/5065** for array use, **5074/507
 
 ## Commissioning Workflow — Adding / Removing Detectors
 
-The `collectorboxpi/` root contains two top-level scripts that manage the detector add/remove lifecycle:
+> 📄 **Full detail in:** `collectorboxpi_commissioning.md` — Pre_EPICS_Collector programs, Src/ library (SPI/DEVSEL/ADC/relay), Programs/ internals (TurnOnAllConnected, Dump_Preamp_EEPROM, Write_to_EEPROM), Add_Remove_Detectors.sh sequence.
 
-### `Add_Remove_Detectors.sh` (must run as root)
+**Quick summary:** Run `Add_Remove_Detectors.sh` (as root) to stop the IOC, scan all cables, regenerate the startup command file, and restart the IOC. The 4-step commissioning sequence: `ALL_power_OFF` → `Scan_Collector_FPGAs` → `Scan_DVI_Power` → `Scan_DVI_Comms` → feed results to `GenerateCmdFile.py`.
 
-> ⚠️ **Known bug (2026-04-18):** Line 11 sets `EPIC_dir=/share/EPICS` (missing trailing `d`) — the `cd $EPIC_dir` at L12 silently fails. The script continues because all subsequent paths are hardcoded absolute (`/shared/EPICS/Pre_EPICS_Collector`), so the actual scan and IOC restart steps still work correctly. The failing `cd` is a no-op bug. ✅ verified 2026-04-18 — `Add_Remove_Detectors.sh:L10-12` vs working paths at L24
 
-Full sequence executed:
-1. `systemctl stop softIOC.service` — stop the EPICS IOC
-2. `cd /shared/EPICS/Pre_EPICS_Collector` (via hardcoded absolute path — the earlier `cd $EPIC_dir` fails silently)
-3. `./ALL_power_OFF` — cut power to all SBXs on all stripes
-4. `sleep 5` — allow power to fully discharge
-5. `./Scan_DVI_Power` — scan 48V power state per DVI cable; exit code 0 = all OK, exit 148 (= C exit 404 mod 256) = cables not usable
-6. `./Scan_DVI_Comms` — scan DVI communications; reads SBID from pickoff address; generates `SCAN_OUTPUT_3_COMM_<BOX>.txt`
-7. `./GenerateCmdFile.py` — re-generate `st_20x.cmd` and `softIOC_<N>_settings.req` from scan output
-8. `systemctl start softIOC.service` — restart IOC with new configuration
-
-Note: `Scan_Collector_FPGAs` is optional (commented out) — use when Stripe FPGA reachability is in question.
-
-### `Pre_EPICS_Collector/` — Commissioning Utilities
-
-Standalone C programs that run on the Raspberry Pi **before EPICS is active**. They communicate directly with Stripe and Control FPGAs via BCM2835 SPI. Must run as root.
-
-**Normal 4-step commissioning sequence:**
-1. `ALL_power_OFF` — cut all SBX power
-2. `Scan_Collector_FPGAs` → `SCAN_OUTPUT_1_COLL_<BOX>.txt`
-3. `Scan_DVI_Power` → `SCAN_OUTPUT_2_POWER_<BOX>.txt`
-4. `Scan_DVI_Comms` → `SCAN_OUTPUT_3_COMM_<BOX>.txt` ← this feeds `GenerateCmdFile.py`
-
-**Full program inventory (15 executables):**
-
-| Executable | Purpose |
-|---|---|
-| `ALL_power_OFF` | Turns off all power to all SBXs on all stripes |
-| `Dump_EEPROMs` | Reads and dumps preamp EEPROM contents to screen |
-| `Dump_Preamp_EEPROM` | Reads preamp and dongle EEPROM data for a specific cable |
-| `Scan_Collector_FPGAs` | Tests communication with all Stripe FPGAs; generates SCAN_OUTPUT_1 |
-| `Scan_DVI` | Scans DVI power with per-stripe enable; reads Slope Box ID and Dongle ID |
-| `Scan_DVI_Comms` | Scans DVI comms; reads SBID from pickoff address; generates SCAN_OUTPUT_3 |
-| `Scan_DVI_Comms_No_Reg_Writes` | Same as above but without writing to FPGA registers |
-| `Scan_DVI_Grounding` | Scans DVI grounding / ground fault status |
-| `Scan_DVI_Power` | Scans 48V power state per DVI cable; generates SCAN_OUTPUT_2 |
-| `Scan_DVI_Power_with_SBID` | Same as above + reads Slope Box IDs |
-| `Test_Port_Comms` | Interactive: select channel, enable power, do SPI I/O — for debugging |
-| `TurnOnAllConnected` | Turns on power to all connected cables from a turn-on data file |
-| `Write_to_DPRAM` | Reads a data file and writes it to the DPRAM of a specified SBX |
-| `Write_to_EEPROM` | Reads address/data file and writes to 24AA002 EEPROM (byte or page mode) |
-| `spi_with_b_mbo_debug` | Low-level SPI debug utility for verifying raw SPI transfers |
-| `SPI_rw` | Interactive SPI read/write for testing arbitrary register access. Usage: `sudo ./SPI_rw <r|w> <devsel> <addr> <data>` (devsel 0–31, addr 0–1023, data 16-bit). See `collectorboxpi/Pre_EPICS_Collector/SPI_Address.md` for full register map and examples. ✅ verified 2026-04-18 — `SPI_Address.md:L1-16` |
-
-**SPI architecture (brief):**
-- Uses **SPI1** (Aux SPI), not SPI0; enabled via `dtoverlay=spi1-1cs` in `/boot/config.txt`
-- 24-bit transactions: bit 23 = R/W, bits 22:16 = 7-bit register address, bits 15:0 = 16-bit data
-- **5-bit DEVSEL bus** on GPIO 13/23/24/25/26 (binary device-select multiplexer, 0–31 devices)
-- Banked addressing for FPGAs with >127 registers: bank# written to addr 127, then real address
-- SpreadsheetSrc: FPGA register maps auto-generated from PSG spreadsheets (StrpFPGA, CtrlFPGA)
-
-✅ verified 2026-04-17 — `collectorboxpi/Pre_EPICS_Collector/README.md` + `Add_Remove_Detectors.sh`
-
-#### `Src/` — C Library Details
-
-The Pre_EPICS_Collector programs are built from a shared C library (`Src/`). These files are not yet surfaced in the executable-level docs above.
-
-**`NonEPICS_SPI_lib.c` / `NonEPICS_SPI_lib.h`** (480 lines) ✅ verified 2026-04-23 — `wc -l NonEPICS_SPI_lib.c` = 480
-- Implements all SPI and DEVSEL GPIO operations for non-EPICS programs.
-- `SPI1_setup(init_flag, RequestedSpeed)` — initializes BCM2835 SPI1 and DEVSEL GPIO outputs (GPIO 13/23/24/25/26 as binary 5-bit output bus). Drive strength set to 16 mA, slow slew for all connector GPIOs. Samples on rising edge of SCLK (changed 2023-02-17), data out on falling edge, SCLK starts low, MSbit first, 24-bit fixed transaction length.
-- `Set_DEVSEL(DEVSEL)` — asserts a 5-bit binary device select on the 5 GPIO lines. First clears all bits, then asserts the pattern for devices 0–31 via a switch/case with compile-time GPIO masks. 10 µs hold after assert (increased from 3 µs in 2022-12-16 debugging session).
-- `Do_SPI1_transaction(RWflag, Bidx, UsrAddr, UsrData)` — single 24-bit SPI transaction. Sets DEVSEL, writes 3-byte SPI message (R/W | addr | data_hi | data_lo) to TX FIFO, polls BUSY, clears DEVSEL, returns 32-bit result (bits 23:16 = FPGA status, bits 15:0 = data).
-- `Do_Banked_SPI1_transaction(RWflag, Bidx, UsrAddr, UsrData)` — extends above for banked DPRAM: addr ≤127 = bank 0 (direct), addr 128–1023 = banks 1–7 (writes bank# to addr 127 first, then real addr, then resets bank to 0). Addr ≥1024 returns 0xFFFFFFFF (error).
-- `Do_Banked_SPI1_BlockXfr(RWflag, Bidx, StartAddr, Nwords, *data_array)` — block transfer of Nwords from StartAddr; handles bank boundary crossings mid-transfer automatically; resets bank to 0 when done.
-- `Do_Banked_SPI1_RMW(Bidx, UsrAddr, ANDmask, ORMask)` — read-modify-write: reads register, ANDs with ANDmask, ORs ORMask, writes back. Handles banked addresses. 16-entry helper macros: `SET_BIT_nn` / `CLEAR_BIT_nn` for each bit 0–15.
-- `SPI1_exit()` — calls `bcm2835_aux_spi_end()` + `bcm2835_close()` (drops CE2 — only call at full shutdown).
-
-**`NonEPICS_Collector_lib.c`** (477 lines) ✅ verified 2026-04-23 — `wc -l NonEPICS_Collector_lib.c` = 477
-- High-level collector box control functions, built on the SPI library above.
-- **ADC scan loop** — The Control FPGA runs an ADS1158 ADC scanner ROM with 3 programs:
-  - Program 0 (ROM addr 0): slow loop ~530 µs cycle time, all 16 channels + internal ADC values (REF/GAIN/TEMP/VCC/OFFSET)
-  - Program 1 (ROM addr 64): fast loop ~50 µs, only 48V current monitor inputs (ADC ch 5–9)
-  - Program 2 (ROM addr 128): fast loop ~50 µs, all channels
-- `RESET_ADC_SCANNER(Program_Index)` — pauses scanner, selects program (writes ROM start address to CtrlFPGA), releases scanner.
-- `PAUSE_ADC_SCANNER()` / `ENABLE_ADC_SCANNER()` — toggle GPIO `SCANNER_CONTROL_PIN` to halt/resume the ADC scan loop.
-- `DO_ADC_CYCLE(delay1, delay2)` — enables scanner for `delay2` µs then stops it, giving one complete scan cycle.
-- `COLLECT_AVERAGED_ADC_DATA(delay1, delay2, num_avg, enable_tracing)` — runs `num_avg` scan cycles, reads 128 words from DPRAM via block transfer, accumulates min/max/avg per address.
-- **Relay control** — 4 relay types per cable (cables 1–30), each mapped to a bit in the corresponding stripe's `relay_control_sN` register (written to Stripe FPGA device 31):
-  - `ENABLE/DISABLE_POWER(cable)` — bits 14:10 of relay_control_sx (prly = 48V power per cable)
-  - `ENABLE/DISABLE_GNDFAULT_I(cable)` — bits 4:0 (irly = ground fault current injection)
-  - `GROUND_DETECTOR(cable)` / `FLOAT_DETECTOR(cable)` — bits 9:5 (grly = ground fault check relay; GROUND = normal, FLOAT = lifted)
-- `INITIALIZE_ALL_RELAYS()` — zeros relay_control for all 6 stripes (power off, no GFI, no float), then writes 0x0100 to stripe_control_sN for all 6 stripes (sets CRLY on one pole, clears clock/sync enable). Also sets GPIO J8_03 HIGH and J8_05 LOW as status markers.
-- `ENABLE_ALL_COMMS()` — sets bits 4:0 of stripe_control_sN for all 6 stripes (enables clock and sync per cable).
-- `convert_ADC_temp(ADCVAL, F_or_C)` — converts raw ADS1158 temperature reading to °C or °F: V = (ADC/30720)×4.096V; T = ((V_µV − 160000)/563) + 25.0°C. ✅ verified 2026-04-23 — `NonEPICS_Collector_lib.c:L459,L467,L470` (formula confirmed; code comment at L464 has typo `168000` but actual computation uses `160000`)
-
-**`DPRAM_access.c`** (172 lines) ✅ verified 2026-04-23 — `wc -l DPRAM_access.c` = 172
-- Lookup tables (arrays of DPRAM register addresses) used by commissioning utilities.
-- `FPGA_VOLTAGE_ADDR[8][3]` — DPRAM addresses for stripe power supply voltages (12V/25V/33V) for stripes 1–6 plus BGO FPGA. Index 0 unused.
-- `FPGA_IMON_ADDR[31]` — per-cable 48V current monitor DPRAM addresses, indexed by cable number 1–30 (index 0 unused).
-- `FPGA_GFI_ADDR[31]` — per-cable ground fault injection status DPRAM addresses.
-- `ADC_OFFSET_ADDR[7]`, `ADC_VCC_ADDR[7]`, `ADC_TEMP_ADDR[7]`, `ADC_GAIN_ADDR[7]`, `ADC_REF_ADDR[7]` — per-stripe DPRAM addresses for ADS1158 internal ADC self-calibration values (stripes 1–6, index 0 unused).
-
-**`Non_EPICS_Globvars.c`** (572 lines)
-- Definitions of global arrays used across the Non-EPICS programs (DPRAM image, min/max/avg accumulator arrays, etc.).
 
 ---
 
@@ -630,6 +534,7 @@ The Pre_EPICS_Collector programs are built from a shared C library (`Src/`). The
 
 ## Cross-References
 
+- `knowledgeBase/collectorboxpi_commissioning.md` — Pre_EPICS_Collector commissioning utilities detail: Src/ C library (SPI/DEVSEL/ADC/relay), Programs/ internals (TurnOnAllConnected, Dump_Preamp_EEPROM, Write_to_EEPROM)
 - `knowledgeBase/collector_fpga.md` — CtrlFPGA + StripeFPGA firmware detail (git repo); the hardware the Pi IOC talks to
 - `knowledgeBase/collector_box_fpga.md` — ControlStripe + CtlFanout FPGAs (PSG SVN origin): per-stripe 48V relay/clock/SYNC/LED control (Spartan-3) and RPi SPI gateway + ADS1158 ADC scanning (Spartan-6)
 - `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector); use exec grep for PV lookups
@@ -638,5 +543,6 @@ The Pre_EPICS_Collector programs are built from a shared C library (`Src/`). The
 - `knowledgeBase/nfs_layout.md` — PXE boot infrastructure on fs2.onenet; piserver NFS layout and MAC table
 - `knowledgeBase/gammasphere_geometry.md` — GS hole numbering and collector box assignments
 - `knowledgeBase/influxdb_grafana.md` — Temperature data pushed to InfluxDB by SaveTemp.sh (runs on Pi)
+- `knowledgeBase/collector_ctrlFPGA_registers.md` — CtrlFPGA register interface detail (141 registers): pulsed_control bits, FPGA_CTL_REG bits, ILA mux, DPRAM bank select, per-stripe ADC monitoring, BGO FPGA voltages
 
-*Created: 2026-04-06 | Last reviewed: 2026-04-20*
+*Created: 2026-04-06 | Last reviewed: 2026-04-27*

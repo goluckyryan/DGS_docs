@@ -6,6 +6,31 @@ _DCS2 (192.168.203.56) runs InfluxDB 3 and Grafana for DGS monitoring._
 
 ---
 
+## Table of Contents
+
+- [Infrastructure](#infrastructure)
+- [InfluxDB 3](#influxdb-3)
+  - [API Endpoint](#api-endpoint)
+  - [Known Databases](#known-databases)
+  - [Write API (InfluxDB line protocol)](#write-api-influxdb-line-protocol)
+  - [Query API (SQL)](#query-api-sql)
+  - [Reading Detector Temperature via EPICS CA (Alternative)](#reading-detector-temperature-via-epics-ca-alternative)
+  - [Authentication](#authentication)
+  - [Line Protocol Format](#line-protocol-format)
+- [What Gets Written to InfluxDB](#what-gets-written-to-influxdb)
+  - [1. Detector Temperatures (HPGeTemp database)](#1-detector-temperatures-hpgetemp-database)
+  - [2. DGS PV Snapshots (DGS database)](#2-dgs-pv-snapshots-dgs-database)
+- [Grafana](#grafana)
+  - [Data Sources (inferred)](#data-sources-inferred)
+  - [Provisioning](#provisioning)
+  - [Dashboards](#dashboards)
+- [WriteDiscordMessage.py](#writediscordmessagepy)
+- [Adding DGS PV Data to InfluxDB (Future)](#adding-dgs-pv-data-to-influxdb-future)
+- [Quick Reference](#quick-reference)
+- [Cross-References](#cross-references)
+
+---
+
 ## Infrastructure
 
 | Component | Version | Port | Process owner |

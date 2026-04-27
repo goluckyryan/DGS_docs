@@ -8,6 +8,16 @@ This file covers non-core GEBSort sort modules: GRETINA-specific sorters and add
 for TAC-II, DuoGe, X-Array, DFMA, S800, and other ancillary detectors.
 For the core GEBSort framework, calibration workflow, GEBMerge, bin_dgs, and jta, see `gebsort.md`.
 
+## Table of Contents
+
+- [GRETINA-Specific Sort Functions](#gretina-specific-sort-functions)
+- [Additional Detector Sorters (bin_*.c)](#additional-detector-sorters-binc)
+- [DGS-Specific Sorter Variants](#dgs-specific-sorter-variants)
+- [GEBSort Calibration Utilities](#gebsort-calibration-utilities)
+- [GRETINA Mode-1 and Mode-2 Sort Functions](#gretina-mode-1-and-mode-2-sort-functions)
+- [GEBSort Math & Utility Helpers](#gebsort-math--utility-helpers)
+- [Cross-References](#cross-references)
+
 ---
 
 ## GRETINA-Specific Sort Functions
@@ -116,12 +126,12 @@ Decodes TAC-II trigger packets (GEB type `GEB_TYPE_DGSTRIG`) within coincidence 
 - Loops over coincidence hits; selects `GEB_TYPE_DGSTRIG` events
 - Unpacks 10-word TAC-II packet: extracts `TRIG_TS` (48-bit trigger timestamp ×10 ns), coarse TDC counter, 4 vernier words (A/B/C/D), valid flags, vernier pattern
 - **Vernier resolution:** 50 ps/LSB (`nspervernier = 0.050`) ✅ verified 2026-04-26 — `bin_tac2.c:L116,L430`
-- **4-ns phased counters:** `TDC_TS4A/B/C/D` = coarse counter + 4-ns phase offset per channel
-- **Net TDC timestamp per channel:** `TDC_NET_TS_X = TDC_TS4X - TDC_VERNIER_X_ns`
+- **4-ns phased counters:** `TDC_TS4X = MOD_TDC_COARSE_TS + 4 × Cnt4ns_X` (4 ns per count; MOD_TDC_COARSE_TS = base floored to 2^18 boundary) ✅ verified 2026-04-26 — `bin_tac2.c:L281,L285,L289,L293`
+- **Net TDC timestamp per channel:** `TDC_NET_TS_A = TDC_TS4A - TDC_VERNIER_A_ns`; B/C/D get +1/+2/+3 ns phase offset added (`TDC_NET_TS_B = TDC_TS4B - TDC_VERNIER_B_ns + 1`, etc.) ✅ verified 2026-04-26 — `bin_tac2.c:L461-464`
 - **Output:** global `dgs_tac2` (best-channel net timestamp), `dgs_tac2_valid` flag
 - **Histogram:** `tac2dev` — 1D: `dgs_tac2 - TRIG_TS` deviation (4096 bins, ±2048 ticks)
 - Tracks `TDC_TS4A_last` etc. as static state for consecutive-event timing analysis
-- **Rollover handling:** if `TDC_COARSE_TS` is behind `TRIG_TS` by more than half-period, adds `2^18` (same logic as `class_TDC.h`)
+- **Rollover handling:** if `TDC_PERIOD < TRIG_PERIOD` (i.e., TDC coarse counter advanced less than expected), adds `655360` (= 65536 × 10) to `TDC_COARSE_TS`; `2^18` = 262144 is used separately as the **MOD divisor** for `MOD_TDC_COARSE_TS` = `TDC_COARSE_TS` floored to nearest 262144 boundary. ✅ verified 2026-04-26 — `bin_tac2.c:L217-223` (rollover add 655360); `L244-245` (MOD: `d1 = TDC_COARSE_TS/262144; AH = TDC_COARSE_TS - (long long)d1*262144`). **Correction:** earlier KB stated "adds 2^18" — incorrect; 2^18=262144 is the mod period, not the rollover increment.
 
 **External variables set:** `dgs_tac2`, `dgs_tac2_valid`, `dgs_trig_ts` (all used by `bin_dgs.c` for DGS-TAC2 timing correlation).
 
@@ -258,18 +268,18 @@ Uses external `exchange` struct from `GEBSort`. Primarily a GRETINA analysis hel
 
 ---
 
-### `bin_s800.c` — S800 Spectrograph Sorter (609 L)
+### `bin_s800.c` — S800 Spectrograph Sorter (609 L) ✅ verified 2026-04-26 — `bin_s800.c:L44-113,L166-177`
 
 Handles data from the **S800 magnetic spectrograph** (MSU/NSCL) for particle identification in Gammasphere+S800 experiments.
 
 **Key histogram:**
-- `S800_PID` — 2D PID (particle identification) matrix
-- `PIDwin` — `TCutG` gate for S800 PID selection
-- `s800_stat[30]` — counters per S800 channel
+- `S800_PID` — 2D PID (particle identification) matrix (TH2F, axes: tof vs de) ✅ verified 2026-04-26 — `bin_s800.c:L51,L171-173`
+- `PIDwin` — `TCutG` gate for S800 PID selection ✅ verified 2026-04-26 — `bin_s800.c:L52`
+- `s800_stat[30]` — counters per S800 channel ✅ verified 2026-04-26 — `bin_s800.c:L54`
 
-**Key function:** `rd2dwin(winname)` (L55–120) — reads a 2D graphical cut (`TCutG`) from the ROOT file by name. Used to load the PID gate at startup.
+**Key function:** `rd2dwin(winname)` (L59–70) — reads a 2D graphical cut (`TCutG`) from the ROOT file by name (`f->Get(winname)`). Used to load the PID gate at startup. ✅ verified 2026-04-26 — `bin_s800.c:L58-68`
 
-Uses external `exchange` struct. The `bin_s800()` function loops over coincidence events, extracts S800-type hits, applies PID gate.
+Uses external `exchange` struct (`extern EXCHANGE exchange` at L45). The `bin_s800()` function loops over coincidence events, extracts S800-type hits, applies PID gate.
 
 ---
 
@@ -410,7 +420,7 @@ dgs_ecal  cal_file_name  source  lowch  desgain
 - `lowch` — lower channel limit for peak search (excludes low-energy noise)
 - `desgain` — desired gain factor (all offset/gain values are divided by `desgain` before writing)
 
-**Source peak energies (hardcoded):**
+**Source peak energies (hardcoded):** ✅ verified 2026-04-26 — `dgs_ecal.c:L19-24`
 
 | Source | Low peak (keV) | High peak (keV) |
 |---|---|---|
@@ -458,7 +468,7 @@ dgs_ecal  cal_file_name  source  lowch  desgain
 
 _Source: `gebsort/bin_mode1.c` (1,839 L), `bin_mode2.c` (1,303 L). Code-read 2026-04-26._
 
-### `bin_mode1.c` — GRETINA Mode-1 Data Sorter (1,839 L)
+### `bin_mode1.c` — GRETINA Mode-1 Data Sorter (1,839 L) ✅ verified 2026-04-26 — `wc -l bin_mode1.c`
 
 Sorts **GRETINA Mode-1** data — the raw crystal-level decomposition output from GRETINA (waveform decomposed into interaction points). This is a pre-tracking stage: Mode-1 data contains `CRYS_INTPTS` structs per crystal hit.
 
@@ -466,11 +476,107 @@ Sorts **GRETINA Mode-1** data — the raw crystal-level decomposition output fro
 
 In the GEBSort chain, `bin_mode1` is typically listed before any sorter that needs Doppler-corrected interaction points. The sort function populates the `exchange` struct with processed data.
 
-### `bin_mode2.c` — GRETINA Mode-2 Data Sorter (1,303 L)
+### `bin_mode2.c` — GRETINA Mode-2 Data Sorter (1,303 L) ✅ verified 2026-04-26 — `wc -l bin_mode2.c`
 
 Sorts **GRETINA Mode-2** data — compressed interaction-point data (fewer bytes than Mode-1, derived from `CRYS_INTPTS` after cropping unused slots). Produces energy and position spectra from `GEB_TYPE_DECOMP` payloads.
 
 Mode-2 sorter is often combined with DGS (`bin_dgs`) in mixed GRETINA+Gammasphere experiments. Used to produce GRETINA-specific histograms (e.g., per-crystal energy spectra, multiplicity) within the same GEBSort run as DGS analysis.
+
+---
+
+---
+
+## GEBSort Math & Utility Helpers
+
+_Source: `gebsort/findAngle.c`, `findVector.c`, `findCAngle.c`, `utils.c`, `tlutil.c`, `mkMap.c`, `printEvent.c`, `validate.c`. Code-read 2026-04-26._
+
+These are shared library-style helper files compiled into GEBSort or the GEBMerge pipeline. They provide geometry math, data-format conversion utilities, event printing, and event validation logic.
+
+### `findAngle.c` — Opening Angle Between Two Unit Vectors ✅ verified 2026-04-26 — `findAngle.c:L1-34`
+
+Single function: `int findAngle(float n1[3], float n2[3], float *th)`. Computes the opening angle `*th` (in radians) between two 3D unit vectors using their dot product. Clamps the dot product to `[-1, 1]` before calling `acosf()` to guard against floating-point roundoff. Used by angular correlation sorters (`bin_angcor_DGS.c`, `bin_angcor_GT.c`) to find the angle between two gamma-ray directions.
+
+### `findVector.c` — Normalized Difference Vector ✅ verified 2026-04-26 — `findVector.c:L1-51`
+
+Single function: `int findVector(float x1,y1,z1, float x2,y2,z2, float *v1, *v2, *v3)`. Computes the unit vector pointing from point `(x1,y1,z1)` to `(x2,y2,z2)` — i.e., `v = (p2-p1)/|p2-p1|`. Used to construct gamma-ray direction vectors from two interaction points (e.g., first Compton interaction → second interaction defines the Compton scattering direction).
+
+### `findCAngle.c` — Compton Scattering Angle ✅ verified 2026-04-26 — `findCAngle.c:L1-48`
+
+Single function: `float findCAngle(float eg, float ee, float *thc)`. Computes the predicted Compton scattering angle `*thc` from:
+- `eg` — incident gamma-ray energy (MeV)
+- `ee` — energy deposited in the first Compton scatter (MeV)
+
+Using the Compton kinematics formula: `cos(θ) = 1 + 0.511/Eγ - 0.511/Eγ'` where `Eγ' = Eγ - Ee`. Returns a non-zero float if the kinematics are unphysical (|cosθ| > 1), which signals the tracking algorithm to reject the event. Used in `bin_angcor_DGS.c` for Compton imaging.
+
+### `utils.c` — 24-Bit Signed Integer Converters ✅ verified 2026-04-26 — `utils.c:L1-187`
+
+Low-level data format helpers:
+
+| Function | Description |
+|---|---|
+| `pprint_32(str, vv)` | Pretty-prints a 32-bit word in decimal/hex/binary form for debugging |
+| `c32bit24bit(int vv)` | Converts a signed 32-bit int to 24-bit two's complement unsigned form |
+| `c24bit32bit(uint vv)` | Converts a 24-bit unsigned two's complement value to a signed 32-bit int |
+| `twoscomp_to_int_24(uint tempE)` | Converts a 24-bit unsigned value via left/right shift (sign-extend trick from Shaofei Zhu) |
+| `test_convert()` | Self-test that exercises all conversion functions and exits — not called in production |
+
+These functions handle the 24-bit signed energy encoding used in DGS/GRETINA digitizer payloads where energy words are packed into 3 bytes within the GEB event header.
+
+### `tlutil.c` — Peak-Finding & Spectrum Math Library ✅ verified 2026-04-26 — `tlutil.c:L1-514`
+
+A collection of standalone numerical utility functions used by calibration tools (`dgs_ecal.c`, `dgs_ecal2.c`, `fwhm_onepeak.c`) and some sorters:
+
+| Function | Description |
+|---|---|
+| `zero_cross(y1,x1,y2,x2)` | Finds x-axis zero crossing of a line through two points |
+| `find_parab_vertex(x1,y1,x2,y2,x3,y3,*xv,*yv)` | Fits a parabola through 3 points and returns the vertex — used in `fwhm_onepeak.c` to find the PZ minimum |
+| `f1_peak(sp[], cutfac, lo, hi, *peak, *area, *sig, *skew)` | Finds a single peak in a 1D spectrum slice using centroid + moment analysis; returns peak position, area, sigma, and skew. Searches `[lo,hi]`, smooths 5×, applies a fractional-max trigger level `cutfac`. |
+
+The `f1_peak` function is a simple non-Gaussian peak finder suitable for finding energy centroids in raw spectra without a full fit.
+
+### `mkMap.c` — Static Detector ID Map Generator ✅ verified 2026-04-26 — `mkMap.c:L1-106`
+
+Standalone program that prints a fixed GEBSort detector ID map to stdout, using hardcoded ID ranges. Unlike `mk_dgs_map.c` (which queries live EPICS PVs), `mkMap.c` generates a complete map for a predefined geometry:
+
+| ID Range | Type | Count |
+|---|---|---|
+| 1010 – 1460 (stride 20) | BGO (5 per block), GE (5), SIDE (5), AUX (5) × 41 blocks | 41 each |
+| 2000 – 2319 | DSSD strips | 320 |
+| 2320 – 2339 | Focal Plane channels | 20 |
+| 2340 – 2359 | X-Array channels | 20 |
+| 3000 – 3010 | CHICO2 channels | 11 |
+
+Output format per line: `<ID>  <type_int>  <local_index>  <type_name>` — the map file format consumed by GEBSort's `bin_dgs.c` and related sorters to translate raw GEB IDs to detector names. Requires `GTMerge.h` for type integer constants (BGO, GE, SIDE, AUX, etc.).
+
+**Contrast with `mk_dgs_map.c`:** That tool queries live EPICS PVs (`GS###_Dig_Channel`, `GS###_Dig_Index`, `GS###_VME_Index`, `VMExx:MDIGy:user_package_data_RBV`) to generate the map dynamically from the actual detector configuration.
+
+### `printEvent.c` — GEB Event Pretty-Printer ✅ verified 2026-04-26 — `printEvent.c:L1-649`
+
+A large utility module (649 lines) providing human-readable print functions for all major GEB event payload types. Used for debugging and validation output controlled by `Pars.NumToPrint`.
+
+| Function | Prints |
+|---|---|
+| `get_GEB_Type_str(type, str)` | Maps GEB type integer → human-readable string (e.g., type 14 → `"GEB_TYPE_DGS"`) |
+| `print_S800PHYSDATA(fp, dirk)` | S800 physics data struct: CRDC x/y, IC sum, TOF, trigger, ata/bta/dta/yta angles |
+| `printCRYS_INTPTS(fp, TT, DG)` | GRETINA crystal interaction point struct: crystal_id, tot_e, t0, chisq, norm_chisq, per-interaction x/y/z/e/seg fields |
+
+The `ctk.h` header (not `GEBSort.h`) is used — suggesting this file predates the standard GEBSort framework and may have originated in the GRETINA tracking codebase.
+
+### `validate.c` — GEB Event Filter / Gate Function ✅ verified 2026-04-26 — `validate.c:L1-421`
+
+The `validate(GEB_EVENT *GEB_event)` function acts as a **pre-sort event gate**: it returns 0 (reject) or 1 (accept) for each incoming event before any `bin_xxx` function is called. GEBSort calls `validate()` after building the coincidence event window and before dispatching to sort functions.
+
+**Active logic (always applied):**
+- Counts `GEB_TYPE_DECOMP` hits above `Pars.minCCe` energy threshold → `emode2`
+- Rejects events where `emode2 < Pars.minNumCC` or `emode2 > Pars.maxNumCC`
+- After that check: returns 1 unconditionally (the rest of the function body is wrapped in `#if(0)` / `#if(1)` conditional blocks and is disabled)
+
+**Disabled logic (compiled out, `#if(0)`):**
+- Segment-uniqueness check: rejects events where any two interaction points share the same crystal segment
+- GRETINA tracking quality checks (chisq, norm_chisq thresholds)
+- Event multiplicity cap (`GEB_event->mult >= MAX_GAMMA_RAYS`)
+
+In the current build, `validate()` effectively only applies the CC-count multiplicity gate (`minNumCC`/`maxNumCC`). All other filters are disabled.
 
 ---
 
@@ -483,4 +589,4 @@ Mode-2 sorter is often combined with DGS (`bin_dgs`) in mixed GRETINA+Gammaspher
 - `knowledgeBase/dgs_analysis.md` — Modern parquet_pysort alternative pipeline
 
 ---
-*Created: 2026-04-26. Split from gebsort.md. Source: `DGS_tools_pack/gebsort/`.*
+*Created: 2026-04-26. Split from gebsort.md. Source: `DGS_tools_pack/gebsort/`. Updated 2026-04-26: Math/utility helpers section added.*

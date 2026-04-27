@@ -6,6 +6,22 @@ _How asyn works under the hood, with DGS context._
 
 ---
 
+## Table of Contents
+
+1. [What Is asyn?](#what-is-asyn)
+2. [Mental Model: What asyn Does](#mental-model-what-asyn-does)
+3. [Full caput Flow](#full-caput-flow)
+4. [Full caget Flow](#full-caget-flow)
+5. [Programs & Threads Involved in One caput](#programs--threads-involved-in-one-caput)
+6. [What Is an asyn Port?](#what-is-an-asyn-port)
+7. [Bulk caput: 100 Simultaneous Writes](#bulk-caput-100-simultaneous-writes)
+8. [Typed Interfaces](#typed-interfaces)
+9. [Passive Hardware — How "Callbacks" Work](#passive-hardware--how-callbacks-work)
+10. [asyn in DGS](#asyn-in-dgs)
+11. [Cross-References](#cross-references)
+
+---
+
 ## What Is asyn?
 
 **asyn** = Asynchronous Driver Support for EPICS. It is a middleware layer between EPICS records and hardware drivers.

@@ -4,6 +4,21 @@ _20180507 tag: `FPGA/Firmware_Tags/MasterTrigger/20180507/Firmware/MAIN_FPGA/tru
 _Summarized: 2026-04-15; verified 2026-04-24 against both trunk and 20180507 tag_  
 Stability: C3 - Structural / stable
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Key Trigger-Chain Ports](#key-trigger-chain-ports)
+- [Key Signal Declarations](#key-signal-declarations)
+- [Key Logic: Trigger Algorithm Slots](#key-logic-trigger-algorithm-slots)
+  - [U10 — eight_mt_channel](#u10--eight_mt_channel)
+  - [Trigger Logic Instances (TRIG_LOGIC1–8)](#trigger-logic-instances-trig_logic18)
+  - [U2 — mstr_mach](#u2--mstr_mach)
+- [Veto Logic (per-algorithm TRIGGER_VETOES process, priority order)](#veto-logic-per-algorithm-trigger_vetoes-process-priority-order)
+- [CPLD SUMCOPY Interface](#cpld-sumcopy-interface)
+- [Key Constants / Parameters](#key-constants--parameters)
+- [Connections to Other Modules](#connections-to-other-modules)
+- [See Also](#see-also)
+
 > **Note:** This file documents `top.vhd` — a structural wrapper top. There is a separate, larger file `Generated_top.vhd` (6,286 lines, entity `trigger_top`) that is the **actual synthesis top-level** used by ISE. See [`MTRG_Generated_top.md`](MTRG_Generated_top.md) for a complete analysis of that file.
 
 ## Purpose
@@ -97,3 +112,14 @@ Three ODDR DDR instances drive SUMCOPY[3:1] with `TEST_SUM[5:0]` (a 6-bit value 
 - **Distributes to Routers** (LINKA..LINKH TX): trigger decisions, channel vetoes, system sync
 - **Remote Master exchanges**: trigger type, veto state, sync via LINKL/R/U
 - **CPLD**: SUMCOPY DDR (TEST_SUM or address), FAST_STROBE input
+
+## See Also
+
+- [MTRG_support_modules.md](MTRG_support_modules.md) — shared component/package definitions used across MTRG
+- [MTRG_eight_mt_channel.md](MTRG_eight_mt_channel.md) — Router data aggregation (U10)
+- [MTRG_mstr_mach.md](MTRG_mstr_mach.md) — master state machine (U2)
+- [MTRG_sum_hits_X.md](MTRG_sum_hits_X.md) — X-plane multiplicity trigger (TRIG_LOGIC2/3)
+- [MTRG_sum_hits_XY.md](MTRG_sum_hits_XY.md) — XY coincidence trigger (TRIG_LOGIC4)
+- [MTRG_MYRIAD_TRIGGER.md](MTRG_MYRIAD_TRIGGER.md) — MγRIAD auxiliary trigger (TRIG_LOGIC8A)
+- [deep_fpga_MTRG_MAIN.md](../deep_fpga_MTRG_MAIN.md) — MTRG architecture overview; register map; trunk vs tag differences
+- [260E_MTRG_scheme.md](../260E_MTRG_scheme.md) — MTRG trigger scheme in the 260E context; CPLD/FAST_STROBE wiring

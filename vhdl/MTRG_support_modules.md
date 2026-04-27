@@ -19,6 +19,8 @@ These modules are support infrastructure used throughout the MTRG firmware but n
 7. [cpld_trig.vhd — CPLD Fast-Sum Trigger Algorithm Wrapper](#cpld_trigvhd--cpld-fast-sum-trigger-algorithm-wrapper)
 8. [jta_odelay.vhd / tdc_unit_cont — Continuously-Running TDC Vernier Chain](#jta_odelayvhd--tdc_unit_cont--continuously-running-tdc-vernier-chain)
 9. [jta_vernier_pos_finder.vhd / vernier_pos_finder — TDC Position Decoder](#jta_vernier_pos_findervhd--vernier_pos_finder--tdc-position-decoder)
+10. [chan_fifo_write_ctl.vhd — Channel Monitor FIFO Write-Enable Controller](#chan_fifo_write_ctlvhd--channel-monitor-fifo-write-enable-controller)
+11. [pipeline_unit.vhd — Vernier Position Resolver Pipeline Stage](#pipeline_unitvhd--vernier-position-resolver-pipeline-stage)
 
 ---
 
@@ -384,5 +386,132 @@ The 4-bit `selected_data_slice` is then decoded using a lookup that maps the bit
 
 ---
 
+_Source: `MTRG_git/MAIN_FPGA/trunk/Source/` — all files read 2026-04-24_
+
+---
+
+## chan_fifo_write_ctl.vhd — Channel Monitor FIFO Write-Enable Controller
+
+**Author:** John T. Anderson  
+**File:** `DGS_MT_MAIN_FPGA/chan_fifo_write_ctl.vhd` (135 lines) ⚠️ Correction: KB previously stated `MAIN_FPGA/trunk/Source/` — that file does not exist. Correct path is `DGS_MT_MAIN_FPGA/`. ✅ verified 2026-04-27  
+**Purpose:** Controls write-enable signals for all 8 channel monitor FIFOs, selecting when raw SERDES data is captured based on two VME registers.
+
+### Interface
+
+| Port | Dir | Width | Description |
+|------|-----|-------|-------------|
+| `mclk` | In | 1 | Board-wide master clock |
+| `GLOBAL_RESET` | In | 1 | Board-wide reset |
+| `MISC_CTL1_REG` | In | 16 | VME register: bits [15:8] = per-channel force-always flags |
+| `CHAN_FIFO_CTL_REG` | In | 16 | VME register: bits [15:0] = 2-bit capture mode per channel (ch1=[1:0], ch2=[3:2], …, ch8=[15:14]) |
+| `RAW_DATA_MONs` | In | 8×16 | Raw multiplicity words from all 8 SERDES channels |
+| `RAW_DATA_MONs_OUT` | Out | 8×16 | Same data, delayed 2 clock cycles (pipeline passthrough) |
+| `CHAN1_FIFO_WE` … `CHAN8_FIFO_WE` | Out | 1 each | Per-channel FIFO write enables |
+
+### Raw Data Word Format (from SERDES)
+
+```
+Bit 15: THR — Global Throttle Request (OR of all digitizer throttle requests)
+Bits 14:8: Y-Plane Multiplicity (0–80 strips)
+Bit  7: VAL — data valid flag (0 until pipeline is filled)
+Bits  6:0: X-Plane Multiplicity (0–80 strips)
+```
+
+### Capture Mode Control
+
+For each channel `i`, a 2-bit field `CHAN_FIFO_CTL_REG[(i*2−1):(i−1)*2]` selects the capture condition:
+
+| Mode | CHAN_FIFO_CTL bits | Condition for FIFO_WE = 1 |
+|------|--------------------|--------------------------|
+| `00` | `00` | Never (unless forced by MISC_CTL1) |
+| `01` | `01` | X-plane multiplicity ≠ 0 (bits [6:0] non-zero) |
+| `10` | `10` | Y-plane multiplicity ≠ 0 (bits [14:8] non-zero) |
+| `11` | `11` | THR (bit 15) OR VAL (bit 7) asserted — i.e., throttle request or pipeline-valid flag set |
+
+**Override:** If `MISC_CTL1_REG(7+i) = '1'`, the channel FIFO write-enable is forced on unconditionally (`FIFO_WEs(i) <= '1'` regardless of mode or data). ✅ verified 2026-04-27 — `DGS_MT_MAIN_FPGA/chan_fifo_write_ctl.vhd:L105` (force-on branch executes before mode-select case)
+
+> ⚠️ **Mode 11 note:** Bit 7 (`VAL`) is the pipeline data-valid flag — it is 0 until the pipeline is filled, then 1. Mode 11 captures when VAL=1 (pipeline filled) OR THR=1 (throttle). This is subtly different from "capturing on invalid data" — it captures on pipeline activity plus any throttle condition. ✅ verified 2026-04-27 — `DGS_MT_MAIN_FPGA/chan_fifo_write_ctl.vhd:L122-128` (`RAW_DATA_MONs(i)(15) = '1' OR RAW_DATA_MONs(i)(7) = '1'`); raw data word format confirmed at L73-83.
+
+✅ Mode table verified 2026-04-27 — `DGS_MT_MAIN_FPGA/chan_fifo_write_ctl.vhd:L65-83` (mode comment block); L108-133 (VHDL logic confirms 00=never, 01=SumX≠0, 10=SumY≠0, 11=THR|VAL).
+
+### WE Persistence
+
+The final `FIFO_WEs(i)` is: `INTERNAL_FIFO_WEs(i) OR FIFO_WE_PERSISTs(i)`. The `FIFO_WE_PERSISTs` is one clock behind `INTERNAL_FIFO_WEs`. This makes the WE pulse extend for exactly 2 clock ticks — the write enable turns on immediately when the condition is met, and stays on for one additional cycle. ✅ verified 2026-04-27 — `DGS_MT_MAIN_FPGA/chan_fifo_write_ctl.vhd:L103` (`FIFO_WE_PERSISTs <= INTERNAL_FIFO_WEs`); L106 (`FIFO_WEs(i) <= INTERNAL_FIFO_WEs(i) OR FIFO_WE_PERSISTs(i)`, inline comment: "makes WE turn on immediately but turn off after a clock tick").
+
+### Pipeline Delay
+
+The input array `RAW_DATA_MONs` is passed through two registers before appearing at `RAW_DATA_MONs_OUT`, providing a 2-clock-cycle delayed copy of the raw data for downstream use. ✅ verified 2026-04-27 — `DGS_MT_MAIN_FPGA/chan_fifo_write_ctl.vhd:L100-101` (`RAW_DATA_MONs_OUT(i) <= xRAW_DATA_MONs(i); xRAW_DATA_MONs(i) <= RAW_DATA_MONs(i)`).
+
+---
+
+## pipeline_unit.vhd — Vernier Position Resolver Pipeline Stage
+
+**Authors:** Katelyn Kufahl, Michael Oberling, John T. Anderson  
+**File:** `MAIN_FPGA/trunk/Source/pipeline_unit.vhd` (203 lines)  
+**Purpose:** One stage of the TDC vernier position resolution pipeline. Combines a `pos_finder` ROM lookup (local position within an 11-bit window) with a pass-through mux for the global best-hit position, running synchronously in the TDC clock domain.
+
+### Context
+
+The TDC vernier chain converts a 64-bit thermometer code into a 6-bit position. `pipeline_unit` is one of **8 pipeline stages** (indices 0–7), each responsible for an 11-bit overlapping window of the thermometer. Multiple stages run in parallel and cascade results through a priority mux: first valid edge found wins. ✅ verified 2026-04-27 — `pipeline_unit.vhd:L60-64` (comment: 3-bit overlap → 8-stage pipeline)
+
+### Interface
+
+| Port | Dir | Width | Description |
+|------|-----|-------|-------------|
+| `clk_tdc` | In | 1 | TDC clock domain |
+| `pipeline_unit_index` | Generic | int | Stage index 0–7 |
+| `offset_data_in/out` | In/Out | 16 | Fine count passthrough (two-cycle latency) |
+| `remainder_data_in/out` | In/Out | 64 | Full thermometer data passthrough (two-cycle latency) |
+| `vernier_pos_in/out` | In/Out | 6 | Best global position so far |
+| `hit_valid_in/out` | In/Out | 1 | Whether a valid edge has been found yet |
+
+### Input Window Selection
+
+Each stage extracts an 11-bit slice of the 64-bit thermometer:
+
+| Stage | Bits selected |
+|-------|---------------|
+| 0 | [63:53] |
+| 1 | [55:45] |
+| 2 | [47:37] |
+| 3 | [39:29] |
+| 4 | [31:21] |
+| 5 | [23:13] |
+| 6 | [15:5] |
+| 7 | [7:0] + replicated bit [0] × 3 (to pad to 11 bits) |
+
+Stages overlap by 3 bits (e.g., stage 0 takes [63:53], stage 1 takes [55:45] — 9 unique bits overlap). This ensures no edge falls in a gap. ✅ verified 2026-04-27 — `pipeline_unit.vhd:L78-92`
+
+### Pipeline Logic (2 clock cycles per stage)
+
+**Cycle 1 (INPUT_LATCH):** Latch `remainder_data_in`, `offset_data_in`, `vernier_pos_in`, `hit_valid_in` into internal registers.
+
+**Concurrent (async):** Local 11-bit slice fed directly into `pos_finder` (ROM lookup) — synchronous internally, output available as `local_pos_result` (4 bits) + `local_hit_valid_result`.
+
+**Cycle 2 (MUX_LOGIC + LATCH_SYNCED_OUTPUT_DATA):** Priority mux decision:
+
+| Condition | Output |
+|-----------|--------|
+| `hit_valid_in='1'` AND `local_hit_valid='0'` | Pass previous hit position through |
+| `hit_valid_in='0'` AND `local_hit_valid='1'` | Use `local_pos_result + curr_base_position` |
+| Both valid | Local position wins (later stage overrides) |
+| Neither valid | `vernier_pos_out = 0`, `hit_valid_out = 0` |
+
+`curr_base_position = pipeline_unit_index × 8` (implemented as left-shift by 3: `index[2:0] & "000"`). ✅ verified 2026-04-27 — `pipeline_unit.vhd:L167-169`
+
+### Design Notes
+
+- Global position = `local_pos_result[3:0] + curr_base_position` = `index*8 + local_offset`, giving 6-bit range 0–63
+- Commented-out alternatives in the file show earlier 11-bit/2-bit-overlap (7 stages) and 12-bit/4-bit-overlap variants — current build uses 11-bit/3-bit-overlap (8 stages, JTA, 2026-04-27)
+- The `pos_finder` is instantiated with `rom_size => 11` (11-bit thermometer → 4-bit position)
+- Instantiated by `jta_vernier_pos_finder.vhd` (`vernier_pos_finder` entity) — 8 copies in a clocked chain
+
+---
+
 _Source: `MTRG_git/MAIN_FPGA/trunk/Source/` — all files read 2026-04-24_  
-_See also: `vhdl/MTRG_top.md`, `vhdl/MTRG_trig_algo_support.md`, `vhdl/MTRG_mstr_mach.md`, `deep_fpga_MTRG_MAIN.md`_
+## See Also
+
+- [MTRG_top.md](MTRG_top.md) — MTRG top-level instantiation that uses these support components
+- [MTRG_trig_algo_support.md](MTRG_trig_algo_support.md) — trigger algorithm support module (uses component defs from here)
+- [MTRG_mstr_mach.md](MTRG_mstr_mach.md) — Master Trigger state machine
+- [deep_fpga_MTRG_MAIN.md](../deep_fpga_MTRG_MAIN.md) — MTRG architecture overview

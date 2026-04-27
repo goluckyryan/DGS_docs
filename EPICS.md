@@ -351,9 +351,9 @@ dbLoadRecords("MDigUser.template", "CRATE=01,BOARD=MDIG1,PORT=VME01_MDIG1")
 ### CA Port assignments
 | System | CA port |
 |--------|---------|
-| DGS | 5064/5065 |
-| X-Array (DXA) | 5072/5073 |
-| DuoGe (DUO) | 5080/5081 |
+| DGS | 5064/5065 | ✅ verified 2026-04-26 — `ANLDAQ/EPICS_env.sh:L45-46`
+| X-Array (DXA) | 5072/5073 | ✅ verified 2026-04-26 — `ANLDAQ/EPICS_env.sh:L23-24`
+| DuoGe (DUO) | 5080/5081 | ✅ verified 2026-04-26 — `ANLDAQ/EPICS_env.sh:L16-17`
 
 Set before using CA tools:
 ```bash

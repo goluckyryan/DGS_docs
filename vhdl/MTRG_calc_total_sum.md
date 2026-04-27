@@ -3,6 +3,16 @@ _Source: ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/calc_total_sum.vhd_
 _Summarized: 2026-04-15 | Last verified: 2026-04-24_
 Stability: C3 - Structural / stable
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Ports](#ports)
+- [Key Logic / State Machine](#key-logic--state-machine)
+  - [3-stage pipelined adder tree (separate processes per stage)](#3-stage-pipelined-adder-tree-separate-processes-per-stage)
+- [Key Constants / Parameters](#key-constants--parameters)
+- [Connections to Other Modules](#connections-to-other-modules)
+- [See Also](#see-also)
+
 ## Purpose
 Sums X-plane and Y-plane multiplicity counts from up to 8 Routers into single detector-wide totals. Uses a 3-stage pipelined adder tree (3-clock latency) to produce X_TOTAL and Y_TOTAL, which feed the `sum_hits_x` trigger algorithm (and presumably a Y-plane equivalent). This is the aggregation stage between per-Router link decoding and the threshold comparison in the trigger algorithm.
 
@@ -50,3 +60,11 @@ Pairs of Router sums → 4× 11-bit subtotals:
 - **Receives from**: eight_mt_channel.vhd (which extracts per-Router X/Y sums from incoming SerDes data) via RTR_SUM_OF_X, RTR_SUM_OF_Y
 - **Sends to**: sum_hits_x.vhd (SUM_OF_X ← X_TOTAL) and presumably a Y-plane equivalent trigger algorithm (Y_TOTAL)
 - **Instantiates**: nothing (pure combinational + registered adder tree)
+
+## See Also
+
+- [MTRG_eight_mt_channel.md](MTRG_eight_mt_channel.md) — upstream aggregator that feeds RTR_SUM_OF_X/Y to this module
+- [MTRG_sum_hits_X.md](MTRG_sum_hits_X.md) — downstream consumer of X_TOTAL (X-only multiplicity trigger)
+- [MTRG_sum_hits_XY.md](MTRG_sum_hits_XY.md) — downstream consumer of X_TOTAL + Y_TOTAL (coincidence trigger)
+- [deep_fpga_MTRG_MAIN.md](../deep_fpga_MTRG_MAIN.md) — MTRG top-level architecture and data flow
+- [MTRG_top.md](MTRG_top.md) — instantiation context; how trigger algorithm modules connect

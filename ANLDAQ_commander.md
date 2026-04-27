@@ -82,8 +82,8 @@ Board objects (`class_Board.Board`) are instantiated for all DIGs, RTRs, MTRG, a
 The main window (`MainWindow`, `QMainWindow`, 750×200 px) uses a `QGridLayout` with four major sections stacked vertically: ✅ verified 2026-04-23 — `commander.py:L122` (`self.resize(750, 200)`)
 
 ### Data Taking GroupBox
-- **Exp Name** — experiment name text field (persisted to `settings.json`)
-- **Run ID** — read-only display of the current run counter
+- **Exp Name** — experiment name text field (persisted to `settings.json`) ✅ verified 2026-04-27 — `commander.py:L360,L371` (`s.get("expName", ...)` in LoadSettings; `"expName": self.expName_edit.text()` in SaveSettings)
+- **Run ID** — read-only display of the current run counter ✅ verified 2026-04-27 — `commander.py:L167` (`self.lbl_runID.setReadOnly(True)`)
 - **Exp Folder** — path to the experiment data directory (Browse button)
 - **Start Run** button — green/red toggle; arms the run sequence
 - **Duration** combo — `Infinity`, `1 min`, `5 min`, `30 min`, `1 hr`, `2 hr`, `1 hr repeat`, `2 hr repeat` ✅ verified 2026-04-23 — `commander.py:L193-195`
@@ -97,17 +97,17 @@ The main window (`MainWindow`, `QMainWindow`, 750×200 px) uses a `QGridLayout` 
 ### Board Selection GroupBox
 - **Master Trigger Board** button → opens `MTRGWindow`
 - **RTR Board** combo → opens `RTRWindow` for the selected RTR
-- **DIG Board** combo → opens `DIGWindow` for the selected DIG (lazy CA subscription on first open)
+- **DIG Board** combo → opens `DIGWindow` for the selected DIG (lazy CA subscription on first open) ✅ verified 2026-04-27 — `commander.py:L653` (`DIG_List[id].SubscribeChannels()  # lazy: subscribe CA only when window first opens`)
 
 ### Others GroupBox
 - **Link System** button → opens `LinkSysWindow`
 - **Script** combo → runs `.py` or `.sh` scripts from `scripts/` (list from `enableScriptList.txt`)
 - **Open Terminal** combo → opens gnome-terminal with telnet to IOC terminal server
 - **Scalar** button → opens `ScalarWindow`
-- **SBX/CollectorBox** button → opens `DetWindow` (DGS SYSTEM only)
+- **SBX/CollectorBox** button → opens `DetWindow` (DGS SYSTEM only) ✅ verified 2026-04-27 — `commander.py:L293-295` (`btn_det.setEnabled(os.environ.get("SYSTEM") == "DGS")`); `L101` (`from gui_Det import DetWindow`); `L669-675` (`OpenDetWindow` creates `DetWindow(CB_PV, CB_DET_LIST)`)
 
 ### Tab Widget (bottom)
-Five system-level tabs refreshed on tab switch + by 500ms `QTimer`:
+Five system-level tabs refreshed on tab switch + by 500ms `QTimer`: ✅ verified 2026-04-27 — `commander.py:L317` (`currentChanged.connect(lambda _: self.tabWidget.currentWidget().UpdatePVs(True))`); `L350` (`self.timer.start(500)`)
 - **Timestamp** — `sysTimestampReadOutTab` (MTRG + all RTR/DIG/DAQ timestamps)
 - **Link Status** — `sysLinktab` (MTRG + RTR link health)
 - **TCP Transfer** — `sysTCPTab` (DAQ node TCP state)

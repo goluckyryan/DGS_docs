@@ -8,6 +8,33 @@ _Split from `ANLDAQ.md` on 2026-04-16. Source: `DGS_tools_pack/ANLDAQ/tcpReceive
 
 ---
 
+## Table of Contents
+
+- [tcpReceiver — Detailed Notes](#tcpreceiver--detailed-notes-updated-2026-04-04)
+  - [Three Executables](#three-executables)
+  - [TCP Protocol](#tcp-protocol--verified-from-source-code)
+  - [Data Flow](#data-flow)
+  - [Key Constants](#key-constants-constanth)
+  - [Output File Naming](#output-file-naming-outfilenewfile)
+  - [TRIG Packet Repacking](#trig-packet-repacking-16-raw-words--10-words)
+  - [tcpReceiverMT — Multi-Thread In-Place Display](#tcpreceivermt--multi-thread-in-place-display-mtmode)
+  - [GEB Header](#geb-header-define-enable_geb_header)
+  - [class_DIG.h — DIG Hit Decoder](#class_digh--dig-hit-decoder)
+  - [IOCReceiver — Extensibility](#iocreceiver--extensibility-virtual-hooks)
+  - [tcpReceiverUDP — RingBuffer and UDPSender](#tcpreceiverудp--ringbuffer-and-udpsender-internals)
+  - [class_TDC.h — TAC-II Hit Decoder](#class_tdch--tac-ii-hit-decoder)
+  - [Run Control Scripts](#run-control-scripts)
+  - [Packet Consistency: Receiver vs FPGA Firmware](#packet-consistency-receiver-vs-fpga-firmware)
+- [Run Control Scripts — start_run.sh, stop_run.sh, run_control_gui.py](#run-control-scripts--start_runsh-stop_runsh-run_control_guipy)
+  - [Overview](#overview)
+  - [expInfo.sh — Experiment Configuration](#expinfosh--experiment-configuration)
+  - [start_run.sh — Run Start Sequence](#start_runsh--run-start-sequence)
+  - [stop_run.sh — Run Stop Sequence](#stop_runsh--run-stop-sequence)
+  - [run_control_gui.py — Tkinter GUI](#run_control_guipy--tkinter-gui)
+- [See Also](#see-also)
+
+---
+
 ## tcpReceiver — Detailed Notes (updated 2026-04-04)
 
 ### Three Executables
@@ -251,8 +278,16 @@ ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
 **`Aux/` — Offline timing analysis tools** (development/debugging, not used in normal DAQ):
 - `script.cpp` (775 lines) — ROOT analysis script correlating TAC-II TDC timestamps with DIG timestamps; studies vernier interpolation precision and phase alignment. Histograms: `hTrigDig` (trigger vs DIG timing), `hPhaseDigVernier` (CFD phase vs vernier value), `hTOF`/`hTOF2` (time-of-flight using zero-crossing vs avg). Implements `ZeroCrossing()` (quadratic + linear interpolation). Builds an output ROOT TTree with TAC/DIG timing pairs.
 - `script_LED.cpp` (147 lines) — Same but for LED (leading-edge) mode traces.
-- `class_DIG.h` / `class_TDC.h` / `reader.h` — shared decode classes used by both scripts (same API as `fastEventConstructor` but standalone).
-- `downloadData.sh` / `readHexFile.sh` — utility scripts for pulling raw hex data from IOC.
+- `class_DIG.h` / `class_TDC.h` — shared decode classes used by both scripts (same API as `fastEventConstructor` but standalone).
+- **`reader.h`** (255 lines) — `class Reader`: standalone offline file reader for DGS binary data files. Wraps `FILE*` with block-level navigation; holds one `TDC_Hit` (TAC mode) and one `DIG_Hit` (DIG mode) instance that are reused across calls. Key design:
+  - **Constructor**: `Reader(fileName, isTAC=true, isGEB=false)` — opens file, `fseek`s to end to record `inFileSize`, rewinds.
+  - **`ReadNextBlock(fastRead, debug)`**: reads one trigger packet at a time. Expects `0xAAAAAAAA` as the first word (sync marker). If `isGEB=true`, reads and discards a 4-word GEB header first, then forces `firstWord=0xAAAAAAAA`. In TAC mode, `packageLen = TRIG_PACKET_LENGTH` (constant from `constant.h`). In DIG mode, peeks at word 2 bits 26:16 (`packageLen = ((ntohl(word2) >> 16) & 0x3FF) + 1`) then rewinds 1 word. In `fastRead` mode, `fseek` skips payload without decoding. In full mode: TAC → `TDC_Hit::FillTDC()` + `CalTAC_simple()`; DIG → `ntohl()` each word + `DIG_Hit::DecodeHeader_7_8()`. Returns `0` on success, `-1` on sync error, `-10` on EOF.
+  - **`ScanNumBlock()`**: fast-reads the entire file in `fastRead=true` mode, records each block's file offset in `blockPos[]`, sets `totNumBlock`. Call once before `ReadBlock(index)`.
+  - **`ReadBlock(index)`**: seeks to `blockPos[index]` and calls `ReadNextBlock()` — enables random-access into any block by index after a `ScanNumBlock()` pass.
+  - **`PrintPayLoad()`**: dumps raw `payload[]` vector (populated only in TAC mode) as hex.
+  - DIG data: each word is `ntohl()`-converted on read; TAC data: stored as-is from `fread` (no byte-swap).
+- **`downloadData.sh`** — `rsync`s a run's binary data files from `slopebox:/global/ioc/dgsReceiver/data/<prefix>*` into `../data/`. Takes one argument (file prefix/run ID). Commented-out lines show prior test variants (`haha*`, `XXXX*`). Uses `slopebox` as the NFS/rsync source hostname.
+- **`readHexFile.sh`** — Dumps the first N 32-bit words of a binary file as hex, one word per line with a 6-digit decimal index. Usage: `readHexFile.sh <binary_file> <num_words>`. Internally: `hexdump -n (N×4) -v -e '1/4 "%08X\n"' file | awk '{printf "%06d: 0x%s\n", NR-1, $1}'`. Useful for inspecting raw packet headers.
 
 **`run_control_gui.py`** — Standalone Tkinter run control GUI for `dgs4`:
 - Runs on `dgs4` (shebang: `/home/dgs/.conda/envs/py3tk/bin/python3`); SSHes to `dcsu@dcs2.onenet` using `~/.ssh/id_rsa`
@@ -342,21 +377,6 @@ The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet for
 
 ---
 
-
-## See Also
-
-- `knowledgeBase/ANLDAQ.md` — parent overview, VxWorks pipeline, EPICS config
-- `knowledgeBase/ANLDAQ_GUI_windows.md` — gui_DataTaking: GUI front-end that spawns and controls tcpReceiverMT
-- `knowledgeBase/data_structures.md` — GEB header format + DIG event packet layout
-- `knowledgeBase/dgs_analysis.md` — downstream analysis consuming tcpReceiverMT output
-- `knowledgeBase/run_procedures.md` — operator-level run procedures (uses `start_run.sh`/`stop_run.sh` as the key start/stop mechanism)
-- `knowledgeBase/gebsort.md` — GEBSort/GEBMerge: downstream consumers of the raw GEB files tcpReceiverMT writes; also gtReceiver (Tim Lauritsen's alternative test receiver)
-- `knowledgeBase/ANLDAQ_tcpReceiver_Aux.md` — auxiliary receivers: tcpReceiverSingle, DFMA receiver, auxiliary data streams
-
-*Created: 2026-04-14 | Last reviewed: 2026-04-26*
-
----
-
 ## Run Control Scripts — `start_run.sh`, `stop_run.sh`, `run_control_gui.py`
 
 _Source: `ANLDAQ/tcpReceiver/` | Analyzed 2026-04-24_
@@ -432,3 +452,17 @@ Runs on **dgs4**, SSHes into **DCS2** (`dcsu@dcs2.onenet`) using identity file `
 Start: "Final adjustments" → "Preparing final adjustments...", "Taking PV Snapshot" → "Taking PV snapshot...", "Start Run" → "Setting up run folder...", "tcpReceiver" → "Opening receivers...", "tcpReceiverMT" → "Opening receiver (MT)...", "Online_CS_StartStop Start" → "Starting DAQ...", "Online_CS_SaveData Save" → "Saving data...", "is running" → "DAQ started!"
 
 Stop: "Online_CS_StartStop Stop" → "Stopping DAQ...", "flush data" → "Waiting for IOC to flush data...", "Online_CS_SaveData" → "Stopping data save...", "kill receivers" → "Killing receivers...", "DAQ stopped" → "DAQ stopped.", "Parquet Sort" → "Running Parquet sort...", "elog" → "Posting to elog..."
+
+---
+
+## See Also
+
+- `knowledgeBase/ANLDAQ.md` — parent overview, VxWorks pipeline, EPICS config
+- `knowledgeBase/ANLDAQ_GUI_windows.md` — gui_DataTaking: GUI front-end that spawns and controls tcpReceiverMT
+- `knowledgeBase/data_structures.md` — GEB header format + DIG event packet layout
+- `knowledgeBase/dgs_analysis.md` — downstream analysis consuming tcpReceiverMT output
+- `knowledgeBase/run_procedures.md` — operator-level run procedures (uses `start_run.sh`/`stop_run.sh` as the key start/stop mechanism)
+- `knowledgeBase/gebsort.md` — GEBSort/GEBMerge: downstream consumers of the raw GEB files tcpReceiverMT writes; also gtReceiver (Tim Lauritsen's alternative test receiver)
+- `knowledgeBase/ANLDAQ_tcpReceiver_Aux.md` — auxiliary receivers: tcpReceiverSingle, DFMA receiver, auxiliary data streams
+
+*Created: 2026-04-14 | Last reviewed: 2026-04-26*

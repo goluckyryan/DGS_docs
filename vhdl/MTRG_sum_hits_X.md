@@ -3,6 +3,17 @@ _Source: ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/sum_hits_X.vhd_
 _Summarized: 2026-04-15_
 Stability: C3 - Structural / stable
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Ports](#ports)
+- [Key Logic / State Machine](#key-logic--state-machine)
+  - [TOTALPROC — 2-state machine](#totalproc--2-state-machine)
+  - [trig_algo_support (U2)](#trig_algo_support-u2)
+- [Key Constants / Parameters](#key-constants--parameters)
+- [Connections to Other Modules](#connections-to-other-modules)
+- [See Also](#see-also)
+
 ## Purpose
 One Master Trigger algorithm module: fires when the total X-plane multiplicity sum (across all Routers) exceeds a programmable threshold. Implements leading-edge detection (fires once on threshold crossing, waits for sum to fall before re-arming). Delegates all FIFO management, prescaling, veto, enable, and timestamp capture to the generic `trig_algo_support` sub-component.
 
@@ -73,3 +84,11 @@ A generic sub-component shared by all MTRG trigger algorithms. Receives `TRIGGER
 - **Sends to**: Master Trigger collector state machine (TRIG_FIFO_OUT, EVENT_AVAILABLE); throttle logic (ALGO_THROTTLE_REQUEST); matrix trigger logic (RAW_NONVETOED_TRIG_ACK)
 - **Instantiates**: `trig_algo_support` (generic trigger support, not detailed here)
 - **Note**: There is **no separate Y-plane sum trigger** — instead, `sum_hits_XY.vhd` handles both X and Y planes together, requiring **both** `GLOBAL_X_TOTAL > SUM_OF_X_THRESH` AND `GLOBAL_Y_TOTAL > SUM_OF_Y_THRESH` to fire. `sum_hits_X.vhd` is X-only; `sum_hits_XY.vhd` is the coincidence trigger. ✅ verified 2026-04-20 — `VIVADO_MAIN_FPGA/trunk/Source/sum_hits_XY.vhd:L1-3` (entity description: "trigger issued only if BOTH sums are over their respective thresholds"); `ls` confirms no `sum_hits_Y.vhd` in either ISE or VIVADO trunk.
+
+## See Also
+
+- [MTRG_sum_hits_XY.md](MTRG_sum_hits_XY.md) — companion coincidence trigger (requires both X and Y totals above threshold)
+- [MTRG_calc_total_sum.md](MTRG_calc_total_sum.md) — upstream source of GLOBAL_X_TOTAL
+- [MTRG_trig_algo_support.md](MTRG_trig_algo_support.md) — generic trigger support instantiated here
+- [deep_fpga_MTRG_MAIN.md](../deep_fpga_MTRG_MAIN.md) — MTRG trigger algorithm architecture; VME threshold registers
+- [MTRG_top.md](MTRG_top.md) — instantiation as TRIG_LOGIC2/3

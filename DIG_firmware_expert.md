@@ -505,11 +505,13 @@ Selects the digitizer's trigger acceptance source. Four modes:
 | 2 | `ExtTTCL` | **External TTCL** — normal physics-run mode. Digitizer operates in triggered mode: each hit enters the PEQ and waits for an accept/reject decision from the Master Trigger delivered over the TTCL link (MTRG → RTRG → DIG). Hits outside the acceptance time window are discarded. |
 | 3 | `Diag` | **Diagnostic** — auto-trigger on lower 16-bit timestamp rollover (0xFFFF → 0x0000). Used for synchronization diagnostics. |
 
+✅ verified 2026-04-26 — `MDigUser.template:L10569-10576` (mbbo record; ZRST=IntAcptAll/0, ONST=ExtTTL/1, TWST=ExtTTCL/2, THST=Diag/3; `reg_trigger_config` bits [1:0])
+
 **Typical usage:**
 - Physics runs: `caput GLBL:DIG:trigger_mux_select ExtTTCL`
 - LED/calibration runs: `caput GLBL:DIG:trigger_mux_select IntAcptAll`
 
-The `PBYP` flag in the data header reflects this: `PBYP=1` means PEQ bypassed (IntAcptAll), `PBYP=0` means TTCL mode (ExtTTCL).
+The `PBYP` flag in the data header reflects this: `PBYP=1` means PEQ bypassed (IntAcptAll), `PBYP=0` means TTCL mode (ExtTTCL). ✅ verified 2026-04-26 — `Digitizer.vhd:L895` (`peq_bypass <= '1' when(reg_trigger_config = "00") else '0'`); `Event_Header_FIFO.vhd:L325/418` (`header(3)(20) <= PEQ_BYPASS`).
 
 **Special trigger modes**:
 - External Trigger (`ExtTTL`): trigger from test point signal, timestamp = local TS at signal application
@@ -532,11 +534,8 @@ Compile-time build option: SLAVE_MODE. Front bus ribbon cable connects master to
   - Bit 16 = copy of **channel 9** discriminator bit from master (external discriminator source for slave channels) — note: was channel 0 before 2014-12-02, changed to channel 9 ✅ verified 2026-04-19 — `Digitizer.vhd:L1387` (`fbus_disc_flag_in => diag_disc_flag(9)` with comment "changed from zero to nine 20141202"); `Front_Bus.vhd:L136`
   - Bit 17 = master reset signal replicated to slave ✅ verified 2026-04-19 — `Front_Bus.vhd:L77,L81` (`FBUS_MDATA(17) <= fbus_reset_in` on master; `fbus_reset_out <= FBUS_MDATA(17)` on slave)
   - Note: Slave P1/P2 delay buffers must be set a few clocks larger than master to compensate for cable delay
-- 3 bits slave→master:
-  - Slave external FIFO status (master includes this in its Throttle Request to trigger)
-  - Slave SERDES lock status
-  - One spare
-- Wire-Or bit: for multi-slave Throttle Request aggregation (requires correct jumpers/terminations)
+- 3 bits slave→master (`FBUS_SDATA[2:0]`): ⚠️ **Correction vs. earlier documentation** — In the DGS 20180507 firmware, all three FBUS_SDATA bit assignments are **commented out** (never driven). FBUS_SDATA_DIR is set to drive in slave mode, but no actual bits are assigned. The "Slave FIFO status", "Slave SERDES lock", and "spare" descriptions reflect an earlier planned design, not the implemented DGS firmware. ✅ verified 2026-04-26 — `Front_Bus.vhd:L121-123` (slave mode: `FBUS_SDATA(1) <= '0'` and `FBUS_SDATA(2) <= not fbus_serdes_sm_locked_in` are commented out); `L138-139` (master mode: SDATA lines also commented out/tristate); `fbus_serdes_sm_locked_out` on master reads `INT_SLAVE_DISCBIT(5)` instead of SDATA(2).
+- Wire-Or (`FBUS_WOR[1:0]`): throttle aggregation bits — `WOR_IN` carries other-board throttle; `WOR_OUT` drives this board's throttle request. WOR(1) only: driven '1' (drive-direction) in slave, '0' in master. **Note:** Comments in 20230809 firmware say throttle is now handled externally and WOR lines could be repurposed. ✅ verified 2026-04-26 — `Front_Bus.vhd:L95-96` (DDR flipflop drives WOR(0) with throttle); `L228-229` (20230809: WOR_OUT both '1' = receive direction — WOR disabled in newer firmware).
 
 **Slave external discriminator sources** differ from master (see Table 1 earlier): slave uses ch9 of master digitizer rather than local ch9.
 

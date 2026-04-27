@@ -10,6 +10,24 @@ These are **standalone ROOT analysis scripts** that work on event-built ROOT TTr
 
 ---
 
+## Table of Contents
+
+- [Common Infrastructure](#common-infrastructure)
+- [analyzer.cpp — Standard Gamma-Gamma Analysis](#analyzercpp--standard-gamma-gamma-analysis-347-lines)
+- [analyzer_tac.cpp — TAC-II Coincidence Analysis](#analyzer_taccpp--tac-ii-coincidence-analysis-265-lines)
+- [analyzer_trace.cpp — Waveform Trace Analysis](#analyzer_tracecpp--waveform-trace-analysis-324-lines)
+- [analyzer_pz_cal.cpp — Pole-Zero Calibration from Traces](#analyzer_pz_calcpp--pole-zero-calibration-from-traces-155-lines)
+- [analyzer_script.cpp — ROOT Script for Trace Shape Analysis](#analyzer_scriptcpp--root-script-for-trace-shape-analysis-71-lines)
+- [Cali_e.C — Interactive Energy Calibration ROOT Script](#cali_ec--interactive-energy-calibration-root-script-461-lines)
+- [checkTACFile.cpp — TAC-II Binary File Validator](#checktacfilecpp--tac-ii-binary-file-validator-root-macro)
+- [findMapping.sh — Generate GS Channel Map from EPICS](#findmappingsh--generate-gs-channel-map-from-epics-bash)
+- [findGS.sh — GS Detector Lookup Utility](#findgssh--gs-detector-lookup-utility-bash)
+- [readTrace.C — Interactive Waveform Trace Viewer](#readtracec--interactive-waveform-trace-viewer-root)
+- [analyzer_duo.cpp — DuoGe Two-Detector Analysis](#analyzer_duocpp--duoge-two-detector-analysis-431-lines)
+- [Cross-References](#cross-references)
+
+---
+
 ## Common Infrastructure
 
 **`analyzer.h`** — shared utilities:

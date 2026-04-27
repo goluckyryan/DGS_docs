@@ -5,7 +5,9 @@ Stability: C2 - Active / semi-stable
 _Split from `ANLDAQ.md` on 2026-04-16. Covers all board/subsystem window modules + trigger setup scripts._  
 _Source: `DGS_tools_pack/ANLDAQ/gui/`._
 
-**See also:** [`ANLDAQ.md`](ANLDAQ.md) — parent overview + GUI internals (`class_PV`, `class_Board`, `findAllPV`, `commander.py`)
+**See also:** [`ANLDAQ.md`](ANLDAQ.md) — parent overview | [`ANLDAQ_gui_internals.md`](ANLDAQ_gui_internals.md) — GUI helper classes + deep gui_MTRG.py/gui_RTR.py/gui_SYS.py docs (class_PV, class_Board, findAllPV, RComboBox)
+
+_Last reviewed: 2026-04-27 — gui_MTRG.py and gui_RTR.py sections replaced with stubs pointing to deep docs in ANLDAQ_gui_internals.md (code-read 2026-04-27)_
 
 ---
 
@@ -31,40 +33,22 @@ _Source: `DGS_tools_pack/ANLDAQ/gui/`._
 
 ## GUI: Master Trigger Window (`gui_MTRG.py`)
 
-`MTRGWindow` — opened by clicking an MTRG board button in DGS Commander. The largest GUI module (1,425 lines). Uses a tab widget with 5 tabs, plus a top-level board info panel.
+`MTRGWindow` (1,386 lines) — opened by clicking an MTRG board button in DGS Commander. 5-tab QTabWidget plus a top-level board info panel. 500 ms QTimer refresh.
 
-_Source: `ANLDAQ/gui/gui_MTRG.py` (code-read 2026-04-06)_
+> 📖 **Full documentation** (deep code-read 2026-04-27): **[`ANLDAQ_gui_internals.md § gui_MTRG.py`](ANLDAQ_gui_internals.md)**
+> Covers: `templateTab` base class, `MTRGWindow` header panel (rate/diagnostic counters, board info), all 5 tabs (triggerControlTab, wheelRAMTab, linkControlTab, CPLDControlTab, otherControlTab), and timer lifecycle.
 
-### Tab Structure
+_Quick reference:_
 
 | Tab | Class | Contents |
 |-----|-------|----------|
-| **Trigger/Veto Control** | `triggerControlTab` | Trigger mode, multiplicity thresholds, veto masks, NIM I/O settings |
-| **Wheel RAM** | `wheelRAMTab` | Lookup table editor for the trigger wheel RAM (determines accept/reject per pattern) |
-| **LINK Control** | `linkControlTab` | Per-link enable/disable, SERDES lock status, SYNC bit controls |
-| **Trigger/CPLD map** | `CPLDControlTab` | CPLD threshold map: maps 40-pin ribbon connections to CPLD fast-strobe channels |
-| **Other Control** | `otherControlTab` | Miscellaneous MTRG register controls |
+| Trigger/Veto Control | `triggerControlTab` (L36) | 8 algorithms, veto masks, prescale, X/Y thresholds |
+| Wheel RAM | `wheelRAMTab` (L278) | AUX I/O direction, SSI controls, embedded RAMWindow |
+| LINK Control | `linkControlTab` (L484) | SERDES links A–H/L/R/U status + LVDS pre-emphasis |
+| Trigger/CPLD map | `CPLDControlTab` (L756) | Remote ML logic, CPLD trigger type map |
+| Other Control | `otherControlTab` (L974) | NIM outputs, throttle, overlap/assertion delays |
 
-✅ verified 2026-04-19 — `gui_MTRG.py:L1342-1352` (tab class instantiation + `addTab` labels match exactly)
-
-### Top-Level Board Info Panel
-
-Always visible above the tabs. Shows:
-- **MISC_STAT** register — decoded bit display (`RRegisterDisplay`): NIM IN 1/2 state + misc status
-- **Code Revision** / **Code Date** — hex readback (`reg_CODE_REVISION`, `reg_CODE_DATE`)
-- **Timestamp A/B/C** — hex readback
-- **Clock Source** — toggle button (`ClkSrc`): internal vs external
-- **Imp Sync** — imposing-sync status
-- **Diagnostic counters** — 8 counters: Man/Aux Trigs, Sum X Trigs, Sum Y Trigs, Sum XY Trigs, CPLD Trigs, Link L Locks, NIM 1 Trigs, NIM 2 Trigs
-- **Raw trigger rate counters** — `reg_RAW_TRIG_RATE_COUNTER_N_HIGH/LOW` per algorithm
-- **Accepted trigger rate counters** — `reg_TRIG_RATE_COUNTER_N_HIGH/LOW` per algorithm
-
-### `templateTab` Base Class
-
-All 5 tabs inherit from `templateTab`:
-- Holds a `board` reference + `pvWidgetList`
-- `QTimer` calls `UpdatePVs()` periodically — only updates if the tab is **visible** (skips hidden tabs to reduce CA traffic)
-- `FindPV(name)` — searches `board.Board_PV` by the last `:` segment of the PV name
+✅ verified 2026-04-27 — `gui_MTRG.py:L36,L278,L484,L756,L974` (class definitions at exact line numbers confirmed)
 
 ---
 
@@ -87,10 +71,10 @@ NW and SW only occupy 25 of 30 cable slots; last 5 slots per CB are physically e
 ### Window Layout & Tabs
 
 The window (1100×700, title "SBX / CollectorBox") has:
-- **CollectorBox combo** — dropdown (GS 201/202/203/204); index 0 is placeholder (TODO: open CB control window on selection)
-- **"All Detectors" button** — stub for future all-detector overview window (currently a no-op)
-- **1-second timer** — flushes CA callbacks to widgets; only fires when `isVisible()`
-- **Lazy CA subscription** — `AddCallback()` not called until first `showEvent()`; `RemoveCallback()` on close
+- **CollectorBox combo** — dropdown (GS 201/202/203/204); index 0 is placeholder (TODO: open CB control window on selection) ✅ verified 2026-04-27 — `gui_Det.py:L91-95` (`addItem("CollectorBox ▾")` as placeholder; L353-354 TODO comment)
+- **"All Detectors" button** — stub for future all-detector overview window (currently a no-op) ✅ verified 2026-04-27 — `gui_Det.py:L98-99,L356-357` (`all_det_btn` connected to `_OpenAllDetWindow`; body is TODO comment only)
+- **1-second timer** — flushes CA callbacks to widgets; only fires when `isVisible()` ✅ verified 2026-04-27 — `gui_Det.py:L112-114` (`QTimer.start(1000)`); `L344` (`if not self.isVisible(): return`)
+- **Lazy CA subscription** — `AddCallback()` not called until first `showEvent()`; `RemoveCallback()` on close ✅ verified 2026-04-27 — `gui_Det.py:L123-140` (`showEvent` calls `pv.AddCallback()`; `closeEvent` calls `pv.RemoveCallback()`)
 
 #### Temperature tab
 2×2 `QGridLayout` of `QGroupBox` panels (NE/SE/NW/SW). Each group has 30 slots as **3 columns × 10 rows** (column-major order). Per-slot cell:
@@ -129,12 +113,12 @@ _Source: `ANLDAQ/gui/gui_GS.py` (209 lines as of Apr 23 commit c2339cb, code-rea
 
 - Clicking a detector ID button (`MOD###`) in `DetWindow`'s Temperature or HV grid calls `_OpenGSWindow(det_id, new_window=shift_held)` ✅ verified 2026-04-24 — `gui_Det.py:L201-207` (Temperature tab) + HV tab
 - Default behavior: **reuses a single shared `_gs_window`** — switches to new detector in place; if Shift is held, a new independent `GSWindow` is spawned and appended to `_gs_window_extras` ✅ verified 2026-04-24 — `gui_Det.py`
-- On `DetWindow.closeEvent()`, all extra GSWindow instances are closed alongside the primary one
+- On `DetWindow.closeEvent()`, all extra GSWindow instances are closed alongside the primary one ✅ verified 2026-04-27 — `gui_Det.py:L130-140` (`closeEvent` closes `_gs_window` + loops `_gs_window_extras` to close each)
 
 ### Window Layout
 
-- Title: `GS###` (e.g. `GS042`); size: 500×400 px
-- **Detector dropdown** at top: lists all available detector IDs (`GS###` format); switching selection calls `SwitchTo()` which rebuilds the whole content grid
+- Title: `GS###` (e.g. `GS042`); size: 500×400 px ✅ verified 2026-04-27 — `gui_GS.py:L22` (`self.resize(500, 400)`)
+- **Detector dropdown** at top: lists all available detector IDs (`GS###` format); switching selection calls `SwitchTo()` which rebuilds the whole content grid ✅ verified 2026-04-27 — `gui_GS.py:L35,L60,L72` (`available_det_ids` loop builds dropdown; `SwitchTo` called on init and on combo change)
 - Two side-by-side `QGroupBox` columns:
   - **Info / Status** — identity fields + status bits + voltage readbacks (read-only)
   - **Control** — writable control PVs (scan, HV control)
@@ -201,46 +185,17 @@ _Source: `gui_scalar.py` commit `0f3f2df` 2026-04-06 (code-verified)_
 
 ## GUI: Router Trigger Window (`gui_RTR.py`)
 
-`RTRWindow` (550 lines) — opened by clicking an RTRG board button in DGS Commander. Tab widget with **2 tabs** plus a top-level board info panel.
+`RTRWindow` (542 lines) — opened by clicking an RTRG board button in DGS Commander. 2-tab QTabWidget plus a top-level board info panel. 500 ms QTimer refresh.
 
-_Source: `ANLDAQ/gui/gui_RTR.py` (code-read 2026-04-12)_
+> 📖 **Full documentation** (deep code-read 2026-04-27): **[`ANLDAQ_gui_internals.md § gui_RTR.py`](ANLDAQ_gui_internals.md)**
+> Covers: `RTRWindow` header panel (board info, LED controls, diagnostic counters, other controls), both tabs (rtrlinkControlTab, rtrXYMapTab), and timer lifecycle.
 
-**Top-level panel (always visible):** Three side-by-side sections:
-
-**Board Status (left):**
-- `reg_MISC_STAT_REG` — RTRG miscellaneous status register (full bit field display)
-- Code Revision, Code Date, Timestamp A/B/C (hex), Clock Source toggle
-- LED Controls: `LEDControl` combo + `LED10`/`LED11`/`LED12` toggle buttons ✅ verified 2026-04-17 — `gui_RTR.py:L369-386`
-- `SM_LOST_LOCK_RESET` pulse button
-- Multiplicity readbacks (per-link discriminator bit counts)
-- Rate counters: `DISC_RATE_COUNTER_HIGH/LOW`, `TRIG_RATE_COUNTER_HIGH/LOW`
-
-**Diagnostic Counters (middle):**
-- 8 counters from `reg_Diagnostic*` PVs (sorted): Type0–4 Trig, Rtr Lock Count, Link L S/D Lock, Throttle Count
-- `DIAG_THROTTLE_TYPE` combo — selects which throttle type the counter tracks
-- `CLEAR_DIAG_COUNTERS` button ✅ verified 2026-04-17 — `gui_RTR.py:L388-420`
-
-**Other Controls (right):**
-- `NIMSrc1` / `NIMSrc2` — NIM output 1/2 source selector combos
-- `NIM_THROTTLE_SELECT` — throttle source for NIM output
-- `ENBL_DISCBIT_DELAY` toggle — enable discriminator bit delay
-- `OVERLAP_DELAY` [20 ns units] — discriminator overlap delay
-- `ASSERTION_DELAY` [20 ns units] — assertion delay
-- `ENABLE_VETO` toggle — enable veto mode
-- `THROTTLE_FILTER_TIME`, `THROTTLE_TIME_RANGE`, `THROTTLE_WIDTH` (min throttle width to MTRG trigger in 20 ns units) ✅ verified 2026-04-17 — `gui_RTR.py:L440-492`
+_Quick reference:_
 
 | Tab | Class | Contents |
 |-----|-------|----------|
-| **LINK Control** | `rtrlinkControlTab` | Per-link SERDES grid: LOCK, DEN, REN, SYNC, RPwr, TPwr, Line Loopback, Local Loopback, ILM, LINK, Gated/Raw Throttle — all as `RMapTwoStateButton` rows. Plus LRU (LOCK_RETRY, LOCK_ACK) and throttle controls. |
-| **X/Y Map** | `rtrXYMapTab` | XMAP and YMAP bit grids (per-link enable for X and Y multiplicity sums). DISCRIMINATOR_DELAY per link. X_SELECT and Y_SELECT combo boxes. Updates every 500 ms. |
-
-✅ verified 2026-04-19 — `gui_RTR.py:L500-504` (tab class instantiation + `addTab` labels confirmed)
-
-**Key design notes:**
-- ILM, LOCK, XLM, YLM buttons use **inverted color** (active=red, inactive=green) to show masked/locked states intuitively
-- `make_pattern_list()` from `aux.py` builds regex patterns to auto-match PVs; no hardcoded PV lists for SERDES grid
-- RTR window is smaller/simpler than MTRG (550 vs 1425 lines) — no wheel RAM or CPLD tabs
-- Only the active tab updates PVs; tab switch forces a full refresh (`UpdatePVs(True)`)
+| LINK Control | `rtrlinkControlTab` (L13) | Per-link SERDES grid + LRU controls + LVDS pre-emphasis |
+| X/Y Map | `rtrXYMapTab` (L221) | XMAP/YMAP bit grids, DISCRIMINATOR_DELAY, X/Y SELECT combos |
 
 ---
 
@@ -304,7 +259,7 @@ All 5 stage scripts take `SYSTEM_DEFINES.sh` as their first argument. This file 
 |----------|-------|---------|
 | `MT_VME_LEADER` | `VME10` | MTRG crate | ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L9`
 | `MT_USE_LINK_CLK` | `0` | Local clock (not remote/link clock) | ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L113`
-| `DIG_CLOCK_SEL` | `1` | Digitizer clock source = SERDES | ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L120`
+| `DIG_CLOCK_SEL` | `1` | Digitizer clock source = OSC (internal oscillator, enum value 1) | ✅ corrected 2026-04-27 — `MDigUserVME.template:L83-84` (`ONST="OSC",ONVL=1`); `SYSTEM_DEFINES.sh:L120`; `Stage4.sh:L163` echo confirms `1=internal`. Previous doc incorrectly said "SERDES".
 | `PROPAGATE_TRIG_FROM_DUB/DFMA/DXA` | `0` | No remote trigger propagation | ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L108-110`
 | `PERFORM_ERROR_CHECKS` | `0` | Error checking disabled | ✅ verified 2026-04-23 — `SYSTEM_DEFINES.sh:L124`
 
@@ -507,6 +462,7 @@ See **[`guceiver.md`](guceiver.md)** for: architecture diagram, class_Receiver.p
 ## See Also
 
 - [`ANLDAQ.md`](ANLDAQ.md) — parent overview (class_PV, class_Board, findAllPV, commander.py)
+- [`ANLDAQ_gui_internals.md`](ANLDAQ_gui_internals.md) — GUI helper classes: class_PV, class_Board, findAllPV, RComboBox (used throughout window classes)
 - [`ANLDAQ_commander.md`](ANLDAQ_commander.md) — DGS Commander run control GUI (commander.py, board buttons, system tabs)
 - [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) — tcpReceiverMT deep-dive: protocol, GEB header, run control scripts
 - [`guceiver.md`](guceiver.md) — Guceiver online waveform/spectrum viewer (full reference)

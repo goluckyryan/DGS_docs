@@ -5,6 +5,21 @@ Stability: C3 - Structural / stable
 **Source:** `DGS_tools_pack/FPGA/others/Majorana_Digitizer/MAIN_FPGA/Source/`
 **Generated:** 2026-04-25 from primary source (VHDL files)
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Differences from Standard DGS Digitizer](#key-differences-from-standard-dgs-digitizer)
+- [Top-Level Structure (Digitizer.vhd)](#top-level-structure-digitizervhd)
+- [Discriminator](#discriminator-jta_channelvhd--thresh_discvhd)
+- [Baseline Tracker](#baseline-tracker-baseline_trackervhd)
+- [SERDES Interface](#serdes-interface)
+- [Front Bus (FBUS)](#front-bus-fbus)
+- [External FIFO](#external-fifo)
+- [Firmware Identification](#firmware-identification)
+- [File Inventory](#file-inventory)
+- [Relationship to DGS Digitizer](#relationship-to-dgs-digitizer)
+- [Cross-References](#cross-references)
+
 ---
 
 ## Overview

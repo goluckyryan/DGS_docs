@@ -18,6 +18,9 @@ _Split from `collectorbox_devicesupport.md` on 2026-04-26. Source: `DGS_tools_pa
 - [CollectorCalc BI — Mailbox Comparison / Interlock Logic](#collectorcalc-bi--mailbox-comparison--interlock-logic)
 - [CollectorCtl_Waveform — Global Data Array Readback](#collectorcrl_waveform--global-data-array-readback)
 - [CollectorADC — Direct SPI ADC Read](#collectoradc--direct-spi-adc-read)
+- [CollectorSoftControl — RAM Mailbox DTYP (AI/BI/BO/MBBI)](#collectorsoftcontrol--ram-mailbox-dtyp-aibibombbbi)
+- [DEVSEL Bus Driver (DEVSEL_bus.c)](#devsel-bus-driver-devsel_busc)
+- [ScanADCs.c — ADC Scanning Placeholder](#scanadc-scanning-placeholder)
 - [Cross-References](#cross-references)
 
 ---
@@ -487,6 +490,121 @@ Verbosity follows the same scheme as `CollectorDPRSupport`:
 ### Key Difference from CollectorDPRAM
 
 `CollectorADC` is a stripped-down read with no mailbox routing logic — the result always goes directly to the PV value. `CollectorDPRAM` has 8 MailboxModes and supports loop reads and global buffer writes. Use `CollectorADC` for simple ADC register reads where you only need the raw value in a PV; use `CollectorDPRAM` for reads requiring bank switching + mailbox duplication or multi-register buffer fills.
+
+---
+
+## CollectorSoftControl — RAM Mailbox DTYP (AI/BI/BO/MBBI)
+
+_Source: `CollectorCtl_AI.c` (291 L), `CollectorCtl_BI.c` (198 L), `CollectorCtl_BO.c` (278 L), `CollectorCtl_MBBI.c` (186 L). DTYP: `CollectorSoftControl`._
+
+The `CollectorSoftControl` DTYP family is the **RAM-mailbox counterpart** to `Collector Local Serial`. These handlers do **no SPI hardware transactions** — they read and write the in-memory global data structure (`GLBL_CollectorControlVals[][]`, `GLBL_CollectorFloatVals[][]`, `GLBL_CollectorDataArray[][]`) only. They are used for staging control values that other device support reads will later forward to hardware.
+
+### camacio Field Decoding (all Ctl_ handlers)
+
+| camacio field | Meaning |
+|---|---|
+| `B` (bits 4:0) | `Bidx` — device index within collector (0–31) |
+| `C` (bits 7:0) | `Cidx` — mailbox column index (0–255) |
+| `C` (bits 14:12) | `PV_mode` — selects read/write sub-mode (AI only) |
+| `C` (bit 15) | `TransferFlag` — if set, copy result to a mailbox after read (AI only) |
+| `A` | `AndMask` — applied to mailbox value before stuffing PV |
+| `F` (bits 3:0) | `ShiftFactor` — number of bits to shift |
+| `F` (bit 15) | `ShiftDirection` — 1=left, 0=right (AI only) |
+| `F` (bits 13:8) | `CoefficientIdx` — index into conversion coefficient table (AI modes 4–7) |
+| `N` | `Nidx` — output mailbox index for TransferFlag write (AI); multiply factor (BO mode 0); float set value numerator/256 (BO mode 6) |
+
+### CollectorCtl_AI — 8 Read Modes
+
+`read_ai()` switches on `PV_mode` (bits 14:12 of C):
+
+| Mode | Action |
+|------|--------|
+| 0 | Read `GLBL_CollectorControlVals[Bidx][Cidx]`, apply AndMask + shift; if TransferFlag, copy result to `GLBL_CollectorControlVals[Bidx][Nidx]` via `TracedWriteToMailbox()` |
+| 1 | Read `GLBL_CollectorFloatVals[Bidx][Cidx]` — floating-point readback |
+| 2 | Read `GLBL_ConversionCoefficients[Cidx][0]` (coefficient A for slot Cidx) |
+| 3 | Read `GLBL_ConversionCoefficients[Cidx][1]` (coefficient B for slot Cidx) |
+| 4 | Read `GLBL_CollectorFloatVals[Bidx][Cidx]`, copy to `GLBL_ConversionCoefficients[CoefficientIdx][0]` |
+| 5 | Read `GLBL_CollectorFloatVals[Bidx][Cidx]`, copy to `GLBL_ConversionCoefficients[CoefficientIdx][1]` |
+| 6 | Same as mode 4 (float read + copy to coeff[0]) — variant copy path |
+| 7 | Same as mode 5 (float read + copy to coeff[1]) — variant copy path |
+
+All modes return EPICS magic value `2` (bypass RVAL→VAL overwrite).
+
+### CollectorCtl_BI — Single-Bit Mailbox Read
+
+`read_bi()` reads `GLBL_CollectorControlVals[Bidx][Cidx]` and applies `AndMask`:
+- If `AndMask == 0` in the camacio field, the mask is synthesized as `1 << ShiftFactor` (bit-select convenience)
+- Result: 1 if any bit of (mailbox & AndMask) is set, else 0
+- Debug print gated on `GLBL_CollectorControlVals[Bidx][8] == 1`
+
+### CollectorCtl_BO — 9 Write Modes
+
+`write_bo()` switches on bits 15:12 of C (`ControlValue`):
+
+| Mode | Action |
+|------|--------|
+| 0 | Write `PV.val × N` to `GLBL_CollectorControlVals[Bidx][Cidx]` (if N=0, writes `PV.val` directly) |
+| 1 | Reset array pointer `GLBL_CollectorArrayPtr[Cidx]` to start of `GLBL_CollectorDataArray[Bidx]` |
+| 2 | Set `GLBL_CollectorArrayPtr[Cidx]` to `&GLBL_CollectorDataArray[Bidx][GLBL_CollectorControlVals[Bidx][Cidx] & 0x3FF]` (offset by stored value) |
+| 3 | Reset array pointer to start + zero all 1024 words of `GLBL_CollectorDataArray[Bidx]` |
+| 4 | Load test pattern into `GLBL_CollectorDataArray[Bidx]`: ramp 0–249, decay 250–499, ramp×2 500–749, shifted index 750–1023 |
+| 5 | Write `PV.val × N` to mailbox range `[Bidx][Aidx..Fidx]` via `TracedWriteToMailbox()` |
+| 6 | Write float `N/256.0` to `GLBL_CollectorFloatVals[Bidx][Aidx..Fidx]` (range write) |
+| 7 | Dump all mailbox and float values for `Bidx` to stdout (diagnostic); resets PV.val to 0 after dump |
+| 8 | Read-modify-write: if PV=1, OR `N` into `GLBL_CollectorControlVals[Bidx][Cidx]`; if PV=0, AND with `~N` (bit-set/clear) |
+
+### CollectorCtl_MBBI — Multi-Bit Mailbox Read
+
+`read_mbbi()` reads `GLBL_CollectorControlVals[Bidx][Cidx]`, applies `AndMask`, then right-shifts by `ShiftFactor` (bits 3:0 of F). Result goes to both `rval` and `val`. No mode switch — single operation. Debug print gated on `GLBL_CollectorControlVals[Bidx][11] != 0`.
+
+### Debug / Trace Controls
+
+Each Ctl_ handler reads a dedicated `GLBL_CollectorControlVals[Bidx][N]` slot to gate verbose debug prints:
+
+| Handler | Debug gate index |
+|---------|------------------|
+| CollectorCtl_AI | `[Bidx][7]` |
+| CollectorCtl_BI | `[Bidx][8]` |
+| CollectorCtl_BO | `[Bidx][9]` |
+| CollectorCtl_MBBI | `[Bidx][11]` |
+
+---
+
+## DEVSEL Bus Driver (`DEVSEL_bus.c`)
+
+_Source: `DEVSEL_bus.c` (93 L). Added 2022-08-16 (`usleep` for propagation timing)._
+
+The **PI_DEVSEL bus** is a 5-bit GPIO bus on the Raspberry Pi that selects which physical device on the SPI bus receives the next transaction. The bus maps to 5 non-contiguous GPIO pins:
+
+| DEVSEL bit | GPIO number | Pi header pin |
+|-----------|------------|---------------|
+| 0 | GPIO_13 | Pin 33 |
+| 1 | GPIO_23 | Pin 16 |
+| 2 | GPIO_24 | Pin 18 |
+| 3 | GPIO_25 | Pin 22 |
+| 4 | GPIO_26 | Pin 37 |
+
+Because the BCM2835 library uses **separate set/clear registers** (no read-modify-write on GPIO), the bus cannot be updated by a simple write. The driver always:
+1. Clears all DEVSEL bits atomically: `bcm2835_gpio_clr_multi(DEVSEL_BUS_BITMASK)`
+2. Builds a `uint32_t` set mask: bits 4:1 of the device index → GPIO bits 26:23 (left-shift 22); bit 0 → GPIO bit 13 (OR 0x2000)
+3. Asserts the new value: `bcm2835_gpio_set_multi(tempval)`
+4. Waits `usleep(3)` to allow bus propagation before any SPI transaction begins
+
+Allowed device values: 0–31 (`0x00–0x1F`).
+
+**Key function:** `Set_Pi_Devsel(unsigned short int new_device)` — the only exported function in this file.
+
+---
+
+## ScanADCs.c — ADC Scanning Placeholder
+
+_Source: `ScanADCs.c` (29 L)._
+
+This file contains only the standard EPICS header includes, the `spi.h` / `CollectorSupport.h` includes, and a comment block explaining the intent:
+
+> "Readout of the ADCs is an invasive process that can interfere with the 'normal' EPICs operation."
+
+No functions are implemented. The actual ADC scanning logic is handled via `CollectorADCSupport_AI.c` (the `CollectorADC` DTYP). `ScanADCs.c` appears to be a stub placeholder from an earlier design iteration where a background scanning thread was considered but not pursued.
 
 ---
 

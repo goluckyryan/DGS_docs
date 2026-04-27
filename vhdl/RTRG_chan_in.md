@@ -3,6 +3,22 @@ _Source: ~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/chan_in.vhd_
 _Summarized: 2026-04-15_
 Stability: C3 - Structural / stable
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Ports](#ports)
+- [Digitizer Data Word Format (18 bits)](#digitizer-data-word-format-18-bits)
+- [Key Logic / State Machine](#key-logic--state-machine)
+  - [Sub-components instantiated](#sub-components-instantiated)
+  - [REMAP_BITS_PROC state machine (3 states)](#remap_bits_proc-state-machine-3-states)
+  - [ONE_SHOTS process](#one_shots-process)
+  - [CLEAN_DIRTY control register modes](#clean_dirty-control-register-modes)
+  - [VETO_GEN_PROC](#veto_gen_proc)
+  - [COARSE_GE_SUM](#coarse_ge_sum)
+- [Key Constants / Parameters](#key-constants--parameters)
+- [Connections to Other Modules](#connections-to-other-modules)
+- [See Also](#see-also)
+
 ## Purpose
 Encapsulates one complete Router input channel — everything required to receive 18-bit SERDES data from one digitizer, undo DC balance, apply per-bit timing delays, classify Ge/BGO hit pairs as CLEAN/DIRTY/BGO-only events, and report X-plane and Y-plane hit bitmaps plus multiplicity counts up to the Master Trigger. Supports both DFMA (simple X/Y bit mapping) and DGS (Ge+BGO coincidence classification) modes via a control register. Also handles Clover detector geometry (added 2015-01-19).
 
@@ -87,3 +103,11 @@ When ENABLE_VETO='1': ✅ verified 2026-04-19 — `chan_in.vhd:L438-461`
 - **Sends to Master Trigger (via Router TOP)**: X_PLANE_BITS, Y_PLANE_BITS, X_PLANE_COUNT, Y_PLANE_COUNT, COARSE_GE_SUM, ANY_X, ANY_Y
 - **Sends to Router TOP veto logic**: LIVE_CHANNEL_VETO[10:1] (consumed by ADD_VETOES process)
 - **Instantiates**: disc_mach.vhd (×5+1 Clover), DCBAL_IN, DPRAM_RWA_RB_MxN (×10), plane_bit_count (×2)
+
+## See Also
+
+- [RTRG_disc_mach.md](RTRG_disc_mach.md) — discriminator coincidence machine instantiated 5+1× by this module
+- [RTRG_router_data_path.md](RTRG_router_data_path.md) — parent module (instantiates chan_in × 8)
+- [RTRG_top.md](RTRG_top.md) — RTRG top-level context; VME register wiring to chan_in
+- [deep_fpga_RTRG.md](../deep_fpga_RTRG.md) — RTRG architecture overview; X/Y plane bit mapping
+- [260E_trigger_scheme.md](../260E_trigger_scheme.md) — trigger scheme context; chan_in role in X/Y multiplicity counting

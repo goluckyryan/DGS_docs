@@ -6,6 +6,19 @@ Stability: C3 - Structural / stable
 **Last fetched:** 2026-04-25  
 *(Legacy/decommissioned system — facts unlikely to change)*
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Setting Up the Analog GS DAQ From Scratch](#setting-up-the-analog-gs-daq-from-scratch)
+- [Stopping the DAQ and Removing Data](#stopping-the-daq-and-removing-data)
+- [Online Data Monitoring (GSSort)](#online-data-monitoring-gssort)
+- [VXI Processor Boot Configuration](#vxi-processor-boot-configuration)
+- [Key Differences vs. Digital Gammasphere (DGS)](#key-differences-vs-digital-gammasphere-dgs)
+- [Notes](#notes)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 Analog Gammasphere was the version of data acquisition used **prior to the Digital Gammasphere (DGS) upgrade**. It used VXI-bus processors running VxWorks, a CES-based event builder, and USB-disk based data storage via NFS export. Data monitoring was done via the `GSSort` package under ROOT.
@@ -182,14 +195,14 @@ The VXI processors booted from **dgs6** (Scientific Linux 6.4 blade in the DGS r
 | Boot device | ln | ln | ln |
 | Host name | dgs6 | dgs6 | dgs6 |
 | VxWorks kernel | `/vxboot/kernels/boot/niCpu030-t/vxWorks` | same | same |
-| IP (ethernet) | 192.168.203.170/24 ⚠️ unverified | 192.168.203.171/24 ⚠️ unverified | 192.168.203.172/24 ⚠️ unverified |
+| IP (ethernet) | 192.168.203.170/24 ✅ verified 2026-04-27 — wiki Analog_Gammasphere boot params block (lrc1 `inet on ethernet (e) : 192.168.203.170:ffffff00`) | 192.168.203.171/24 ✅ verified 2026-04-27 — wiki Analog_Gammasphere boot params block (lrc2) | 192.168.203.172/24 ✅ verified 2026-04-27 — wiki Analog_Gammasphere boot params block (lrc3) |
 | Host IP (h) | 192.168.203.184 | 192.168.203.184 | 192.168.203.184 |
 | User | vxprod | vxprod | vxprod |
 | Startup script | `/vxboot/daq/boot/resm/startup.lrc1` | `.../startup.lrc2` | `.../startup.lrc3` |
 
-- Additional VXI processor at **192.168.203.173** (lrc4 implied by pattern) ⚠️ unverified - source needed (wiki-only; no local startup scripts for analog VXI available)
-- Boot files served via FTP from dgs6 at `/vxboot/` — `/vxboot/` path confirmed on con6 (ln2con/startup.cmd:L4,7); dgs6 as analog VXI FTP host ⚠️ unverified - source needed (wiki-only; dgs6 is the host IP 192.168.203.184 per wiki boot params)
-- Processor type: `niCpu030-t` (National Instruments CPU030, 68030-based) ✅ partially verified 2026-04-25 — NI CPU030 hardware type confirmed via [Con6_Inventory.md:L111](../ln2con/Con6_Inventory.md) (`niCpu030-8` kernel image, VxWorks 5.2, labeled "VXI CPU"); kernel suffix `-t` vs `-8` not resolved from local files (wiki-only for exact analog boot path)
+- Additional VXI processor at **192.168.203.173** (lrc4) ✅ verified 2026-04-27 — wiki Analog_Gammasphere shows a 4th boot params block with `inet on ethernet (e) : 192.168.203.173:ffffff00` and `startup script (s) : /vxboot/daq/boot/resm/startup.lrc4` (page text truncated before flags/target lines but IP and script confirmed)
+- Boot files served via FTP from dgs6 at `/vxboot/` — `/vxboot/` path confirmed on con6 (ln2con/startup.cmd:L4,7); dgs6 as analog VXI FTP host ✅ verified 2026-04-27 — wiki Analog_Gammasphere boot params: `host name: dgs6`, `host inet (h): 192.168.203.184` for all 4 VXI processors; wiki prose: "The VXI processors have dgs6 as their boot host."
+- Processor type: `niCpu030-t` (National Instruments CPU030, 68030-based) ✅ verified 2026-04-27 — wiki Analog_Gammasphere boot params: `file name : /vxboot/kernels/boot/niCpu030-t/vxWorks` confirmed for all 4 lrc processors; NI CPU030 hardware type also confirmed via [Con6_Inventory.md:L111](../ln2con/Con6_Inventory.md) (VxWorks 5.2, labeled "VXI CPU"); kernel suffix `-t` is the analog VXI boot variant (vs. `-8` seen in ln2con, which is a different VXI chassis)
 
 ---
 

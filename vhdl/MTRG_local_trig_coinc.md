@@ -8,6 +8,20 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Functionality](#key-functionality)
+  - [Dual-mask selection](#dual-mask-selection)
+  - [Overlap / coincidence logic](#overlap--coincidence-logic)
+  - [Generic trigger support (trig_algo_support)](#generic-trigger-support-trig_algo_support)
+- [Port Summary (key ports)](#port-summary-key-ports)
+- [Structural Diagram](#structural-diagram)
+- [Design Notes](#design-notes)
+- [See Also](#see-also)
+
+---
+
 ## Overview
 
 `local_trig_coinc` implements a **local-vs-local trigger coincidence algorithm** inside the MTRG Main FPGA. It is one of the 8 trigger algorithm slots instantiated in `top.vhd`. Its purpose: fire a trigger only when two independently-selected trigger algorithm acknowledgments overlap within a programmable time window.

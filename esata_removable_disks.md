@@ -7,6 +7,17 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Mounting a Disk](#mounting-a-disk)
+- [Unmounting a Disk](#unmounting-a-disk)
+- [Formatting a New Disk](#formatting-a-new-disk)
+- [Sudo Configuration](#sudo-configuration-for-system-managers)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 Standard procedures for mounting, unmounting, formatting, and labeling removable disks connected via eSATA or USB on Gammasphere/DGS Linux machines (Scientific Linux, Fedora).

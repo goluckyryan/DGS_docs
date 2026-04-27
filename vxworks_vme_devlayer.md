@@ -9,6 +9,31 @@ _Documented: 2026-04-24_
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Data Structures (`DGS_DEFS.h`)](#key-data-structures-dgs_defsh)
+  - [daqBoard (one entry per VME slot)](#daqboard-one-entry-per-vme-slot-indexed-by-cardno)
+  - [daqRegister (per-VME-register metadata)](#daqregister-per-vme-register-metadata)
+  - [Board Type Codes (board_type)](#board-type-codes-board_type)
+  - [rawEvt — Buffer Descriptor](#rawevt--buffer-descriptor)
+- [devGVMECardInit(cardno, slot) — Board Initialization](#devgvmecardInitcardno-slot--board-initialization)
+- [Raw VME Access Functions](#raw-vme-access-functions)
+  - [VMEWrite32(bdnum, regaddr, data)](#vmewrIte32bdnum-regaddr-data)
+  - [VMERead32(bdnum, regaddr)](#vmeread32bdnum-regaddr--unsigned-int)
+- [Flash Programming Functions](#flash-programming-functions)
+- [devGData.c — EPICS Record Device Support](#devgdatac--epics-record-device-support)
+  - [devAiGData — ai record (read-only)](#devaiGData--ai-record-read-only)
+  - [devBoGData — bo record (write-only)](#devboGData--bo-record-write-only)
+  - [devAoGData — ao record (write)](#devaoGData--ao-record-write-added-2022-07-18)
+  - [daqDevPvt structure (per-record private data)](#daqdEvpvt-structure-per-record-private-data)
+- [Outloop Global Variables (from devGVME.c)](#outloop-global-variables-from-devgvmec)
+- [Key DGS_DEFS.h Constants](#key-dgs_defsh-constants)
+- [Aug 2022 rawEvt Redesign — Historical Context](#aug-2022-rawevt-redesign--historical-context)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 `devGVME.c` is the **core VxWorks VME hardware abstraction layer** for the DGS IOC. It provides:

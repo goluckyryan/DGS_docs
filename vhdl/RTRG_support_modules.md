@@ -105,7 +105,7 @@ This file documents the RTRG FPGA support modules that are not covered in `260E_
 
 | Port | Dir | Type | Description |
 |------|-----|------|-------------|
-| THROTTLE_LIMIT_TIME_REG(15:0) | in | std_logic_vector | [10:0] count; [15:14] timer rank select |
+| THROTTLE_LIMIT_TIME_REG(15:0) | in | std_logic_vector | [10:0] count; [15:14] timer rank select ✅ verified 2026-04-27 — throttle_limiters.vhd:L63 (port declaration); L290-296 (bits[15:14] select LIMIT_TIMER_FLAG/FLAG2/FLAG3/FLAG4); L272 (bits[10:0] → LIMIT_COUNTs load) |
 | ALTERNATE_THROTTLE_REQ | out | std_logic | OR of stretched limited throttle bits (alternate ANY output) |
 | SELECTED_THROTTLE | out | std_logic | Mux output for NIM2 diagnostic; index = DIAG_PIN_CTL_REG[5:2] into INT_THROTTLE_STATUS |
 | LIMIT_MACH_ACTIVE(7:0) | out | std_logic_vector | Per-channel limiter-active flags (ILA / debug) |
@@ -128,19 +128,21 @@ This file documents the RTRG FPGA support modules that are not covered in `260E_
 | LIMIT_TIMER3 (10-bit @ LIMIT_TIMER_FLAG2) | 21.47 s | LIMIT_TIMER_FLAG3 |
 | LIMIT_TIMER4 (10-bit @ LIMIT_TIMER_FLAG3) | ~6 hours | LIMIT_TIMER_FLAG4 |
 
+✅ verified 2026-04-27 — throttle_limiters.vhd:L96-97 (comment: "Every 1024 ticks of mclk (every 20.48us), LIMIT_TIMER_FLAG is asserted"); L195-197 (comment: "20.97 milliseconds"); L107-114 (signal declarations for all 4 timers); L198-230 (LIMIT_TIMER_PROC: 10-bit counters, cascaded)
+
 `THROTTLE_LIMIT_TIME_REG[15:14]` selects which timer rank drives `LIMIT_COUNTs` decrement:
 - `"00"` → LIMIT_TIMER_FLAG (20.48 µs ticks, max hold-off = 2048 × 20.48 µs ≈ 42 ms)
 - `"01"` → LIMIT_TIMER_FLAG2 (20.97 ms ticks, max ≈ 43 s)
 - `"10"` → LIMIT_TIMER_FLAG3 (21.47 s ticks, very long)
 - `"11"` → LIMIT_TIMER_FLAG4 (hours — effectively disabled)
 
-**Post-limiter monostable:** Same as `throttle_monos` — `COUNTER_START` = 400 = 2 µs. Applied to `LIMITED_THROTTLE_REQUESTS` to guarantee propagation.
+**Post-limiter monostable:** Same as `throttle_monos` — `COUNTER_START` = 400 = 2 µs. Applied to `LIMITED_THROTTLE_REQUESTS` to guarantee propagation. ✅ verified 2026-04-27 — throttle_limiters.vhd:L80 (`constant COUNTER_START : std_logic_vector(10 downto 0) := "00110010000"; --400 decimal (2us @ 50MHz)`)
 
-**THROTTLE_STATUS layout:**
+**THROTTLE_STATUS layout:** ✅ verified 2026-04-27 — throttle_limiters.vhd:L184-185 (`INT_THROTTLE_STATUS(15 downto 8) <= THROTTLE_REQUESTS`; `(7 downto 0) <= LIMITED_THROTTLE_REQUESTS`); L188 (`THROTTLE_STATUS <= INT_THROTTLE_STATUS`)
 - `[15:8]` = raw `THROTTLE_REQUESTS` (post-mask, pre-limit)
 - `[7:0]` = `LIMITED_THROTTLE_REQUESTS` (post-limit, pre-stretch)
 
-**SELECTED_THROTTLE:** Mux driven by `DIAG_PIN_CTL_REG[5:2]` — selects any single bit of `INT_THROTTLE_STATUS[15:0]` for NIM2 output (diagnostic / oscilloscope monitoring).
+**SELECTED_THROTTLE:** Mux driven by `DIAG_PIN_CTL_REG[5:2]` — selects any single bit of `INT_THROTTLE_STATUS[15:0]` for NIM2 output (diagnostic / oscilloscope monitoring). ✅ verified 2026-04-27 — throttle_limiters.vhd:L187 (`SELECTED_THROTTLE <= INT_THROTTLE_STATUS(conv_integer(unsigned(DIAG_PIN_CTL_REG(5 downto 2)))`)
 
 ---
 

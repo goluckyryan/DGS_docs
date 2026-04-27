@@ -6,6 +6,23 @@ Last verified: 2026-04-23
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Ports](#key-ports)
+  - [Inputs](#inputs)
+  - [Outputs](#outputs)
+- [Trigger Decision Logic (ACK State)](#trigger-decision-logic-ack-state)
+- [Prescaler](#prescaler)
+- [Holdoff (added 2025-10-22)](#holdoff-added-2025-10-22)
+- [FIFO Record Format](#fifo-record-format)
+- [Throttle Logic](#throttle-logic)
+- [FIFOs Used](#fifos-used)
+- [State Machine States](#state-machine-states)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 `trig_algo_support` is the **shared base component instantiated by every MTRG trigger algorithm** (e.g., `cpld_trig`, `sum_hits_X`, `sum_hits_XY`, `local_trig_coinc`, `MYRIAD_TRIGGER`). It encapsulates all the boilerplate infrastructure so that each trigger algorithm only needs to implement its own condition logic, then delegate everything else to this module.

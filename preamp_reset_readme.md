@@ -168,9 +168,9 @@ WAIT_EDGE (normal operation resumes)
 
 | Register | Bit(s) | Function |
 |----------|--------|----------|
-| `reg_led_threshold[ch](23:16)` | 8 bits | Blanking duration after reset (× 512 cycles at 100 MHz) |
-| `reg_channel_control[ch](3)` | 1 bit | Enable/disable blanking (`PREAMP_RESET_DELAY_EN`) |
-| `reg_d3_window[ch](7)` | 1 bit | `CAPTURE_PARST_TS`: 1 = store reset timestamp in MPX_FIELD; 0 = store early pre-rise sum |
+| `reg_led_threshold[ch](23:16)` | 8 bits | Blanking duration after reset (× 512 cycles at 100 MHz) ✅ verified 2026-04-27 — `Digitizer.vhd:L1004` (`PREAMP_RESET_DELAY => reg_led_threshold(i)(23 downto 16)`, DGS_TAG_20180607_TWEAK) |
+| `reg_channel_control[ch](3)` | 1 bit | Enable/disable blanking (`PREAMP_RESET_DELAY_EN`) ✅ verified 2026-04-27 — `Digitizer.vhd:L1005` (`PREAMP_RESET_DELAY_EN => reg_channel_control(i)(3)`, DGS_TAG_20180607_TWEAK) |
+| `reg_d3_window[ch](7)` | 1 bit | `CAPTURE_PARST_TS`: 1 = store reset timestamp in MPX_FIELD; 0 = store early pre-rise sum ✅ verified 2026-04-27 — `SumOverRise/Source/Digitizer.vhd:L1166` (`CAPTURE_PARST_TS => reg_d3_window(i)(7)`); note: internal `reg_d3_window` in Digitizer is 32-bit; port to `jta_channel` uses only bits [6:0] |
 
 ---
 

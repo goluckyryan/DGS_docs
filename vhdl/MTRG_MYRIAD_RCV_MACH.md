@@ -10,6 +10,25 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [MγRIAD → MTRG Serial Data Frame](#mriad--mtrg-serial-data-frame)
+- [State Machine](#state-machine)
+  - [PRELOCK1](#prelock1)
+  - [PRELOCK2](#prelock2)
+  - [W01 — NIM status word](#w01--nim-status-word)
+  - [W02 — ECL status word](#w02--ecl-status-word)
+  - [W03 — FERA control states](#w03--fera-control-states)
+  - [W04 — Frame counter](#w04--frame-counter)
+  - [W05 — End-of-frame anchor](#w05--end-of-frame-anchor)
+- [Ports](#ports)
+- [Integration in MTRG](#integration-in-mtrg)
+- [Notes](#notes)
+- [See Also](#see-also)
+
+---
+
 ## Purpose
 
 Locks onto the 5-word serial data stream sent by the MγRIAD module over SERDES Link U and extracts:
@@ -142,3 +161,10 @@ States: `PRELOCK1` → `PRELOCK2` → `W01` → `W02` → `W03` → `W04` → `W
 ---
 
 *Created: 2026-04-21 from source `MYRIAD_RCV_MACH.vhd` (tag 20220705)*
+
+## See Also
+
+- [MTRG_MYRIAD_TRIGGER.md](MTRG_MYRIAD_TRIGGER.md) — downstream consumer; processes NIM_STAT/ECL_STAT/RAW_TRIGGER from this receiver
+- [MTRG_top.md](MTRG_top.md) — instantiation context; GITMO_RCV_MACH parallel receiver for remote master
+- [myriad.md](../myriad.md) — MγRIAD module overview; link protocol, NIM/ECL inputs
+- [deep_fpga_MTRG_MAIN.md](../deep_fpga_MTRG_MAIN.md) — MTRG architecture; auxiliary Link U usage

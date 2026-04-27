@@ -19,6 +19,31 @@ _Supporting: `LabNotes/20210314_TDC.ods`, `LabNotes/Jitter Analysis/`, `LabNotes
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+  - [Clock Generation](#clock-generation)
+  - [Vernier (Delay Line) TDC](#vernier-delay-line-tdc)
+  - [Coarse Counter](#coarse-counter)
+  - [Data Collection State Machines](#data-collection-state-machines)
+- [Event Data Format](#event-data-format)
+- [Time Calculation](#time-calculation)
+  - [Per-Phase Formula](#per-phase-formula)
+  - [Coarse Counter Rollover](#coarse-counter-rollover)
+  - [Checking Chain Validity](#checking-chain-validity)
+  - [Example Calculation](#example-calculation)
+- [Lab Notes & Testing Records](#lab-notes--testing-records)
+- [TAC-II in GEBSort (bin_tac2 decode algorithm)](#tac-ii-in-gebsort-bin_tac2-decode-algorithm)
+  - [DGS_TRIG_EVENT Structure (GEBSort.h)](#dgs_trig_event-structure-gebsorth)
+  - [bin_tac2 Decode Steps (bin_tac2.c)](#bin_tac2-decode-steps-bin_tac2c)
+  - [When bin_tac2 is Not Valid](#when-bin_tac2-is-not-valid)
+  - [Output Variables (exported to bin_dgs)](#output-variables-exported-to-bin_dgs)
+- [Related](#related)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 The TAC-II is a **Time-to-Digital Converter (TDC)** implemented in FPGA firmware within the DGS Master Trigger (MTRG). It measures the arrival time of a NIM input signal (e.g. beam RF, external pulser) relative to the trigger timestamp, providing sub-nanosecond timing resolution for TAC-based coincidence measurements.

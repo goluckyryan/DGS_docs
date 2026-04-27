@@ -17,10 +17,8 @@ _Split from `vxworks.md` on 2026-04-23. Sources: `dgsDrivers/dgsDriverApp/src/`_
 - [Trigger Board Drivers](#trigger-board-drivers-asynTrigCommonDriver-asynTrigRouterDriver-asynTrigMasterDriver)
 - [vmeDriverMutex — Cross-Driver VME Bus Lock](#vmedrivermutex--cross-driver-vme-bus-lock)
 - [QueueManagement.c — Three-Queue Buffer Pool](#queuemanagementc--three-queue-buffer-pool)
+- [asynDigitizerDriver — DIG VME Asyn Driver](#asyndigitizerdriver--dig-vme-asyn-driver)
 - [Cross-References](#cross-references)
-
----
-
 
 ---
 
@@ -309,6 +307,86 @@ _Source: `dgsDrivers/dgsDriverApp/src/MiniSender.st` (231 lines, EPICS State Not
 **Run/no-save behavior:**
 - `Save_NoSave_Button == 0` (no-save): MiniSender stays in `init`; `FlushAllBuffers()` drains without TCP send. Data is counted by outLoop but never transmitted.
 - `Save_NoSave_Button == 1` (save): normal TCP send path activates.
+
+#### `SendReceiveSupport.c` — TCP Protocol Details
+
+_Source: `dgsDrivers/dgsDriverApp/src/SendReceiveSupport.c` (507 lines). ✅ verified 2026-04-27 — full read_
+
+**Socket configuration (`setsocketoption()`, added MBO 20200617):**
+- `SO_RCVBUF` = 65536 bytes ✅ verified 2026-04-27 — `SendReceiveSupport.c:L76`
+- `SO_SNDBUF` = 65536 bytes ✅ verified 2026-04-27 — `SendReceiveSupport.c:L77`
+- `TCP_NODELAY` = 1 (disable Nagle algorithm — minimize latency) ✅ verified 2026-04-27 — `SendReceiveSupport.c:L86`
+- `TCP_MAXSEG` (MSS) — intentionally commented out; VxWorks docs say you can only reduce MSS pre-connect (default 512), and the negotiated MTU will be used at connect time anyway ✅ verified 2026-04-27 — `SendReceiveSupport.c:L95-103` (`#if 0` block)
+- Server socket (`SocketForRequests`) is set **non-blocking** via `ioctl(FIONBIO)` so `MiniSender.st` can still react to run stop without blocking on `AcceptConnection()` ✅ verified 2026-04-27 — `SendReceiveSupport.c:L143`
+
+**TCP port:** `SERVER_PORT = 9001` (hard-coded `#define`; matches `tcpReceiverMT`) ✅ verified 2026-04-27 — `SendReceiveSupport.c:L120`
+
+**`InitRequestSocket()` flow:**
+1. If socket already open, close it first (handles re-init after error) ✅ verified 2026-04-27 — `SendReceiveSupport.c:L129`
+2. `socket(AF_INET, SOCK_STREAM, 0)` — stream TCP socket ✅ verified 2026-04-27 — `SendReceiveSupport.c:L134`
+3. Set non-blocking via `ioctl(FIONBIO)` ✅ verified 2026-04-27 — `SendReceiveSupport.c:L143`
+4. `gethostname()` + `hostGetByName()` — resolves the IOC's **own IP** (not INADDR_ANY) ✅ verified 2026-04-27 — `SendReceiveSupport.c:L149–164`
+5. `setsocketoption()` — set buffer sizes + TCP_NODELAY ✅ verified 2026-04-27 — `SendReceiveSupport.c:L181`
+6. `bind()` to this IOC's own resolved IP on port 9001 (not `0.0.0.0` — corrected 2026-04-27) ✅ verified 2026-04-27 — `SendReceiveSupport.c:L184`
+7. `listen()` with backlog = 10 ✅ verified 2026-04-27 — `SendReceiveSupport.c:L189`
+8. Return codes: 0=success, -1=socket fail, -2=hostname fail, -3=IP lookup fail, -4=bind fail, -5=listen fail ✅ verified 2026-04-27 — `SendReceiveSupport.c:L136,L155,L170,L187,L193`
+
+**`AcceptConnection()` behavior:**
+- Calls `accept()` on `SocketForRequests`
+- Non-blocking: `EWOULDBLOCK` is expected during polling → returns 0 (retry)
+- On `ERROR` (any other error): calls `InitRequestSocket()` to reset, returns -1
+- On success: `ReadWriteSocket` global is set to accepted socket fd, returns 1
+- Note: JTA 20230919 comment suggests it would be useful to close the socket before re-init, which `InitRequestSocket()` now does
+
+**Wire protocol — Request (Receiver → IOC):**
+```c
+typedef union {
+    int type;           // single int: CLIENT_REQUEST_EVENTS=1 expected
+    char RawMsg[4];     // 4 bytes over the wire
+} ReqMsg;
+```
+- Request message is just **4 bytes** (a single int in network byte order)
+- `getReceiverRequest()` uses `recv()` in a loop to ensure all 4 bytes are received
+- Returns: 0=message received, 1=EWOULDBLOCK (no message yet — normal), -2=socket not valid, -3=recv error, -4=partial read failed, -5=buffer overrun
+
+**Wire protocol — Response (IOC → Receiver):**
+```c
+typedef struct {
+    int type;    // SERVER_SUMMARY=4 (data follows) or INSUFF_DATA=5 (no data)
+    int recLen;  // byte length of the data buffer to follow (0 if INSUFF_DATA)
+    int status;  // always 0 (unused by gtReceiver4 per Torben 20200609)
+    int recs;    // 1 if data follows, 0 if no data
+} evtServerRetStruct;  // 16 bytes total
+typedef union {
+    evtServerRetStruct Fields;
+    char RawMsg[16];    // 16 bytes over the wire
+} ResponseMsg;
+```
+- All fields sent via `htonl()` (network byte order) ✅ verified 2026-04-27 — `SendReceiveSupport.c:L375,L380,L382,L383`
+- `sendServerResponse()` uses a partial-send loop for the 16-byte header; also handles `EWOULDBLOCK`/`EAGAIN`/`ENOBUFS` with `taskDelay(1)` retry ✅ verified 2026-04-27 — `SendReceiveSupport.c:L418-432`
+- If `BufsAvailable > 0`: pops one buffer from `QSend` (via `getSenderBuf()`), sets `type=SERVER_SUMMARY`, `recLen=buf->len`, `recs=1` ✅ verified 2026-04-27 — `SendReceiveSupport.c:L389-410`
+- If `BufsAvailable == 0`: sets `type=INSUFF_DATA`, `recLen=0`, `recs=0` (no data buffer sent) ✅ verified 2026-04-27 — `SendReceiveSupport.c:L371-385`
+- Returns `BufsAvailable` to the state machine (determines whether `sendDataBuffer()` is called) ✅ verified 2026-04-27 — `SendReceiveSupport.c:L445`
+- On send error: puts buffer back to `QFree` (avoids leak), returns 0 ✅ verified 2026-04-27 — `SendReceiveSupport.c:L424-428`
+
+**Wire protocol — Data payload (IOC → Receiver):**
+- `sendDataBuffer()` sends `WorkingDescriptor->len` bytes from `WorkingDescriptor->data` ✅ verified 2026-04-27 — `SendReceiveSupport.c:L453-482`
+- Uses partial-send loop; `EWOULDBLOCK`/`EAGAIN`/`ENOBUFS` → `taskDelay(1)` and retry; any other error → `putFreeBuf()` + return ✅ verified 2026-04-27 — `SendReceiveSupport.c:L466-476`
+- After successful send: `putFreeBuf(WorkingDescriptor)` returns buffer to `QFree` ✅ verified 2026-04-27 — `SendReceiveSupport.c:L482`
+- `WorkingDescriptor` is a file-static global `rawEvt *` (set during `sendServerResponse()`) ✅ verified 2026-04-27 — `SendReceiveSupport.c:L62,L389`
+
+**Protocol message type codes (`DGS_DEFS.h`):**
+| Code | Value | Direction | Meaning |
+|------|-------|-----------|----------|
+| `CLIENT_REQUEST_EVENTS` | 1 | Receiver→IOC | Receiver asking for data |
+| `SERVER_NORMAL_RETURN` | 2 | IOC→Receiver | (legacy, not used by current code) |
+| `SERVER_SENDER_OFF` | 3 | IOC→Receiver | (legacy, not used by current code) |
+| `SERVER_SUMMARY` | 4 | IOC→Receiver | Data buffer follows |
+| `INSUFF_DATA` | 5 | IOC→Receiver | No data available right now |
+
+✅ verified 2026-04-27 — `DGS_DEFS.h:L184-188`
+
+**Global sockets:** `SocketForRequests` (listen socket), `ReadWriteSocket` (accepted connection socket) — both file-static with `sender_debug_level`-gated diagnostic prints. `sender_debug_level` is a VxWorks shell-accessible `extern int` for live debug.
 
 **Cross-reference:** `ANLDAQ_tcpReceiver.md` — `tcpReceiverMT` protocol details; how it connects, sends requests, and receives data from MiniSender.
 

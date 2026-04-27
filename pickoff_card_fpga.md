@@ -12,6 +12,25 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Hardware Interfaces](#hardware-interfaces)
+  - [Clock Architecture](#clock-architecture)
+  - [Raspberry Pi / Collector Box Interface](#raspberry-pi--collector-box-interface)
+  - [BGO Discriminator Output to Collector Box](#bgo-discriminator-output-to-collector-box)
+  - [Preamp Reset Clamp](#preamp-reset-clamp)
+- [Register Map (SPI Address Space, 7-bit address)](#register-map-spi-address-space-7-bit-address)
+- [Key Control Register Bit Maps](#key-control-register-bit-maps)
+  - [PULSED_CONTROL_REG (0x00)](#pulsed_control_reg-0x00--write-only-auto-clears)
+  - [FPGA_CTL_REG (0x01)](#fpga_ctl_reg-0x01--default-0x7a03)
+  - [MISC_CTL_STAT_REG (0x14)](#misc_ctl_stat_reg-0x14)
+- [Analog Peripheral Controllers](#analog-peripheral-controllers)
+- [Notes](#notes)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 The **Pickoff Card FPGA** (SBX Extension, Revision C) is the central digital controller on the Slope Box Extension (SBX) board. It sits between the Raspberry Pi (or Collector Box) and all analog/digital hardware on the SBX/slope box. Revision C is the current production version.

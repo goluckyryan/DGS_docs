@@ -41,10 +41,10 @@ Developed by **Madden, Oberling, and Anderson**.
 
 ### GammaWare (LabWindows)
 
-- A **LabWindows/CVI** program (National Instruments) providing low-level register/bit access.
-- Runs on **WDGS** — a Windows 7 laptop in the Gammasphere data room.
-- Used for diagnosis: JTAG access, Chipscope, Xilinx ISE 14.7, and register-level inspection.
-- Also includes **IMPACT** (Xilinx programming tool).
+- A **LabWindows/CVI** program (National Instruments) providing low-level register/bit access. ✅ verified 2026-04-27 — wiki `/gsdaq/Engineer_access_to_the_system_from_LabWindows`
+- Runs on **WDGS** — a Windows 7 laptop in the Gammasphere data room. ✅ verified 2026-04-27 — wiki: "WDGS is a little Windows laptop that will usually be found on top of some relay rack ... it runs Windows 7" (John Anderson 2010-2017; IP 192.168.203.232 per `overview_DGS.md:L170`)
+- Used for diagnosis: JTAG access, Chipscope, Xilinx ISE 14.7, and register-level inspection. ✅ verified 2026-04-27 — wiki: "WDGS has tools such as IMPACT, Chipscope and Xilinx ISE 14.7"
+- Also includes **IMPACT** (Xilinx programming tool). ✅ verified 2026-04-27 — wiki confirms IMPACT listed alongside Chipscope and ISE 14.7
 
 ### Carlware (EDM)
 
@@ -74,11 +74,11 @@ To reach the Gammasphere data room ("onenet" subnet) remotely:
 1. Run an **X windows package** on your local machine (e.g., Cygwin, Putty + Xming).
 2. SSH to gateway: `ssh -Y sonata.phy.anl.gov` (ANL domain password required).
 3. From Sonata:
-   - **Windows PC (WDGS):** `rdesktop wdgs -g 1280x1024` → login as `topoadmin`
-   - **DGS Linux (dgs1):** `ssh -Y dgs@dgs1` (standard Gammasphere password)
-   - **DFMA/DSSD Linux (nat2):** `ssh -Y dgs@nat2` (same standard password)
+   - **Windows PC (WDGS):** `rdesktop wdgs -g 1280x1024` → login as `topoadmin` ✅ verified 2026-04-27 — wiki: "Enter the command rdesktop wdgs –g 1280x1024 ... Enter the user name topoadmin"
+   - **DGS Linux (dgs1):** `ssh -Y dgs@dgs1` (standard Gammasphere password) ✅ verified 2026-04-27 — wiki: "enter ssh –Y dgs@dgs1 to connect to the DGS Linux box"
+   - **DFMA/DSSD Linux (nat2):** `ssh -Y dgs@nat2` (same standard password) ✅ verified 2026-04-27 — wiki: "enter ssh –Y dgs@nat2 to connect to that system"
 
-**Note:** The "standard Gammasphere password" is shared across all onenet machines.
+**Note:** The "standard Gammasphere password" is shared across all onenet machines. ✅ verified 2026-04-27 — wiki: "The same 'standard Gammasphere password' is used" across dgs1, nat2, and WDGS
 
 ---
 

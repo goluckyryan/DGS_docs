@@ -14,14 +14,13 @@ Stability: C3 - Structural / stable
   - [Signal Chain](#signal-chain)
   - [EPICS Control](#epics-control)
 - [Full System — DGS](#full-system--dgs)
-  - [Physical Scale](#physical-scale)
-  - [Distributed Trigger Topology](#distributed-trigger-topology)
-  - [Network Topology](#network-topology)
-  - [Timing and Trigger Distribution](#timing-and-trigger-distribution)
-  - [Data Paths](#data-paths)
-  - [Auxiliary Systems](#auxiliary-systems)
-  - [Terminal Servers / Console Access](#terminal-servers--console-access)
+  - [Digitizer Hardware Origin](#digitizer-hardware-origin)
+  - [Additional Hardware vs. DuoGe](#additional-hardware-vs-duoge)
+  - [Collector Box Architecture](#collector-box-architecture)
+  - [4 Collector Boxes](#4-collector-boxes)
+  - [EPICS CA Port Isolation](#epics-ca-port-isolation)
   - [VME Crate Power PDUs](#vme-crate-power-pdus)
+  - [DAQ Power Supply (48V Redundant)](#daq-power-supply-48v-redundant)
 - [See Also](#see-also)
 
 ## Minimal System — DuoGe (DUO)
@@ -78,7 +77,7 @@ Slot 7: MTRG
 
 ### Networking
 
-- All devices run on **onenet: 192.168.203.xxx**
+- All devices run on **onenet: 192.168.203.xxx** ✅ verified 2026-04-26 — `ANLDAQ/EPICS_env.sh:L13,L19,L28,L32,L34,L47` (all IOC/terminal server IPs in 192.168.203.xxx subnet; domain alias `vme99.onenet` also used)
 - Network switch = just a port extender (no special role)
 - The IOC (MVME5500) connects to onenet via Ethernet
 - EPICS CA traffic (PV reads/writes) flows over onenet between IOC, host PC, and Pis
@@ -90,7 +89,7 @@ Slot 7: MTRG
 - **4 RTRGs total** service all 11 DIG VME systems; each RTRG shares a VME system with DIGs (not a dedicated VME system): RTR1 (IOC1/slot 7) → IOC1/2/3; RTR2 (IOC4/slot 3) → IOC4/5/6; RTR3 (IOC32/slot 6, same VME as MTRG) → IOC7/8; RTR4 (IOC10/slot 3) → IOC9/10/11 ✅ verified 2026-04-20 — `DGS_SVN/dgs/daq_system_tags/SL6_DGS_20220923/ioc/boot/vme32.cmd:L48-51`
 - Each VME backplane also has **one IOC board (MVME5500)** ✅ verified 2026-04-19 — `ioc/boot/vme66.cmd:L133-140` (Slot 1 = IOC MVME5500); all other crate cmd files follow same slot-1 IOC pattern
 - **VME Fiber Expander** board (PCB #3174, ANL part `21pc032`, Rev A, Sept 2021) provides fully optical interface between MTRG (System Trigger) and RTRGs — replaced original copper/Cat5 Trigger Paddle Cards; installed July 2022. Requires DC balance enabled (`EN_RTR_DCBAL`, `LinkL_DCbal`) and cable pre-emphasis **disabled** (`PEHLRU=PEEFG=PEABCD=0`). ✅ verified 2026-04-17 — `knowledgeBase/DGS_SVN.md` (PCB #3174), `knowledgeBase/link_sys_analysis.md:1I`, `knowledgeBase/trig_setup_scripts.md` (fiber expander notes)
-- Prior to digital upgrade: VXI crates used (larger, housed in a separate electronics "shack" room); VXI system dismantled post-upgrade. VXI5 specifically decommissioned by September 2021 (wiki: Digital_Gammasphere_Upgrade_Project), allowing grey cables for GS 81-109 to be removed from array. [Note: "before 2023" may reflect full teardown date vs. partial VXI5 decommission in Sept 2021 - unverified]
+- Prior to digital upgrade: VXI crates used (larger, housed in a separate electronics "shack" room); VXI system dismantled post-upgrade. VXI5 specifically decommissioned by September 2021 ✅ verified 2026-04-26 — wiki Digital_Gammasphere_Upgrade_Project: "As of September, 2021 ... VXI 5 has been decommissioned, allowing grey cables for GS 81-109 to be removed from array." Full VXI system (remaining crates) teardown date: ⚠️ unverified — source needed (wiki only documents VXI5 decommission; other VXI crate removal timeline not found in available sources)
 
 ### VME Backplane
 
@@ -122,7 +121,7 @@ Accepted events → VME FIFO → MVME5500 (VME backplane) → tcpReceiver → ho
 
 ## Full System — DGS
 
-Scales up to 1 MTRG × 8 RTRG × 8 DIG × 10 ch = **640 channels**. ✅ verified 2026-04-06 — `FPGA/MTRG/Firmware/MAIN_FPGA/trunk/.../trigger_top_comp_defs.vhd`: `JTA_8X...` arrays confirm 8 data links (A–H, one per RTRG); 11 total SERDES (8 data + L/R/U)
+Scales up to 1 MTRG × 8 RTRG × 8 DIG × 10 ch = **640 channels**. ✅ verified 2026-04-06 — `FPGA/MTRG/Firmware/MAIN_FPGA/trunk/.../trigger_top_comp_defs.vhd`: `JTA_8X...` arrays confirm 8 data links (A–H, one per RTRG); 11 total SERDES (8 data + L/R/U) ✅ RTRG-side confirmed 2026-04-26 — `FPGA/RTRG/Firmware/DGS_Version/MAIN_FPGA/Source/router_data_path.vhd:L40` (`DIG_LINK_RXs : in JTA_8X18_Array` — 8 DIG links per RTRG); `L54` (`LIVE_CHANNEL_VETOES : out JTA_8X10_Array` — 10 ch per DIG)
 Each RTRG manages a "sector" of 8 DIGs = 80 channels = one VME crate.
 
 ### Digitizer Hardware Origin
@@ -144,6 +143,16 @@ Each RTRG manages a "sector" of 8 DIGs = 80 channels = one VME crate.
 | 12 VME crates | One per RTRG sector (192.168.203.141–145, 177–183) ✅ verified 2026-04-05 — ping confirmed live |
 
 ### Collector Box Architecture
+
+**Signal channel assignments per detector (4 digitized channels total):**
+- **Fixed:** Ge Center contact (always Ch A) + BGO Sum (always Ch B)
+- **Configurable (Ch C + Ch D):** each can be assigned to one of:
+  - GeSide signals (segmented or non-segmented Ge side contacts)
+  - BGO Hit Pattern (individual BGO segment discriminator bits — used for Electric Honeycomb)
+  - Ge Center copy at fixed energy range (8 MeV or 20 MeV range)
+  Source: wiki Collector_Box page ✅ visited 2026-04-27
+
+**Electric Honeycomb:** A nearest-neighbor BGO coincidence scheme implemented in a dedicated FPGA inside each Collector Box. Combines fast discriminator bits from the 7 BGO segments of each detector with the 6 individual face-to-face BGO bits from neighboring detectors to suppress cross-detector Compton scatter. Increases Compton suppression by up to **~10% @ 1 MeV** versus conventional BGO sum alone. Source: wiki Collector_Box page ✅ visited 2026-04-27
 
 ```
 Many slope boxes (1 per Ge detector)

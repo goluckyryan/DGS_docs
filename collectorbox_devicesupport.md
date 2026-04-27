@@ -292,6 +292,7 @@ Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[dev
 - `knowledgeBase/collectorbox_devicesupport_advanced.md` — Advanced DTYP modules: CollectorI2C, CollectorStep, CollectorDPRSupport, CollectorCalc AI/BI, CollectorCtl_Waveform, CollectorADC
 - `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC: PXE boot, HV control, collector assignments
 - `knowledgeBase/collector_fpga.md` — CtrlFPGA and StripeFPGA firmware; SPI register maps
+- `knowledgeBase/collector_ctrlFPGA_registers.md` — CtrlFPGA register interface (141 registers): all control bits + per-stripe ADC monitoring layout
 - `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector)
 - `knowledgeBase/sbx.md` — Slope Box Extension; pickoff card; BGO HV; GS_ID dongle
 - `knowledgeBase/EPICS.md` — EPICS record types and device support concepts

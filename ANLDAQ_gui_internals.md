@@ -21,6 +21,18 @@ _Source: `DGS_tools_pack/ANLDAQ/gui/`_
 - [`gui_scalar.py` — Scalar / Rate Monitor Window](#gui_scalarpy--scalar--rate-monitor-window)
 - [`class_PVWidgets.py` — PV-Bound Qt Widgets](#class_pvwidgetspy--pv-bound-qt-widgets)
 - [`commander.py` — Main Window (summary)](#commanderpy--main-window)
+- [`gui_GS.py` — Per-Detector GS Window](#gui_gspy--per-detector-gs-window)
+- [`gui_RAM.py` — RAM Visualizer Window](#gui_rampy--ram-visualizer-window)
+- [`gui_Det.py` — Detector / CollectorBox Monitor Window](#gui_detpy--detector--collectorbox-monitor-window)
+- [`gui_Board.py` — Generic Board PV Window](#gui_boardpy--generic-board-pv-window)
+- [`gui_DIG.py` — Digitizer Board Window](#gui_digpy--digitizer-board-window)
+- [`gui_CH.py` — Channel Settings Window](#gui_chpy--channel-settings-window)
+- [`gui_LinkSys.py` — Link System Configuration Window](#gui_linksyspy--link-system-configuration-window)
+- [`gui_MTRG.py` — Master Trigger Board Window](#gui_mtrgpy--master-trigger-board-window)
+- [`gui_RTR.py` — Router Trigger Board Window](#gui_rtrpy--router-trigger-board-window)
+- [`aux.py` — Utility Helpers](#auxpy--utility-helpers)
+- [`gui_SYS.py` — System Status Tab Library](#gui_syspy--system-status-tab-library)
+- [`Guceiver/` — GUI Live Receiver & Online Monitor](#guceiver--gui-live-receiver--online-monitor)
 
 ---
 
@@ -283,6 +295,458 @@ Key facts:
 
 ---
 
+---
+
+## `gui_GS.py` — Per-Detector GS Window
+
+_Source: `ANLDAQ/gui/gui_GS.py` (209 lines). Code-read 2026-04-26._
+
+**`GSWindow`** — `QMainWindow` providing a per-detector control/status panel for Gammasphere detectors.
+
+### Construction
+- Accepts `det_id` (integer, e.g. 1–110), `available_det_ids` (list of valid detector IDs), and `cb_pv` (list of `class_PV` objects from commander).
+- Lays out a **ComboBox** at the top (items labeled `GS001`..`GS110`) for switching between detectors.
+- Two `QGroupBox` columns: **Info / Status** (left) and **Control** (right), each using `QGridLayout`.
+- `QTimer` fires every **1000 ms** to refresh all PV widgets (`_UpdateWidgets`). ✅ verified 2026-04-26 — `gui_GS.py:L62-64`
+
+### `_BuildContent(det_id)`
+Builds both columns for the currently selected detector using PV name prefix `GS{det_id:03d}`.
+
+**Info / Status column (read/write integers):**
+| Label | PV suffix |
+|-------|----------|
+| Ge ID | `_Ge_ID` |
+| SlopeBox ID | `_SlopeBox_ID` |
+| Ge Prefix | `_Ge_Prefix` |
+| VME Index | `_VME_Index` |
+| Dig Index | `_Dig_Index` |
+| Dig Channel | `_Dig_Channel` |
+
+All rendered as `RLineEdit` with `decimalPlaces=0` (integer display). ✅ verified 2026-04-26 — `gui_GS.py:L121-126,L132-133`
+
+**Info / Status column (read-only enum/status):**
+| Label | PV suffix |
+|-------|----------|
+| Ge HV | `_SlopeBoxGe_HV_On` |
+| Temp | `_SlopeBoxTempHigh` |
+| BGO HV | `_SlopeBoxBGO_HV_On` |
+| BGO Interlock | `_SlopeBoxBGOInterlock` |
+
+All rendered as `RComboBox` with `SetReadONLY(True)`. ✅ verified 2026-04-26 — `gui_GS.py:L139-142,L147,L149`
+
+**Info / Status column (read-only voltages):**
+| Label | PV suffix |
+|-------|----------|
+| BGO 400V | `_Conv_BGO400` |
+| BGO 450V | `_Conv_BGO450` |
+| 24V | `_Conv_24V` |
+| +12V | `_Conv_plus12V` |
+| -12V | `_Conv_minus12V` |
+| 5V | `_Conv_5V` |
+
+All rendered as `RLineEdit` with `decimalPlaces=2` (float display), read-only. ✅ verified 2026-04-26 — `gui_GS.py:L155-160,L165,L167-168`
+
+**Control column (read/write enums):**
+| Label | PV suffix |
+|-------|----------|
+| Scan Control | `_Slopebox_Scan_control` |
+| Ge HV Ctrl | `_GE_HV_CTRL` |
+| BGO HV Ctrl | `_BGO_HV_CTRL` |
+
+All rendered as `RComboBox` (writable). ✅ verified 2026-04-26 — `gui_GS.py:L177-179,L185`
+
+### Detector Switching
+- `SwitchTo(det_id)` → updates combo → triggers `_OnDetChanged` → calls `_BuildContent`. ✅ verified 2026-04-26 — `gui_GS.py:L59-60,L72-93`
+- On switch: removes existing PV callbacks (`pv.RemoveCallback()`), clears lists, rebuilds content, re-subscribes callbacks. ✅ verified 2026-04-26 — `gui_GS.py:L84-97`
+- `_FindPV(pv_name)` scans `cb_pv` list by name; returns `None` gracefully if PV not found (widget still renders, just with no live data). ✅ verified 2026-04-26 — `gui_GS.py:L66-70`
+
+### Lifecycle
+- **`showEvent`:** subscribes PV callbacks on first show (`_subscribed` flag prevents double-subscribe). ✅ verified 2026-04-26 — `gui_GS.py:L190-195`
+- **`closeEvent`:** stops timer, removes all PV callbacks. ✅ verified 2026-04-26 — `gui_GS.py:L197-203`
+
+---
+
+## `gui_RAM.py` — RAM Visualizer Window
+
+_Source: `ANLDAQ/gui/gui_RAM.py` (30 lines). Code-read 2026-04-27._ ✅ verified 2026-04-27 — line count confirmed
+
+- `RAMWindow(ram_name, pvList)` — simple `QMainWindow` displaying a 32×32 two-state button grid. ✅ verified 2026-04-27 — `gui_RAM.py:L7`
+- Uses `RMapTwoStateButton(pvList, rows=32, cols=32)` to visualize VETO_RAM / TRIG_RAM / SWEEP_RAM contents. ✅ verified 2026-04-27 — `gui_RAM.py:L21`
+- `QTimer` fires every 500 ms, calling `mapTable.UpdatePV()` to refresh the grid. ✅ verified 2026-04-27 — `gui_RAM.py:L24-28` (`timer.start(500)`, `OnTimer` → `mapTable.UpdatePV()`)
+- Opened from `BoardPVWindow.OnRamChanged()` when a RAM type is selected in the board window's dropdown.
+
+---
+
+## `gui_Det.py` — Detector / CollectorBox Monitor Window
+
+_Source: `ANLDAQ/gui/gui_Det.py` (358 lines). Code-read 2026-04-27._
+
+### Detector Geometry Constants
+
+Defined at module level (importable standalone): ✅ verified 2026-04-27 — `gui_Det.py:L25-37`
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `DET_NE` | `range(1, 60, 2)` → [1,3,…,59] | North-East, 30 detectors, CB203 |
+| `DET_SE` | `range(2, 61, 2)` → [2,4,…,60] | South-East, 30 detectors, CB201 |
+| `DET_NW` | `range(61, 110, 2)` → [61,63,…,109] | North-West, 25 detectors, CB204 |
+| `DET_SW` | `range(62, 111, 2)` → [62,64,…,110] | South-West, 25 detectors, CB202 |
+| `CB_GROUP` | `{201: ("South-East", DET_SE), …}` | CollectorBox ID → (label, det_list) |
+
+**Total: 110 detectors.** Always 30 slots per CB group; NW/SW pad 5 empty slots at the end. ✅ verified 2026-04-27 — `gui_Det.py:L3-22` (header comment)
+
+### DetWindow Class
+
+- `DetWindow(cb_pv, cb_det_list)` — top-level detector monitor window.
+  - `cb_pv`: all CollectorBox PV objects (preloaded).
+  - `cb_det_list`: list of `MOD<NNN>` and `GS<NNN>` prefixes for available detectors.
+- Layout: top combo (CollectorBox selector, placeholder — `_OnCBSelected` has TODO) + `QTabWidget`.
+- **Temperature tab:** 2×2 grid of 4 `QGroupBox` panels (NE/SE/NW/SW), each 30 cells in 3 columns × 10 rows (column-major).
+  - Each cell: `MOD<NNN>` ID button + `RLineEdit` (DV_TEMP, 2 dp) + `RLineEdit` (DV_TEMP.HIGH, RW, EPICS `.HIGH` subfield, created manually as `PV()`) + `RTwoStateButton` (DV_EN).
+  - ID button click → `_OpenGSWindow(det_id)`. Shift+click → new `GSWindow`; plain click → reuses/reactivates one shared `self._gs_window`.
+  - Absent detectors (None slots) render as disabled dummy cells.
+- **HV tab:** same 2×2 layout; cells show: ID label + `RLineEdit` (GS<NNN>_GE_HV_DEMAND_VOLTS, 2 dp) + `RLineEdit` (GS<NNN>_Conv_GeHV, 0 dp, read-only) + `RLineEdit` (MOD<NNN>_DS_GEHV, read-only).
+- **CA subscription:** lazy — `showEvent` subscribes on first show. `closeEvent` removes callbacks, closes child GSWindows.
+- **Timer:** 1000 ms, calls `_UpdateWidgets()` (skips if not visible).
+
+---
+
+## `gui_Board.py` — Generic Board PV Window
+
+_Source: `ANLDAQ/gui/gui_Board.py` (432 lines). Code-read 2026-04-27._
+
+`BoardPVWindow(board_name, board, channelNo=-1)` — generic fallback window for any board type. Used for boards without a specialized window.
+
+### PV Classification
+
+PVs are sorted into special groups by prefix; unmatched PVs fall into a generic 40-row column wrap:
+
+| Group prefix | Widget type | Notes |
+|---|---|---|
+| `XMAP_`, `YMAP_` | `RMapTwoStateButton` 32×32 | Mapping RAM |
+| `DISCRIMINATOR_DELAY` | `RMapLineEdit` | Delay map |
+| `LOCK`, `DEN`, `REN`, `SYNC`, `RPwr`, `TPwr`, `SLiL`, `SLoL`, `ILM`, `LINK`, `GATED_THROTTLE`, `RAW_THROTTLE` | `RMapTwoStateButton` row (per type) | Link/Control group; LOCK/ILM/RAW_THROTTLE have inverted color |
+| `Diag_`, `LOCK_COUNT` | `RMapLineEdit` | Diagnostics (inline with Link group) |
+| `FIFOReset` | `RMapTwoStateButton` column | FIFO Reset group |
+| `VETO_RAM`, `TRIG_RAM`, `SWEEP_RAM` | `RAMWindow` popup on demand | RAM dropdown |
+| `LINK_L/R/U_PROPAGATE` | `RMapTwoStateButton` row | MTRG-specific link propagation |
+| `EN_NIM/RAM/REMTRIG/SOFTWARE/THROTTLE_VETO_` | `RMapTwoStateButton` row | Veto enables |
+| `reg_MISC_STAT` | `RRegisterDisplay(pv, False)` | MTRG status register |
+| `reg_MISC_STAT_REG` | `RRegisterDisplay(pv, True)` | RTR status register |
+
+- **Channel selector:** if `board.NumChannels > 0` and `channelNo < 0`, combo opens child `BoardPVWindow` for a specific channel.
+- **RAM selector:** opens `RAMWindow` popup; reuses existing window if open.
+- **`closeEvent`:** hides (not destroys) window — keeps PV subscriptions alive. ✅ verified 2026-04-27 — `gui_Board.py:L354-357` (`hide()` + `event.ignore()`)
+- **`UpdatePVs`:** 500 ms timer; only runs when `isActiveWindow() and isVisible()`. ✅ verified 2026-04-27 — `gui_Board.py:L347,L359-361`
+
+---
+
+## `gui_DIG.py` — Digitizer Board Window
+
+_Source: `ANLDAQ/gui/gui_DIG.py` (370 lines). Code-read 2026-04-27._
+
+`DIGWindow(board_name, board)` — specialized window for digitizer (DIG) boards.
+
+### Layout (9 panel groups in a 5×3 grid)
+
+| Panel | Grid pos | Contents |
+|-------|----------|----------|
+| Board Info/Status | [0,0] ×2r | 22 PVs: code_revision, code_date, VME rev, serial_num, timestamps, geo_addr, board_id, fw_type, LED state, power/volt, 3× temp sensors, misc logic status, SD config, VME gp ctrl, ext disc src/mode, TS error count |
+| SerDes Status/Control | [0,1] ×2r | 10 PVs: serdes_lock, sm_locked, sm_lost_lock_flag, sd_rx/tx_pwr, sd_local/line_loopback_en, sd_pem, sd_sync, sd_sm_stringent_lock |
+| FIFO Status/Control | [0,2] | 12 PVs: master_fifo_reset, fifo_a/b_empty, fifo_a/b/fulla/fullb/almost_full, ini_fifo_prog_flag, fifo_depth (hex), int_FIFO_PROG_ERR/FLG |
+| Throttle Control | [1,2] | 4 PVs: rj45_throttle_mode, lfsr_rate_sel, FIFO_Prog_Thresh, lfsr_seed |
+| Channel Triggers/Controls | [2,0] ×3r | 10-channel grid: enable/threshold/disc_count/ahit_count/downsample; "All Ch." threshold setter; counter_mode combo; "Open Channel" button |
+| Board Control | [2,1] ×3r | 14 PVs: master_logic_enable, CS_Ena, trigger_mux_select, cfd_mode, win_comp_min/max, veto_enable, clk_select, sd_sm_lost_lock_flag_rst, ext_disc_ts_sel, reg_downsample_holdoff, diag_mux_control, DIAG_WAVE_SEL, EXT_DISC_REQ |
+| ADC Status | [2,2] | 5 PVs: adc_ph_shift_overflow, adc_dcm_clock_stopped/reset/lock/ctrl_status |
+| Acquisition Status | [3,2] | 5 PVs: acq_ph_shift_overflow, acq_dcm_clock_stopped/reset/lock/ctrl_status |
+| Phase Status | [4,2] | 5 PVs: ph_checking, ph_hunting_down/up, ph_failure, ph_success |
+
+- **`SetAllChThreshold`:** sets `led_threshold` for all 10 channels.
+- **`OpenChannelWindow`:** creates/reuses one `CHWindow` (all-channels view).
+- **`closeEvent`:** stops timer, closes `CHWindow`, calls `board.UnsubscribeChannels()`. ✅ verified 2026-04-27 — `gui_DIG.py:L296-301`
+- **Forced update mode:** when `isACQRunning=True` (set externally by commander), `disc_count`/`ahit_count`/`led_threshold`/`channel_enable` are force-refreshed every 500 ms tick. ✅ verified 2026-04-27 — `gui_DIG.py:L364-370`
+
+---
+
+## `gui_CH.py` — Channel Settings Window
+
+_Source: `ANLDAQ/gui/gui_CH.py` (396 lines). Code-read 2026-04-27._
+
+Three classes plus `CHWindow`:
+
+### `ChTabTemplate` (base)
+- Holds `board`, `pvWidgetList`, `QTimer`.
+- `FindPV` / `FindChannelPV(ch, pv_name)` helpers.
+- `UpdatePVs(forced)` — delegates to all widget `UpdatePV(forced)` calls.
+
+### `ChannelTab` — single-channel detail view
+- Channel selector combo (0–9); on change, rewires all `pvWidget.pv` pointers to new channel.
+- **General Settings:** channel_enable, trigger_polarity, pileup_mode, cfd_esum_mode, CFD_fraction, preamp_reset_delay_en/delay, downsample_factor, enable_dec_pause, trig_ts_mode, Early_pre_m_sel, MultiplexWordSelect, reg_channel_control (hex).
+- **Ext. Discr.:** ext_disc_sel, ext_disc_src.
+- **Window Settings:** led_threshold, k0/k/d/d3/m/p1/p2_window, raw_data_delay/length + `RSetButton` for `load_delays`.
+- **Status:** disc_count, ahit_count, accepted_event_count, dropped_event_count, counter_reset + mode selectors.
+- Timer: 500 ms.
+
+### `SettingsTabTemplate` — all-channels grid view
+- Rows = channels, columns = PV parameters; wrapped in `QScrollArea`.
+- Bottom "All" row sets a value for all channels via `_setAllChannels(pvName, value)`.
+- `forceUpdate=True` → always force-refreshes (used for Status tab).
+- Timer: 500 ms.
+
+### `CHWindow` — top-level channel window
+
+| Tab | Class | PV groups |
+|-----|-------|----------|
+| Channel | `ChannelTab` | Per-channel single detail view |
+| Window Settings | `SettingsTabTemplate` | led_threshold, k0/k/d/d3/m/p1/p2_window, raw_data_delay/length |
+| General Settings | `SettingsTabTemplate` | channel_enable, polarity, pileup, CFD, preamp_reset, downsample, dec_pause, trig_ts_mode, Early_pre_m_sel, MultiplexWordSelect, reg_channel_control |
+| Ext. Discr. | `SettingsTabTemplate` | ext_disc_sel, ext_disc_src |
+| Status | `SettingsTabTemplate` (forceUpdate=True) | channel_enable, disc_count, ahit_count, accepted_event_count, dropped_event_count, counter_reset |
+
+- Tab switch triggers `UpdatePVs(forced=True)` to immediately refresh new tab.
+- `closeEvent` stops all tab timers.
+
+---
+
+## `gui_LinkSys.py` — Link System Configuration Window
+
+_Source: `ANLDAQ/gui/gui_LinkSys.py` (295 lines). Code-read 2026-04-27._
+
+`LinkSysWindow(MTRG, RTR_list, DIG_list)` — GUI front-end for the `LinkSys` 5-stage link initialization procedure.
+
+### Layout
+
+- **MTRG Link Map:** 11-row table (links A/B/C/D/E/F/G/H/L/R/U). Each row: link ID + Type combo (RTR names + MASKED/PIXIE/DFMA/DUB/DXA) + Propagate (0/1; only L/R/U enabled).
+- **RTR Link Map:** checkbox matrix — rows = RTRs, columns = 11 link IDs. Checked = RTR participates on that link.
+- **Settings:** Error Checks checkbox + MTRG Clock Source (local/external) + DIG Clock (0: AUX / 1: SERDES / 2: Oscillator / 3: SERDES). ✅ verified 2026-04-27 — `gui_LinkSys.py:L175`
+- **Status label + Run/Cancel buttons.**
+
+### `LinkSysWorker(QThread)`
+- Background thread running `link_sys.LinkSys` Stage1–Stage5.
+- Emits `stageUpdate(str)` after each stage; `finished(bool, str)` on done/error.
+- Catches `AttributeError`, `IndexError`, `ValueError`, `RuntimeError`.
+
+### Config Persistence (`gui/linkMap.json`)
+- Saved on every "Run" click (MTRG map, RTR map, settings).
+- Loaded on window init; silently ignores missing file or JSON errors.
+
+### Workflow
+1. Set MTRG link map (type + propagate per link) and RTR link map (checkbox per RTR×link).
+2. Click "Run LinkSys" → config saved → `LinkSysWorker` runs Stage1–5.
+3. Status label shows progress; turns green (success) or red (failure).
+
+---
+
+## `gui_MTRG.py` — Master Trigger Board Window
+
+_Source: `ANLDAQ/gui/gui_MTRG.py` (1386 lines). Code-read 2026-04-27._
+
+**Purpose:** PyQt6 window for monitoring and controlling a single MTRG (Master Trigger) board. Opened per-board from `commander.py`. Uses a 500 ms QTimer for PV refresh. Inherits base tab infrastructure from the `templateTab` base class defined at the top of this same file.
+
+### `templateTab` (base class, L15)
+Shared base for all MTRG/RTR tab widgets:
+- Holds `board`, `pvWidgetList`, and a 500 ms `QTimer` (not auto-started — each tab is started/stopped by the parent window's `showEvent`/`closeEvent`). ✅ verified 2026-04-27 — `gui_MTRG.py:L15-33` (no `start()` in `__init__`; `start(500)` called in `showEvent` L1364-1366)
+- `FindPV(name)` → delegates to `board.FindPV(name)`. ✅ verified 2026-04-27 — `gui_MTRG.py:L26-27`
+- `UpdatePVs(forced=False)` — iterates `pvWidgetList`; skips if tab not visible. ✅ verified 2026-04-27 — `gui_MTRG.py:L29-33`
+
+### `MTRGWindow` (L1160)
+Top-level `QMainWindow`. Header (always visible) shows:
+- **Board Info / Status** group: `RRegisterDisplay` for `reg_MISC_STAT` (bit-field decoder, flag=`False`); code revision/date/timestamps A/B/C (hex); `ClkSrc` toggle; `IMP_SYNC` toggle; `CS_Ena` readout toggle; `FifoNum` combo. ✅ verified 2026-04-27 — `gui_MTRG.py:L1224`
+- **Trigger Rate Counters** group: 8× raw rate (HIGH+LOW pairs, `reg_RAW_TRIG_RATE_COUNTER_N_HIGH/LOW`), 8× accepted rate (`reg_TRIG_RATE_COUNTER_N_HIGH/LOW`), `Trigger_rate_counter_mode` toggle, `CLEAR_RATE_COUNTERS` set-button; diagnostic counters (8 `reg_Diagnostic*` PVs: Man/Aux, SumX, SumY, SumXY, CPLD, LinkL Locks, NIM1, NIM2), `CLEAR_DIAG_COUNTERS` set-button.
+
+**5-tab QTabWidget** (tab switch forces `UpdatePVs(True)`):
+
+| Tab | Class | Contents |
+|-----|-------|----------|
+| Trigger/Veto Control | `triggerControlTab` (L36) | 8 trigger algorithms (EN_MAN_AUX/EN_SUM_X/Y/XY/EN_ALGO5/EN_LINK_L/R/EN_MYRIAD_LINK_U) each with NIM/throttle/RAM veto enables per-algorithm, prescale enable+factor; global veto controls (ENBL_NIM_VETO/ENBL_THROTTLE_VETO/EN_RAM_VETO); software veto; Mon 7 veto; EN_NIM_AUX/EN_TRIG_RAM_AUX toggles; X/Y-threshold fields; ALGO_5_SELECT and LINK_U_IS_TRIGGER_TYPE, MYR_TRIGGER_TYPE_SELECT controls |
+| Wheel RAM | `wheelRAMTab` (L278) | AUX I/O direction (A/B nibble-pair direction bits, SSI serial vs. parallel mode, SSI gear-ratio and offset); target-wheel encoder controls; opens embedded `RAMWindow` widget showing Trigger RAM lookup table |
+| LINK Control | `linkControlTab` (L484) | All SERDES links A–H + L/R/U: LOCK/DEN/REN/SYNC/RPwr/TPwr/SLiL/SLoL/ILM/XLM/YLM per-link map (RMapTwoStateButton, inverted color for ILM/LOCK/XLM/YLM); LRU sub-group (Drv/Rec/Sync enable per L/R/U link, LinkL_DCbal); loopback registers (reg_SERDES_LOCAL_LE/LINE_LE); LVDS pre-emphasis groups ABCD/EFG/HLRU (PrE_0/1/2 toggle + PEABCD/PEEFG/PEHLRU combo); LOCK_RETRY/LOCK_ACK/RESET_LINK_INIT/STRINGENT_LOCK/SM_LOST_LOCK_RESET controls |
+| Trigger/CPLD map | `CPLDControlTab` (L756) | Remote Master Logic L/R/U: remote TS offset, remote dig offset, local coincidence mask (binary display), local trig delay; CPLD trigger type map |
+| Other Control | `otherControlTab` (L974) | NIM 1/2 output source (combo + sub-select, enable delay + delay count); NIM throttle select; discriminator bit delay enable; overlap delay and assertion delay (20 ns units); ENABLE_VETO toggle; throttle filter time + time range combo; minimum throttle width to MTRG trigger |
+
+**Timer lifecycle:** 500 ms timer started in `showEvent` for MTRGWindow and all 5 tabs; stopped in `closeEvent` for all. ✅ verified 2026-04-27 — `gui_MTRG.py:L1362-1372`
+
+---
+
+## `gui_RTR.py` — Router Trigger Board Window
+
+_Source: `ANLDAQ/gui/gui_RTR.py` (542 lines). Code-read 2026-04-27._
+
+**Purpose:** PyQt6 window for monitoring and controlling a single RTRG (Router Trigger) board. Reuses the `templateTab` base class imported from `gui_MTRG`. Opened per-board from `commander.py`. 500 ms QTimer refresh.
+
+### `RTRWindow` (L265)
+Top-level `QMainWindow`. Header (always visible):
+- **Board Info / Status** group: `RRegisterDisplay` for `reg_MISC_STAT_REG` (bit-field decoder, flag=`True` = RTRG variant); code revision/date/timestamps A/B/C (hex); `ClkSrc` toggle. ✅ verified 2026-04-27 — `gui_RTR.py:L310`
+- **LED Controls** sub-group: `LEDControl` combo; LED4–LED12 individual toggles (9 LEDs).
+- **Diagnostic Counters** group: 8 `reg_Diagnostic*` PVs (Type0–4 triggers, Router Lock Count, Link L S/D Lock, Throttle Count); `DIAG_THROTTLE_TYPE` combo; `CLEAR_DIAG_COUNTERS` set-button.
+- **Other Controls** group: NIM 1/2 source combos; NIM throttle select (`NIM_THROTTLE_SELECT`); discriminator delay enable (`ENBL_DISCBIT_DELAY`); overlap delay (20 ns units, `OVERLAP_DELAY`); assertion delay (`ASSERTION_DELAY`); enable veto toggle; throttle filter time; throttle time range combo; minimum throttle width to MTRG trig (`THROTTLE_WIDTH`).
+
+**2-tab QTabWidget:**
+
+| Tab | Class | Contents |
+|-----|-------|----------|
+| LINK Control | `rtrlinkControlTab` (L13) | SerDes links: LOCK/DEN/REN/SYNC/RPwr/TPwr/SLiL/SLoL/ILM/LINK/GATED_THROTTLE/RAW_THROTTLE per-link map (inverted color for ILM/LOCK/XLM/YLM); LRU sub-group (LOCK_RETRY, LOCK_ACK, RESET_LINK_INIT, STRINGENT_LOCK, SM_LOST_LOCK_RESET, LinkL_DCbal); loopback registers (reg_SERDES_LOCAL_LE/LINE_LE); LVDS pre-emphasis ABCD/EFG/HLRU (PrE_0/1/2 + PEABCD/PEEFG/PEHLRU) |
+| X/Y Map | `rtrXYMapTab` (L221) | XMAP_* and YMAP_* per-link bit maps (RMapTwoStateButton); DISCRIMINATOR_DELAY per-link map (RMapLineEdit); X_SELECT and Y_SELECT combos for global X/Y source |
+
+**Timer lifecycle:** 500 ms timer for RTRWindow + both tabs, started/stopped in showEvent/closeEvent. ✅ verified 2026-04-27 — `gui_RTR.py:L513-523`
+
+---
+
+## `aux.py` — Utility Helpers
+
+_Source: `ANLDAQ/gui/aux.py` (7 lines). Code-read 2026-04-27._
+
+Two utility functions shared by `gui_RTR.py` and `gui_MTRG.py`:
+- **`natural_key(s)`** — natural sort key (splits string on digit runs; sorts e.g. LINK2 before LINK10). ✅ verified 2026-04-27 — `aux.py:L4`
+- **`make_pattern_list(prefix_list)`** — given a list of PV name prefixes, returns compiled `re.Pattern` objects matching `^<prefix>_[A-Za-z]$` (single letter suffix). Used to sort per-link PVs (e.g. LOCK_A/LOCK_B…) into ordered lists for `RMapTwoStateButton` layout. ✅ verified 2026-04-27 — `aux.py:L7` (exact regex: `rf'^{prefix}_[A-Za-z]$'`)
+
+---
+
+## `gui_SYS.py` — System Status Tab Library
+
+_Source: `ANLDAQ/gui/gui_SYS.py` (589 lines). Code-read 2026-04-27._
+
+Provides five `QWidget` tab classes instantiated by `commander.py` into the commander window's bottom `QTabWidget`. There is **no standalone window class** — all tabs inherit `sysTemplateTab` and are embedded directly in commander.
+
+### `sysTemplateTab` — Base Class (L14–44)
+
+- Constructor accepts `MTRG : Board`, `RTR_list`, `DIG_list`, `DAQ_list` (any can be `None`).
+- `pvWidgetList` — flat list of all PV-bound widgets; iterated by `UpdatePVs()`.
+- `UpdatePVs(forced=False)` — skips update when tab is not visible (`self.isVisible()`).
+- `FindPV(pv_name, board, isDAQ=False)` — searches `board.Board_PV[]`. DAQ boards: strips leading segment before `_`; others: matches last `:\u2026` suffix.
+
+### `sysTimestampReadOutTab` — Tab: "Timestamp" (L47–173)
+
+Commander's first tab. Two group boxes side by side:
+
+**Timestamp group:** 48-bit timestamps (3 × hex `RLineEdit`) + clock source (`RTwoStateButton`) for MTRG, every RTR, every DIG.
+- MTRG PVs: `reg_TIMESTAMP_A/B/C`, `ClkSrc`
+- RTR PVs: `reg_TIMESTAMP_A/B/C`, `ClkSrc`
+- DIG PVs: `live_timestamp_msb`, `live_timestamp_lsb`, `clk_select`
+- Top-right: `IMP_SYNC` toggle (`RTwoStateButton`).
+
+**Readout group:** `CS_Ena` toggle for MTRG and each DIG. MTRG FIFO mode via `FifoNum` (`RComboBox`). Timer: 500 ms.
+
+### `sysLinktab` — Tab: "Link Status" (L175–311)
+
+Four group boxes:
+
+1. **Link Status** — `RRegisterDisplay` for `reg_MISC_STAT` (MTRG, `isRTR=False`) and `reg_MISC_STAT_REG` (each RTR, `isRTR=True`).
+2. **Link Lock Status** — `RMapTwoStateButton` grid (1 row × 11 cols, inverted colors). PVs: `LOCK_A/B/C/D/E/F/G/H/L/R/U` for MTRG and each RTR.
+3. **Input Link Mask** — Same layout with `ILM_A/B/C/D/E/F/G/H/L/R/U`. Inverted colors.
+4. **Link L Control** — Per-board `RTwoStateButton` widgets.
+   - MTRG: `LOCK_RETRY`, `LOCK_ACK`, `RESET_LINK_INIT`, `LINK_L_STRINGENT`, `LINK_R_STRINGENT`, `LINK_U_STRINGENT` (no Reset Lock Lost PV).
+   - RTR: `LOCK_RETRY`, `LOCK_ACK`, `RESET_LINK_INIT`, `STRINGENT_LOCK`, `SM_LOST_LOCK_RESET`.
+
+Timer: 500 ms.
+
+### `sysTCPTab` — Tab: "TCP Transfer" (L315–352)
+
+One group box: per-DAQ-IOC row showing `CV_BuffersAvail`, `CV_NumSendBuffers`, `CV_SendRate` (found via `FindPV(..., isDAQ=True)`). Timer: 500 ms.
+
+### `sysCodeRevisionTab` — Tab: "Code Revision" (L355–418)
+
+Scrollable grid: code revision + date in hex for all boards.
+- MTRG: `reg_CODE_REVISION`, `reg_CODE_DATE`
+- RTR: `Code_Revision`, `CODE_DATE`
+- DIG: `regin_code_revision`, `code_date`
+
+Timer: 500 ms.
+
+### `globalSettingTab` — Tab: "Global Settings" (L421–589)
+
+**DGS-only** — body is empty unless `$SYSTEM=DGS`.
+
+**Channel Parameters group** — 20-row × 4-col write-only grid (columns: Ge Center/BGO/Ge Side/Aux). Submitting calls `SetDetTypePV(pv_name, det_type, value)`:
+- `GeC`/`BGO` → all `MDIG*` boards, channels 5–9 / 0–4
+- `GeS`/`Aux` → all `SDIG*` boards, channels 5–9 / 0–4
+
+The 20 per-channel PVs: `channel_enable`, `trigger_polarity`, `k0_window`, `k_window`, `d_window`, `m_window`, `d3_window`, `led_threshold`, `raw_data_length`, `raw_data_delay`, `p1_window`, `p2_window`, `preamp_reset_delay`, `CFD_fraction`, `disc_width`, `coarse_disc_thresh`, `pileup_mode`, `preamp_reset_delay_en`, `P2_mode`, `downsample_factor`
+
+**Digitizer Settings group** — 15-row write-only grid applied to all DIG boards via `SetAllBoardsPV()`. PVs: `cfd_mode`, `trigger_mux_select`, `win_comp_min`, `win_comp_max`, `peak_sensitivity`, `holdoff_time`, `stop_ho_at_peak` (yellow), `counter_mode`, `diag_mux_control`, `DIAG_WAVE_SEL`, `rj45_throttle_mode`, `FIFO_Prog_Thresh`, `lfsr_rate_sel`, `lfsr_seed`, `load_delays` (green).
+
+Warning label on both groups: "Write-only: values here are for setting all channels of a detector type at once. They do not reflect the actual current values of individual channels."
+
+### Commander Integration (commander.py L305–317)
+
+Tabs instantiated once at startup, added in order: Timestamp → Link Status → TCP Transfer → Code Revision → Global Settings. `tabWidget.currentChanged` forces `UpdatePVs(True)` on tab switch. Timers stopped in `closeEvent`.
+
+---
+
+## `Guceiver/` — GUI Live Receiver & Online Monitor
+
+_Source: `ANLDAQ/gui/Guceiver/` (7 files, ~2,236 lines). Code-read 2026-04-27._
+
+**Purpose:** PyQt6 + Matplotlib GUI that connects directly to one IOC's TCP server (port 9001) and displays live waveforms, energy spectra, raw event data, and TAC-II timing. **Online monitor / debugging tool** — not the production file-writing receiver (`tcpReceiverMT`).
+
+### `Guceiver.py` — Main Window (331 lines)
+
+**Board list:** Reads `user_package_data` PV from each DIG board via `epics.caget` to build `board_id_list = [(display_text, board_id, bd_name), ...]`.
+
+**IOC selection:** `QComboBox` populated from `$IOC_IP` env var (space-separated IPs). Each entry: `"IOC-N  ip:9001"` with IP as `currentData()`.
+
+**Status bar** (500 ms `QTimer`): Run Time, Total Bytes Received, Data Rate [Byte/s], Total events.
+
+**Four tabs** (one plot timer active at a time — switched by `on_tab_changed`):
+1. **Waveform** — `WaveformTab`: live ADC trace; `fillWaveformArray=True`
+2. **Spectrum** — `SpectrumTab`: energy histogram; `fillEnergyArray=True`
+3. **Data** — `dataTab`: raw event field table; `fillDataArray=True`
+4. **TAC-II** — `tacTab`: TAC timing display; `fillTACArray=True`
+
+**Start/Stop:**
+- Start: `caput Online_CS_SaveData Save` + `caput Online_CS_StartStop Start` → connect TCP → start active tab's plot timer
+- Stop: `caput Online_CS_StartStop Stop` + `caput Online_CS_SaveData No Save` → stop all timers → close socket
+- Parent commander's `btn_startRun` disabled during monitoring; re-enabled on stop.
+- End-of-run: channel_id `0xD` in non-7/8 header → `daq_stopped` signal → `stop_receiver()`
+
+**Thread model:** `Receiver` lives in `QThread` (`data_thread`). Communication via flags + `QMutex` (`data_mutex`) only.
+
+### `class_Receiver.py` — TCP Receiver (265 lines)
+
+**Wire protocol** (same as `psNet.h`):
+- Sends `struct.pack(">I", 1)` per poll
+- Receives 16-byte reply: `(reply_type, record_size, status, num_record)` big-endian
+- Receives `record_size × num_record` bytes; converts to `uint32` list
+
+**Decode loop:**
+- `0xAAAAAAAA` → DIG (`isDIG=True`); `0x0000AAAA` → TAC-II (`isDIG=False`)
+- DIG: `payloadMaxIndex` from word[1] bits 26:16; `header_type` from word[3] bits 19:16. Types 7/8 only. On completion: `dig.decode_data(payload, decodeWaveForm=True)`; append to array if dig_index + channel_index match.
+- TAC-II: fixed 16-word; `tac.decode(payload)`; append to `TACArray`
+- Non-7/8 header: `channel_id==0xD` → stop; else drop.
+- Ring-buffers: `waveformArray`/`dataArray`/`TACArray` max 100; `energyArray` unbounded (spectrum).
+
+**Energy:** `(POST_RISE_ENERGY - PRE_RISE_ENERGY) / M_windows`
+
+**Socket:** SOCK_STREAM TCP, 2 s connect timeout, 5 s recv timeout. Retry loop with `QApplication.processEvents()`.
+
+### `class_DIG.py` — Python DIG Decoder
+
+Python reimplementation of `Aux/class_DIG.h`. Fields: `USER_DEF` (board index), `CH_ID`, `PRE_RISE_ENERGY`, `POST_RISE_ENERGY`, `waveform[]` (14-bit ADC samples).
+
+### `class_TAC.py` — Python TAC-II Decoder (110 lines)
+
+Python reimplementation of `Aux/class_TDC.h`. Decodes 16-word TAC-II packets.
+
+### Display Tab Classes
+
+`class_waveTab.py` (308L), `class_spectrumTab.py`, `class_dataTab.py`, `class_tacTab.py` (233L) — each embeds Matplotlib `FigureCanvas`. Common pattern:
+- `plot_timer` (500 ms) → `update_plot()`
+- `combo_dig_index` / `spinBox_channel_index` — board/channel filter
+- `pause_update_button` — freeze display without stopping acquisition
+- Reads from receiver arrays under `receiver.data_mutex`
+
+`SpectrumTab` additionally has `spinbox_M_windows` (M-window divisor for energy).
+
+### Notes
+
+- Launched from commander as a child window; `parent()` back-reference used for button coordination.
+- **Does not write data to disk** — online monitoring only.
+- Port 9001 hardcoded.
+
+_Source: `ANLDAQ/gui/Guceiver/` (code-read 2026-04-27)_
+
+---
+
 ## Cross-References
 
 | File | Relationship |
@@ -291,7 +755,8 @@ Key facts:
 | `ANLDAQ_GUI_windows.md` | Per-window GUI documentation (uses classes defined here) |
 | `ANLDAQ_gui_sys.md` | gui_SYS.py window detail |
 | `ANLDAQ_commander.md` | Commander run control GUI (top-level window) |
+| `link_sys_analysis.md` | link_sys.py LinkSys internals (called by gui_LinkSys.py) |
 
 ---
 
-*Created: 2026-04-25 | Last reviewed: 2026-04-25*
+*Created: 2026-04-25 | Last reviewed: 2026-04-27 (gui_SYS.py + Guceiver/ added)*

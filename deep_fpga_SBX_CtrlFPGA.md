@@ -31,6 +31,7 @@ Stability: C3 - Structural / stable
 18. [Firmware Version Registers](#firmware-version-registers)
 19. [Chipscope / ILA Debug](#chipscope--ila-debug)
 20. [Address Decode (LOOK_UP_TABLE1)](#address-decode-look_up_table1)
+21. [EPICS-Side C Support Files (CollectorBox_CtrlFPGA/)](#epics-side-c-support-files-collectorbox-ctrlFPGA)
 
 ---
 
@@ -378,10 +379,75 @@ Maps 7-bit Pi address → 16-bit one-hot `MACH_ENABLE[15:0]`. Each bit enables o
 
 ---
 
+## EPICS-Side C Support Files (CollectorBox_CtrlFPGA/)
+
+**Source:** `DGS_tools_pack/FPGA/collectorBox/CollectorBox_CtrlFPGA/`  
+These C files define address maps and lookup tables used by the SBX IOC to address CtrlFPGA DPRAM locations. They are **not** firmware — they are EPICS device support helpers that tell the IOC which DPRAM address corresponds to each monitored signal.
+
+### CtrlFPGAinitializer.h / .c — Full Register Map Struct
+
+Defines `CONTROL_FPGA_REG_MAP` (typedef struct of `unsigned short int` fields) and instantiates a single const `CtrlRegisters`. Each field holds the DPRAM address for one monitored quantity. Address layout:
+
+| Address Range | Block | Contents |
+|---------------|-------|----------|
+| 0–7 | Control registers | `ctl_bank_readback`(0), `ctl_pulsed_control`(0), `FPGA_CTL_REG`(1), `ctl_ila_control`(2), `ctl_mask`(3), `ctl_alarm_control`(4), `ctl_mask_misc_control`(5), `scanner_INITIAL_ROM_ADDRESS`(6), `ADC_transactor_FIFO`(7) |
+| 123–127 | Diagnostic / version | `ctl_trig_clk_counter`(123), `pi_gpio_readback_1`(124), `pi_gpio_readback_2`(125), `ctl_code_date`(126), `ctl_code_revision`/`ctl_dpram_bank_sel`(127) |
+| 129–149 | Stripe 1 | 5× DVI GndFault_I (129–133), 5× DVI 48V_I (134–138), 12V/2.5V/3.3V (141–143), ADC_OFFSET/VCC/TEMP/GAIN/REF (145–149) |
+| 150–170 | Stripe 3 | Same layout as Stripe 1, offset +21 |
+| 171–191 | Stripe 5 | Same layout as Stripe 1, offset +42 |
+| 192–212 | Stripe 2 | Same layout (even stripe, base 192) |
+| 213–233 | Stripe 4 | Same layout (even stripe, base 213); **note:** 48V_I addresses are in reverse DVI order (DVI5→DVI1 at 218–222) |
+| 234–254 | Stripe 6 + BGO FPGA | DVI GndFault_I (234–238), 48V_I in reverse (239–243), BGO_FPGA_3.3V(244)/2.5V(245)/1.2V(249), S6 rails (246–248), ADC_OFFSET/VCC/TEMP/GAIN/REF (250–254) |
+
+**Quirk — Stripe 4 & 6 48V_I reversal:** Stripes 1/3/5 list DVI1→DVI5 in ascending address order; Stripes 4 & 6 list DVI5→DVI1 in ascending address order. This means the IOC-side address index is flipped relative to the DVI connector number for even stripes 4 and 6.
+
+### CtrlFPGAbitmaps.c — Control Register Bit Definitions
+
+Defines `Extract_*` macros for extracting individual bitfields from 16-bit CtrlFPGA registers:
+
+| Register | Field | Bits | Mask |
+|----------|-------|------|------|
+| `ctl_pulsed_control` | `ctl_reset_startup_rom` | [1] | 0x0002 |
+| `ctl_pulsed_control` | `ctl_master_reset` | [2] | 0x0004 |
+| `ctl_pulsed_control` | `ctl_serial_reset` | [3] | 0x0008 |
+| `ctl_pulsed_control` | `ctl_reset_cmd_fifo` | [6] | 0x0040 |
+| `ctl_pulsed_control` | `ctl_transactor_go` | [7] | 0x0080 |
+| `FPGA_CTL_REG` | `MON_ADC_RESET` | [0] | 0x0001 |
+| `FPGA_CTL_REG` | `CTL_FPGA_LED` | [1] | 0x0002 |
+| `FPGA_CTL_REG` | `NIM_OUT1` | [2] | 0x0004 |
+| `FPGA_CTL_REG` | `NIM_OUT2` | [3] | 0x0008 |
+| `FPGA_CTL_REG` | `ADC_scanner_reset` | [4] | 0x0010 |
+| `FPGA_CTL_REG` | `ADC_transactor_fifo_rst` | [6] | 0x0040 |
+| `FPGA_CTL_REG` | `ADC_transactor_reset` | [7] | 0x0080 |
+| `ctl_ila_control` | `ctl_ila_subsel` | [1:0] | 0x0003 |
+| `ctl_ila_control` | `ctl_ila_sel_code` | [7:4] | 0x00F0 |
+| `ctl_ila_control` | `ctl_ila_clock_sel` | [13] | 0x2000 |
+| `ctl_dpram_bank_sel` | `ctl_dpram_bank` | [2:0] | 0x0007 |
+
+### Per-Signal Address Lookup Arrays
+
+Several standalone `.c` files define address arrays for specific signal types. These are used as lookup tables by the EPICS device support to iterate over all stripes:
+
+| File | Array | Size | Description |
+|------|-------|------|-------------|
+| `GF_I.c` | `FPGA_GNDFAULT_I_ADDR[]` | 30 | DVI ground-fault current monitor addresses for all 6 stripes × 5 DVI connectors. Order: S1(129–133), S3(150–154), S5(171–175), S2(192–196), S4(213–217), S6(234–238). ✅ verified 2026-04-26 — GF_I.c:L1-33 (all 30 addresses confirmed). ⚠️ Note: declared as `[6]` in source — typo for `[30]`; the array is not used by index in EPICS (asynDigParams.c uses individual named params), so the declaration bug is benign. |
+| `IMON.c` | `FPGA_IMON_ADDR[]` | 31 | 48V cable current monitor addresses indexed 1–30. Odd stripes: DVI1→DVI5 ascending; Even stripes (S2/S4/S6): DVI order is reversed in DPRAM addresses — confirmed by array assignment (IMON[10]=197=S2_DVI1, IMON[6]=201=S2_DVI5). ✅ verified 2026-04-26 — IMON.c:L1-31 (all 30 assignments confirmed; index-reversal for even stripes confirmed). |
+| `VMON.c` | `FPGA_VOLTAGE_ADDR[7][3]` | 21 entries | Voltage monitor addresses: column 0 = stripe number (pseudo, incl. "7a/7b/7c" for BGO FPGA rails), column 1 = DPRAM address. Rails per stripe: 12V, 2.5V, 3.3V. BGO FPGA extras: 3.3V(244), 2.5V(245), 1.2V(249). |
+| `GAIN.c` | `ADC_GAIN_ADDR[6]` | 6 | ADC gain calibration register per stripe: S1(148), S3(169), S5(190), S2(211), S4(232), S6(253). ✅ verified 2026-04-26 — GAIN.c:L1-9 (all 6 values confirmed). |
+| `OFFSET.c` | `ADC_OFFSET_ADDR[6]` | 6 | ADC offset calibration register per stripe: S1(145), S3(166), S5(187), S2(208), S4(229), S6(250). ✅ verified 2026-04-26 — OFFSET.c:L1-9 (all 6 values confirmed). |
+| `REF.c` | `ADC_REF_ADDR[6]` | 6 | ADC reference register per stripe: S1(149), S3(170), S5(191), S2(212), S4(233), S6(254). ✅ verified 2026-04-26 — REF.c:L1-9 (all 6 values confirmed). |
+| `TEMP.c` | `ADC_TEMP_ADDR[6]` | 6 | ADC temperature register per stripe: S1(147), S3(168), S5(189), S2(210), S4(231), S6(252). ✅ verified 2026-04-26 — TEMP.c:L1-9 (all 6 values confirmed). |
+
+**ADC stripe ordering:** All 6-element arrays follow stripe order S1, S3, S5, S2, S4, S6 (odd stripes first, then even). This matches the physical DPRAM layout where odd stripes occupy addresses 128–191 and even stripes 192–254.
+
+---
+
 ## See Also
 
 - [sbx.md](sbx.md) — SBX hardware overview: slope box role, HV generation, BGO pattern/sum, GS_ID dongle, I2C opcode format, SVN location
 - [slope_box_interface.md](slope_box_interface.md) — SBX hardware overview, connector pinout, analog chain
+- [sbxPi_ioc.md](sbxPi_ioc.md) — SBX Pi standalone IOC (PickoffApp_RevC): the EPICS soft IOC that communicates with this FPGA via SPI1; CAMAC_IO device support, global mailboxes, HV ramp logic
+- [pickoff_card_fpga.md](pickoff_card_fpga.md) — Pickoff Card FPGA (SBX Extension RevC): companion FPGA on the pickoff card, accessed through this CtrlFPGA
 - [fpga.md](fpga.md) — FPGA firmware index across all DGS boards
 - [hardware_architecture.md](hardware_architecture.md) — system-level hardware map
 - [deep_fpga_DIG.md](deep_fpga_DIG.md) — Digitizer FPGA (comparison: different role, Spartan-3)

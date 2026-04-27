@@ -3,6 +3,20 @@ _Source: ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/trunk/Source/eight_mt_channel.vhd_
 _Summarized: 2026-04-15 | Last verified: 2026-04-22_
 Stability: C3 - Structural / stable
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Ports](#ports)
+- [Key Logic / State Machine](#key-logic--state-machine)
+  - [CHANNEL_BLOCK (for i in 1 to 8)](#channel_block-for-i-in-1-to-8)
+  - [THROTTLE_PROC](#throttle_proc)
+  - [CALC_TOTALS — calc_total_sum instance](#calc_totals--calc_total_sum-instance)
+  - [CHANNEL_STATUS assembly](#channel_status-assembly)
+  - [Link bus aggregation (async)](#link-bus-aggregation-async)
+- [Key Constants / Parameters](#key-constants--parameters)
+- [Connections to Other Modules](#connections-to-other-modules)
+- [See Also](#see-also)
+
 ## Purpose
 Aggregates eight `mt_input_channel` instances (one per Router, links A–H) and one `calc_total_sum` instance into a single block, keeping top.vhd clean. Produces the detector-wide X-plane and Y-plane totals (`GLOBAL_X_TOTAL`, `GLOBAL_Y_TOTAL`) and the global throttle request. This is the direct feeder into the trigger algorithm layer.
 
@@ -61,3 +75,10 @@ The 8 individual xLINKx_RX/RCLK/LOCK ports are aggregated into JTA_8X18 and slv(
 - **Sends to trigger algorithms** (via top.vhd): GLOBAL_X_TOTAL, GLOBAL_Y_TOTAL → `sum_hits_x` and Y-plane equivalent; GLOBAL_THROTTLE_REQUEST
 - **Sends to top.vhd**: CHANNEL_STATUS, RAW_DATA_MONs (for monitor FIFOs), ROUTER_THROTTLE_REQUESTS
 - **Data flow**: SERDES → mt_input_channel → RTR_SUM_OF_X/Y → calc_total_sum → GLOBAL_X/Y_TOTAL → sum_hits_x
+
+## See Also
+
+- [MTRG_mt_input_channel.md](MTRG_mt_input_channel.md) — per-Router channel receiver (instantiated 8× by this module)
+- [MTRG_calc_total_sum.md](MTRG_calc_total_sum.md) — downstream adder tree for global X/Y totals
+- [MTRG_top.md](MTRG_top.md) — top-level instantiation context
+- [deep_fpga_MTRG_MAIN.md](../deep_fpga_MTRG_MAIN.md) — MTRG architecture overview; Router→MTRG data flow

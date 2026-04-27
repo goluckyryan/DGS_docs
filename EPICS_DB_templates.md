@@ -2,7 +2,7 @@
 
 **Source:** `ANLDAQ/ioc/db/` (all `.template` files) and `ANLDAQ/ioc/boot/vme*.cmd` (instantiation)
 **Date documented:** 2026-04-23  
-**Last reviewed:** 2026-04-26 (duplicate reference sections condensed; see ioc.md for user_package_data, boot sequence, CA ports, board type encoding)
+**Last reviewed:** 2026-04-27 (JustGlobals/dgsSoftIOC section split to EPICS_softIOC.md; duplicate reference sections condensed; see ioc.md for user_package_data, boot sequence, CA ports, board type encoding)
 Stability: C2 - Active / semi-stable
 
 ---
@@ -17,6 +17,7 @@ Stability: C2 - Active / semi-stable
 6. [MDigRegisters / SDigRegisters.template](#mdigregisters--sdigregisters-template)
 7. [MDigUser / SDigUser.template](#mdiguser--sdiguser-template)
 8. [MDigUserVME / SDigUserVME.template](#mdigu​servme--sdigusервme-template)
+9a. [MDigRegistersVME / SDigRegistersVME.template](#mdigregistersvme--sdigregistersvme-template)
 9. [RTrigRegisters.template](#rtrigregisters-template)
 10. [RTrigUser.template](#rtriguser-template)
 11. [MTrigRegisters.template](#mtrigregisters-template)
@@ -29,6 +30,7 @@ Stability: C2 - Active / semi-stable
 18. [Board Type Encoding](#board-type-encoding) → see ioc.md
 19. [Fifo Select Encoding](#fifo-select-encoding)
 20. [`gretDet.dbd` — EPICS Database Definition File](#gretdetdbd--epics-database-definition-file)
+21. [dgsSoftIOC / JustGlobals.db — System-Wide Fanout PVs](#dgssoftioc--justglobalsdb--system-wide-fanout-pvs) → see `EPICS_softIOC.md`
 
 ---
 
@@ -56,6 +58,8 @@ Total EPICS records: ~115,000 lines across all templates.
 | `SDigUser.template` | 11,931 | 1,368 | SDIG boards | Identical layout to MDigUser | ✅ verified 2026-04-23 — `diff MDigUser SDigUser` → 0 lines (byte-for-byte identical)
 | `MDigUserVME.template` | 127 | 10 | MDIG boards | Additional VME-specific PVs (board-level, not per-channel) | ✅ verified 2026-04-23 — wc-l=127, records=10
 | `SDigUserVME.template` | 127 | 10 | SDIG boards | Identical to MDigUserVME | ✅ verified 2026-04-23 — wc-l=127
+| `MDigRegistersVME.template` | 54 | 6 | MDIG boards | Raw VME FPGA register r/w PVs: `vme_gp_ctrl`, `vme_clk_ctrl`, `VME_MON_STATUS`, `SERIAL_NUMBER` | ✅ verified 2026-04-27 — wc-l=54, records=6
+| `SDigRegistersVME.template` | 54 | 6 | SDIG boards | Byte-for-byte identical to MDigRegistersVME | ✅ verified 2026-04-27 — diff=0
 | `RTrigRegisters.template` | 1,390 | — | RTRG boards | Router Trigger raw register readbacks | ✅ verified 2026-04-23 — wc -l=1390
 | `RTrigUser.template` | 8,452 | 897 | RTRG boards | User-facing Router Trigger config PVs | ✅ verified 2026-04-23 — wc-l=8452, records=897
 | `MTrigRegisters.template` | 4,953 | — | MTRG board | Master Trigger raw register readbacks | ✅ verified 2026-04-23 — wc-l=4953
@@ -205,12 +209,12 @@ The digitizer firmware uses multiple named coincidence windows per channel. Each
 
 | Window Name | Description |
 |-------------|-------------|
-| `reg_d_windowN` | D window — primary coincidence gate |
-| `reg_k_windowN` | K window — second coincidence gate |
-| `reg_m_windowN` | M window — multiplicity coincidence gate |
-| `reg_d3_windowN` | D3 window — third-level coincidence gate |
-| `reg_p1_windowN` | P1 window — pileup/prompt coincidence gate 1 |
-| `reg_p2_windowN` | P2 window — pileup/prompt coincidence gate 2 |
+| `reg_d_windowN` | D window — primary coincidence gate (EGU=µs, PREC=2) ✅ verified 2026-04-26 — `MDigUser.template:L876` DESC="Set the width of the d w" |
+| `reg_k_windowN` | K window — second coincidence gate (EGU=µs, PREC=2) ✅ verified 2026-04-26 — `MDigUser.template:L1030` DESC="Set the width of the k w" |
+| `reg_m_windowN` | M window — multiplicity coincidence gate (EGU=µs, PREC=2) ✅ verified 2026-04-26 — `MDigUser.template:L1296` DESC="Set the width of the m w" |
+| `reg_d3_windowN` | D3 window — third-level coincidence gate (EGU=µs, PREC=2) ✅ verified 2026-04-26 — `MDigUser.template:L1436` DESC="Set the width of the d3 " |
+| `reg_p1_windowN` | P1 window — pileup coincidence delay (PREC=3, µs units) ✅ verified 2026-04-26 — `MDigUser.template:L1856` DESC="Set the P1 window delay." |
+| `reg_p2_windowN` | P2 window — pileup coincidence delay (PREC=2, µs units; DESC truncated: "P2 window delay. (10 ns ...") ✅ verified 2026-04-26 — `MDigUser.template:L2010` |
 
 ### Board-Level Timing & Readout
 
@@ -324,10 +328,73 @@ SDigUser.template is **identical** to MDigUser.template.
 
 ## MDigUserVME / SDigUserVME.template
 
-Small supplemental template with VME-side PVs. 10 records per board.
+Small supplemental template with VME FPGA-level PVs. **10 records per board.** Macros: `$(CRATE)`, `$(BOARD)`.
+Both files are byte-for-byte identical (`diff` → 0 lines). ✅ verified 2026-04-27
 
-Record types: 6 bi + 2 longin + 1 mbbo + 1 mbbi.
-Covers board-level VME interface status flags not in the main User template.
+All records use `DTYP=asynUInt32Digital` and read from two underlying registers: `VME_MON_STATUS` and `vme_clk_ctrl` / `SERIAL_NUMBER`.
+
+### Power & Temperature Status (`VME_MON_STATUS`)
+
+| PV Suffix | Bit mask | Type | 0=fail / 1=OK | Description |
+|-----------|----------|------|---------------|-------------|
+| `power_ok_RBV` | 0x00000001 | bi | fail / OK | Overall power sensor |
+| `under_volt_stat_RBV` | 0x00000002 | bi | fail / OK | Under-voltage status |
+| `over_volt_stat_RBV` | 0x00000004 | bi | fail / OK | Over-voltage status |
+| `temp0_sensor_RBV` | 0x00000008 | bi | FAULT / OK | Temperature sensor 0 |
+| `temp1_sensor_RBV` | 0x00000010 | bi | FAULT / OK | Temperature sensor 1 |
+| `temp2_sensor_RBV` | 0x00000020 | bi | FAULT / OK | Temperature sensor 2 |
+
+All 6 are read-only `bi` records scanned at 1 second. ✅ verified 2026-04-27 — `MDigUserVME.template:L15-74` (all 6 bi records; masks 0x1/0x2/0x4/0x8/0x10/0x20 confirmed; ZNAM/ONAM strings confirmed)
+
+### Clock Selection (`vme_clk_ctrl`, bits [1:0])
+
+| PV Suffix | Type | Options | Description |
+|-----------|------|---------|-------------|
+| `clk_select` | mbbo | 0=S/D, 1=OSC, 2=S/D, 3=AUX | Clock source select (write) |
+| `clk_select_RBV` | mbbi | same | Clock source readback |
+
+`OSC` = internal oscillator, `S/D` = SERDES-derived, `AUX` = auxiliary input. The mask is `0x00000003` (2-bit field). ✅ verified 2026-04-27 — `MDigUserVME.template:L80-98` (mbbo OUT mask 0x00000003, ZRST=S/D, ONST=OSC, TWST=S/D, THST=AUX confirmed)
+
+### Identity (`SERIAL_NUMBER`)
+
+| PV Suffix | Mask | Type | Description |
+|-----------|------|------|-------------|
+| `serial_num_RBV` | 0xaaaa0C00 | longin | Board serial number |
+| `vme_code_revision_RBV` | 0xaaaa1010 | longin | VME FPGA firmware revision |
+
+Both are read-only, scanned 1 second. Note: `vme_code_revision_RBV` reads from the `SERIAL_NUMBER` register with a different mask — this appears to be the layout of the VME FPGA ID register. ✅ verified 2026-04-27 — `MDigUserVME.template:L111-126` (masks 0xaaaa0C00 and 0xaaaa1010 confirmed; both read SERIAL_NUMBER register)
+
+---
+
+## MDigRegistersVME / SDigRegistersVME.template
+
+Raw VME FPGA register read/write template. **6 records per board.** Macros: `$(CRATE)`, `$(BOARD)`.
+Both files are byte-for-byte identical (`diff` → 0 lines). ✅ verified 2026-04-27
+
+All records use `DTYP=asynUInt32Digital` with mask `0xaaaa2000` (VME FPGA address region).
+This template is a lower-level companion to `MDigUserVME.template` — it exposes the raw registers that the user template decodes into named bit-field PVs.
+
+### PV Table
+
+| PV Suffix | Type | Scan | Description |
+|-----------|------|------|-------------|
+| `vme_gp_ctrl_RBV` | longin | 1 second | VME FPGA general-purpose control register readback |
+| `vme_clk_ctrl_RBV` | longin | 1 second | VME FPGA clock control register readback |
+| `VME_MON_STATUS_RBV` | longin | 1 second | VME FPGA monitor status register readback |
+| `SERIAL_NUMBER_RBV` | longin | 1 second | VME FPGA serial number / ID register readback |
+| `vme_gp_ctrl` | longout | — | VME FPGA general-purpose control register write |
+| `vme_clk_ctrl` | longout | — | VME FPGA clock control register write |
+
+All 4 longin records scan at 1 second. The 2 longout records write on demand (no PINI, no SCAN). ✅ verified 2026-04-27 — `MDigRegistersVME.template:L4-54` (all 4 longin + 2 longout records confirmed; all use mask 0xaaaa2000; longins scan 1 second; longouts have no SCAN field)
+
+### Relationship to MDigUserVME
+
+`MDigUserVME.template` reads the same underlying registers via asynUInt32Digital with **narrower masks** to expose individual bit-fields. For example:
+- `VME_MON_STATUS` → decoded into 6 bi records (power_ok, under_volt, over_volt, temp0/1/2)
+- `vme_clk_ctrl` → decoded into `clk_select` mbbo/mbbi (bits [1:0])
+- `SERIAL_NUMBER` → decoded into `serial_num_RBV` and `vme_code_revision_RBV`
+
+The `MDigRegistersVME` template exposes the full raw 32-bit values for diagnostic use.
 
 ---
 
@@ -702,7 +769,22 @@ The `.dbd` file registers all record types, device support entries, drivers, and
 - `knowledgeBase/VME_registers.md` — VME register address map for DIG/MTRG/RTRG; matches the register indices referenced in `daqSegment2.template`, `MTrigUser.template`, etc.
 - `knowledgeBase/vxworks.md` — VxWorks IOC build pipeline; the `.dbd` files that register these template records with the EPICS database
 - `knowledgeBase/data_structures.md` — DIG event packet format; DIG firmware fields that the `MDigUser.template` PVs expose (e.g. `trigger_mux_select`, `code_revision`)
+- `knowledgeBase/EPICS_softIOC.md` — dgsSoftIOC / JustGlobals.db fanout PV architecture (split from this file 2026-04-27)
 
 ---
 
 *Source: `ANLDAQ/ioc/db/` template files + `ANLDAQ/ioc/boot/vme*.cmd` instantiation scripts. Created: 2026-04-23.*
+
+---
+
+## dgsSoftIOC / JustGlobals.db — System-Wide Fanout PVs
+
+> **Full reference moved to [`EPICS_softIOC.md`](EPICS_softIOC.md)** (split 2026-04-27).
+
+**Source:** `ANLDAQ/EPICS/softIOC/db/JustGlobals.db`, `dgsSoftIoc.cmd`  
+**Location:** DFMA host — Linux IOC, distinct from VxWorks VME IOCs  
+**Last edited:** 2022-07-11 (per file header, MBO)
+
+The `dgsSoftIOC` runs on the DFMA Linux machine. It loads `JustGlobals.db` (177 GLBL:DIG:F00:\<param\> fanout trees, each daisy-chaining to 12 VME crates via dfanout) and `dgsSupport.db` (run control). No hardware I/O — purely EPICS CA software PVs.
+
+See **[`EPICS_softIOC.md`](EPICS_softIOC.md)** for: boot script, GLBL PV family list, global and per-detector-type parameter tables, dfanout chain structure, PREC=3 facts, and key design notes.

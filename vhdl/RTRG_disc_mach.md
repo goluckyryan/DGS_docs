@@ -3,6 +3,18 @@ _Source: ~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/disc_mach.vhd_
 _Summarized: 2026-04-15_
 Stability: C3 - Structural / stable
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Ports](#ports)
+- [Key Logic / State Machine](#key-logic--state-machine)
+  - [FIND_EDGES process](#find_edges-process)
+  - [DISCRIMINATOR_MACHINE — 4 states](#discriminator_machine--4-states)
+  - [Timing summary](#timing-summary)
+- [Key Constants / Parameters](#key-constants--parameters)
+- [Connections to Other Modules](#connections-to-other-modules)
+- [See Also](#see-also)
+
 ## Purpose
 Classifies one Ge+BGO detector pair event as **CLEAN**, **DIRTY**, or **BGO-only** using leading-edge detection and a programmable overlap coincidence window. One instance per Ge/BGO pair; chan_in.vhd instantiates five of these per digitizer channel (plus one for Clover mode). Outputs are one-clock-tick wide pulses; chan_in.vhd stretches them with retriggerable one-shots.
 
@@ -72,3 +84,9 @@ Each clock, pipelines GE_DISC_FLAG and BGO_DISC_FLAG one tick. Detects rising ed
 - **Instantiated by**: chan_in.vhd (5× normal instances for Ge/BGO pairs 4:0 via `DISC_MACH_BLK: for i in 0 to 4 generate`, plus 1× `CLOVER_DISC_MACH`) ✅ verified 2026-04-16 — `chan_in.vhd:L288–368`
 - **Receives**: GE_DISC_FLAG and BGO_DISC_FLAG from DELAYED_DATA or RECOVERED_DATA (selected in chan_in.vhd), OVERLAP_DELAY from TSCATTER_DELAY_REG[6:0] ✅ verified 2026-04-16 — `chan_in.vhd:L294`
 - **Sends**: CLEAN_EVENT, DIRTY_EVENT, BGO_ONLY_EVENT → ONE_SHOTS process in chan_in.vhd (stretched into HAVE_CLEAN, HAVE_DIRTY, HAVE_MODULE using ASSERTION_DELAY = TSCATTER_DELAY_REG[14:8]) ✅ verified 2026-04-16 — `chan_in.vhd:L329,339,349`
+
+## See Also
+
+- [RTRG_chan_in.md](RTRG_chan_in.md) — parent module; instantiates disc_mach 5+1× and extends output with one-shot stretching
+- [RTRG_overlap_mach.md](RTRG_overlap_mach.md) — standalone overlap machine (same coincidence logic, but not used in RTRG — inlined here instead)
+- [deep_fpga_RTRG.md](../deep_fpga_RTRG.md) — RTRG architecture; disc_mach role in BGO/Ge coincidence classification

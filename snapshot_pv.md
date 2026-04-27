@@ -9,6 +9,31 @@ Stability: C2 - Active / semi-stable
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [File Layout](#file-layout)
+- [EPICS_env.sh — Environment Configuration](#epics_envsh--environment-configuration)
+- [Input: PV List Files (`*_db.txt`)](#input-pv-list-files-_dbtxt)
+  - [copy_pvs.sh — Source Hosts](#copy_pvssh--source-hosts)
+- [dumpPVs.py — Snapshot PVs](#dumppvspy--snapshot-pvs)
+  - [Output format (line protocol)](#output-format-line-protocol)
+  - [Usage](#usage)
+  - [Output files](#output-files)
+  - [Implementation details](#implementation-details)
+- [putPVs.py — Restore PVs](#putpvspy--restore-pvs)
+  - [Usage](#usage-1)
+  - [Implementation details](#implementation-details-1)
+- [watchDog.py — Change Monitor](#watchdogpy--change-monitor)
+  - [Usage](#usage-2)
+  - [Log format](#log-format)
+  - [PV exclusion filters (built-in)](#pv-exclusion-filters-built-in)
+  - [Implementation details](#implementation-details-2)
+- [pv_filter.py — PV Filter](#pv_filterpy--pv-filter)
+- [Integration with start_run.sh](#integration-with-start_runsh)
+
+---
+
 ## Overview
 
 At the start of each run, `start_run.sh` calls this tool to dump all PV values to text files. These snapshots allow:
@@ -195,9 +220,9 @@ python3 verifyPVs.py 20260405_161500_pv_vme01.txt
 ```
 
 ### Behavior
-- For each PV in the dump file, tries `caget PV_RBV` first; falls back to `caget PV` if no `_RBV` exists
+- For each PV in the dump file, tries `caget PV_RBV` first; falls back to `caget PV` if no `_RBV` exists ✅ verified 2026-04-27 — `verifyPVs.py:L45-51` (`live_val = caget(pv_name + '_RBV')` then fallback `caget(pv_name)`)
 - Compares snapshot value vs live value with 1e-6 float tolerance
-- Special case: `win_comp_max` / `win_comp_min` PVs — snapshot value × 100 before compare (unit scale difference)
+- Special case: `win_comp_max` / `win_comp_min` PVs — snapshot value × 100 before compare (unit scale difference) ✅ verified 2026-04-27 — `verifyPVs.py:L60-62` (`if 'win_comp_max' in pv_name or 'win_comp_min' in pv_name: dump_f *= 100`)
 - Applies `pv_filter.keep()` to skip noisy PVs (same filter as dumpPVs)
 
 ### Output categories (color-coded)

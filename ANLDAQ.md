@@ -16,6 +16,8 @@ Stability: C2 - Active / semi-stable
 - [GUI Windows — Detailed Reference](#gui-windows--detailed-reference)
 - [softIOC — Global Broadcast PV System](#softioc--global-broadcast-pv-system-justglobalsdb)
 - [softIOC — Support PVs](#softioc--support-pvs-dgssupportdb)
+- [softIOC — Boot Script (dgsSoftIoc.cmd)](#softioc--boot-script-dgssofioccmd)
+- [VxWorks IOC Boot Script Structure (vme01.cmd)](#vxworks-ioc-boot-script-structure-vme01cmd)
 - [Notes](#notes)
 - [See Also](#see-also)
 
@@ -60,6 +62,7 @@ Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS
 | `gui_LinkSys.py` | 295 | Link system window (`link_sys.py` launcher) | ✅ 2026-04-17 |
 | `gui_scalar.py` | 164 | Scalar/rate monitor window (threshold, disc count, ahit count per channel) | ✅ 2026-04-18 |
 | `gui_Det.py` | 324 | Detector view window | ✅ 2026-04-18 |
+| `gui_GS.py` | 209 | Per-detector GS window: Info/Status (IDs, HV, temps, voltages) + Control (scan/HV/BGO) | ✅ 2026-04-26 |
 | `class_Board.py` | 73 | Board abstraction (see below) | ✅ 2026-04-17 |
 | `class_PV.py` | 111 | EPICS PV abstraction (see below) | ✅ 2026-04-18 |
 | `class_PVWidgets.py` | 393 | PV-bound Qt widgets (see below) | ✅ 2026-04-17 |
@@ -288,7 +291,7 @@ Key facts:
   - **Comment handling:** blank comment becomes `"no comment"`; non-empty comment is passed through unchanged after `strip()` ✅ verified 2026-04-22 — `run_control_gui.py:L259-260`
   - **Run folder size path:** polled path is `<dataFolder>/<expName>_<NEXT_RUN-1 padded to 3 digits>/` (for the active run, not NEXT_RUN) ✅ verified 2026-04-22 — `run_control_gui.py:L241-244`
   - **Error handling:** any SSH/parse exception appends `ERROR: ...`, updates the status label, and returns UI state to idle ✅ verified 2026-04-22 — `run_control_gui.py:L321-324`
-- `basic_settings_DGS.sh` — sets all 44 DIG boards (VME01–12, 2–4 DIGs each, ch 5–9) to a known-good CFD baseline; see details below
+- `basic_settings_DGS.sh` — sets all 22 DIG boards (VME01–12; VME06 + VME10 have only MDIG1, all others have MDIG1+MDIG2; ch 5–9) to a known-good CFD baseline; see details below ✅ verified 2026-04-26 — `basic_settings_DGS.sh:L4-13` (10 crates × 2 DIGs + 2 crates × 1 DIG = 22 total; corrected from 44)
 - `basic_settings_TACII.sh` — minimal single-VME (VME10) TACII test bench setup; enables MTRG CS + SYSMON, enables MDIG1, sets `EN_MAN_AUX on`, clears veto
 - `gui/scripts/basic_settings_LED.py` — Python equivalent of basic_settings_DGS.sh for LED mode (currently hardcoded VME66 = test stand; threshold=300) ✅ verified 2026-04-17 — `basic_settings_LED.py:L12` (`THRESHOLD=300`), `L27` (`VME_RANGE = range(66, 67)  # VME66`)
 - Legacy receivers in `legacy/`: `dgsReceiver.cpp` (MBO v6.57) + Ryan's fork
@@ -406,7 +409,7 @@ Companion to `JustGlobals.db`. Contains **hand-crafted PVs** that are not auto-g
 | `RunNum` | `longout` | Current run ID number. Added by Ryan 2025-03-23. Default=0, PINI=YES. |
 | `Online_CS_StartStop` | `bo` | Main Run/Stop button (`Stop`=0, `Start`=1). Monitored by all three IOC state machines. |
 | `Online_CS_SaveData` | `bo` | Data save toggle (`No Save`=0, `Save`=1). The green button below Run/Stop. |
-| `Setup_Script_State` | `mbbo` | Setup script status indicator (0=UNKNOWN, 1=TRIG OK, 2=DIG OK, 3=OTHER, 4=TRIG ERROR, 5=DIG ERROR, 6=OTHER ERROR, 7=SCRIPT RUNNING). |
+| `Setup_Script_State` | `mbbo` | Setup script status indicator (0=UNKNOWN, 1=TRIG OK, 2=DIG OK, 3=OTHER, 4=TRIG ERROR, 5=DIG ERROR, 6=OTHER ERROR, 7=SCRIPT RUNNING). ✅ verified 2026-04-26 — `dgsSupport.db:L43-65` |
 | `ScriptStage` | `ao` | Stage counter displayed during long scripts (written by the script to show progress). |
 
 ### How `Online_CS_StartStop` Triggers All IOCs

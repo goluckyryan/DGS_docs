@@ -7,6 +7,17 @@ Sources:
 
 ---
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [trigger_comp_defs Package](#trigger_comp_defs-package)
+- [trigger_top_comp_defs Package](#trigger_top_comp_defs-package)
+- [tdc_chain_cont Key Ports](#tdc_chain_cont-key-ports-from-trigger_top_comp_defs-l722750)
+- [Notes](#notes)
+- [See Also](#see-also)
+
+---
+
 ## Purpose
 
 These are VHDL **package** files containing only component declarations — no logic. They allow other VHDL files to instantiate sub-modules without needing to know their full port lists inline. Both are referenced via `use WORK.trigger_comp_defs.all` and `use WORK.trigger_top_comp_defs.all`.

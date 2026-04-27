@@ -10,6 +10,26 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Algorithm Overview (Post-May-2015 Design)](#algorithm-overview-post-may-2015-design)
+  - [Path 1 — MγRIAD trigger path](#path-1--mriad-trigger-path)
+  - [Path 2 — Other trigger path](#path-2--other-trigger-path)
+  - [Overlap Logic](#overlap-logic-overlap_mach-instance)
+  - [Final trigger selection](#final-trigger-selection-myriad_trig_sel_proc)
+- [Timestamp Modes](#timestamp-modes)
+- [Trigger Type Codes](#trigger-type-codes)
+- [Pre-FIFO Architecture](#pre-fifo-architecture)
+- [Internal State Machine (MYRIAD_TRIG_WE_MACH)](#internal-state-machine-myriad_trig_we_mach)
+- [Key Control Ports](#key-control-ports)
+- [Trigger Monitor FIFO](#trigger-monitor-fifo)
+- [Integration in MTRG top.vhd](#integration-in-mtrg-topvhd)
+- [Other Algorithm Coincidence Matrix](#other-algorithm-coincidence-matrix)
+- [Cross-References](#cross-references)
+
+---
+
 ## Purpose
 
 Receives decoded MγRIAD trigger signals from `MYRIAD_RCV_MACH` and converts them into MTRG trigger FIFO entries, with:

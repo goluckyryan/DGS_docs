@@ -9,6 +9,19 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Ports](#ports)
+- [AUX_IO_CTL_REG Bit Map](#aux_io_ctl_reg-bit-map)
+- [TARGET_WHEEL_AUX_CTL_REG Bit Map](#target_wheel_aux_ctl_reg-bit-map)
+- [Processes](#processes)
+- [AUX_INPUT_STATE Register (read-back, 16-bit)](#aux_input_state-register-read-back-16-bit)
+- [Key Design Notes](#key-design-notes)
+- [See Also](#see-also)
+
+---
+
 ## Overview
 
 `aux_io.vhd` implements the MTRG auxiliary I/O port control logic. It multiplexes two 8-bit bidirectional I/O ports (AUX_PORT_A, AUX_PORT_B) and two NIM outputs between multiple signal sources, provides target wheel encoder address decoding and filtering/sliding, and includes an SSI (Synchronous Serial Interface) receiver state machine for reading absolute encoder values.

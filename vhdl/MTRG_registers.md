@@ -8,6 +8,23 @@ Last analyzed: 2026-04-24
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+  - [Chip-Select (CS) Address Map](#chip-select-cs-address-map)
+- [Read-Only Registers (CS=001, 0x0100–0x02FF)](#read-only-registers-cs001-0x0100-0x02ff)
+- [Read/Write Registers — Block 0x01E0–0x02CC (CS=001)](#readwrite-registers--block-0x01e0-0x02cc-cs001)
+- [Read/Write Registers — Main Block 0x0800–0x08EC (CS=001)](#readwrite-registers--main-block-0x0800-0x08ec-cs001)
+- [Special Addresses](#special-addresses)
+- [Embedded Lookup RAMs (DPRAM, CS=001)](#embedded-lookup-rams-dpram-cs001)
+- [Monitor FIFOs](#monitor-fifos)
+- [VME Bus State Machine](#vme-bus-state-machine)
+- [Rate Counters](#rate-counters)
+- [Notable Defaults](#notable-defaults)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 `registers.vhd` (internally titled `assy_registers.vhd`) implements **all VME-accessible control and status registers** for the MTRG (Master Trigger) FPGA. It is the single register file for the entire MTRG board, handling reads, writes, FIFOs, and lookup RAMs via a VME bus state machine.

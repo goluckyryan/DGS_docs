@@ -3,8 +3,34 @@
 Stability: C2 - Active / semi-stable
 
 **Source:** `DGS_tools_pack/sbxPi/PickoffApp_RevC/`  
-**Last updated:** 2026-04-24  
+**Last updated:** 2026-04-26  
 **See also:** [`sbx.md`](sbx.md) — SBX hardware + Collector Box Pi IOC overview
+
+---
+
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Hardware Interface](#hardware-interface)
+  - [SPI1 (Pi → Pickoff FPGA)](#spi1-pi--pickoff-fpga)
+- [EPICS Device Support Design](#epics-device-support-design)
+  - [Key Design Note: Why Not asyn?](#key-design-note-why-not-asyn)
+  - [Link Type: CAMAC_IO](#link-type-camac_io-camacio)
+  - [Device Support Identifiers](#device-support-identifiers-from-dbd)
+  - [PickoffLocalSerial AO — Write Modes](#pickofflocalserial-ao-devaoPickoff--write-modes)
+  - [PickoffCalc BI — Comparison Logic](#pickoffcalc-bi--comparison-logic)
+  - [PickoffStep AI — Step-wise Control (Full Detail)](#pickoffstep-ai--step-wise-control-full-detail)
+  - [PickoffSoftControl AO — Mode Reference](#pickoffsoftcontrol-ao--mode-reference)
+- [Global Mailboxes](#global-mailboxes)
+  - [PickoffCalc Conversion Types](#pickoffcalc-conversion-types-from-pickoffcalc_aic)
+- [I2C via Pickoff FPGA](#i2c-via-pickoff-fpga)
+- [Database Files](#database-files)
+- [Startup / IOC Configuration](#startup--ioc-configuration-stcmd)
+- [HV Ramp Logic](#hv-ramp-logic-hv_stepdb)
+- [Detector Specification](#detector-specification-detspecdb)
+- [Relationship to Collector Box Pi IOC](#relationship-to-collector-box-pi-ioc)
+- [PickoffSupportBackup.c — Historical / Educational Version](#pickoffsupportbackupc--historical--educational-version)
+- [Cross-References](#cross-references)
 
 ---
 
@@ -107,6 +133,122 @@ The `C` field of a `PickoffLocalSerial` ao record (i.e., `devAoPickoff`, `write_
 | 3 | **Indirect address:** `UsrAddr = GLBL_PickoffControlVals[Cidx] & 0x7F` (address from mailbox); `UsrData = PV_val << ShiftFactor`. ✅ verified 2026-04-25 — `PickoffSupport_AO.c:L216-222` |
 
 > Note: This is **distinct** from `PickoffSoftControl` AO (8 modes, `0x7000`, no hardware SPI). `devAoPickoff` always performs a real SPI transaction.
+
+---
+
+### `PickoffCalc` BI — Comparison Logic
+
+**Source:** `PickoffCalc_BI.c`  
+**Record type:** `bi`  
+**Device identifier:** `PickoffCalc`
+
+The `PickoffCalc` bi device support evaluates a boolean comparison against global mailbox values and:
+1. Writes the result (0 or 1) to `PtrToPVrecord->val` / `rval`
+2. Also **writes the result bit** into a specific bit position of `GLBL_PickoffControlVals[Cidx]` — this is the key difference from a pure read
+
+✅ verified 2026-04-26 — `PickoffCalc_BI.c:L365-366` (`PtrToPVrecord->val = Function1Result; PtrToPVrecord->rval = Function1Result;`); bit-packing at L353-363
+
+**`camacio` field mapping for `PickoffCalc` bi:**
+
+| Field | Bits | Use |
+|-------|------|-----|
+| `C[11:8]` | 4 bits | `Function1` — comparison mode (0–14, see table below) |
+| `C[15:12]` | 4 bits | `BitIndex` — bit position (0–15) in `GLBL_PickoffControlVals[Cidx]` to write result into |
+| `C[7:0]` | 8 bits | `Cidx` — index into `GLBL_PickoffControlVals[]` for the output bit-pack target |
+| `N` | 16 bits | `Nval` — mask or comparison value used by modes 7, 8, 9, 12, 13, 14 |
+| `A[7:0]` | 8 bits | `Aidx1` — first mailbox index (lower byte) |
+| `A[15:8]` | 8 bits | `Aidx2` — second mailbox index (upper byte) |
+| `A[15]` | 1 bit | `ShiftDir` (mode 12): 1=left shift, 0=right shift |
+| `A[14]` | 1 bit | `Enbl_GT` (mode 12): enable > comparison |
+| `A[13]` | 1 bit | `Enbl_EQ` (mode 12): enable == comparison |
+| `A[12]` | 1 bit | `Enbl_LT` (mode 12): enable < comparison |
+| `A[11:8]` | 4 bits | `ShiftAmount` (mode 12) |
+| `F` | 16 bits | `Fval` — threshold or second mask (modes 4–6, 9, 12, 13, 14) |
+
+✅ verified 2026-04-26 — `PickoffCalc_BI.c:L127-130` (`Function1=(c & 0x0F00)>>8; BitIndex=(c & 0xF000)>>12; Cidx=c & 0x00FF`); `L139-145` (`Aidx1=a & 0x00FF; Aidx2=(a & 0xFF00)>>8; ShiftDir=(a & 0x8000)>>15; Enbl_GT=(a & 0x4000)>>14; Enbl_EQ=(a & 0x2000)>>13; Enbl_LT=(a & 0x1000)>>12; ShiftAmount=(a & 0x0F00)>>8`)
+
+**Debug print gate:** `GLBL_PickoffControlVals[13]` — if nonzero, verbose printf output for all `PickoffCalc` bi evaluations. ✅ verified 2026-04-26 — `PickoffCalc_BI.c:L133` (`if (GLBL_PickoffControlVals[13]) printf(...)` pattern repeated throughout)
+
+**Function1 comparison modes:**
+
+| Mode | Condition (TRUE → result=1) |
+|------|-----------------------------|
+| 0 | Always FALSE |
+| 1 | `mailbox[Aidx1] == mailbox[Aidx2]` |
+| 2 | `mailbox[Aidx1] < mailbox[Aidx2]` |
+| 3 | `mailbox[Aidx1] > mailbox[Aidx2]` |
+| 4 | `mailbox[Aidx1] - mailbox[Aidx2] == F` |
+| 5 | `mailbox[Aidx1] - mailbox[Aidx2] < F` |
+| 6 | `mailbox[Aidx1] - mailbox[Aidx2] > F` |
+| 7 | `(mailbox[Aidx1] & N) != 0` |
+| 8 | `(mailbox[Aidx1] ^ N) != 0` |
+| 9 | `((mailbox[Aidx1] ^ N) & F) != 0` |
+| 10 | `(mailbox[Aidx1] \| mailbox[Aidx2]) != 0` |
+| 11 | `(mailbox[Aidx1] & mailbox[Aidx2]) != 0` |
+| 12 | `((mailbox[Aidx1] & N) shift ShiftAmount)` compared to F with GT/EQ/LT enable bits (any enabled TRUE → result=1) |
+| 13 | `(mailbox[Aidx1] & N) != 0` **AND** `(mailbox[Aidx2] & F) != 0` |
+| 14 | `(mailbox[Aidx1] & N) != 0` **OR** `(mailbox[Aidx2] & F) != 0` |
+| default | Always TRUE |
+
+✅ verified 2026-04-26 — `PickoffCalc_BI.c:L150-348` (all 15 cases confirmed; modes 0–14 + default match table exactly)
+
+**Side effect (output bit packing):**  
+After computing `Function1Result`, the code:
+```c
+tempval = GLBL_PickoffControlVals[Cidx];       // read current packed word
+tempval &= ~(1 << BitIndex);                    // clear target bit
+tempval |= (Function1Result << BitIndex);       // set or leave cleared
+GLBL_PickoffControlVals[Cidx] = tempval;        // write back
+```
+This allows multiple `PickoffCalc` bi records to pack 16 independent boolean conditions into a single mailbox word, which can then be inspected by `PickoffStep` (via F mask) or `PickoffSoftControl` (via mode 6/7 readback).
+✅ verified 2026-04-26 — `PickoffCalc_BI.c:L353-363` (exact code match)
+
+---
+
+### `PickoffStep` AI — Step-wise Control (Full Detail)
+
+**Source:** `PickoffStep_AI.c`  
+**Record type:** `ai`  
+**Device identifier:** `PickoffStep`
+
+The `PickoffStep` device support performs **one incremental step** per scan cycle toward a demand value. It does not write to hardware directly — it updates a mailbox value that a downstream PV (e.g. `GS${DetNbr}_GE_HV_DEMAND_DAC`) reads and writes to the DAC.
+
+**`camacio` field mapping for `PickoffStep` ai:**
+
+| Field | Use |
+|-------|-----|
+| `C[15]` | Mode: 1=floating-point mode (uses `GLBL_PickoffFloatVals`), 0=integer mode (uses `GLBL_PickoffControlVals`) |
+| `C[7:0]` | `Cidx` — base index into mailbox array (see layout below) |
+| `A[7:0]` | `Aidx` — index of interlock mailbox in `GLBL_PickoffControlVals[Aidx]` |
+| `F` | `EnableMask` — bitmask ANDed with `GLBL_PickoffControlVals[Aidx]`; if result ≠ 0, stepping is blocked |
+
+✅ verified 2026-04-26 — `PickoffStep_AI.c:L178-198` (`Aidx=a & 0x00FF`; `EnableMask=GLBL_PickoffControlVals[Aidx] & f`; `if (c & 0x8000) FloatOrInt=1`; `Cidx=c & 0x00FF`)
+
+**Mailbox layout (starting at `Cidx`):**
+
+| Offset | Float mode (`GLBL_PickoffFloatVals`) | Integer mode (`GLBL_PickoffControlVals`) |
+|--------|--------------------------------------|------------------------------------------|
+| [Cidx+0] | DEMAND (target value) | DEMAND |
+| [Cidx+1] | STEPSIZE (max V per cycle) | STEPSIZE |
+| [Cidx+2] | HYSTERESIS (dead-band) | HYSTERESIS |
+| [Cidx+3] | ABSMAX (hard ceiling) | ABSMAX |
+| [Cidx+4] | ACTUAL (current measured value, written by upstream conversion PV) | ACTUAL |
+| [Cidx+5] | LAST_ACTUAL (saved by PickoffStep for comparison) | LAST_ACTUAL |
+| [Cidx+6] | NEW_PV_VAL (output written by PickoffStep for downstream use) | NEW_PV_VAL |
+
+**Step algorithm:**
+1. Read `GLBL_PickoffControlVals[Aidx] & F` → if nonzero, **abort** (interlock active), return immediately with `val=0.0`
+2. Read DEMAND, STEPSIZE, HYSTERESIS, ABSMAX, ACTUAL from [Cidx+0..+4]
+3. If `abs(ACTUAL − DEMAND) < HYSTERESIS` → **no-op** (already close enough), save ACTUAL to [Cidx+5], return
+4. If `ACTUAL − DEMAND < 0` → **ADD mode:** `NEW = val + STEPSIZE`, capped at min(DEMAND, ABSMAX)
+5. If `ACTUAL − DEMAND > 0` → **SUBTRACT mode:** `NEW = val − STEPSIZE`, floored at max(DEMAND, 0.0)
+6. Save ACTUAL to [Cidx+5]; set PV.val = NEW; write NEW to [Cidx+6]
+
+✅ verified 2026-04-26 — `PickoffStep_AI.c:L179-301` (interlock abort at L180-185; DEMAND/STEPSIZE/HYSTERESIS/ABSMAX/ACTUAL reads at L201-205/L213-217; hysteresis exit at L228-233; ADD/SUBTRACT modes at L248-295; LAST_ACTUAL save at L272,L286)
+
+**Debug print gate:** `GLBL_PickoffControlVals[16]` — if nonzero, verbose step calculations are printed. ✅ verified 2026-04-26 — `PickoffStep_AI.c:L181,L187,L209,L230,L263...` (`if (GLBL_PickoffControlVals[16]) printf(...)` pattern throughout)
+
+> **Note:** There is a commented-out check comparing ACTUAL to LAST_ACTUAL (Cidx+5). If the ACTUAL change per cycle is less than HYSTERESIS (when ACTUAL > 50V), it would abort the step as a stuck-DAC guard. This check is **disabled** in the current code. ✅ verified 2026-04-26 — `PickoffStep_AI.c:L247-254` (lines commented out with `//`)
 
 ---
 
@@ -325,6 +467,8 @@ This file is the best single reference for **understanding the DGS Pi EPICS devi
 
 - `knowledgeBase/hardware_architecture.md` — Gammasphere hardware overview; slope box and pickoff card context
 - `knowledgeBase/sbx.md` — Slope Box Extension (SBX) hardware: signal chain, BGO pattern/sum, GS_ID dongle, HV map
+- `knowledgeBase/pickoff_card_fpga.md` — Pickoff Card FPGA (SBX Extension RevC, Spartan-6): the hardware this IOC communicates with via SPI; full 128-register map, PULSED_CONTROL/FPGA_CTL bit maps
+- `knowledgeBase/deep_fpga_SBX_CtrlFPGA.md` — SBX Motherboard Control FPGA (Spartan-6): 24-bit SPI interface, 128-addr register file, I2C buses, BGO disc/DDR outputs, preamp reset clamp
 - `knowledgeBase/collectorboxpi.md` — Collector Box Pi IOC: shares same CAMAC_IO/global-mailbox/SPI pattern as sbxPi
 - `knowledgeBase/slope_box_interface.md` — SBX slope box interface; PickoffLocalSerial framework shared with sbxPi
 - `knowledgeBase/EPICS_DB_templates.md` — EPICS DB template system; same record types (ao, ai) used in DetSpec.db and HV_STEP.db

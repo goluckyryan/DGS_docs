@@ -6,6 +6,18 @@ Lines: 158 ✅ verified 2026-04-24 — file confirmed 158 lines
 
 ---
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Entity](#entity)
+- [Architecture](#architecture)
+  - [Trigger Algorithm FSM](#trigger-algorithm-fsm)
+  - [Generic Support Layer](#generic-support-layer)
+- [Key Differences vs sum_hits_x.vhd](#key-differences-vs-sum_hits_xvhd)
+- [See Also](#see-also)
+
+---
+
 ## Purpose
 
 `sum_hits_xy` implements the **X+Y coincidence trigger algorithm** for the Master Trigger (MTRG). It fires a trigger only when **both** the global X-plane hit sum and the global Y-plane hit sum simultaneously exceed their respective thresholds.

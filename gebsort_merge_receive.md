@@ -10,6 +10,36 @@ This file covers the GEB data pipeline tools: **GEBMerge** (timestamp-merge of m
 
 ---
 
+## Table of Contents
+
+- [GEBMerge](#gebmerge)
+  - [Command-line syntax](#command-line-syntax)
+  - [Algorithm](#algorithm)
+  - [Chat file parameters (GEBMerge.chat)](#chat-file-parameters-gebmergechat)
+  - [Notes](#notes)
+- [gtReceiver — DAQ-Side Data Receiver](#gtreceiver--daq-side-data-receiver)
+  - [Versions](#versions)
+  - [Build](#build)
+  - [Usage](#usage)
+  - [What gtReceiver4 does](#what-gtreceiver4-does)
+  - [Packet Field Decoding](#packet-field-decoding)
+  - [GEB Header Format (written by gtReceiver)](#geb-header-format-written-by-gtreceiver)
+  - [Relationship to production tcpReceiverMT](#relationship-to-production-tcpreceivermt)
+  - [Online (interactive) mode](#online-interactive-mode)
+- [GEBClient — EPICS IOC → GEB Data Sender](#gebclient--epics-ioc--geb-data-sender)
+  - [Struct](#struct)
+  - [API](#api)
+  - [Protocol](#protocol)
+  - [Endianness](#endianness)
+  - [Where it is used](#where-it-is-used)
+- [dmpdata — GEB File Dump Tool](#dmpdata--geb-file-dump-tool)
+  - [Usage](#usage-1)
+  - [What it prints](#what-it-prints)
+  - [Summary at end](#summary-at-end)
+- [Cross-References](#cross-references)
+
+---
+
 ## GEBMerge
 
 _Source: `gebsort/GEBMerge.c` (1,803 lines). Code-read 2026-04-26._
@@ -169,6 +199,13 @@ _If beam is absent >5 minutes, receivers must be restarted (or a new run started
 _Source: `gebsort/GEBClient.c`, `gebsort/GEBClient.h`_ (215 lines)
 
 `GEBClient` is a small C library that provides an EPICS-aware TCP connection from inside a VxWorks IOC to a running GEB server (e.g. `GEBMerge`). It uses `epicsMutex` for thread-safe access across IOC threads.
+
+**`GEBLink.h`** (30 lines) — shared header defining the in-memory GEB struct and GRETINA-origin constants: ✅ verified 2026-04-26 — `gebsort/GEBLink.h:L1-30`
+- `struct GEBData` — in-memory event: `int type`, `int length`, `long long timestamp`, `void *payload`, `short refCount`, `short refIndex`, `struct GEBData *next` (linked list for TrackIF.c)
+- `GEB_HEADER_BYTES 16` — on-disk/wire GEB header size (matches `data_structures.md`: `int type + int length + uint64_t timestamp = 4+4+8 = 16`)
+- `GEB_PORT 9005` — **GRETINA convention only**; DGS uses **port 9001** for all VME crate TCP connections
+- GRETINA GEB types: `KEEPALIVE=0, DECOMP=1, RAW=2, TRACK=3, BGS=4, S800=5` — DGS uses types 14 (`GEB_TYPE_DGS`) and 15 (`GEB_TYPE_DGSTRIG`), defined separately in `GEBSort.h`
+- TAP protocol codes: `TAP_DATA=0, TAP_ACK=1, TAP_TIMEOUT=2, TAP_NOT_FOUND=4, TAP_NOT_RUNNING=8, TAP_ERROR=16` — used by GRETINA `gretTap`; not active in DGS
 
 ### Struct
 ```c

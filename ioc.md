@@ -14,26 +14,39 @@ Stability: C2 - Active / semi-stable
    - [vme66.cmd (DuoGe — CRATE=66)](#vme66cmd-duoge--crate66)
 6. [Boot Scripts](#boot-scripts)
    - [Production GS Crate Slot Map (VME01–VME12)](#production-gs-crate-slot-map-vme01vme12)
-7. [FTP Server Setup (IOC Host)](#ftp-server-setup-ioc-host)
-8. [Current Firmware Versions](#current-firmware-versions)
-9. [IOC Setup (Example: DuoGe / tangerine)](#ioc-setup-example-duoge--tangerine)
-   - [VxWorks Boot Parameters (set on MVME5500 boot prompt)](#vxworks-boot-parameters-set-on-mvme5500-boot-prompt)
-   - [Prerequisites on Host](#prerequisites-on-host)
-10. [Key Concepts](#key-concepts)
+7. [iocArray — Production GS Crate Boot Scripts](#iocarray--production-gs-crate-boot-scripts)
+   - [Standard DIG Crate Boot Sequence (vme01.cmd–vme11.cmd)](#standard-dig-crate-boot-sequence-vme01cmdvme11cmd)
+   - [Trigger Crate Boot Sequence (vme32.cmd)](#trigger-crate-boot-sequence-vme32cmd)
+   - [RunProtect.asf — Access Security File](#runprotectasf--access-security-file)
+   - [Global.substitutions](#globalsubstitutions)
+   - [reload* Scripts — Per-Board FPGA Reset via VME Memory Write](#reload-scripts--per-board-fpga-reset-via-vme-memory-write)
+   - [Test.rsub / Test.substitutions](#testrsub--testsubstitutions)
+8. [FTP Server Setup (IOC Host)](#ftp-server-setup-ioc-host)
+9. [Current Firmware Versions](#current-firmware-versions)
+10. [IOC Setup (Example: DuoGe / tangerine)](#ioc-setup-example-duoge--tangerine)
+    - [VxWorks Boot Parameters (set on MVME5500 boot prompt)](#vxworks-boot-parameters-set-on-mvme5500-boot-prompt)
+    - [Prerequisites on Host](#prerequisites-on-host)
+11. [Key Concepts](#key-concepts)
     - [munch file (gretDet.munch)](#munch-file-gretdetmunch)
     - [EPICS PVs](#epics-pvs)
     - [DB Templates (ioc/db/)](#db-templates-iocdb)
     - [MTrigUser.template — Key PV Groups](#mtrigusertemplatekey-pv-groups)
     - [Boot script flow](#boot-script-flow)
-11. [findAllPV.py — PV Discovery Tool](#findallpvpy--pv-discovery-tool)
-12. [Connections to Other Subsystems](#connections-to-other-subsystems)
-13. [IOC Connections: Ethernet vs Terminal Server](#ioc-connections-ethernet-vs-terminal-server)
+12. [findAllPV.py — PV Discovery Tool](#findallpvpy--pv-discovery-tool)
+13. [Connections to Other Subsystems](#connections-to-other-subsystems)
+14. [IOC Connections: Ethernet vs Terminal Server](#ioc-connections-ethernet-vs-terminal-server)
     - [1. Ethernet (Data + EPICS)](#1-ethernet-data--epics)
     - [2. Terminal Server (Console/Shell access)](#2-terminal-server-consoleshell-access)
     - [Terminal Server Assignments](#terminal-server-assignments)
-14. [Operational Notes](#operational-notes)
-15. [Cross-References](#cross-references)
-16. [Full Build & Deployment Procedure (Gammasphere System)](#full-build--deployment-procedure-gammasphere-system)
+15. [Operational Notes](#operational-notes)
+16. [Cross-References](#cross-references)
+17. [Full Build & Deployment Procedure (Gammasphere System)](#full-build--deployment-procedure-gammasphere-system)
+    - [Shared File System — /global Mapping](#shared-file-system--global-mapping)
+    - [Boot Host for Gammasphere VME IOCs](#boot-host-for-gammasphere-vme-iocs)
+    - [Build Sequence (VME IOC Binary)](#build-sequence-vme-ioc-binary)
+    - [Deploying Updated EPICS Databases](#deploying-updated-epics-databases)
+    - [Deploying Updated Soft IOC Database](#deploying-updated-soft-ioc-database)
+    - [Spreadsheet → Boot Full Sequence](#spreadsheet--boot-full-sequence)
 
 ## What It Is
 
@@ -88,12 +101,12 @@ Old template names (historical, pre-Git migration, from `DGS_SVN/dgs/Documentati
 
 | System | CA Server Port | CA Repeater Port | Notes |
 |--------|---------------|------------------|-------|
-| DGS | 5064 | 5065 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L45-46` |
-| DFMA | 5068 | 5069 | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L5` (comment) |
-| Xarray | 5072 | 5073 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L23-24` |
-| SlopeBox | 5074 | 5075 | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L36-37` |
-| DUB | 5078 | 5079 | ✅ verified 2026-04-17 — `ANLDAQ/EPICS_para.sh:L8` (comment) |
-| DuoGe | 5080 | 5081 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L16-17` |
+| DGS | 5064 | 5065 | ✅ verified 2026-04-27 — `ANLDAQ/EPICS_env.sh:L45-46` + `ioc/boot/cdCommands:L11-12` |
+| DFMA | 5068 | 5069 | ✅ verified 2026-04-27 — `ANLDAQ/EPICS_env.sh:L5` (comment) |
+| Xarray | 5072 | 5073 | ✅ verified 2026-04-27 — `ANLDAQ/EPICS_env.sh:L23-24` |
+| SlopeBox | 5074 | 5075 | ✅ verified 2026-04-27 — `ANLDAQ/EPICS_env.sh:L36-37` + `ioc/boot/vme99.cmd:L21` |
+| DUB | 5078 | 5079 | ✅ verified 2026-04-27 — `ANLDAQ/EPICS_env.sh:L8` (comment) |
+| DuoGe | 5080 | 5081 | ✅ verified 2026-04-27 — `ANLDAQ/EPICS_env.sh:L16-17` (DUO=5080/5081 conditional) |
 
 NTP server: `192.168.203.56` ✅ verified 2026-04-06 — `ioc/boot/cdCommands:L23` | Timezone: CDT (UTC-6, `EPICS_TS_MIN_WEST=360`) ✅ verified 2026-04-06 — `ioc/boot/vme99.cmd:L52`
 
@@ -240,9 +253,9 @@ Boot sequence:
 
 Located in `boot/`:
 - `vme01.cmd`–`vme12.cmd` — Production GS crates; see table below
-- `vme66.cmd` — DuoGe crate (CRATE=66); uses `cdCommands` (CA port 5080/5081 DuoGe) ✅ verified 2026-04-20 — `ioc/boot/cdCommands:L11-12` (SERVER_PORT=5080, REPEATER_PORT=5081); `vme66.cmd:L14` (< cdCommands)
+- `vme66.cmd` — DuoGe crate (CRATE=66); uses `cdCommands` ⚠️ corrected 2026-04-27: the `cdCommands` in the local repo (ioc/boot/cdCommands:L11-12) sets **DGS ports 5064/5065**, not 5080/5081. DuoGe ports 5080/5081 are listed only in a comment and in `ANLDAQ/EPICS_env.sh:L16-17`. The actual DuoGe boot host (DGS1) likely has a separate cdCommands that sets 5080/5081; the repo cdCommands reflects DGS production. ✅ `vme66.cmd:L14` (< cdCommands) confirmed — `ANLDAQ/EPICS_env.sh:L16-17` (DuoGe=5080/5081)
 - `vme99.cmd` — GRETINA lab test stand (CRATE=99); uses `cdCommandsLab` (CA port 5074/5075 G-wing) ✅ verified 2026-04-20 — `ioc/boot/vme99.cmd:L18,L21,L27` (G-wing port 5074/5075 comment + putenv + < cdCommandsLab)
-- `cdCommands` — paths + EPICS CA env for DuoGe system
+- `cdCommands` — paths + EPICS CA env (sets 5064/5065 DGS in repo; DuoGe boot host may have variant with 5080/5081)
 - `nfsCommands` — NFS mount: `nfsAuthUnixSet("fs.gam", 6000, 10, 0, 0)` ✅ verified 2026-04-20 — `ioc/boot/nfsCommands:L1`
 
 ### Production GS Crate Slot Map (VME01–VME12)
@@ -278,6 +291,118 @@ Located in `boot/`:
 - Regular VME01–12 (Gammasphere) boot scripts live on NFS at `/global/ioc/boot/` — not in this git repo
 - **PV dump on startup:** Both `vme66.cmd` and `vme99.cmd` now end with `dbl > "vme<NN>_db.txt"` — dumps the full PV list to a text file at IOC startup ✅ verified 2026-04-17 — `ioc` commit `4eb1eb0`
 - **`bootFiles.txt`** currently points to `boot/vme66.cmd` (changed from `vme99.cmd`) ✅ verified 2026-04-17 — `ioc` commit `4eb1eb0`
+
+---
+
+## iocArray — Production GS Crate Boot Scripts
+
+_Source: `vxworks/dgsIoc/iocBoot/iocArray/` (code-read 2026-04-27)_
+
+The `iocArray/` directory contains the production boot scripts used by all 12 standard DGS VME crates plus the dedicated trigger crate (VME32). Unlike the `ioc/boot/` files (used for DuoGe/test stand), these are the scripts loaded at NFS path `/dk/fs2/dgs/global_sandbox/devel/gretTop/9-22/dgsIoc/iocBoot/iocArray/` on the GS production hosts.
+
+### Standard DIG Crate Boot Sequence (vme01.cmd–vme11.cmd)
+
+All 11 DIG crates follow the same pattern:
+
+1. `cd` to iocArray NFS path
+2. `< cdCommands` + `< ../nfsCommands` (EPICS CA env + NFS auth)
+3. `ld < gretDet2018.munch` — load IOC binary (note: uses `gretDet2018.munch`, not `gretDet.munch`)
+4. `dbLoadDatabase("dbd/gretDet.dbd", ...)` + `gretDet_registerRecordDeviceDriver`
+5. Load 4 boards' register + user templates: `MDigRegisters.template`, `SDigRegisters.template`, `MDigUser.template`, `SDigUser.template` (P=VMExx:, R=MDIGn:)
+6. Load `gretVME.template` for each of 4 digitizer slots (DB=xx_1..4, DC=0..3)
+7. Load `daqSegment2.template` for each slot (DN=xx_1..4, DC=0..3)
+8. Load crate-level PVs: `daqCrate.template` (DN=crate#) + `onMon.template` (DN=crate#)
+9. Load `asynDebug.template` (P=VMExx:, R=DBG:)
+10. Load `db/Globals_VMExx.db` — per-crate global PVs
+11. AutoSave/Restore: `set_savefile_path(... "vmexx")` + `set_pass1_restoreFile("vmexx.sav")`
+12. `asynDigitizerConfig("MDIG1",0,3)` + `asynDigitizerConfig("SDIG1",1,4)` + `asynDigitizerConfig("MDIG2",2,5)` + `asynDigitizerConfig("SDIG2",3,6)` — all slots 3–6
+13. `asynDebugConfig("DBG",0)`
+14. `asSetFilename("../../db/RunProtect.asf")` — load Access Security rules
+15. `iocInit()`
+16. `create_monitor_set("vmexx.req", 30, "")` — autosave monitor (30s interval)
+17. `setupFIFOReader()`
+18. `seq &inLoop` for each of 4 boards (with `PVAcqEna`, `PVMLE`, `PVRun` params)
+19. `dbpf "VMExx:MDIGn:user_package_data", "NNN"` — tag each board with global board ID
+20. `seq &TrigCon, "CN=xx"` + `seq &BuildSend, "CN=xx,priority=5"`
+
+✅ verified 2026-04-27 — `iocArray/vme01.cmd` (full read) + `iocArray/vme10.cmd` (cross-check)
+
+**Key difference from vme66/vme99:** Uses `gretDet2018.munch` (not `gretDet.munch`). All 4 slots are always 3/4/5/6. No commented-out asynDebug (it's always loaded).
+
+### Trigger Crate Boot Sequence (vme32.cmd)
+
+VME32 is the dedicated trigger crate (MTRG + 3 RTRGs):
+
+- Loads `MTrigRegisters.template` + `MTrigUser.template` for MTRG
+- Loads `RTrigRegisters.template` + `RTrigUser.template` for RTR1/RTR2/RTR3
+- Loads `gretVME.template` for 4 slots (for legacy compatibility)
+- **Does NOT** load `daqSegment2.template` (no digitizers)
+- Loads `daqCrate.template` (DN=32) + `onMon.template` (DN=32)
+- Loads `Globals_GLBL.db` (not `Globals_VME32.db`)
+- `asynTrigMasterConfig1("MTRG",0,3)` + `asynTrigRouterConfig1("RTR1",1,4)` + `RTR2(2,5)` + `RTR3(3,6)`
+- **No** `setupFIFOReader()` (commented out)
+- **No** `seq &inLoop` or `seq &BuildSend` (all commented out with placeholder notes)
+- `asSetFilename("../../db/RunProtect.asf")` — same RunProtect as DIG crates
+
+✅ verified 2026-04-27 — `iocArray/vme32.cmd` (full read)
+
+### RunProtect.asf — Access Security File
+
+_Source: `dgsIoc/tcDetApp/Db/RunProtect.asf` (11 lines)_
+
+Defines two Access Security Groups (ASGs):
+
+| ASG | INPA PV | Read | Write condition |
+|-----|---------|------|------------------|
+| `DEFAULT` | — | always | always |
+| `RUNPROTECT` | `Online_CS_StartStop` | always | only when `A=0` (i.e. run is **stopped**) |
+
+`RUNPROTECT` prevents writes to protected PVs while a run is active (`Online_CS_StartStop != 0`). Records that use this ASG can only be written to when the DAQ is not running. ✅ verified 2026-04-27 — `RunProtect.asf` (full read)
+
+### Global.substitutions
+
+_Source: `dgsIoc/tcDetApp/Db/Global.substitutions` (9 lines)_
+
+Loads a single database:
+- `gretGlobal.db` with `{P=DAQG}` — loads global DAQ control PVs (fanout records) for the entire system
+- Commented-out: `daqGlobal.template` (now in nodeIoc)
+- Comment in file: "Master DAQ control records (one copy necessary for entire system, all crates)" — this substitutions file is loaded exactly once in the system (on the control node, not every crate)
+
+✅ verified 2026-04-27 — `Global.substitutions` (full read)
+
+### reload* Scripts — Per-Board FPGA Reset via VME Memory Write
+
+_Source: `iocArray/reload0`–`reload4`, `reloadMainFPGA` (2–16 lines each)_
+
+Each `reloadN` script pulses a specific VME address (SRAM-mapped FPGA control register) to toggle a reload bit:
+- Toggle sequence: write `0` → write `1` at the target address
+- Written using VxWorks `m` (memory modify) command with count=4 (word access)
+
+| Script | VME Address | Board |
+|--------|-------------|-------|
+| `reload0` | `0xe8100900` | Board 0 (slot 1 — IOC?) |
+| `reload1` | `0xe8200900` | Board 1 (slot 2) |
+| `reload2` | `0xe8300900` | Board 2 (slot 3) |
+| `reload3` | `0xe8400900` | Board 3 (slot 4) |
+| `reload4` | `0xe8500900` | Board 4 (slot 5) |
+| `reloadMainFPGA` | All 4: 0xe8200900–0xe8500900 | Reload all 4 DIG FPGAs at once |
+
+`fix`: chains `< reload1 < reload2 < reload3 < reload4` then calls `reboot` — full crate FPGA reload + reboot recovery script.
+
+✅ verified 2026-04-27 — `devGVME.c:L128` (`base = slot << 20`): the N nibble is the **VME slot number** directly. The VME A32 bus address for a board in slot N is `0xN00000`; the MVME5500 maps A32 VME space starting at `0xe8000000` in local memory, so local address = `0xe8000000 + (slot << 20)` = `0xe8N00000`. Register `0x0900` is `fpga_ctrl_reg` (`devGVME.c:L371`, `VME_FPGA_ANL/Source/register_block.vhd:L330-331`). Writing bit 0 low→high triggers `cnfg_reset_controller` FSM restart, which reloads the Main FPGA from flash.
+
+✅ verified 2026-04-27 — `reload0`–`reload4`, `reloadMainFPGA`, `fix` (all read)
+
+### Test.rsub / Test.substitutions
+
+_Source: `dgsIoc/tcDetApp/Db/Test.rsub` (95 lines), `Test.substitutions` (141 lines)_
+
+Autosave request-file templates (`.rsub` = substitution input for `msi`/`makeRequestFile`):
+- `Test.rsub`: defines which DB files contribute autosave PVs (gretCrystal.req, gretBoard.req, daqBoard.req, and optional gretVME.req/daqSegment2.req — both commented out)
+- `Test.substitutions`: the substitution values that instantiate `Test.rsub` for a specific crate (board DB numbers, detector numbers, etc.)
+- These are used as build-time inputs to `msi` (macro substitution tool) to generate `.req` files: `tcDetApp/Db/Makefile` rule `%.req : ../%.rsub` runs `msi -S$< -o$@` ✅ verified 2026-04-27 — `tcDetApp/Db/Makefile:L49-50` (`%.req : ../%.rsub` + `msi -S$< -o$@`)
+- Each `vmeXX.cmd` boot script calls `create_monitor_set("vmeXX.req",30,"")` to load the corresponding `.req` file into the autosave monitor at 30-second intervals ✅ verified 2026-04-27 — `iocBoot/iocArray/vme01.cmd:L107`
+- **Note:** `vme*.cmd` scripts contain the comment `# req files are now generated from python code` — this refers to `ANLDAQ/ioc/findAllPV.py` (which processes `dbLoadRecords()` lines from startup scripts → `All_PV.json`). The `.req` file writer from JSON is **not present** in this repo; the Python toolchain likely lives on the production host only. `Test.rsub` is the legacy Makefile-based path; the current production path uses `findAllPV.py` output. ✅ verified 2026-04-27 — `vme01.cmd:L106` (comment); `ANLDAQ/ioc/findAllPV.py` (full text; no `.req` file writer present)
 
 ---
 

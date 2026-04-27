@@ -43,6 +43,7 @@ Access via terminal server: `telnet <ts-ip> <port>` — see `ANLDAQ/EPICS_para.s
 - [Safety Classification](#safety-classification)
 - [Terminal Server Map](#terminal-server-map)
 - [Legacy VxWorks Trigger FPGA Reload Scripts](#legacy-vxworks-trigger-fpga-reload-scripts)
+- [Cross-References](#cross-references)
 
 ---
 

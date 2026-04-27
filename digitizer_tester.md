@@ -8,6 +8,17 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+- [Function](#function)
+- [Hardware](#hardware)
+- [Operation Modes](#operation-modes)
+- [Connection to DGS System](#connection-to-dgs-system)
+- [Operational Notes](#operational-notes-from-wiki-2013-02-10--jta)
+- [Cross-References](#cross-references)
+
+---
+
 ## Function
 
 - Generates arbitrary test waveforms via dual **16-bit DACs** (AD9747, up to 200 MHz) ✅ verified 2026-04-07 — `DAC_SPI.vhd:L1` (AD9747); `Dig_Tester_pkg.vhd` (clock_freq_sel: 00=50MHz, 01=100MHz, 11=200MHz)

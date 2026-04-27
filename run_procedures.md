@@ -7,6 +7,22 @@ Stability: C2 - Active / semi-stable
 
 ---
 
+## Table of Contents
+
+- [Directory Structure](#directory-structure)
+- [Run Control](#run-control)
+- [GEBSort Configuration](#gebsort-configuration-gebsortchat)
+- [Sorting](#sorting)
+- [Calibrations (GEBSort\_nogeb / bin\_dgs)](#calibrations-gebsort_nogeb--bin_dgs)
+- [map.dat — Detector Map](#mapdat--detector-map)
+- [GitLab Repos Used](#gitlab-repos-used)
+- [Modern Workflow (exp2008\_Chiara / ANLDAQ era)](#modern-workflow-exp2008_chiara--anldaq-era)
+- [Cross-References](#cross-references)
+- [DGS Commander EDM Screens](#dgs-commander-edm-screens)
+- [Shift Operator Guide](#shift-operator-guide-8-hour-shift)
+
+---
+
 ## Directory Structure
 
 Standard experiment directory layout:

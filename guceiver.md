@@ -7,6 +7,37 @@ _Explored: 2026-04-07_
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+  - [Threading model](#threading-model)
+- [Connection](#connection)
+  - [EPICS side effects](#epics-side-effects)
+- [TCP Wire Protocol](#tcp-wire-protocol-get_data)
+- [Packet Framing](#packet-framing)
+- [DIG Event Decoder](#dig-event-decoder-class_digpy)
+  - [Identity / Routing](#identity--routing)
+  - [Timestamps](#timestamps-all-in-10-ns-units-unless-noted)
+  - [Energy](#energy)
+  - [Flags](#flags)
+  - [Multiplicity extras](#multiplicity-extras-led-mode-only)
+- [TAC-II Decoder](#tac-ii-decoder-class_tacpy)
+  - [Packet layout](#packet-layout-16-word-payload)
+  - [Timing resolution](#timing-resolution)
+- [GUI Tabs](#gui-tabs)
+- [Tab Internals](#tab-internals)
+  - [class_dataTab.py — DIG Header Inspection Tab](#class_datatabpy--dig-header-inspection-tab)
+  - [class_waveTab.py — Waveform Display Tab](#class_wavetabpy--waveform-display-tab)
+  - [class_tacTab.py — TAC-II Inspection Tab](#class_tactabpy--tac-ii-inspection-tab)
+  - [class_spectrumTab.py — Energy Spectrum Tab](#class_spectrumtabpy--energy-spectrum-tab)
+- [Board ID Lookup](#board-id-lookup)
+- [Key Files](#key-files)
+- [Relationship to tcpReceiver](#relationship-to-tcpreceiver)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 **Guceiver** is a PyQt6 application that connects directly to an IOC's TCP data stream (port 9001) to provide live monitoring of digitizer and TAC-II data. It is distinct from the main ANLDAQ commander GUI — it's a lightweight standalone viewer for online diagnostics. ✅ verified 2026-04-10 — `Guceiver.py:L1` (`from PyQt6...`); confirmed standalone (not part of commander) by absence of commander imports
@@ -285,6 +316,35 @@ Displays decoded fields from a `TAC` event selected from `receiver.TACArray[]`. 
 | Misc | `trigType`, `wheel` (target wheel), `userRegister`, `triggerBitMask`, `multiplicity` |
 
 **Pause/index behavior:** identical to Data tab — pause freezes `receiver.fillTACArray = False`, enables spinbox for manual event stepping. `Print Payload` checkbox calls `tac.printPayload()` + `tac.print()` when stopped.
+
+---
+
+### `class_spectrumTab.py` — Energy Spectrum Tab
+
+_Source: `ANLDAQ/gui/Guceiver/class_spectrumTab.py` (295 L)_ ✅ verified 2026-04-26 — full code read
+
+Accumulating online energy histogram for a single configurable DIG channel. Energy values are sourced from `receiver.energyArray` (accumulated across calls, cleared on each plot cycle; unbounded list in Receiver). Energy per event = `(POST_RISE_ENERGY − PRE_RISE_ENERGY) / M_windows` (computed in `class_Receiver.py`).
+
+**Controls:**
+
+| Control | Default | Description |
+|---------|---------|-------------|
+| Dig selector (ComboBox) | first board | Selects `receiver.dig_index`; clears histogram and plot on change |
+| Channel selector (SpinBox) | 0 | Selects `receiver.channel_index` (0–9); clears histogram and plot on change |
+| Update time (ms) | 50 | `plot_timer` interval; minimum enforced at 20 ms |
+| M-windows (SpinBox) | 1000 | Sets `receiver.M_windows` divisor; clears histogram on change |
+| No. Bin | 500 | Histogram bins (100–2000); triggers `clear_histogram()` on change |
+| X-min / X-max | 0 / 5000 | x-axis range for histogram; spinboxes interlock (xmin.max = xmax−1, xmax.min = xmin+1) |
+| Reset Plot Scale | — | Restores xlim to xRange, ylim to `max(histCount)×1.1` |
+| Pause/Resume Spectrum Update | — | Toggles `receiver.fillEnergyArray`; button turns red when paused |
+
+**Histogram accumulation:** On each timer tick, `energyArray` is copied under mutex lock and cleared from the receiver. Events outside [xmin, xmax] are counted as underflow/overflow (not plotted). `np.histogram(energy_data, bins=500, range=xRange)` is used — note: bin count is hardcoded at 500 in `np.histogram()` call regardless of the UI `nBin` spinbox (UI spinbox updates `self.nBin` but `plot_spectrum` passes `bins=500`; appears to be a latent bug). Cumulative counts (`histCount`) accumulate across ticks until cleared. Legend shows total count, underflow, and overflow.
+
+**Interaction:** Left-click drag → rectangular zoom (via `RectangleSelector`). Right-click context menu → Reset Scale or Clear Plot.
+
+**Pause logic:** When paused, `receiver.fillEnergyArray = False` stops energy values from being appended in the receiver thread; the plot tick still fires but finds `energyArray` empty and returns immediately.
+
+**Bug note (latent):** `np.histogram` call uses `bins=500` literal rather than `self.nBin`, so the No. Bin spinbox does not currently affect the actual histogram bin count — it only clears the accumulated data.
 
 ---
 

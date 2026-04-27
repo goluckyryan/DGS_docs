@@ -421,7 +421,8 @@ See: `knowledgeBase/collectorboxpi.md`, `knowledgeBase/collectorbox_devicesuppor
 - `knowledgeBase/collector_box_fpga.md` — ControlStripe + CtlFanout FPGAs (PSG SVN origin, sister codebase): per-stripe 48V relay/clock/SYNC control (Spartan-3) and RPi SPI gateway + ADS1158 ADC scanning (Spartan-6)
 - `knowledgeBase/sbx.md` — Slope Box Extension hardware, BGO HV, GS_ID dongle
 - `knowledgeBase/deep_fpga_SBX_CtrlFPGA.md` — Deep VHDL analysis of SBX Motherboard Control FPGA (entity SlopeBoxInt, Rev C, Spartan-6 XC6SLX9): 24-bit SPI, register file, I2C buses, BGO DDR outputs, analog switch control, preamp clamp, timestamp, firmware version registers
+- `knowledgeBase/collector_ctrlFPGA_registers.md` — Complete CtrlFPGA register interface (Excel-VBA generated, 141 registers): control outputs (pulsed_control, FPGA_CTL_REG, ILA mux, DPRAM bank select), read-only status registers, per-stripe ADC monitoring (GFI/48VI/rail voltages/VCC/gain/temp), BGO FPGA voltages
 
 ---
 
-_Last reviewed: 2026-04-24_
+_Last reviewed: 2026-04-27_

@@ -8,6 +8,36 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+- [Slope Box (parent module)](#slope-box-parent-module)
+- [Purpose](#purpose)
+- [Signal Processing](#signal-processing)
+  - [Input signals (from Slope Box)](#input-signals-from-slope-box)
+  - [Output signals (to Collector Box / Digitizers)](#output-signals-to-collector-box--digitizers)
+  - [BGO Pattern channel](#bgo-pattern-channel)
+- [Pickoff Card](#pickoff-card)
+  - [Signal flow](#signal-flow)
+  - [FPGA-programmable features](#fpga-programmable-features)
+  - [Background scanning](#background-scanning)
+  - [Physical / connectivity](#physical--connectivity)
+  - [BGO HV demand map (from dev notes)](#bgo-hv-demand-map-from-dev-notes)
+  - [BGO threshold calibration notes](#bgo-threshold-calibration-notes)
+  - [Nominal BGO HV operating point](#nominal-bgo-hv-operating-point)
+- [SBX Power Board](#sbx-power-board)
+  - [Key characteristics](#key-characteristics)
+  - [Standalone operation](#standalone-operation)
+- [GS_ID Dongle](#gs_id-dongle)
+- [Hardware Versions](#hardware-versions)
+- [EPICS IOC (Raspberry Pi)](#epics-ioc-raspberry-pi)
+  - [Full GS System](#full-gs-system)
+  - [Small Systems (DUO, DXA)](#small-systems-duo-dxa)
+  - [Common EPICS DB files (full GS)](#common-epics-db-files-full-gs)
+- [Preamp Reset Kill (PRK) — SBX interaction](#preamp-reset-kill-prk--sbx-interaction)
+- [I2C DPRAM Opcode Engine](#i2c-dpram-opcode-engine-slopeboxextensioni2c_toolsi2c_compiler)
+
+---
+
 ## Slope Box (parent module)
 
 The **Slope Box** is the interface between the detector and the control/monitoring system:
@@ -298,6 +328,8 @@ The same I2C engine + opcode format is used in **both the SBX Stripe FPGA and th
 ## Cross-References
 
 - `knowledgeBase/deep_fpga_SBX_CtrlFPGA.md` — Deep analysis of SBX Motherboard Control FPGA firmware (Spartan-6 XC6SLX9): SPI interface, 128-register file, 3× I2C buses, BGO discriminator DDR outputs, slope box serial, analog switch control, preamp reset clamp, timestamp, fake-Pi detection
+- `knowledgeBase/pickoff_card_fpga.md` — Pickoff Card FPGA (SBX Extension RevC, Spartan-6 XC6SLX9): full 128-register SPI map, PULSED_CONTROL/FPGA_CTL bit maps, BGO serializer, I2C channels, gain/offset DAC, preamp reset clamp
+- `knowledgeBase/sbxPi_ioc.md` — SBX Pi standalone IOC (PickoffApp_RevC): EPICS soft IOC on Pi mounted on SBX; CAMAC_IO device support, HV ramp logic, global mailboxes
 - `knowledgeBase/collector_fpga.md` — Pickoff card FPGAs (SBX Interface + Extension) that interface to SBX
 - `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC; controls BGO HV via pickoff card
 - `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support; SPI protocol to pickoff card

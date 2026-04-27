@@ -7,6 +7,41 @@ _Author: T. Lauritsen (ANL). Used by DGS, GRETINA, X-Array, DUO, and other detec
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Repository Structure](#repository-structure)
+- [Configuration: GEBSort.chat](#configuration-gebsortchat)
+  - [Basic Parameters](#basic-parameters)
+  - [Detector Modules](#detector-modules-enable-by-uncommenting)
+  - [DGS-Specific Parameters](#dgs-specific-parameters)
+- [DGS Calibration Workflow](#dgs-calibration-workflow-from-readmebin_dgs)
+  - [Step 0 — Setup](#step-0--setup)
+  - [Step 1 — Find M and K parameters](#step-1--find-m-and-k-parameters)
+  - [Step 2 — Generate detector map](#step-2--generate-detector-map)
+  - [Step 3 — Pole-Zero calibration](#step-3--pole-zero-calibration-pz-scan)
+  - [Step 4 — SZ energy factor](#step-4--sz-energy-factor)
+  - [Step 5 — Energy calibration](#step-5--energy-calibration)
+  - [Step 6 — Deploy calibration files](#step-6--deploy-calibration-files)
+  - [Step 7 — Final sort](#step-7--final-sort)
+- [Utility Programs — Internal Details](#utility-programs--internal-details)
+  - [SZ_basic_PZ](#sz_basic_pz)
+  - [SZ_factor](#sz_factor)
+- [Energy Algorithm `.stub` Files](#energy-algorithm-stub-files)
+  - [SZ_1 Algorithm (Positive Polarity)](#sz_1-algorithm-positive-polarity)
+  - [SZ_1_neg (Negative Polarity)](#sz_1_neg-negative-polarity)
+  - [bin_dgs_GE.c and bin_dgs_AUX.c](#bin_dgs_gec-and-bin_dgs_auxc)
+  - [bin_angcor_DGS.c — Angular Correlation Sorter](#bin_angcor_dgsc--angular-correlation-sorter)
+- [GEBMerge, gtReceiver, GEBClient, dmpdata](#gebmerge-gtreceiver-gebclient-dmpdata)
+- [jta.c — DGSEvDecompose_v3 Event Decoder](#jtac--dgsevdecompose_v3-event-decoder)
+- [Calibration Files](#calibration-files)
+- [bin_dgs.c — Main DGS Sort Function Internals](#bin_dgsc--main-dgs-sort-function-internals)
+- [Comparison with parquet_pysort](#comparison-with-parquet_pysort)
+- [GRETINA-Specific and Additional Detector Sorters](#gretina-specific-and-additional-detector-sorters)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 **GEBSort** is the primary offline analysis framework for GEB-format nuclear physics data. It:
@@ -286,6 +321,41 @@ Used by `bin_dgs_AUX.c` for auxiliary detector channels.
 | Event loop filter (×3) | `tpe == GE` | `tpe == AUX` |
 
 **Purpose:** `bin_dgs_AUX.c` sorts events from **auxiliary detector channels** (BGO, ancillary detectors) rather than Ge crystals, using the negative-polarity energy formula appropriate for those signal types. ✅ verified 2026-04-24 — `diff bin_dgs.c bin_dgs_AUX.c`.
+
+### bin_angcor_DGS.c — Angular Correlation Sorter
+
+**File:** `gebsort/bin_angcor_DGS.c` (489 lines, C)  
+**Purpose:** Fills 3D angular-correlation (angcor) ROOT spectra from DGS coincidence events. Requires `bin_dgs` to be active (for Doppler-corrected, energy-calibrated hits); exits with error otherwise.
+
+**Outputs (ROOT histograms):**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `Gsangdiff` | `TH1D` (180 bins, 0–180°) | Distribution of inter-detector angles for all 110×110 GS detector pairs ✅ verified 2026-04-27 — `bin_angcor_DGS.c:L31` (declaration); `L43` (`#define NBINS 180`); `sup_angcor_DGS:L143` (`mkTH1D(…NBINS,0,180)`) |
+| `Angcor_cube` | `TH3F` (E1 × E2 × angle, 36 angle bins 0–180°) | γ-γ angular correlation cube: filled with `(E_i, E_j, θ_ij)` for all prompt coincident Ge pairs ✅ verified 2026-04-27 — `bin_angcor_DGS.c:L278-280` (`mkTH3F(…Pars.GGMAX,1,Pars.GGMAX,Pars.GGMAX,1,Pars.GGMAX,36,0,180)`) |
+| `Angcor_cube_oo` | `TH3F` (same shape) | Background angular correlation cube: filled with `(E_current, E_old, θ)` using a 15-deep event mixing queue ✅ verified 2026-04-27 — `bin_angcor_DGS.c:L43` (`#define LOQ 15`); `L281-282` (same `mkTH3F` shape as `Angcor_cube`) |
+| `SMAP_DGS` | `TH2F` (361×181 bins, azimuth × polar) | Schematic detector map: plots where hits land in (azimuth, polar) space, smeared by ≤5° random disk ✅ verified 2026-04-27 — `bin_angcor_DGS.c:L145` (`mkTH2F(…361,0,360,181,0,180)`) |
+
+**Geometry:** Polar (`angtheta[]`) and azimuthal (`angphi[]`) angles from `gsang.h` (origin unknown, attributed to I.Y. Lee). Unit vectors for all 110 detectors are computed in `sup_angcor_DGS()`. All 5,995 pair-wise inter-detector angles (one way: k < l) are pre-computed at startup and stored in `angdif[k][l]` (degrees, symmetric). The computation uses both dot-product and explicit cos formula and asserts agreement to < 0.0001° (cross-check). Angles also written to `GS_ancor_angles.txt` (sort/wc comments embedded in printf). ✅ verified 2026-04-27 — `bin_angcor_DGS.c:L258` (printf: `"110*109/2 = 5995"`); `L225` (`assert(fabs(d1-d2) < 0.0001)`); `L231` (`fopen("GS_ancor_angles.txt","w")`); `L197-208` (dot-product loop) + `L211-226` (explicit cos cross-check)
+
+**Event filter** (in `bin_angcor_DGS()`): selects hits where `tpe==GE`, `flag==0`, `Pars.enabled[tid]`, `ehi > 0`, `ehi < GGMAX`, `1 ≤ tid < MAX_GES`. Events with < 2 surviving Ge hits are skipped. ✅ verified 2026-04-27 — `bin_angcor_DGS.c:L349-357` (6-deep nested `if` filter building `ee[]/id[]`); `L362` (`if (nn < 2) return (0)`)
+
+**Prompt fill** (`Angcor_cube`): For every pair (k, l) with k < l, fills `(ee[k], ee[l], angdif[k][l])` **and** `(ee[l], ee[k], angdif[l][k])` — symmetric fill. ✅ verified 2026-04-27 — `bin_angcor_DGS.c:L373-378` (pair loop `k<l`; two `->Fill` calls with swapped energy order)
+
+**Background mixing** (`Angcor_cube_oo`): Uses a FIFO queue of depth `LOQ=15` events. The current event is correlated against all 15 previous events. After fill, the queue shifts down and the current event is stored at position 0. (A note in the code mentions this could be improved with a circular buffer.) ✅ verified 2026-04-27 — `bin_angcor_DGS.c:L43` (`#define LOQ 15`); `L431-436` (triple loop m/k/l, `if(nn_oo[m]>0)` guard); `L455-470` (shift register: `while(l>0)` copies slots up; `nn_oo[0]=nn` stores current); `L462` (circular-buffer comment)
+
+**SMAP fill** (limited to first 1,000,000 events): Each hit is projected to `(sX, sY)` in a SMAP-style azimuth/polar space using `sX = π + (azi−π)·sin(pol)`, then smeared by a random disk of radius ≤ 5° to simulate finite detector size. ✅ verified 2026-04-27 — `bin_angcor_DGS.c:L386` (`if(Pars.CurEvNo <= 1000000)`); `L389-391` (`sX=M_PI+(azi-M_PI)*sin(pol); sX/=RAD2DEG`); `L406-411` (rejection sampling `rr>5` loop)
+
+**Detector hit-count monitor** (`angdis_hitp[tid]`): Tracks how many events each detector contributes. Exit prints per-detector hit counts and flags detectors deviating more than ±15% from the mean as "too low" / "too high". ✅ verified 2026-04-27 — `bin_angcor_DGS.c:L80-96` (`exit_angcor_DGS()`: `if(d1<85.0) printf(" too low"); if(d1>115.0) printf(" too high")` where `d1=100.0*angdis_hitp[i]/mm`)
+
+**Required `.chat` settings:**
+```
+bin_dgs          # must be enabled (angcor depends on Doppler-corrected energies)
+bin_angcor_DGS   # this module
+```
+GGMAX is set via GEBSort.chat and controls the energy axis range of the cubes. The code explicitly checks that `GGMAX² × 36 × sizeof(float) < 1073741822 bytes` (ROOT 1 GB TH3 limit).
+
+*Source: `gebsort/bin_angcor_DGS.c` (code-read 2026-04-27)*
 
 ---
 

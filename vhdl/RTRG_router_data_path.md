@@ -3,6 +3,21 @@ _Source: ~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/router_data_path.vhd_
 _Summarized: 2026-04-15_
 Stability: C3 - Structural / stable
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Ports](#ports)
+- [Link-L Output Word Format](#link-l-output-word-format-linkl_raw_data-16-bit-becomes-bits-161-of-18-bit-serdes-word)
+- [Key Logic / State Machine](#key-logic--state-machine)
+  - [CHANNEL_BLOCK (for i in 1 to 8)](#channel_block-for-i-in-1-to-8)
+  - [SUM_HITS process](#sum_hits-process--3-rank-pipelined-adder-tree)
+  - [FAST_COARSE_GE_SUM_PROC](#fast_coarse_ge_sum_proc--single-cycle-ge-aggregation)
+  - [DIGITIZER_LOCK + DIGITIZER_ALLLOCK](#digitizer_lock--digitizer_alllock)
+  - [CHAN_FIFO_CTL_BLOCK](#chan_fifo_ctl_block-for-i-in-1-to-8--diagnostic-channel-fifos)
+- [Key Constants / Parameters](#key-constants--parameters)
+- [Connections to Other Modules](#connections-to-other-modules)
+- [See Also](#see-also)
+
 ## Purpose
 Aggregates all eight Router input channels into a single 16-bit word sent to the Master Trigger via SerDes link L. Instantiates eight `chan_in` instances (one per digitizer), sums their X-plane and Y-plane hit counts via a 3-stage pipelined adder tree, builds the link-L output word, and routes per-channel data into diagnostic FIFOs. Also aggregates the 8-channel coarse Ge sum.
 
@@ -96,3 +111,10 @@ Input is triple-registered (mux → xxxCHAN_MON_FIFO_INs → xxCHAN_MON_FIFO_INs
 - **Receives control from**: TOP.VHD (all VME register signals)
 - **Sends to Master Trigger** (via TOP.VHD → SerDes link L): LINKL_RAW_DATA[15:0]
 - **Sends to TOP.VHD**: LIVE_CHANNEL_VETOES (8×10), TOTAL_COARSE_GE_SUM, CHAN_MON_FIFO_INs, CHAN_MON_FIFO_WEs
+
+## See Also
+
+- [RTRG_chan_in.md](RTRG_chan_in.md) — per-digitizer channel processor (instantiated × 8 by this module)
+- [RTRG_top.md](RTRG_top.md) — parent; instantiates this module as U8
+- [deep_fpga_RTRG.md](../deep_fpga_RTRG.md) — RTRG architecture; X/Y plane aggregation and SerDes uplink format
+- [260E_trigger_scheme.md](../260E_trigger_scheme.md) — trigger scheme context; RTRG→MTRG data path

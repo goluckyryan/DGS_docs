@@ -205,4 +205,10 @@ WORD_COUNT is initially set to 0x10 (16) in IDLE/PREAMBLE states (decoded as a d
 
 The MTRG has 8 Router inputs. Each has one `mt_pipeline` instance, giving 8 × 8 = 64 digitizer data lanes available to the trigger algorithms. The `GROUP_ENERGY_SUM` from each Router is an intermediate step toward the global energy sum used by algorithms like `calc_total_sum`.
 
-See also: `MTRG_calc_total_sum.md`, `MTRG_trig_algo_support.md`, `MTRG_mstr_mach.md`
+## See Also
+
+- [MTRG_calc_total_sum.md](MTRG_calc_total_sum.md) — downstream aggregator of per-Router GROUP_ENERGY_SUM / RTR_SUM_OF_X/Y
+- [MTRG_trig_algo_support.md](MTRG_trig_algo_support.md) — trigger algorithm support logic used in pipeline processing
+- [MTRG_mstr_mach.md](MTRG_mstr_mach.md) — Master Trigger state machine that governs SERDES framing
+- [MTRG_mt_input_channel.md](MTRG_mt_input_channel.md) — individual digitizer input channel (instantiated by this pipeline)
+- [deep_fpga_MTRG_MAIN.md](../deep_fpga_MTRG_MAIN.md) — MTRG top-level architecture and SERDES link format

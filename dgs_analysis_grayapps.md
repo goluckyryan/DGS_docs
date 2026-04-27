@@ -11,6 +11,18 @@ Stability: C2 - Active / semi-stable
 
 ---
 
+## Table of Contents
+
+- [GrayCAL](#graycal)
+  - [Core Modules](#core-modules)
+  - [GrayCAL GUI](#graycal-gui--main_windowpy)
+  - [polezero_dialog.py — Pole-Zero Extraction GUI Dialog](#polezero_dialogpy--pole-zero-extraction-gui-dialog)
+- [GrayMAN — Gamma-Ray MultiPeak Analyzer Network](#grayman--gamma-ray-multipeak-analyzer-network)
+- [grayfit — Shared Fitting Library](#grayfit--shared-fitting-library)
+- [Cross-References](#cross-references)
+
+---
+
 ## GrayCAL
 
 **Purpose:** Python GUI toolkit for gamma-ray energy calibration of HPGe detectors. Written by M.P. Carpenter (mpcarp19). Requires Python 3.13+.

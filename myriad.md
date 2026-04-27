@@ -10,6 +10,7 @@ Source: `DGS_tools_pack/FPGA/others/MyRIAD/`
 
 - [Overview](#overview)
 - [FPGA Structure](#fpga-structure)
+- [VME FPGA Register Map](#vme-fpga-register-map)
 - [MAIN FPGA Source Files](#main-fpga-source-files)
 - [Firmware Command Formats (Generic)](#firmware-command-formats-generic)
 - [Hardware I/O (MAIN FPGA Top Level)](#hardware-io-main-fpga-top-level)
@@ -22,6 +23,11 @@ Source: `DGS_tools_pack/FPGA/others/MyRIAD/`
 - [TTCL Trigger Interface](#ttcl-trigger-interface)
 - [GITMO (Gammasphere Interface to Trigger Module)](#gitmo-gammasphere-interface-to-trigger-module)
 - [FIFO Data Write State Machine](#fifo-data-write-state-machine)
+- [MAIN FPGA Sub-Module Deep Dives](#main-fpga-sub-module-deep-dives)
+  - [mstr_mach.vhd — MyRIAD Master State Machine](#mstr_machvhd--myriad-master-state-machine-968-lines)
+  - [SERDES_TX_MACH.vhd — SERDES Transmit State Machine](#serdes_tx_machvhd--serdes-transmit-state-machine-258-lines)
+  - [NIM_Delay.vhd — NIM Delay Line](#nim_delayvhd--nim-delay-line-97-lines)
+  - [DCBAL_in.vhd — DC-Balance Input Decoder](#dcbal_invhd--dc-balance-input-decoder--clock-domain-crossing-147-lines)
 - [Diagnostic / Debug Features](#diagnostic--debug-features)
 - [Cross-References](#cross-references)
 
@@ -57,6 +63,43 @@ MyRIAD has **two FPGAs**:
 - `configuration_controller.vhd` — configuration FSM
 - `register_block.vhd` — register interface
 - `myr reg notes.txt` — hardware register bit definitions (see Register Map below)
+
+---
+
+## VME FPGA Register Map
+
+_Source: `FPGA/others/MyRIAD/VME_FPGA/Source/register_block.vhd`. Code-read 2026-04-27._
+
+**Firmware:** `code_revision = 0x0F16` (type F = VME FPGA, major=1, minor=6; PCB rev 0 = proto); `code_date = 0x0531` (May 31, 2016 — last ILA touch). ✅ verified 2026-04-27 — `register_block.vhd:L83-85`
+
+All registers are 16-bit, accessed at A32/D16. The VME FPGA acts as a gateway to the MAIN FPGA via the external bus controller.
+
+| Address | R/W | Description |
+|---------|-----|-------------|
+| 0x0900 | R/W | `fpga_ctrl_reg` — control register driven to MAIN FPGA |
+| 0x0902 | R | `fpga_status_register` — status read-back from MAIN FPGA (read-only) |
+| 0x0904 | R | `aux_status` — auxiliary status from MAIN FPGA (read-only) |
+| 0x0906 | W | Config request/ack: bit 0 = config_request (loads 8-cycle pulse), bit 1 = config_done_ack |
+| 0x0908 | R/W | Flash VPEN control: bit 4 = flash_vpen (enable flash write voltage) |
+| 0x090A | R/W | `config_start_low` — low 16 bits of FPGA config start address |
+| 0x090C | R/W | `config_start_high` — bits [23:16] of config start address (upper 8 bits of VME data used) |
+| 0x090E | R/W | `config_stop_low` — low 16 bits of FPGA config stop address |
+| 0x0910 | R/W | `config_stop_high` — bits [23:16] of config stop address |
+| 0x0916 | R | Returns 0x0916 (self-identifying register, read-only) |
+| 0x0918 | R/W | `aux_rw_reg0` — scratch register (default 0x0000) |
+| 0x091A | R/W | `aux_rw_reg1` — scratch register (default 0x1111) |
+| 0x091C | R/W | `aux_rw_reg2` — scratch register (default 0x2222) |
+| 0x091E | R/W | `aux_rw_reg3` — scratch register (default 0x3333) |
+| 0x0924 | R | `code_revision` = 0x0F16 (firmware type/revision, read-only) |
+| 0x0928 | R | `code_date` = 0x0531 (firmware build date, read-only) |
+| 0x0980 | R/W | Flash address [15:0] |
+| 0x0982 | R/W | Flash address [23:16] (bits [7:0] of VME data) |
+| 0x0984 | W | Trigger flash read/write (fixed address) — blocks until flash_ack |
+| 0x0986 | W | Trigger flash read/write (auto-increment address) — blocks until flash_ack |
+
+**Config stop defaults:** `config_stop_high=0x0007`, `config_stop_low=0x0000` → stop address 0x070000.  
+Reference bit-stream sizes (VHDL comment): XC3S1000 = 0x625F8 bytes, XC3S5000 = 0x195070 bytes, XC4VLX80 = 0x2C6C90 bytes.  
+✅ verified 2026-04-27 — `register_block.vhd:L120-135` (reset defaults), `L161-280` (read/write decoder)
 
 ---
 
@@ -273,11 +316,252 @@ MyRIAD receives TTCL (Trigger, Timestamp, Command Link) messages from the DGS ma
 
 ## GITMO (Gammasphere Interface to Trigger Module)
 
+_Source: `FPGA/others/MyRIAD/MAIN_FPGA/Source/GITMO_TOP.vhd` (795 lines) + `GITMO_RCV_MACH.vhd` (372 lines). Code-read 2026-04-27._
+
 `GITMO_TOP.vhd` implements a historical adapter role:
-- Collects clock and trigger data from an **analog Gammasphere Master Trigger crate**
+- Collects clock and trigger data from an **analog Gammasphere Master Trigger crate** via the VXI backplane
 - Packs this into the DGS SERDES data stream for the Digital Gammasphere Master Trigger
 - Bridges legacy GS analog trigger system to digital DGS infrastructure
-- Has same dual-FIFO interface (FIFO A + FIFO B) as MyRIAD main FPGA
+- Has same dual-FIFO interface (FIFO A + FIFO B) as MyRIAD main FPGA (but FIFOs are driven to constant 0 — unused in GITMO)
+- Author: John T. Anderson (ANL)
+
+### VXI Signal Sources (GITMO)
+
+The GITMO sits in a VXI crate and receives analog Gammasphere backplane signals:
+
+| Signal | VXI source | Description |
+|--------|-----------|-------------|
+| `TRIG0_FROM_VXI` | VXI ZECLTRIG0 | Gammasphere master trigger (ECL) |
+| `VXI_RDY_BSY_IN_T_pin` | VXI backplane | ADC conversion busy (active LOW) |
+| `TTLTRIG_pin[0]` | VXI TTLTRIG0 | GS Run active |
+| `TTLTRIG_pin[1]` | VXI TTLTRIG1 | Token Busy |
+| `TTLTRIG_pin[2]` | VXI TTLTRIG2 | EOE — End of Event (abort trigger) |
+| `NIM_IN_pin[7:0]` | Front panel NIM | 8 NIM inputs (arbitrary use) |
+| `ECL_IN_pin[15:8]` | Front panel ECL | ECL inputs (receiver-only; driver chips U6/U10 removed) |
+| `CLOCK_10_pin` | VXI | 10 MHz VXI reference clock |
+| `CLOCK_100_pin` | VXI / ICS582 | Actually 50 MHz from ICS582 PLL; DCM derives 50 MHz master clock |
+
+**ECL bus note:** GITMO has an unusual schematic error where bits 11–8 and 15–12 on the ECL connector are cross-wired through the receiver chip (U3/U5 now removed). Driver side (bits 7..0) is correct. Receiver chips U6/U10 are also not installed — bits 15..8 are receive-only. UCF pins are swapped to correct the connector bit order. ✅ verified 2026-04-27 — `GITMO_TOP.vhd:L160-213` (extensive comments + VHDL port declarations)
+
+### Clock Architecture (GITMO)
+
+- VXI `CLOCK_100_pin` → `IBUFG` → DCM (`GITMO_DCMS`) → **50 MHz system clock** (despite pin name, the ICS582 chip outputs 50 MHz) ✅ verified 2026-04-27 — `GITMO_DCMS` component instantiation comment: `--100MHz VXI clock pin is actually 50MHz from the ICS582`
+- VXI `CLOCK_10_pin` → `IBUFG` → 10 MHz clock (drives LED blinker, SYNC pulse generator)
+- SERDES TCLK: ICS502 PLL driven from `CLOCK_10_pin` (10 MHz reference). Multiplier: S1=0, S0=1 → ×5 = **50 MHz SERDES transmit clock** ✅ verified 2026-04-27 — `GITMO_TOP.vhd:L786-790` (TCLK_S0/S1 static assignments, mux table comments)
+- CLOCK_SEL_pin driven to '1' → selects local oscillator (INA) for MAIN_FPGA_MACH_CLK, not SERDES RCLK ✅ verified 2026-04-27 — `GITMO_TOP.vhd:L792-794`
+
+### SERDES Operation (GITMO)
+
+- **SERDES_SYNC_pin forced to '0'**: originally conditionally asserted when SERDES unlocked, changed 2011-10-26 due to crosstalk issue — GITMO now always transmits, MTRG transmitter is kept off ✅ verified 2026-04-27 — `GITMO_TOP.vhd:L768-775` (comment: "When the Master Trigger sends data, causing LOCK* to be asserted in the GITMO, then the data received by the Master is corrupted")
+- **SERDES_RPWRDN / TPWRDN = '1'**: both powered down — SERDES used but power-down pins held asserted (likely inverted logic or chip in use with this config) ✅ verified 2026-04-27 — `GITMO_TOP.vhd:L762-763`
+- **SERDES TX data:** `SERDES_TX_pin[17:0] = '0' & COMMAND_OUT[15:0] & '0'` — 16-bit command word zero-padded at MSB and LSB ✅ verified 2026-04-27 — `GITMO_TOP.vhd:L608`
+- **Trigger glitch filter:** `TRIG0_FROM_VXI_pin` passed through 2-cycle pipeline at 50 MHz → `SAMP_TRIG0 = pipe1 AND pipe2` — requires trigger to be HIGH for ≥40 ns (2 clocks). Eliminates glitches seen on VXI backplane. ✅ verified 2026-04-27 — `GITMO_TOP.vhd:L726-739`
+
+### SYNC Pulse Generator
+
+8-bit counter at 10 MHz → asserts `SYNC_EQUIVALENT` for 1 cycle at count 0x12, clears at 0x13, wraps at 0x13 → **2.0 µs sync pulse** (matches DGS 20-frame TTCL cycle). ✅ verified 2026-04-27 — `GITMO_TOP.vhd:L706-725` (count 0x12=18, 0x13=19 → 20 clocks × 100 ns = 2 µs)
+
+### NIM Output Monitor Assignments
+
+| NIM OUT pin | Signal |
+|-------------|--------|
+| NIM_OUT[7] | NON_CLOCK_10MHZ (VXI 10 MHz) |
+| NIM_OUT[6] | SAMP_TRIG0 (glitch-filtered GS trigger) |
+| NIM_OUT[5] | SYNC_EQUIVALENT (2 µs sync pulse) |
+| NIM_OUT[4] | ~TTLTRIG[2] (inverted EOE) |
+| NIM_OUT[3] | ~TTLTRIG[1] (inverted Token Busy) |
+| NIM_OUT[2] | ~TTLTRIG[0] (inverted GS Run) |
+| NIM_OUT[1] | TRIG0_FROM_VXI_pin (raw trigger, unfiltered) |
+| NIM_OUT[0] | VXI_RDY_BSY_IN_T_pin |
+
+✅ verified 2026-04-27 — `GITMO_TOP.vhd:L599-609`
+
+### LED Assignments (GITMO front panel)
+
+| LED | Input signal |
+|-----|-------------|
+| LED5 | SAMP_TRIG0 (glitch-filtered GS trigger) |
+| LED6 | VXI_RDY_BSY_IN_T_pin |
+| LED7 | TTLTRIG[1] (Token Busy) |
+| LED8 | TTLTRIG[0] (GS Run) |
+| LED9 | SERDES_LOCK_pin (active LOW = locked) |
+| SERDES LED0 (RJ45) | SERDES lock (on when locked) |
+| SERDES LED1 (RJ45) | DCM_STATUS[8] (DCM locked) |
+
+✅ verified 2026-04-27 — `GITMO_TOP.vhd:L502-519, L612-615`
+
+---
+
+### `GITMO_RCV_MACH.vhd` — GITMO Receive State Machine (372 lines)
+
+Implemented in the **DGS Master Trigger** (MTRG) `MAIN_FPGA`, not in the GITMO module itself. Locks onto the SERDES data stream from the GITMO (Link L) and extracts GS trigger signals. Author: John T. Anderson, ANL, 2011-09-03.
+
+**Purpose:** Receives the continuous 5-word-per-frame GITMO uplink and decodes Gammasphere trigger/status bits into MTRG-usable signals.
+
+**Port interface:**
+- `LINKL_RCLK` — SERDES receive clock (drives the entire machine)
+- `LINKL_RX[15:0]` — raw SERDES data from GITMO
+- `LINKL_LOCK` — SERDES lock (active LOW)
+- Outputs: `TRIG0_FROM_VXI`, `RDY_BSY_FROM_VXI`, `GS_EOE`, `GS_TOKEN_BUSY`, `GS_RUN`, `NIM_STAT[8:1]`, `ECL_STAT[8:1]`, `FERA_STAT[8:1]`, `MACHINE_LOCKED`, `CLK_10_FLAG`
+- Error flags: `FRAME_COUNT_ERROR`, `EOF_ERROR`
+
+**GITMO word format (all 5 words per frame):**
+
+| Bits | Meaning |
+|------|---------|
+| bit 15 | 10 MHz clock flag |
+| bits 14–13 | Two-bit sync ordinal (fixed = "00" in current GITMO) |
+| bit 12 | TRIG0_FROM_VXI — Gammasphere master trigger (ECL ZECLTRIG0) |
+| bit 11 | RDY_BSY_FROM_VXI — ADC conversion busy |
+| bit 10 | GS_EOE — TTLTRIG2: End of Event / abort |
+| bit 9 | GS_TOKEN_BUSY — TTLTRIG1: token running |
+| bit 8 | GS_RUN — TTLTRIG0: GS run active |
+| bits 7–0 | Payload, rotated by word (see below) |
+
+**Per-word payload (bits 7–0):**
+
+| Word | Bits 7–0 |
+|------|----------|
+| W01 (zero-ordinal) | NIM inputs |
+| W02 | ECL inputs |
+| W03 | FERA control states |
+| W04 | Frame counter (1–20) |
+| W05 | 0xA5 (sync marker) |
+
+**Lock sequence (two-phase):**
+1. **PRELOCK1:** wait for `LINKL_LOCK = '0'` (active LOW = SERDES chip locked) → advance to PRELOCK2
+2. **PRELOCK2:** scan for `bits[14:13]="00"` AND `bits[7:0]=0xA5` (W05 sync word) → enter W01
+3. **W01–W05:** validate `bits[14:13]="00"` on each word; abort to PRELOCK1 if check fails
+4. **MACHINE_LOCKED** asserted from W01 onward; cleared on any framing error
+
+**Frame counter validation (W04):**
+- Tracks expected consecutive frame count (1–20 wrap)
+- First good W04 seeds the counter; subsequent frames compared
+- Mismatch → `FRAME_COUNT_ERROR=1`, counter invalidated → re-seeds on next W04
+- Counter wraps: 20 → 1 (not 0) ✅ verified 2026-04-27 — `GITMO_RCV_MACH.vhd:L308,L323`
+
+**Key notes:**
+- All trigger bits (`TRIG0_FROM_VXI`, `RDY_BSY_FROM_VXI`, GS_EOE/TOKEN_BUSY/RUN) are updated on **every word** W01–W05, not only on the word that carries the corresponding payload. Only bits 7–0 are word-specific.
+- `EOF_ERROR` set when W05 does not contain 0xA5 → frame sync lost
+- State machine runs on `LINKL_RCLK` (SERDES chip clock), isolated from board master clock
+
+✅ verified 2026-04-27 — `GITMO_RCV_MACH.vhd` (372 lines, read in full)
+
+---
+
+## MAIN FPGA Sub-Module Deep Dives
+
+_Source: `FPGA/others/MyRIAD/MAIN_FPGA/Source/`. Code-read 2026-04-27._
+
+### `mstr_mach.vhd` — MyRIAD Master State Machine (968 lines)
+
+A **satellite master trigger state machine** that generates the full 20-frame TTCL command sequence. MyRIAD-specific adaptation of the standard DGS `mstr_mach.vhd` — same frame structure, with additions for Frame 17 (Auxiliary Detector) and satellite clock-source synchronization.
+
+**Port highlights:**
+- `CLK` (50 MHz), `RST`, `INIT_FLAG` (holds machine in init state via VME)
+- `SYS_TIME[47:0]` — 48-bit master timestamp; `ROLLOVER` — timestamp rollover flag
+- `IMPERATIVE_FLAG_REQ` / `LATCHED_IMPERATIVE_FLAG` output
+- Trigger Decision FIFO: `TRIG_DES_FIFO_RE/DATA/EMPTY`, `TRIG_COLLECT_FLAG/RST`
+- Frame command buses: `FRAME_12/14/15_REQ_FLAG`, `_SENT_FLAG`, `_DATA` (JTA_5X16_Array each)
+- Async command FIFO (Frame 15): `ASYNC_CMD_FLAG/FIFO_RE/FIFO_DATA/FIFO_EMPTY`
+- Aux command FIFO (Frame 17): `AUX_CMD_FLAG/FIFO_RE/FIFO_DATA/FIFO_EMPTY`
+- Clock source sync: `CLOCK_SOURCE` flag + `RECEIVE_MACH_SYNC_PULSE`
+- Monitor FIFO: `MSM_MON_FIFO_SELECT_REG[15:0]`, `MSM_MON_FIFO_WE`, `MSM_MON_DATA`
+- `COMMAND_OUT[15:0]` to DC-balance entity
+
+**20-frame map (5 words/frame at 50 MHz = 2 µs cycle):**
+
+| Frame | Name | Content |
+|-------|------|---------|
+| F01 | SYNC | Cmd=0x01 (0x81 if imperative); 48-bit timestamp; rollover→arg=0xFF |
+| F02 | Debug/Null | Null (0xAAAA); pre-fetches trigger-decision FIFO (W4/W5) |
+| F03–F09 | Trigger Decision ×7 | Up to 7 trigger decisions from TRIG_DES FIFO; null if empty |
+| F10 | Trigger Decision | 8th trigger decision slot (F09/F10 boundary handling) |
+| F11 | Spare | Null; TRIG_COLLECT_RST at W1; arms TRIG_COLLECT_FLAG for F12/W1 |
+| F12 | Internal Control | Router counter resets (W2), FIFO resets (W3), Data Generator resets (W4) |
+| F13 | Demand Slow Data | Fixed: 0x40FB / A5 / 5A / A5 / A5 |
+| F14 | Inter-Trigger Cmd | Digitizer Tester control (cmd/TS compare/pulse count+delay); pipelines async FIFO for F15 |
+| F15 | Front End Cmd | Synchronous (FRAME_15_DATA) or async FIFO drain (5 words); null if neither |
+| F16 | Spare | Null; pre-fetches first word of aux FIFO at W4/W5 |
+| F17 | Auxiliary Detector | Aux FIFO drain (5 words for ancillary detector commands) |
+| F18–F19 | Spare | Null; F19/W5 arms ASYNC_REQUEST and AUX_REQUEST synchronously |
+| F20 | End of Cycle | 0xFFFF / 0x0000 / 0xFFFF / 0x0000 / 0x5555 |
+
+**Key behavioral details:**
+- **Imperative SYNC:** Asynchronously latched on `IMPERATIVE_FLAG_REQ`; released synchronously at F01/W5 when input is also 0. Holds timestamp counter in reset → next cycle restarts at 0.
+- **Timestamp capture:** Captured at F20/W4 (end-of-cycle) → embedded in next F01/W2-4.
+- **Trigger Decision FIFO pipelining:** RE pre-asserted two clocks early (F02/W4+W5). Uses `LATCHED_TRIG_DES_FIFO_EMPTY` (not live signal) to avoid missing last word.
+- **Async command sync (two-flop):** `ASYNC_CMD_FLAG` (1-tick) → `ASYNC_CMD_REQUEST_INT` (immediate) → `ASYNC_CMD_REQUEST` at F19/W5 (prevents partial-frame sends) → cleared by `ASYNC_CMD_ACK` at end of F15.
+- **AUX command sync:** Same two-flop pattern for Frame 17; pre-fetch begins at F16/W4.
+- **Frame 12/14/15 retiming:** Request flags latched at W4 of preceding frame (F11, F13, F14) to prevent mid-frame switching.
+- **Clock source mode:** `CLOCK_SOURCE=0` (remote/satellite) → F20→F01 advance only on `RECEIVE_MACH_SYNC_PULSE`; `CLOCK_SOURCE=1` (local) → advances freely.
+- **Monitor FIFO select:** Bit 8 = capture everything; other bits select F01/SYNC, F20/EOC, frames-with-triggers, demand-slow, async events, aux events, non-null F12/14/15. Bit 15 selects data source: 0=COMMAND_OUT, 1=TRIG_DES_FIFO_DATA.
+
+✅ verified 2026-04-27 — `mstr_mach.vhd` (968 lines, read in full)
+
+---
+
+### `SERDES_TX_MACH.vhd` — SERDES Transmit State Machine (258 lines)
+
+Transmits MyRIAD NIM/ECL/trigger status upstream to the DGS Master Trigger at 50 MHz. **Separate** from the main TTCL command stream — carries MyRIAD's own front-panel input state.
+
+**Structure:** 21 outer frame states (F00=wait-for-sync, F01–F20 cycling); 6 inner word states (W00=reset emits 0x0BAD, W01–W05=5 data words/frame).
+
+**Word format (all words, at 50 MHz):**
+```
+Bit 15:     GITMO 10 MHz flag (always 0 here; '1' only on W01)
+Bits 14-13: Two-bit sync ordinal (always "00" in this implementation)
+Bit 12:     LATCHED_RAW_TRIGGER (any aux detector trigger)
+Bit 11:     LATCHED_GATED_TRIGGER (gated coincidence trigger)
+Bits 10-8:  3-bit word index (000-100 for W01-W05)
+Bits 7-0:   Payload rotated by word:
+              W01: NIM_IN[8:1]
+              W02: ECL_IN[8:1]
+              W03: FERA_STAT[8:1]
+              W04: FRAME_COUNT[7:0] (current outer frame number)
+              W05: 0xA5
+```
+
+**Trigger latching:** `RAW_TRIGGER`/`GATED_TRIGGER` from 100 MHz domain. Set asynchronously; cleared synchronously on next 50 MHz clock after capture — guarantees at least one 50 MHz frame captures the trigger even if pulse < 20 ns. ✅ verified 2026-04-27 — `SERDES_TX_MACH.vhd` (258 lines, read in full)
+
+---
+
+### `NIM_Delay.vhd` — NIM Delay Line (97 lines)
+
+Entity `NIM_DELAY_LINE`: software-configurable digital delay for 2 NIM channels via on-chip RAM shift register.
+
+- 16-bit write address `NIM_WR_ADDR` increments every clock
+- Read address per channel: `NIM_RD_ADDR = NIM_WR_ADDR - reg_NIM_delay`
+- 65536-entry shift register per channel (65536-bit VHDL signal → BRAM/distributed RAM)
+- Delay resolution: 1 cycle = **20 ns at 50 MHz**
+- Maximum delay: 65535 cycles = **1.31071 ms**
+- Pipeline overhead: 2 extra cycles (input latch + output latch)
+- Reset: only address counters cleared; RAM contents/output latches intentionally not reset (outputs indeterminate until first write-read pair)
+
+✅ verified 2026-04-27 — `NIM_Delay.vhd` (97 lines, read in full)
+
+---
+
+### `DCBAL_in.vhd` — DC-Balance Input Decoder + Clock Domain Crossing (147 lines)
+
+Entity `DCBAL_IN` (J.T. Anderson, ANL, Dec 2006): decodes 18-bit SERDES input (DC-balance protocol) and crosses from SERDES receive clock (`RCLK`) to board master clock (`MCLK`).
+
+**DC-balance decode:**
+- `D_IN[0]=0` → data bits [16:1] pass through as-is
+- `D_IN[0]=1` → bits [16:1] were inverted for DC balance → restore by inverting
+- `ENABLE=0` bypasses DC restore; `ENABLE=1` performs decode
+- IOB latch (`LATCHED_D_IN`) added 2013-10-22 to force input flop to IOB for timing
+
+**Clock-domain crossing:** `fifo_16x1023_async` (16-bit × 1023-deep). WEN always '1' (continuous write on RCLK); REN gated during reset.
+
+**Channel reset (`CHAN_RST`) — 3-bit countdown:**
+- `CHAN_RST` (1-tick from VME pulsed register) → loads `reset_count` to 7
+- Counts 6→5→4: assert `reset_request`, gate off FIFO RE
+- Count 0: clear request, re-enable RE
+- `reset_request` crosses MCLK→RCLK via single FF (`RCLK_SAMP_RESET`); RCLK flop asynchronously clears MCLK's `reset_request` after 1 RCLK pulse
+- Power-up: `reset_count` initializes to "111" → reset runs at startup (added 2013-12-09)
+
+**`DCBAL_in_nofifo.vhd`:** Same decode logic without the async FIFO — no clock-domain crossing. ✅ verified 2026-04-27 — `DCBAL_in.vhd` (147 lines, read in full)
 
 ---
 

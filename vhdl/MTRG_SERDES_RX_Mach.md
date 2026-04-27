@@ -9,6 +9,35 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Generic Parameter](#generic-parameter)
+- [Frame Structure (100 words per cycle)](#frame-structure-100-words-per-cycle)
+- [Lock Acquisition (Prelock State Machine)](#lock-acquisition-prelock-state-machine)
+- [Lock Maintenance (Stringent Lock)](#lock-maintenance-stringent-lock)
+- [Data Pattern Checking (DCHECK Process)](#data-pattern-checking-dcheck-process)
+- [Frame Decoders](#frame-decoders)
+  - [Frame 1 — Sync / Imperative Sync](#frame-1--sync--imperative-sync)
+  - [Frame 2 — Debug/Monitor](#frame-2--debugmonitor)
+  - [Frames 3–10 — Trigger Decision Frames](#frames-310--trigger-decision-frames)
+  - [Frame 11 — Spare (Null)](#frame-11--spare-null)
+  - [Frame 12 — Router Internal Commands](#frame-12--router-internal-commands)
+  - [Frame 13 — Gretina Demand Slow Data](#frame-13--gretina-demand-slow-data)
+  - [Frame 14 — Router Internal Commands (MYRIAD / Digitizer Tester)](#frame-14--router-internal-commands-myriad--digitizer-tester)
+  - [Frame 15 — GRETINA Asynchronous Commands](#frame-15--gretina-asynchronous-commands)
+  - [Frame 16 — DGS Synchronous System Capture](#frame-16--dgs-synchronous-system-capture)
+  - [Frame 17 — Auxiliary Detector Commands](#frame-17--auxiliary-detector-commands)
+  - [Frames 18 & 19 — Spare Null Frames](#frames-18--19--spare-null-frames)
+  - [Frame 20 — End-of-Cycle](#frame-20--end-of-cycle)
+- [VETO_EVENT Output](#veto_event-output)
+- [Propagation Control Register Bit Map](#propagation-control-register-bit-map)
+- [Key Outputs Summary](#key-outputs-summary)
+- [Implementation Notes](#implementation-notes)
+- [See Also](#see-also)
+
+---
+
 ## Purpose
 
 `SERDES_RX_Mach` is the SERDES reception state machine instantiated inside each MTRG link receiver. It deserializes the 20-frame, 100-word (16-bit per word) control data stream arriving from the Master Trigger (or Gretina master), validates lock, decodes all defined command frames, and produces decoded flag outputs for use by the rest of the MTRG firmware.

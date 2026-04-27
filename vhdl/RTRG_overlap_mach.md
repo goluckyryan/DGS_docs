@@ -3,6 +3,17 @@ _Source: ~/FPGA_svn2git/RTRG_git/MAIN_FPGA/Source/overlap_mach.vhd_
 _Summarized: 2026-04-15_
 Stability: C3 - Structural / stable
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Ports](#ports)
+- [Key Logic / State Machine](#key-logic--state-machine)
+  - [FIND_EDGES process](#find_edges-process)
+  - [OVERLAP_MACHINE — 4 states](#overlap_machine--4-states)
+- [Key Constants / Parameters](#key-constants--parameters)
+- [Connections to Other Modules](#connections-to-other-modules)
+- [See Also](#see-also)
+
 ## Purpose
 Generic two-signal coincidence detector. Given any two level signals (SIG_A, SIG_B), outputs a one-clock-tick `OVERLAP_OCCURRED` pulse if both signal rising edges arrive within a programmable time window (OVERLAP_DELAY). Symmetric: either signal may arrive first. This is a simpler/more generic version of the same algorithm embedded in disc_mach.vhd — disc_mach also classifies the result as CLEAN/DIRTY/BGO-only, whereas this module only answers "did they overlap?" (yes/no). ✅ verified 2026-04-17 — `overlap_mach.vhd` entity `overlap_machine`
 
@@ -54,3 +65,9 @@ Pipelines SIG_A and SIG_B one clock, detects rising edges → `SIG_A_EDGE`, `SIG
 - `disc_mach.vhd` has the same coincidence logic **inlined** — it does not import or instantiate this module. The overlap-detection algorithm was implemented twice: once here as a reusable component, and once embedded directly in `disc_mach.vhd`.
 - Functionally related to but separate from `discriminator_mach` (disc_mach.vhd), which has the same overlap-detection core but adds CLEAN/DIRTY/BGO-only classification logic.
 - Uses `WORK.trigger_comp_defs` package for component declarations ✅ verified 2026-04-17 — `overlap_mach.vhd:L7`
+
+## See Also
+
+- [RTRG_disc_mach.md](RTRG_disc_mach.md) — the module that implements the same coincidence logic inline (overlap_mach is never instantiated)
+- [RTRG_chan_in.md](RTRG_chan_in.md) — top-level RTRG channel processor; instantiates disc_mach, not this module
+- [deep_fpga_RTRG.md](../deep_fpga_RTRG.md) — RTRG architecture overview

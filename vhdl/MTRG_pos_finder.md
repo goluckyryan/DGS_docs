@@ -7,6 +7,21 @@ Lines: 605
 
 ---
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Entity](#entity)
+- [Architecture](#architecture)
+  - [ROM Selection (Generic)](#rom-selection-generic)
+  - [Output Packing](#output-packing)
+  - [Registered Output (1-cycle latency)](#registered-output-1-cycle-latency)
+- [How It Fits Into the TDC Pipeline](#how-it-fits-into-the-tdc-pipeline)
+- [Overlap / Redundancy Design Note](#overlap--redundancy-design-note)
+- [Companion Component Declaration](#companion-component-declaration)
+- [See Also](#see-also)
+
+---
+
 ## Purpose
 
 `pos_finder` is a single pipelined stage of the DGS TDC (Time-to-Digital Converter) thermometer-code decoder. It converts an 11- or 12-bit **slice** of presumably thermometer-coded TDC data into the binary position of where the 0→1 (or 1→0) edge transition occurred within that slice. Multiple `pos_finder` instances are pipelined in `vernier_pos_finder` to decode the full 64-bit TDC word in segments.

@@ -204,8 +204,8 @@ Parameters that have no VME address (soft controls or staging regs) appear in ot
 
 ### MTRG Parameter Summary (`asynMTrigParams.c`)
 
-- **Lines:** 1,111 (1,111 = 369 pairs + comments + spacing)
-- **Parameters:** 369 (`createParam()` calls = 369)
+- **Lines:** 1,111 (1,111 = 369 pairs + comments + spacing) ✅ verified 2026-04-26 — `wc -l asynMTrigParams.c = 1111`
+- **Parameters:** 369 (`createParam()` calls = 369) ✅ verified 2026-04-26 — `grep -c createParam asynMTrigParams.c = 369`
 - **`setAddress()` calls:** 369 (every param has a VME address)
 - Covers all MTRG VME registers (mirrors `MTrigRegisters.template` and the MTRG VHDL register map in `MTRG_registers.md`)
 
@@ -230,8 +230,8 @@ Key parameter groups (sampled):
 
 ### RTRG Parameter Summary (`asynRTrigParams.c`)
 
-- **Lines:** 568
-- **Parameters:** 188 (`createParam()` calls)
+- **Lines:** 568 ✅ verified 2026-04-26 — `wc -l asynRTrigParams.c = 568`
+- **Parameters:** 188 (`createParam()` calls) ✅ verified 2026-04-26 — `grep -c createParam asynRTrigParams.c = 188`
 - **`setAddress()` calls:** 188
 - Covers all RTRG VME registers (mirrors `RTrigRegisters.template`)
 
@@ -240,6 +240,8 @@ Key parameter groups (sampled):
 ## Firmware Type Codes
 
 Read from register offset **0x15C** (`Code_Revision`) bits `[11:8]`:
+
+✅ verified 2026-04-26 — `asynTrigMasterDriver.cpp:L125-140` (comment block: type list last updated September 2012)
 
 | ftype | Board Type | Accepted by |
 |-------|-----------|-------------|
@@ -260,7 +262,7 @@ Read from register offset **0x15C** (`Code_Revision`) bits `[11:8]`:
 | E | (unused) | — |
 | F | VME FPGA | — |
 
-Bits `[7:4]` = major revision ordinal; bits `[3:0]` = minor revision ordinal.
+Bits `[7:4]` = major revision ordinal; bits `[3:0]` = minor revision ordinal. ✅ verified 2026-04-26 — `asynTrigMasterDriver.cpp:L141-142`
 
 **Note:** The Master driver `devAsynTrigMasterCardInit` accepts both type 4 (DGS Master) and type 6 (DGS Router), but sets `board_type = BrdType_DGS_MTRIG` regardless. The Router driver `devAsynTrigRouterCardInit` also accepts **both type 4 and type 6** (type 4 sets `router=0`, `mainOK=1`; type 6 sets `router=1`, `mainOK=1`). ✅ corrected 2026-04-26 — `asynTrigRouterDriver.cpp:L171-177` (`case 4: router=0, mainOK=1`; `case 6: router=1, mainOK=1`)
 

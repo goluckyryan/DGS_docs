@@ -11,6 +11,18 @@ Collection of utility/analysis scripts found in the DGS SVN and tools pack.
 
 ---
 
+## Table of Contents
+
+1. [NS_scripts (SVN: `DGS_SVN/dgs/NS_scripts/`)](#ns_scripts-svn-dgs_svndgsns_scripts)
+2. [Data0 Space Monitor (Cron)](#data0-space-monitor-cron)
+3. [slopebox_scripts (SVN: `DGS_SVN/dgs/slopebox_scripts/`)](#slopebox_scripts-svn-dgs_svndgsslopebox_scripts)
+4. [VXI_database (SVN: `DGS_SVN/dgs/VXI_database/`)](#vxi_database-svn-dgs_svndgsvxi_database)
+5. [Modernization Notes](#modernization-notes)
+6. [ANLDAQ GUI Helper Scripts (`ANLDAQ/gui/scripts/`)](#anldaq-gui-helper-scripts-anldaqguiscripts)
+7. [Cross-References](#cross-references)
+
+---
+
 ## NS_scripts (SVN: `DGS_SVN/dgs/NS_scripts/`)
 
 Scripts for BGO HV tuning and PV monitoring. Authored by NS (Nishiki Sensharma based on wiki edit history).

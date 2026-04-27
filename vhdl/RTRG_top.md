@@ -4,6 +4,20 @@ _Summarized: 2026-04-15_
 _Note: 3094-line file; summary covers trigger-chain sections only (SerDes init, clock management, VME bus, and diagnostic counter sections omitted)._
 Stability: C3 - Structural / stable
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Key Trigger-Chain Ports](#key-trigger-chain-ports)
+- [Key Logic / Data Flow](#key-logic--data-flow)
+  - [Uplink Path (Digitizers → Master Trigger)](#uplink-path-digitizers--master-trigger)
+  - [Downlink Path (Master Trigger → Digitizers)](#downlink-path-master-trigger--digitizers)
+  - [Coarse Ge Sum → CPLD Fast Multiplicity Trigger](#coarse-ge-sum--cpld-fast-multiplicity-trigger)
+  - [Throttle Handling](#throttle-handling)
+  - [Clock Architecture](#clock-architecture)
+- [Key Constants / Parameters](#key-constants--parameters)
+- [Connections to Other Modules](#connections-to-other-modules)
+- [See Also](#see-also)
+
 ## Purpose
 Top-level VHDL for the RTRG (Router Trigger) FPGA board. Wires together: the 8-channel data path (ROUTER_DATA_PATH), the master-trigger communications state machine (router_main_mach), throttle logic, downlink veto insertion, DC balance encoding for all 8 digitizer output links, and the CPLD coarse-Ge-sum interface. Entity name: `router_top`.
 
@@ -74,3 +88,11 @@ Top-level VHDL for the RTRG (Router Trigger) FPGA board. Wires together: the 8-c
 - **Sends to digitizers (via LINKA..LINKH_TX)**: Master trigger decisions + per-channel veto bitmaps
 - **Sends to CPLD (via SUMCOPY)**: 6-bit coarse Ge sum (DDR), VME address bit
 - **Receives from CPLD (FAST_STROBE)**: Fast trigger strobe for NIM output selection
+
+## See Also
+
+- [RTRG_router_data_path.md](RTRG_router_data_path.md) — main data path (U8); chan_in aggregation + uplink packing
+- [RTRG_support_modules.md](RTRG_support_modules.md) — shared component/package definitions used across RTRG
+- [deep_fpga_RTRG.md](../deep_fpga_RTRG.md) — RTRG architecture overview; CPLD/SUMCOPY DDR; VME register map
+- [260E_trigger_scheme.md](../260E_trigger_scheme.md) — RTRG role in the 260E trigger hierarchy; SUMCOPY→MTRG CPLD path
+- [MTRG_top.md](MTRG_top.md) — MTRG receives RTRG uplink data; trigger decision distribution

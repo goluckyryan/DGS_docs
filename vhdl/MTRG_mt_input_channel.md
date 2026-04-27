@@ -3,6 +3,19 @@ _Source: ~/FPGA_svn2git/MTRG_git/MAIN_FPGA/mt_input_channel.vhd_
 _Summarized: 2026-04-15_
 Stability: C3 - Structural / stable
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Ports](#ports)
+- [Key Logic / State Machine](#key-logic--state-machine)
+  - [U1 — DCBAL_IN](#u1--dcbal_in)
+  - [U2 — mt_pipeline](#u2--mt_pipeline)
+  - [Masking logic (maskblock, for i in 1 to 8)](#masking-logic-maskblock-for-i-in-1-to-8)
+  - [MULTIPLICITY extraction](#multiplicity-extraction)
+- [Key Constants / Parameters](#key-constants--parameters)
+- [Connections to Other Modules](#connections-to-other-modules)
+- [See Also](#see-also)
+
 ## Purpose
 Encapsulates one complete Master Trigger input block for one Router. Bundles DC-balance recovery (DCBAL_IN) and Router data stream parsing (mt_pipeline) into a single entity, applies channel masking, and exposes per-digitizer data plus aggregate status maps. Eight of these are instantiated (one per Router connection) in `eight_mt_channel.vhd`.
 
@@ -71,3 +84,10 @@ This extracts the top 4 bits of the recovered 16-bit Router word. Based on the R
 - **Receives**: SERDES data from one Router (via DC balance recovery)
 - **Sends upward**: MULTIPLICITY (→ eight_mt_channel → calc_total_sum), THROTTLE_REQUEST, status maps, CHANNEL_ID
 - **Instantiates**: DCBAL_IN (U1), mt_pipeline (U2)
+
+## See Also
+
+- [MTRG_eight_mt_channel.md](MTRG_eight_mt_channel.md) — instantiates 8× this module, one per Router
+- [MTRG_link_init_and_input_pipeline.md](MTRG_link_init_and_input_pipeline.md) — mt_pipeline internals (DC balance + data extraction)
+- [MTRG_calc_total_sum.md](MTRG_calc_total_sum.md) — downstream adder for global X/Y totals
+- [deep_fpga_MTRG_MAIN.md](../deep_fpga_MTRG_MAIN.md) — MTRG architecture; Router→MTRG SerDes data format

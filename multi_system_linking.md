@@ -7,6 +7,18 @@ Stability: C2 - Active / semi-stable
 
 ---
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Terminology](#terminology)
+3. [Clock Sharing Architecture](#clock-sharing-architecture)
+4. [SERDES Jitter Budget and Hop Limit](#serdes-jitter-budget-and-hop-limit)
+5. [Firmware Controls for Cross-System Links](#firmware-controls-for-cross-system-links)
+6. [Step-by-Step Recipe for Multi-System Linking](#step-by-step-recipe-for-multi-system-linking)
+7. [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 The DGS trigger hardware supports linking multiple independent DAQ systems together for **clock synchronization** and **trigger sharing**. Common use cases: DGS ↔ DFMA, DGS ↔ MyRIAD-hosted ancillary detectors (CHICO, Microball, ORRUBA), DGS ↔ Analog Gammasphere (via GITMO).
@@ -118,8 +130,11 @@ Links A–H (internal to the system) are controlled by `DEN_BUS[7:0]`/`REN_BUS[7
 
 - **GRAY** in the GUI = link is masked (disabled)
 - **YELLOW** = link is in use/valid
-- Both inbound data processing and outbound data sending are blocked when a link is masked.
+- Both inbound data processing and outbound data sending are blocked when a link is masked (see firmware note below).
 - Adjust ILM on links L, R, U of both systems before cross-linking.
+
+**ILM PVs:** ✅ verified 2026-04-26 — `MTrigUser.template:L32405-32516` — ILM PVs exist for A–H (bits 0–7) and L/R/U (bits 8–10) in `reg_INPUT_LINK_MASK` (`REG_800`).  
+**Firmware scope:** ✅ verified 2026-04-26 — `top.vhd:L2130` (`link_init` LINK_MASK port = `INPUT_LINK_MASK_REG(7 downto 0)` bits 0–7 only); `eight_mt_channel.vhd:L159` (`CHANNEL_MASK => INPUT_LINK_MASK_REG(i-1)` for i=1..8 = bits 0–7 only). **Bits 8–10 (ILM_L/R/U) are NOT connected to any FPGA masking logic in the 20180507 firmware** — `LINK_LRU_RX` does not accept an INPUT_LINK_MASK port. These bits may be software-only conventions (GUI state only) or may control logic not present in this firmware version.
 
 ### F1 Propagation (Clock)
 

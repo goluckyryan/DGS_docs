@@ -8,6 +8,26 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Port Summary](#port-summary)
+- [Frame-by-Frame Command Map](#frame-by-frame-command-map)
+- [Key Sub-Processes](#key-sub-processes)
+  - [Word/Frame Counter (WORD_COUNTER)](#wordframe-counter-word_counter)
+  - [Imperative Flag (IMPERATIVE_FLAG_PROC)](#imperative-flag-imperative_flag_proc)
+  - [Timestamp Capture (SYNC_CAPTURE_PROC)](#timestamp-capture-sync_capture_proc)
+  - [Async Command Sync (ASYNC_REQ_PROC)](#async-command-sync-async_req_proc)
+  - [Monitor FIFO Write Enable (MSM_MON_FIFO_WE)](#monitor-fifo-write-enable-msm_mon_fifo_we)
+  - [Monitor Capture Flag (MON_PROCX)](#monitor-capture-flag-mon_procx)
+- [FIFO Pipelining Detail (Trigger Decision FIFO)](#fifo-pipelining-detail-trigger-decision-fifo)
+- [SYSTEM_VETO_STATE Bit Layout (Frame 2 W3)](#system_veto_state-bit-layout-frame-2-w3)
+- [Relationship to Other Modules](#relationship-to-other-modules)
+- [Notable Design History](#notable-design-history)
+- [See Also](#see-also)
+
+---
+
 ## Overview
 
 `mstr_mach` is the **TTCL Master State Machine** inside the MTRG Main FPGA. It runs continuously at 50 MHz and emits the 20-frame, 5-word-per-frame command sequence defined by the Trigger Timing and Control Link (TTCL) specification. Everything downstream in the DGS system (RTRGs, DIGs) receives its timing and control from the output of this machine.
@@ -82,7 +102,7 @@ The machine emits four simultaneous outputs: `CMDout` (links A–H), `LCMDout` (
 | **11** | Spare | NULL frame (0xAAAA for words 1–4, filler for W5). Also asserts `TRIG_COLLECT_RST` at W1 to reset decision FIFO. |
 | **12** | Router / Data Generator Reset | Synchronous command frame for resetting Routers and DIGs. Words 1–5 carry `FRAME_12_DATA[1..5]` (nominally: 0x0001 reset command, Router counter resets, Router FIFO resets, DIG resets, spare). Nulled if `FRAME_12_REQ_FLAG` not set. `FRAME_12_SENT_FLAG` pulses at W4. Frame 12 also asserts `TRIG_COLLECT_FLAG` at W1, triggering the trigger collection machine. |
 | **13** | Demand Front-End Slow Data | Fixed pattern: W1=0x40FB (cmd byte 0x40), W2=0xA5A5, W3=0x5A5A, W4=0xA5A5, W5=0xA5A5. This causes all DIGs to upload their slow-data registers. ✅ verified 2026-04-24 — mstr_mach.vhd:L803-816 (W1=X"40FB"; W2=NULL_VALUE_A5; W3=NULL_VALUE_5A; W4=NULL_VALUE_A5; W5=NULL_VALUE_A5) |
-| **14** | Digitizer Tester / MγRIAD | Synchronous command frame for Digitizer Tester control (words 1–3: cmd, timestamp comparison, pulse-count/delay). W4: veto status bits on L/R (`ANY_TRIGGER_VETO[15] & REMOTE_MASTER_VETO[14]` | lower 14 bits of FRAME_14_DATA[4]). Added 2021-06-16. W5: spare / pipeline for Frame 15 async setup. |
+| **14** | Digitizer Tester / MγRIAD | Synchronous command frame for Digitizer Tester control (words 1–3: cmd, timestamp comparison, pulse-count/delay). W4: veto status bits on L/R (`ANY_TRIGGER_VETO[15] & REMOTE_MASTER_VETO[14]` | lower 14 bits of FRAME_14_DATA[4]); UCMDout gets plain FRAME_14_DATA[4] (no veto bits). Added 2021-06-16. W5: spare / pipeline for Frame 15 async setup. ✅ verified 2026-04-27 — mstr_mach.vhd:L876-886 (LCMDout/RCMDout: ANY_TRIGGER_VETO & REMOTE_MASTER_VETO & FRAME_14_DATA(4)(13 downto 0); UCMDout: FRAME_14_DATA(4) plain; date comment L839) |
 | **15** | Async Front-End Command (GRETINA) | If `ASYNC_CMD_REQUEST` is set (a VME pulse latched and synchronized to F19/W5 boundary), words 1–5 are streamed from the async command FIFO. All four outputs receive same data. `ASYNC_CMD_ACK` pulses at W5 to clear the request. Otherwise, NULL frame. |
 | **16** | Synchronous System Capture | Synchronous command frame; words 1–5 from `FRAME_16_DATA[1..5]`. `FRAME_16_SENT_FLAG` pulses at W4. |
 | **17** | Auxiliary Detector (removed) | Defined in older spec; removed 2022-04-19 and replaced with NULL. |
@@ -95,17 +115,17 @@ The machine emits four simultaneous outputs: `CMDout` (links A–H), `LCMDout` (
 ## Key Sub-Processes
 
 ### Word/Frame Counter (`WORD_COUNTER`)
-- Counts `CURRENT_WORD` 1→5, `CURRENT_FRAME` 1→20, then wraps.
+- Counts `CURRENT_WORD` 1→5, `CURRENT_FRAME` 1→20, then wraps. ✅ verified 2026-04-27 — mstr_mach.vhd:L283-305 (WORD_COUNTER process: W1→5 per frame, F1→20, wrap at F20/W5→F1/W1)
 - **Local master:** wraps at Frame 20 / Word 5.
-- **Remote master** (`PROPAGATE_SYNC='1'`): resets to F1/W1 on `MSTR_MACH_START_FLAG` — synchronizes to external Monarch.
+- **Remote master** (`PROPAGATE_SYNC='1'`): resets to F1/W1 whenever `MSTR_MACH_START_FLAG='1'` — does not pause; continues running locally and resets to F1/W1 on the Monarch start pulse. ✅ verified 2026-04-27 — mstr_mach.vhd:L289-293 (if PROPAGATE_SYNC='1' AND MSTR_MACH_START_FLAG='1' then CURRENT_WORD<="001"; CURRENT_FRAME<="00001")
 
 ### Imperative Flag (`IMPERATIVE_FLAG_PROC`)
 - `IMPERATIVE_FLAG_REQ` sets `xLATCHED_IMPERATIVE_FLAG` immediately.
-- Released synchronously only when `IMPERATIVE_FLAG_REQ='0'` AND `CURRENT_FRAME=1, CURRENT_WORD=5`.
-- While latched: holds timestamp counter in reset (ensuring Imperative SYNC restarts count from zero at F2/W1), and sets command byte to 0x81.
+- Released synchronously only when `IMPERATIVE_FLAG_REQ='0'` AND `CURRENT_FRAME=1, CURRENT_WORD=5`. ✅ verified 2026-04-27 — mstr_mach.vhd:L209-222 (IMPERATIVE_FLAG_PROC: async set on REQ='1'; sync clear: REQ='0' AND F=1 AND W=5)
+- While latched: holds timestamp counter in reset, and sets command byte to 0x81. Note: the port comment at L97 says "released at first word of frame 2" but the actual logic (L216) releases at F1/W5 — code takes precedence. ✅ verified 2026-04-27 — mstr_mach.vhd:L206-217 (timestamp held reset while latched; released at F=1,W=5 by code; L97 port comment is outdated)
 
 ### Timestamp Capture (`SYNC_CAPTURE_PROC`)
-- Latches `SYS_TIME` into `TIMESTAMP_OF_SYNC` at F20/W4.
+- Latches `SYS_TIME` into `TIMESTAMP_OF_SYNC` at F20/W4. ✅ verified 2026-04-27 — mstr_mach.vhd:L227-233 (SYNC_CAPTURE_PROC: CLK rising edge at CURRENT_FRAME=20, CURRENT_WORD=4)
 - This captured value is what gets broadcast in Frame 1 words 2–4 — a one-frame-old snapshot, not the live counter.
 
 ### Async Command Sync (`ASYNC_REQ_PROC`)
@@ -138,7 +158,7 @@ Combinatorial. Bit-selectable capture modes via `MSM_MON_FIFO_SELECT_REG`:
 ### Monitor Capture Flag (`MON_PROCX`)
 - Set at F1 if `LATCHED_TRIG_DES_FIFO_EMPTY='0'` (triggers in FIFO).
 - Cleared at F12.
-- Allows bit 11 of `MSM_MON_FIFO_SELECT_REG` to capture the full trigger processing block (F2–F11).
+- Allows bit 11 of `MSM_MON_FIFO_SELECT_REG` to capture the full trigger processing block (F1–F11, since the flag is set at F1 and cleared at F12). ✅ verified 2026-04-27 — mstr_mach.vhd:L1148-1154 (MON_PROCX: set at F=1 if not empty; clear at F=12; WE bit 11 at L156 uses MON_CAPTURE_FLAG). Note: previously said "F2–F11" — corrected to F1–F11.
 
 ---
 
@@ -171,7 +191,7 @@ Bit:  15    14    13    12    11    10     9     8     7     6     5     4     3
 - Alg0–7: Individual trigger algorithm vetoes
 
 When broadcasting to Link L, bit 12 (RM L) is masked out (0) to prevent the satellite from seeing its own veto reflected back.  
-Similarly for R (bit 13) and U (bit 14). ✅ verified 2026-04-24 — mstr_mach.vhd:L438-447 (SYSTEM_VETO_STATE bit layout comment + L445 AND X"DFFF" for L; X"BFFF" for R; X"EFFF" for U)
+Similarly for R (bit 13) and U (bit 14). ✅ verified 2026-04-27 — mstr_mach.vhd:L436-438 (L436: LCMDout AND X"DFFF"; L437: RCMDout AND X"BFFF"; L438: UCMDout AND X"EFFF")
 
 ---
 

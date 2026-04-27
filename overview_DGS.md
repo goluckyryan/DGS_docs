@@ -4,6 +4,22 @@ Stability: C2 - Active / semi-stable
 
 > See also: `overview_SmallSystem.md` for DuoGe (DUO) and X-Array (DXA) small systems.
 
+## Table of Contents
+
+1. [What is DGS?](#what-is-dgs)
+2. [Full Data Flow](#full-data-flow)
+3. [Hardware Inventory](#hardware-inventory)
+4. [EPICS Port Assignment (DGS)](#epics-port-assignment-dgs)
+5. [Subsystem Map](#subsystem-map)
+6. [Trigger Cycle (2 µs)](#trigger-cycle-2-µs)
+7. [Firmware Versions (Current / Active)](#firmware-versions-current--active)
+8. [LN Cooling System](#ln-cooling-system)
+9. [Raspberry Pi Camera (darekpi02)](#raspberry-pi-camera-darekpi02)
+10. [Key Elog References](#key-elog-references)
+11. [Cross-References](#cross-references)
+
+---
+
 ## What is DGS?
 
 The **Digital Gamma-ray Spectrometer (DGS)** is a large-scale nuclear physics detector system at **Argonne National Laboratory (ANL)**. It detects and digitizes gamma rays from an array of up to 110 high-purity germanium (HPGe) detectors arranged in the Gammasphere geometry, each cooled by liquid nitrogen.
@@ -124,8 +140,8 @@ DGS is a full software+firmware+hardware stack:
 | dgs2 | .123 | Rocky 8.7 | Main DAQ (4TB SSD) | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
 | dgs4 | .125 | SL 7.9 | — | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
 | dgs6 | .184 | Rocky 8.7 | — | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
-| gs-ts-south | .186 | — | Terminal server south (even GS IDs) | ✅ verified 2026-04-19 — `ANLDAQ/EPICS_para.sh:L47`
-| gs-ts-north | .91 | — | Terminal server north (odd GS IDs) | ✅ verified 2026-04-19 — `ANLDAQ/EPICS_para.sh:L47`
+| gs-ts-south | .186 | — | Terminal server south — console for ioc01–ioc06 | ✅ verified 2026-04-19 — `ANLDAQ/EPICS_para.sh:L47`; routing confirmed 2026-04-27 — wiki DAQ_system
+| gs-ts-north | .91 | — | Terminal server north — console for ioc07–ioc12 | ✅ verified 2026-04-19 — `ANLDAQ/EPICS_para.sh:L47`; routing confirmed 2026-04-27 — wiki DAQ_system
 | gs-csw | .26 | — | Collector box south-west | ✅ verified 2026-04-19 — `lnfill/LNFill_ping_cron.sh:L17` (`192.168.203.26  # gs-csw`)
 | gs-cse | .42 | — | Collector box south-east | ✅ verified 2026-04-19 — `lnfill/LNFill_ping_cron.sh:L16` (`192.168.203.42  # gs-cse`)
 | gs-cne | .88 | — | Collector box north-east | ✅ verified 2026-04-19 — `lnfill/LNFill_ping_cron.sh:L14` (`192.168.203.88  # gs-cne`)
@@ -151,10 +167,32 @@ DGS is a full software+firmware+hardware stack:
 | vme99 | .211 | VxWorks | IOC |
 | con5 | .126 | Solaris 10 | — |
 | con6 | .136 | Solaris 10 | — |
-| wdgs | .232 | Windows | FPGA dev laptop |
+| wdgs | .232 | Windows 7 | FPGA dev laptop (GammaWare, JTAG, Chipscope, ISE 14.7, IMPACT; login: `topoadmin` via `rdesktop`) ✅ verified 2026-04-27 — wiki `/gsdaq/Engineer_access_to_the_system_from_LabWindows` |
 
 ### VME IOC IPs (12 crates)
-192.168.203.141, .142, .143, .144, .145, .177, .178, .179, .180, .181, .182, .183
+
+| Host | IP | Description |
+|------|-----|-------------|
+| ioc01 | 192.168.203.141 | MVME5500 VME processor — control and readout |
+| ioc02 | 192.168.203.142 | MVME5500 VME processor — control and readout |
+| ioc03 | 192.168.203.143 | MVME5500 VME processor — control and readout |
+| ioc04 | 192.168.203.144 | MVME5500 VME processor — control and readout |
+| ioc05 | 192.168.203.145 | MVME5500 VME processor — control and readout |
+| ioc06 | 192.168.203.177 | MVME5500 VME processor — control and readout |
+| ioc07 | 192.168.203.178 | MVME5500 VME processor — control and readout |
+| ioc08 | 192.168.203.179 | MVME5500 VME processor — control and readout |
+| ioc09 | 192.168.203.180 | MVME5500 VME processor — control and readout |
+| ioc10 | 192.168.203.183 | MVME5500 VME processor — control and readout |
+| ioc11 | 192.168.203.181 | MVME5500 VME processor — control and readout |
+| ioc12 | 192.168.203.182 | MVME5500 VME processor — control and readout |
+
+_Source: wiki.anl.gov/gsdaq/DAQ_system ✅ visited 2026-04-27_
+
+**Terminal server routing:**
+- `gs-ts-south` (192.168.203.186) → console access for **ioc01–ioc06**
+- `gs-ts-north` (192.168.203.91) → console access for **ioc07–ioc12**
+
+_Source: wiki.anl.gov/gsdaq/DAQ_system ✅ visited 2026-04-27_
 
 ---
 

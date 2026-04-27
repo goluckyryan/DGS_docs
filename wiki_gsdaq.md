@@ -16,7 +16,7 @@ Stability: C1 - Operational / volatile
 - [Interactive Image Map](https://wiki.anl.gov/gsdaq/Interactive_Image_Map) — clickable block diagram of the system
 - [Gammasphere](https://wiki.anl.gov/gsdaq/Gammasphere) — overview of GS hardware and DAQ
 - [DGS Commander EDM Screens](https://wiki.anl.gov/gsdaq/DGS_Commander_EDM_Screens) — EDM GUI screens for run control
-- [DAQ System](https://wiki.anl.gov/gsdaq/DAQ_system) — full DAQ system description with network table
+- [DAQ System](https://wiki.anl.gov/gsdaq/DAQ_system) — full DAQ system description with network table ✅ visited 2026-04-27 → added per-IOC hostname→IP table (ioc01–12) and terminal server routing (south→ioc01–06, north→ioc07–12) to `overview_DGS.md`
 
 ### Digital Gammasphere Upgrade Project
 - [Digital Gammasphere Upgrade Project](https://wiki.anl.gov/gsdaq/Digital_Gammasphere_Upgrade_Project) — top-level page
@@ -26,8 +26,8 @@ Stability: C1 - Operational / volatile
 
 ### Hardware Pages
 - [Gammasphere Detectors](https://wiki.anl.gov/gsdaq/Gammasphere_Detectors) — HPGe + BGO, segmented vs non-segmented
-- [Detector Signals](https://wiki.anl.gov/gsdaq/Detector_Signals) — GeCenter, GeSides, BGOSum, BGOPattern, Clean/Dirty events, Electric Honeycomb
-- [Collector Box](https://wiki.anl.gov/gsdaq/Collector_Box) — collector box hardware, layout, stripes, electric honeycomb, replaces VXI
+- [Detector Signals](https://wiki.anl.gov/gsdaq/Detector_Signals) — GeCenter, GeSides, BGOSum, BGOPattern, Clean/Dirty events, Electric Honeycomb ✅ visited 2026-04-27 → confirmed Electric Honeycomb = nearest-neighbor BGO discriminator combine (6 face-to-face bits per detector + 7 BGO segments per detector); BGOPattern uses 2-rank analog switch + discriminators. Already well-covered in KB.
+- [Collector Box](https://wiki.anl.gov/gsdaq/Collector_Box) — collector box hardware, layout, stripes, electric honeycomb, replaces VXI ✅ visited 2026-04-27 → added channel assignment options (fixed Ge/BGO, configurable Ch C/D: GeSide/BGO Pattern/Ge center copy at 8 or 20 MeV) + Electric Honeycomb ~10% Compton suppression improvement @ 1 MeV to `hardware_architecture.md`
 - [VME Crates](https://wiki.anl.gov/gsdaq/VME_Crates) — VME crate info
 - [Digitizers](https://wiki.anl.gov/gsdaq/Digitizers) — digitizer hardware
 - [Triggers](https://wiki.anl.gov/gsdaq/Triggers) — trigger modules
@@ -198,8 +198,9 @@ Stability: C1 - Operational / volatile
 | `/gsdaq/DAQ_Power_Supply` | 2026-04-23 | Redundant 48V Acopian supply per rack; floating outputs; powers collector box + ≤30 detectors per rack; fault relays → EPICS; chassis isolation prevents ground loops — added to `hardware_architecture.md` |
 | `/gsdaq/Attempts_at_Inventory` | 2026-04-23 | Mostly empty template. Only real data: MyRIAD #3/5/6 at F116 Test Stand 2018-04-25 (DGS SVN#4410 / GRETINA SVN#4043, addr 0x550000). Not added to KB (too stale/sparse). |
 | `/gsdaq/Beginner_Guide_to_Digitizer_Firmware` | 2026-04-23 | Intro page (Sept 2021). 14-bit @ 100 MHz, 10-channel DIG, Master/Slave build distinction — all already in KB. No new content. |
+| `/gsdaq/Engineer_access_to_the_system_from_LabWindows` | 2026-04-27 | Remote access crib notes: WDGS (Windows 7 laptop, IP .232, `rdesktop wdgs -g 1280x1024`, user `topoadmin`), IMPACT/Chipscope/ISE 14.7, dgs1/nat2 SSH. All claims verified in `EPICS_implementation_tools.md`. |
 
-**All known wiki pages visited as of 2026-04-23.** If new pages appear on the wiki, add them here.
+**All known wiki pages visited as of 2026-04-27.** If new pages appear on the wiki, add them here.
 
 ---
 

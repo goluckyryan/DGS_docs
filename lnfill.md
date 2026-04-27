@@ -515,6 +515,8 @@ This is a **complementary** layer — `LNFill_cron.sh` already self-alerts via D
 
 ## Cross-References
 
+- `knowledgeBase/lnfill_ioc.md` — LN2 fill system deep internals: InfluxDB data flow, hose→detID mapping table, ln2con IOC boot tree, DetMan.py FillManifold() state machine
+- `knowledgeBase/con6_lnfill.md` — con6 (Solaris 10): CVS source repo + 68040 cross-compiler for lnfill IOC; archiving plan
 - `knowledgeBase/influxdb_grafana.md` — InfluxDB/Grafana on DCS2; HPGeTemp database written by `SaveTemp.sh` / `StoreDetTemps.py`
 - `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC for HV control; parallel Pi infrastructure
 - `knowledgeBase/hardware_architecture.md` — LN2 system role in detector cooling chain

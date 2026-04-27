@@ -7,6 +7,20 @@ _Created: 2026-04-24. These are development/debug testbench files; not part of t
 
 ---
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [File Inventory](#file-inventory)
+- [Simulated Hardware Configuration](#simulated-hardware-configuration)
+- [VME Bus Simulation](#vme-bus-simulation)
+- [VME Register Address Constants (from MstrTrig_pkg.vhd)](#vme-register-address-constants-from-mstrtrg_pkgvhd)
+- [Stimulus Sequence (regio_tb.vhd BUS_ACTIVITY process)](#stimulus-sequence-regio_tbvhd-bus_activity-process)
+- [BUILD_TYPE Firmware Code Map (from MstrTrig_pkg.vhd)](#build_type-firmware-code-map-from-mstrtrg_pkgvhd)
+- [Notes](#notes)
+- [See Also](#see-also)
+
+---
+
 ## Purpose
 
 A Xilinx ISim VHDL testbench that simulates two MTRG boards wired together via a fake SERDES link, exercised through a simulated VME register bus:

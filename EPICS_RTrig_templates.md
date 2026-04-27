@@ -7,6 +7,40 @@ Date documented: 2026-04-25
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [RTrigRegisters.template — Raw Register Map](#rtrigregisterstemplate--raw-register-map)
+  - [Write registers (longout)](#write-registers-longout)
+  - [Read registers (longin)](#read-registers-longin-scan1-second)
+- [RTrigUser.template — User-Facing PV Groups](#rtrigusertemplate--user-facing-pv-groups)
+  - [1. NIM Output / LED Control](#1-nim-output--led-control-mbbo/mbbi)
+  - [2. LVDS Pre-emphasis](#2-lvds-pre-emphasis-mbbombbi)
+  - [3. Channel Monitor FIFO Mode](#3-channel-monitor-fifo-mode-mbbo-cf1cf8)
+  - [4. X/Y Plane Data Sources](#4-xy-plane-data-sources-mbbo)
+  - [5. Fast-Strobe Select](#5-fast-strobe-select-mbbo)
+  - [6. Input Link Mask](#6-input-link-mask--ilm_a-through-ilm_lru-bo)
+  - [7. LED Manual Control](#7-led-manual-control--led4-through-led12-bo)
+  - [8. Clock Source](#8-clock-source--clksrc-bo)
+  - [9. AUX I/O Direction](#9-aux-io-direction--a_3_0_dir-a_7_4_dir-b_3_0_dir-b_7_4_dir-bo)
+  - [10. SERDES Power Control](#10-serdes-power-control)
+  - [11. SERDES Lock / Line Control](#11-serdes-lock--line-control)
+  - [12. Link Reset / Lock Management](#12-link-reset--lock-management-bo)
+  - [13. Trigger / Throttle Control](#13-trigger--throttle-control-bo)
+  - [14. DC Balance](#14-dc-balance-bo)
+  - [15. Force SYNC](#15-force-sync--link_a-through-link_h-bo)
+  - [16. X-Plane Map](#16-x-plane-map--xmap_a_0-through-xmap_h_9-bo)
+  - [17. Y-Plane Map](#17-y-plane-map--ymap_a_0-through-ymap_h_9-bo)
+  - [18. Connection Connector Masks](#18-connection-connector-masks--conn_a_mask-through-conn_d_mask-bo)
+  - [19. FIFO Resets](#19-fifo-resets--fiforeset00-through-fiforeset15-bo)
+  - [20. Timing / Delay Parameters](#20-timing--delay-parameters-longout)
+  - [21. Discriminator Delays](#21-discriminator-delays--discriminator_delay_a_0-through-discriminator_delay_h_9-longout)
+  - [22. Status Readbacks](#22-status-readbacks-longin-scan1-second)
+- [Key Architecture Notes](#key-architecture-notes)
+- [Related Files](#related-files)
+
+---
+
 ## Overview
 
 The **Receiver Trigger (RTrig)** board is the intermediate trigger hub in the DGS VME chain.
