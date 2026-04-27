@@ -39,6 +39,7 @@ _Author: T. Lauritsen (ANL). Used by DGS, GRETINA, X-Array, DUO, and other detec
 - [Comparison with parquet_pysort](#comparison-with-parquet_pysort)
 - [GRETINA-Specific and Additional Detector Sorters](#gretina-specific-and-additional-detector-sorters)
 - [Cross-References](#cross-references)
+- [Minor Utility Programs and Support Files](gebsort_utilities.md) _(split to `gebsort_utilities.md`)_
 
 ---
 
@@ -598,6 +599,16 @@ Covers: `bin_angcor_GT`, `bin_DCO_GT`, `bin_g4sim`, `bin_gtcal`, `bin_ft`, `bin_
 - `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiverMT deep-dive: packet parsing, FIFO readout, GEB event assembly; contrast with gtReceiver in gebsort_merge_receive.md
 - `knowledgeBase/guceiver.md` — Guceiver live receiver GUI: live waveform/spectrum display from the same TCP data stream
 - `knowledgeBase/nfs_layout.md` — NFS paths where experiment data and GEBSort binaries live (vol4/dgs_testing/)
+- `knowledgeBase/gebsort_utilities.md` — Minor utility programs and support files (listTS, GTPrint, dtbtev, DataExtract, GEBCrop, GEBFilter, GEBSplit, GEBHeader, utils, spe_fun, tlutil, tlutil2, trig_fun, 2d_fun, etc.)
+
+---
+
+## Minor Utility Programs and Support Files
+
+_Moved to [`gebsort_utilities.md`](gebsort_utilities.md) (2026-04-27 — parent file exceeded 500-line threshold)._
+
+See `knowledgeBase/gebsort_utilities.md` for all minor utility and support file documentation.
 
 ---
 *Created: 2026-04-07. Source: `DGS_tools_pack/gebsort/` README + source files.*
+*Split: 2026-04-27 — utility programs moved to `gebsort_utilities.md`.*
