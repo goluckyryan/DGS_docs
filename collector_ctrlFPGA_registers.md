@@ -170,7 +170,7 @@ Stripe 6 adds BGO FPGA voltage monitors between the DVI 48V block and the rail m
   consuming these register values via DPRAM
 - [`collectorbox_devicesupport_advanced.md`](collectorbox_devicesupport_advanced.md) —
   CollectorADC DTYP which maps register indices to EPICS PVs
-- [`collector_fpga.md`](collector_fpga.md) — StripeFPGA register map (parallel structure for
-  per-stripe signal FPGAs)
+- [`collector_fpga.md`](collector_fpga.md) — Collector Box FPGA overview and architecture
+- [`collector_stripeFPGA_registers.md`](collector_stripeFPGA_registers.md) — StripeFPGA register map (parallel structure, 48 registers): relay_control, stripe_control, tristate_control, stripe_status, LED pulser, code_revision
 - [`collectorboxpi_commissioning.md`](collectorboxpi_commissioning.md) — Commissioning
   scripts that scan/dump the CtrlFPGA register space
