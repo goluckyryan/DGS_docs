@@ -6,6 +6,27 @@ _Created: 2026-04-04. Last updated: 2026-04-07. For lookups, use `grep` on the C
 
 ---
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [CSV Format](#csv-format)
+3. [DIG Register Groups (key registers)](#dig-register-groups-key-registers)
+4. [MTRG Register Groups (key registers)](#mtrg-register-groups-key-registers)
+5. [RTRG Register Groups](#rtrg-register-groups)
+6. [How to Look Up a Register](#how-to-look-up-a-register)
+7. [Hardware Drawings Index](#hardware-drawings-index)
+   - [Digitizer (DIG)](#digitizer-dig)
+   - [Master Trigger (MTRG)](#master-trigger-mtrg)
+   - [Router (RTRG)](#router-rtrg)
+   - [Data Links (DIG ↔ RTRG ↔ MTRG)](#data-links-dig--rtrg--mtrg)
+   - [MyRIAD (Auxiliary Detector)](#myriad-auxiliary-detector)
+   - [SlopeBox / Pickoff Card (SBX)](#slopebox--pickoff-card-sbx)
+   - [CollectorBox FPGAs](#collectorbox-fpgas)
+   - [MTRG Trigger Card (06pc057)](#mtrg-trigger-card-06pc057)
+   - [General System](#general-system)
+
+---
+
 ## Overview
 
 The DGS register maps are stored as large tab-delimited CSV files generated from Excel spreadsheets with VBA macros. The same spreadsheets generate the EPICS `.db` files for the IOC.

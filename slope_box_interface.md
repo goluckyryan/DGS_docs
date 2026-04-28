@@ -7,6 +7,24 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+- [Overview](#overview)
+- [Hardware Signal Chain](#hardware-signal-chain)
+- [SPI Transaction Format (Pickoff Card)](#spi-transaction-format-pickoff-card)
+- [EPICS IOC Design (PickoffApp)](#epics-ioc-design-pickoffapp)
+  - [Key design choice: CAMAC_IO link type](#key-design-choice-camac_io-link-type)
+  - [PV record type](#pv-record-type)
+  - [Device support registration (`.dbd`)](#device-support-registration-dbd)
+  - [Source files](#source-files)
+- [Design Note: Why Not Asyn?](#design-note-why-not-asyn)
+- [BGO Counter Monitoring (slopebox_scripts)](#bgo-counter-monitoring-slopebox_scripts)
+- [Slope Box Extension Hardware](#slope-box-extension-hardware)
+- [Original Gammasphere (Pre-DGS) Control](#original-gammasphere-pre-dgs-control)
+- [Current Status (as of 2026-04-23)](#current-status-as-of-2026-04-23)
+- [See Also](#see-also)
+
+---
+
 ## Overview
 
 The Slope Box is a Gammasphere-era module that sets the gain (slope) and offset of each detector channel. In the original GS (pre-DGS), it was controlled via a serial bus from a PC running BASIC programs (see `GSBGOSBT.BAS`, 1997, by D. Landis). In the DGS system, control was moved to a Raspberry Pi with an EPICS IOC communicating over SPI/GPIO to a **Pickoff Card** FPGA.

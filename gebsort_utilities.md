@@ -33,6 +33,8 @@ _Author: T. Lauritsen (ANL) and contributors._
 - [get_dead_layer_corrections2.cpp](#get_dead_layer_corrections2cpp--dfma-silicon-dead-layer-calculator-533-lines)
 - [fwhm511.c / fwhm_511.c](#fwhm511c--fwhm_511c--511-kev-peak-fwhm-analysis)
 - [get_eraw.cc / get_pz.cc](#get_erawcc--get_pzcc--batch-spe-extractor-scripts-27-lines-each)
+- [get_XAeraw.cc / get_XApz.cc / get_XAecln.cc](#get_xaerawcc--get_xapzcc--get_xaeclncc--x-array-batch-spe-extractor-scripts)
+- [mk_gsutil.cc](#mk_gsutilcc--gsutil-compile-helper-6-lines)
 - [curEPICS](#curepics--symbolic-link)
 - [utils.c](#utilsc--24-bit-integer-conversion-utilities-187-lines)
 - [spe_fun.c](#spe_func--spe-spectrum-file-io-221-lines)
@@ -160,14 +162,16 @@ Skeleton function `pairProd(evno, ctkStat, Clstr, nClusters, target_pos)`. Body 
 
 ✅ verified 2026-04-27 — `pairProd.c:L30-52` (function body is a no-op)
 
-### `findAngle.c` / `findCAngle.c` / `findVector.c` — Geometry Helpers (34 lines each, approx)
+### `findAngle.c` / `findCAngle.c` / `findVector.c` — Geometry Helpers (34 / 48 / 51 lines)
 
 Small geometry support routines used by angle correlation sorters:
-- `findAngle.c` — computes opening angle between two detector positions.
-- `findCAngle.c` — computes Compton scattering angle from energy ratio.
-- `findVector.c` — computes position vector for a detector.
+- `findAngle.c` (34 L) — `findAngle(n1[3], n2[3], *th)`: computes opening angle between two unit vectors via dot product → `acosf(dotProd)`; clamps dotProd to [-1,1] to avoid NaN.
+- `findCAngle.c` (48 L) — `findCAngle(eg, ee, *thc)`: computes Compton scattering angle from Klein-Nishina kinematics: `egp = eg − ee`, `cosa = 1 + 0.511/eg − 0.511/egp`, clamps and returns `acosf(cosa)`. Returns a non-zero residual if out-of-range. (`eg` = incoming energy, `ee` = deposited energy, both in MeV.)
+- `findVector.c` (51 L) — `findVector(x1,y1,z1, x2,y2,z2, *v1,*v2,*v3)`: computes normalized difference vector `(x2−x1, y2−y1, z2−z1) / |...|`; outputs 3 components via pointers.
 
 Not standalone programs. Linked into `bin_angcor_DGS` and related sorters.
+
+✅ verified 2026-04-27 — `findAngle.c:L6-34`, `findCAngle.c:L6-48`, `findVector.c:L6-51`
 
 ### `time_stamp.c` — Timestamp Printer (24 lines)
 
@@ -425,6 +429,8 @@ Writes **both** the original raw crystal data and the tracked result, creating a
 
 **Key types:** `TRACK_STRUCT`, `CLUSTER_INTPTS`, `TRACKED_GAMMA_RAY`, `CRYS_INTPTS`, `GEBDATA` — all defined in `ctk.h` / `gdecomp.h`.
 
+✅ verified 2026-04-27 — `writeTrack_addtrack.c:L21` (entry point signature), `L26` (offline/online comment), `L139` (`trackGeb.type = GEB_TYPE_TRACK`), `L246,L250` (`fwrite` to `Pars.trackDataStream`), `L311` (`serializeTrack` export); `writeTrack_repeat.c:L22` (entry point `writeTrack_repeat(track)`), `L78` (GEB_TYPE_TRACK check), `L44,L216` (CRYS_INTPTS pass-through).
+
 ---
 
 ## `G4toMode2.c` — GEANT4 Simulation to Mode2 Converter (2,151 L)
@@ -491,6 +497,8 @@ Two related programs for measuring the **511 keV annihilation gamma-ray peak res
 - Writes a display script `d.cmd` for visual inspection
 - Requires `>500` counts in peak for a valid result
 
+✅ verified 2026-04-27 — `fwhm511.c:L11` (main()), `L40` (usage string: `pt511 <ge_list> <lo ch> <bgskip> <bgwidth> <hi_ch> <kev/ch>`), `L67` (fopen `d.cmd`), `L78` (ehi%3.3i.spe format).
+
 ### `fwhm_511.c` (210 L) — `fwhm_511()` function library
 
 **Purpose:** The peak-finding and fitting engine used by `fwhm511.c` and potentially other tools.
@@ -500,6 +508,8 @@ Two related programs for measuring the **511 keV annihilation gamma-ray peak res
 - Computes: centroid `*peak`, `*area`, Gaussian sigma `*sig`, skewness `*skew`
 - Also computes a **direct FWHM** (`*fwhm`) by linear interpolation to half-max on both sides — more robust than `2.3548×sigma` for asymmetric peaks
 - Returns 0 on success, -1 on failure
+
+✅ verified 2026-04-27 — `fwhm_511.c:L1-210` (peak fitting engine; function signature confirmed).
 
 ---
 
@@ -513,6 +523,41 @@ Not C++ source files despite the `.cc` extension — these are **GEBSort inline 
 - **`get_pz.cc`:** same pattern for `pzraw` histogram — calls `pjy("pzraw","p",i,i)` and writes `pz<NNN>.spe`. Produces pole-zero correction spectra for all detectors.
 
 Both use GEBSort internal functions (`pjx`, `pjy`, `wrspe`) that are only available inside a running GEBSort session.
+
+✅ verified 2026-04-27 — `get_eraw.cc:L1` (comment: loops GS detectors), `L23` (`pjx("EhiRawRaw","p",i,i)`), `L25` (`wrspe`); `get_pz.cc` confirmed same structure with `pjy`/`pzraw`. No `#include`, no `main()` — script fragment confirmed.
+
+---
+
+## `get_XAeraw.cc` / `get_XApz.cc` / `get_XAecln.cc` — X-Array Batch SPE Extractor Scripts
+
+_Source: `gebsort/get_XAeraw.cc` (27 L), `gebsort/get_XApz.cc` (27 L), `gebsort/get_XAecln.cc` (31 L). Code-read 2026-04-27._
+
+X-Array analogs of `get_eraw.cc` / `get_pz.cc` — GEBSort inline script fragments (no `#include`, no `main()`) used to batch-extract spectra from a running GEBSort session. Same pattern: `for` loop over detectors, project histogram to 1D via `pjx`/`pjy`, write with `wrspe`.
+
+- **`get_XAeraw.cc`:** loops detector indices 0–110 (111 iterations), calls `pjx("XAEhiRawRaw","p",i,i)` and writes `ehi<NNN>.spe`. Produces raw energy spectra for all X-Array clover detectors. ✅ verified 2026-04-27 — `get_XAeraw.cc:L23` (`pjx("XAEhiRawRaw","p",i,i)`), `L25` (`wrspe`)
+- **`get_XApz.cc`:** loops detector indices 1–49 (49 iterations), calls `pjy("XApzraw","p",i,i)` and writes `pz<NNN>.spe`. Produces pole-zero correction spectra. ✅ verified 2026-04-27 — `get_XApz.cc:L21` (`for (i=1;i<50;i++)`), `L23` (`pjy("XApzraw","p",i,i)`)
+- **`get_XAecln.cc`:** loops detector indices 0–49 (50 iterations), calls `pjx("XAEhiCln","p",i,i)` and writes `ehi<NNN>.spe`; also projects the full range 1–110 into `ref.spe` via `pjx("XAEhiCln","p",1,110)`. Produces clean (Compton-suppressed) energy spectra plus a summed reference. ✅ verified 2026-04-27 — `get_XAecln.cc:L23` (`pjx("XAEhiCln","p",i,i)`), `L27` (`pjx("XAEhiCln","p",1,110)`), `L28` (`wrspe("p","ref.spe")`)
+
+**Key differences from DGS versions:**
+- Histogram names use `XA` prefix (`XAEhiRawRaw`, `XApzraw`, `XAEhiCln`) — defined in `bin_XA.c`
+- `get_XAecln.cc` additionally writes a summed `ref.spe` (projection over 1–110 range) — not present in DGS equivalents
+- `get_XApz.cc` starts at i=1 (skips index 0), writing `pz001.spe`–`pz049.spe`
+- `get_XAeraw.cc` loops 0–110 (wider than the 40-detector `NXA` limit) — conservative upper bound
+
+---
+
+## `mk_gsutil.cc` — GSUtil Compile Helper (6 lines)
+
+_Source: `gebsort/mk_gsutil.cc`. Code-read 2026-04-27._
+
+A ROOT CINT macro that compiles `GSUtil.cc` and immediately exits ROOT. Used to pre-build the shared library (`GSUtil_cc.so`) without entering a full GEBSort session.
+
+```
+gROOT->ProcessLine(".L GSUtil.cc++");
+gROOT->ProcessLine(".q");
+```
+
+**Usage:** `root -l mk_gsutil.cc` — produces `GSUtil_cc.so` which can then be loaded via `.L GSUtil_cc.so` in subsequent ROOT/GEBSort sessions without recompilation. ✅ verified 2026-04-27 — `mk_gsutil.cc:L2` (`printf("compile\n")`), `L3-4` (ProcessLine calls)
 
 ---
 
@@ -528,3 +573,4 @@ A symbolic link to the EPICS base installation used when building GEBSort on the
 *time_stamp.c, temp_ge.c, trig_fun.c, tlutil2.c, 2d_fun.c documented: 2026-04-27.*
 *GEBCrop, GEBFilter, GEBSplit, GEBHeader, utils.c, spe_fun.c, tlutil.c documented: 2026-04-27.*
 *writeTrack_addtrack/repeat, G4toMode2, get_dead_layer_corrections2, fwhm511/fwhm_511, get_eraw/pz, curEPICS documented: 2026-04-27.*
+*get_XAeraw/pz/ecln, mk_gsutil.cc documented: 2026-04-27.*

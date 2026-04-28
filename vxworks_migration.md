@@ -2,6 +2,23 @@
 
 Stability: C1 - Operational / volatile
 
+## Table of Contents
+- [Source System](#source-system)
+- [What Was Copied from con6](#what-was-copied-from-con6)
+- [Path Changes](#path-changes)
+  - [configure/RELEASE files](#configurerelease-files)
+  - [EPICS base configure files](#epics-base-configure-files)
+  - [Source file path fixes](#source-file-path-fixes)
+- [Source Code Fixes (Compatibility with GCC 12/13 and Ubuntu 24)](#source-code-fixes-compatibility-with-gcc-1213-and-ubuntu-24)
+  - [EPICS base-3.14.12.1](#epics-base-3141121)
+  - [asyn4-17](#asyn4-17)
+  - [sncseq-2.0.12](#sncseq-2012)
+  - [dgsDrivers](#dgsdrivers)
+  - [Symlink created](#symlink-created)
+- [Ubuntu 24 Packages Required](#ubuntu-24-packages-required)
+- [Build Targets Produced](#build-targets-produced)
+- [Cross-References](#cross-references)
+
 ## Source System
 
 - **Host**: con6, hostname `192.168.203.136`

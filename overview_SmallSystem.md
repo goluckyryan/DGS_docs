@@ -10,6 +10,21 @@ Stability: C2 - Active / semi-stable
 
 ---
 
+## Table of Contents
+
+1. [Signal Chain (Small Systems)](#signal-chain-small-systems)
+2. [DuoGe (DUO) — 2-HPGe Detector System](#duoge-duo--2-hpge-detector-system)
+   - [Computers](#computers)
+   - [EPICS Ports](#epics-ports)
+   - [DUB System Computers](#dub-system-computers)
+   - [Notes](#notes)
+3. [X-Array (DXA)](#x-array-dxa)
+   - [Network / Computers](#network--computers)
+   - [Notes](#notes-1)
+4. [Shared Infrastructure](#shared-infrastructure)
+
+---
+
 ## Signal Chain (Small Systems)
 
 > Small systems (DUO, DXA) do **not** use a Collector Box.

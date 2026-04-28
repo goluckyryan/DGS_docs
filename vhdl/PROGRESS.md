@@ -96,7 +96,7 @@ DIG analysis is split across three knowledge-base files rather than per-module v
   - [x] `Channel_Readout_Controller.vhd` (697 L) — 7-state FSM, rollover-safe 24-bit TS compare, 5×34 FIFO
   - [x] `Channel_Readout_Mach.vhd` (491 L) — structural wrapper, PEQ_BYPASS zeroing, write_flags format
 
-### Not Yet Analyzed (DIG)
+### Additional DIG Modules (Analyzed)
 - [x] `dc_balance_mach.vhd` — DC balance machine → **deep_fpga_DIG_modules2.md**
 - [x] `disparity_lookup.vhd` — 8-bit disparity ROM → **deep_fpga_DIG_modules2.md**
 - [x] `Event_Header_FIFO.vhd` — event header FIFO (LED/CFD header formats, 6-state read SM, late injection) → **deep_fpga_DIG_modules2.md**
@@ -110,6 +110,6 @@ DIG analysis is split across three knowledge-base files rather than per-module v
 
 ---
 
-**Last reviewed:** 2026-04-24 (DIG section added; pos_finder, sum_hits_XY, trigger_comp_defs, tdc_chain_cont, Generated_top analyzed — all MTRG VHDL files now complete; all DIG VHDL files now complete; deep_fpga_DIG_modules.md split into Part 1 [signal chain & SERDES, 667 lines] and Part 2 [DC balance, FIFOs, VME, 605 lines] — both under 500/600 line target; fpga.md and PROGRESS.md cross-references updated; 2026-04-24 18:57 CDT: GITMO_RCV_MACH.vhd + GITMO_TRIGGER.vhd analyzed → MTRG_GITMO.md)  
+**Last reviewed:** 2026-04-27 (DIG section added; pos_finder, sum_hits_XY, trigger_comp_defs, tdc_chain_cont, Generated_top analyzed — all MTRG VHDL files now complete; all DIG VHDL files now complete; deep_fpga_DIG_modules.md split into Part 1 [signal chain & SERDES, 667 lines] and Part 2 [DC balance, FIFOs, VME, 605 lines] — both under 500/600 line target; fpga.md and PROGRESS.md cross-references updated; 2026-04-24 18:57 CDT: GITMO_RCV_MACH.vhd + GITMO_TRIGGER.vhd analyzed → MTRG_GITMO.md)  
 **Purpose:** Coverage checklist for per-module VHDL notes under `knowledgeBase/vhdl/`  
 **See also:** [fpga.md](../fpga.md), [deep_fpga_RTRG.md](../deep_fpga_RTRG.md), [deep_fpga_MTRG_MAIN.md](../deep_fpga_MTRG_MAIN.md), [deep_fpga_DIG.md](../deep_fpga_DIG.md)

@@ -43,7 +43,7 @@ _Split from `ANLDAQ.md` on 2026-04-16. Source: `DGS_tools_pack/ANLDAQ/tcpReceive
 
 | Binary | Source | Mode |
 |--------|--------|------|
-| `tcpReceiver` | `tcpReceiver.cpp` | Single-threaded, one IOC |
+| `tcpReceiver` | `tcpReceiver.cpp` | Single-threaded, one IOC — thin wrapper: parses 4 args (IP, port, dataType, file_prefix), builds one `IOCConfig`, instantiates one `IOCReceiver`, calls `.Run()`. Installs SIGTERM+SIGINT handlers via `stopRequested` atomic flag. ✅ verified 2026-04-27 — `tcpReceiver.cpp:L1-30` |
 | `tcpReceiverMT` | `tcpReceiverMT.cpp` | Multi-threaded, N IOCs from config file |
 | `tcpReceiverUDP` | `tcpReceiverUDP.cpp` | Multi-threaded TCP receiver + UDP forwarding for online analysis. Extends `IOCReceiver`; adds a `UDPSender` per IOC that drains a **4 MB lock-free SPSC ring buffer** and packs data into UDP datagrams (max 1,472 bytes — 1500 MTU − 28 header). Ports: `UDP_BASE_PORT + ioc_index` starting at **12300**. Mode flags: `-r` forwards raw TCP bytes (no GEB header); `-g` (default) forwards GEB header + payload. Each UDP frame contains one event record (no separate fixed header — GEB header is the first 16 bytes when in `-g` mode). Note: source code comment mentioning "64-byte fixed header" is aspirational/stale — actual `OnRecord()` pushes `processedData` directly (16-byte GEB + payload). Not the production receiver (`tcpReceiverMT` is); used for online monitoring (e.g. feeding a DAMM/online sort). |✅ verified 2026-04-23 — `tcpReceiverUDP.cpp:L235-238` (`-r`/`-g` flags), `L203-212` (`OnRecord` pushes processedData/rawData directly) |
 
@@ -310,6 +310,18 @@ ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
 - Respects VME06/VME10 exception (MDIG1 only; 2 DIGs instead of 4)
 - Ends with `Online_CS_StartStop=Stop`, `Online_CS_SaveData=No Save`
 - **Note:** `trigger_mux_select` is commented out — trigger mode must be set separately
+
+**`basic_settings.sh`** — Single-crate teststand setup script (VME99, MDIG1, CH=7 only). The teststand analogue of `basic_settings_DGS.sh` for benchtop/single-digitizer work. Key differences from the production DGS version:
+- Targets `VME99` (test crate alias) and `MDIG1` only — no loop over multiple crates
+- CH=7 hardcoded (single channel)
+- MTRG settings included: `IMP_SYNC` pulse, `SOFTWARE_VETO on`, `ENBL_MON7_VETO on`, `SUM_OF_Y/X_THRESH=0`, `EN_NIM1_DELAY=N`, `EN_SUM_X on`, `CS_Ena=Enable`, `FifoNum=MAIN DATA FIFO`, `SYSMON_ENABLE=ON`, `TRIG_MON_SEL=${trigger}` (default: `SumX`), FIFO reset pulse
+- CFD parameters: p1=0.07µs, p2=0.05µs, m=2.5µs, k0=0.56µs, k=0.16µs (fixed), d=0.1µs (fixed), CFD_fraction=50 — **note:** different CFD values from the DGS production version (m=2.5 not 3.5; fraction=50 not 25)
+- LED parameters: p1=0.07µs, p2=0.05µs, m=2.5µs, k0=0.5µs, k=0.5µs, d=0.16µs (identical to DGS version)
+- Both modes: threshold=30, RiseEdge polarity, raw_data_delay=0.5µs, raw_data_length=4.0µs (larger than DGS 0.32µs — longer trace for diagnostic use)
+- Sets `trigger_mux_select IntAcptAll` explicitly (DGS version has this commented out)
+- Ends with `CS_Ena=Enable`, `veto_enable=0`, FIFO reset
+- Comment at top: `#todo, NIM or RAM` (trigger mode placeholder)
+✅ verified 2026-04-27 — `ANLDAQ/tcpReceiver/basic_settings.sh:L1-76`
 
 **`basic_settings_TACII.sh`** — Quick setup script for TAC-II teststand (VME10 only): enables MTRG + MDIG1, clears all vetoes, selects `SumY` trigger monitor, enables `EN_MAN_AUX` trigger (manual/auxiliary). Momentarily pulses `SOFTWARE_VETO` on then off. Used for TAC-II commissioning/testing on the single-crate teststand.
 

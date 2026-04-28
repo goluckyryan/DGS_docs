@@ -2,6 +2,23 @@
 
 Stability: C1 - Operational / volatile
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Data Locations](#data-locations)
+3. [Run Control](#run-control)
+4. [TCP Receiver Config](#tcp-receiver-config-configtxt)
+5. [Digitizer Settings](#digitizer-settings-basic_settings_dgssh)
+6. [Trigger Settings](#trigger-settings-basic_settingssh)
+7. [DCS2 Storage Overview](#dcs2-storage-overview)
+8. [Notes](#notes)
+9. [data0 Retention Policy](#data0-retention-policy)
+10. [Cleanup Log](#cleanup-log)
+11. [Monitoring](#monitoring)
+12. [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 | Field | Value |

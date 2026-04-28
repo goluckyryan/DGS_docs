@@ -10,6 +10,17 @@ Gammasphere has **110 detector positions** (GS holes 1–110), arranged in **17 
 
 ---
 
+## Table of Contents
+- [Ring Structure](#ring-structure)
+- [Full GS Hole → θ Angle Map](#full-gs-hole--angle-map)
+- [Key Properties](#key-properties)
+- [Collector Box → GS Hole Assignment](#collector-box--gs-hole-assignment)
+- [Detector Installation Database (May 2017)](#detector-installation-database-may-2017)
+- [Related Files](#related-files)
+- [Cross-References](#cross-references)
+
+---
+
 ## Ring Structure
 
 | Ring | θ (deg) | # Detectors | GS Holes |

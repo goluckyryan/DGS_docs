@@ -4,6 +4,20 @@ Stability: C2 - Active / semi-stable
 
 _Source: `DGS_tools_pack/raw_FPGA/` + `DGS_tools_pack/fpga/` repos. Created: 2026-04-05._
 
+## Table of Contents
+- [Toolchain Summary](#toolchain-summary)
+- [ISE 14.7](#ise-147)
+  - [Device Support](#device-support)
+  - [Ubuntu 24.04 Compatibility](#ubuntu-2404-compatibility)
+- [Vivado 2018.3](#vivado-20183)
+- [Trigger System VHDL Simulation](#trigger-system-vhdl-simulation)
+- [Firmware_Tags Archive (`FPGA/Firmware_Tags/`)](#firmware_tags-archive-fpgafirmware_tags)
+  - [Directory Structure](#directory-structure)
+  - [Key Notes](#key-notes)
+  - [Digitizer Tag Timeline (MAIN_FPGA_TAGS)](#digitizer-tag-timeline-main_fpga_tags)
+  - [MAIN_FPGA_TAGS/20180507/TestBranches — LBNE-Style Redesign Experiment](#main_fpga_tags20180507testbranches--lbne-style-redesign-experiment)
+- [Cross-References](#cross-references)
+
 ## Toolchain Summary
 
 | Module | Device | Tool | Version |

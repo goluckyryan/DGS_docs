@@ -8,6 +8,29 @@ Total records: 1,431 per detector × up to 110 detectors ✅ verified 2026-04-16
 
 ---
 
+## Table of Contents
+- [Detector Numbering Systems](#detector-numbering-systems)
+- [PV Nature Reference](#pv-nature-reference)
+- [CollectorDiagCtl.db (71 records)](#collectordiagsctldb-71-records)
+- [CtrlFPGA.db (16 records)](#ctrlfpgadb-16-records)
+- [CtrlFPGA_reg.db (121 records)](#ctrlfpga_regdb-121-records)
+- [DetSpec.db (2 records)](#detspecdb-2-records)
+- [HV_STEP.db (9 records)](#hv_stepdb-9-records)
+- [Pickoff.db (448 records)](#pickoffdb-448-records)
+- [PickoffDiagCtl.db (40 records)](#pickoffdiagctldb-40-records)
+- [Pickoff_reg.db (264 records)](#pickoff_regdb-264-records)
+- [PowerBoardCalcChain.db (10 records)](#powerboardcalcchaindb-10-records)
+- [PreampCalcChain.db (16 records)](#preampcalcchaindb-16-records)
+- [SlopeBox.db (26 records)](#slopeboxdb-26-records)
+- [StrpFPGA.db (294 records)](#strpfpgadb-294-records)
+- [StrpFPGA_reg.db (42 records)](#strpfpga_regdb-42-records)
+- [unused_cable.db (39 records)](#unused_cabledb-39-records)
+- [unused_dvi.db (1 records)](#unused_dvidb-1-records)
+- [unused_gs.db (38 records)](#unused_gsdb-38-records)
+- [Cross-References](#cross-references)
+
+---
+
 ## Detector Numbering Systems
 
 Four numbering systems are used for the same physical Ge detector. Understanding them is essential for reading PV names.

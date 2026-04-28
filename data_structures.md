@@ -286,6 +286,28 @@ Saved file: GEBHeader + repacked TAC2 packet (10 words)
   Note: board_id=99, CH_ID=0xA, header_Type=0xE are sentinel values identifying this as trigger data. ✅ verified 2026-04-22 — receiver.h:L462-464
 ```
 
+**`TransformPackedDataToPayload()` — re-expanding packed→16-word:**
+In `armory/fastEventContructor/class_TDC.h`, `DecodePackedData()` receives the same 10-word packed format (from the saved binary file) and uses `TransformPackedDataToPayload()` to re-expand it into the 16-word payload before calling `DecodePayload()`. The mapping is:
+```
+payload[ 0] = 0x0000AAAA               (magic)
+payload[ 1] = packedData[4] >> 16      (trigType)
+payload[ 2] = packedData[3] & 0xFFFF   (ts_high)
+payload[ 3] = packedData[2] >> 16      (ts_middle upper)
+payload[ 4] = packedData[2] & 0xFFFF   (ts_low)
+payload[ 5] = packedData[4] & 0xFFFF   (wheel)
+payload[ 6] = packedData[5] >> 16      (multiplicity)
+payload[ 7] = packedData[5] & 0xFFFF   (userRegister)
+payload[ 8] = packedData[6] >> 16      (coarseTime)
+payload[ 9] = packedData[6] & 0xFFFF   (triggerBitMask)
+payload[10] = packedData[7] >> 16      (fourNanoSecCounter[0])
+payload[11] = packedData[7] & 0xFFFF   (fourNanoSecCounter[1])
+payload[12] = packedData[8] >> 16      (fourNanoSecCounter[2])
+payload[13] = packedData[8] & 0xFFFF   (fourNanoSecCounter[3])
+payload[14] = packedData[9] >> 16      (vernierAB)
+payload[15] = packedData[9] & 0xFFFF   (vernierCD)
+```
+**NoTrigger sentinel:** `packedData[9] == 0x10021001` → `isTrashData = NoTrigger` (checked before unpacking; Word 9 contains vernier data, so this value means all vernier bits are invalid). ✅ verified 2026-04-27 — `class_TDC.h:L113-114` (NoTrigger check), `L66-82` (TransformPackedDataToPayload layout)
+
 The MTRG TAC-II TDC produces trigger timing data decoded into the `TDC` class:
 
 ```

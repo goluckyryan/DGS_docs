@@ -294,10 +294,6 @@ Key facts:
 
 ---
 
----
-
----
-
 ## `gui_GS.py` — Per-Detector GS Window
 
 _Source: `ANLDAQ/gui/gui_GS.py` (209 lines). Code-read 2026-04-26._

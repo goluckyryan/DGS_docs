@@ -63,7 +63,7 @@ FPGA/others/
 
 Original design by **Vincent Riot**, Lawrence Berkeley National Laboratory (LBNL), for the GRETINA detector system. Headers note "LBNL PROPRIETARY." Created circa 2006 for the GRETINA experiment; later adapted by JTA (Ryan Tang) as the starting point for the DGS digitizer.
 
-The design is for a **14-bit, 10-channel digitizer** running on a **Spartan-3 5000 (XC3S5000-FG900-5)** FPGA at 50 MHz base clock (100 MHz ADC clock). The board interfaces to a custom VME crate via a daughter VME FPGA that decodes bus cycles and drives the main FPGA.
+The design is for a **14-bit, 10-channel digitizer** running on a **Spartan-3 5000 (XC3S5000-FG900-5)** FPGA at 50 MHz base clock (100 MHz ADC clock). ✅ verified 2026-04-27 — `chip_top.vhd:L33-51` (10× `ADCData0–9: in STD_LOGIC_VECTOR(13 downto 0)` = 14-bit, 10 channels); `jta_notes.txt:L244` (`Selected Device : 3s5000fg900-5`). The board interfaces to a custom VME crate via a daughter VME FPGA that decodes bus cycles and drives the main FPGA.
 
 The `jta_temp_branch/` directory represents JTA's working copy of the VHDL with a simplification pass begun in 2011, focusing on removing hand-coded counter components and replacing them with idiomatic VHDL `+1` incrementers.
 
@@ -144,10 +144,11 @@ JTA's simplification pass (2011) is documented in `jta_notes.txt` inside the bra
 5. **VME register defaults** (from `VMEControl.vhd` reset block):
    - `ExternalWindow = 0x190`, `PileupWindow = 0x400`, `NoiseWindow = 0x040`
    - `ExternalTriggerSlidingLength = 0x190`
-   - `CollectionTime = CollectionTimeLR = 0x1C2`, `IntegrationTime = 0x1C2`, `IntegrationTimeLR = 0x040`
+   - `CollectionTime = 0x1C2`, `CollectionTimeLR = 0x020`, `IntegrationTime = 0x1C2`, `IntegrationTimeLR = 0x040`
    - `CC_LEDDriverEnable = 0x200`
-   - `AUX_IO_WRITE = AUX_IO_CONFIG = 0x555` (enable read, disable write)
+   - `AUX_IO_WRITE = 0xDEADF00D` (reset placeholder), `AUX_IO_CONFIG = 0x555` (enable read, disable write)
    - `ADC_CONFIGreg = 0x3`
+   ✅ verified 2026-04-27 — `VMEControl.vhd:L255-270` (all reset assignments confirmed; `CollectionTimeLR=x"00000020"`, `AUX_IO_WRITEreg=x"DEADF00D"`, `AUX_IO_CONFIGreg=x"00000555"`, `ADC_CONFIGreg=x"00000003"`).
 
 ### VME Address Decode (gammasphere functional notes)
 
@@ -174,7 +175,7 @@ From `gammasphere functinoal notes.txt`:
 
 ### Origin and Context
 
-Designed by the **High Energy Physics Division, Argonne National Laboratory**, for the **Physics Division, ANL** (Gammasphere). Same FPGA target: **XC3S5000-5F900C** (Spartan-3). This is the direct architectural predecessor to the production DGS digitizer firmware found in `FPGA/DIG/`.
+Designed by the **High Energy Physics Division, Argonne National Laboratory**, for the **Physics Division, ANL** (Gammasphere). Same FPGA target: **XC3S5000-FG900-5** (Spartan-3). ✅ verified 2026-04-27 — `DIGITIZER.twr:L12` (`Device,package,speed: xc3s5000,fg900,-5`). This is the direct architectural predecessor to the production DGS digitizer firmware found in `FPGA/DIG/`.
 
 **Branched 2015-08-31** into two versions: Digital Gammasphere (main trunk) and Majorana (a branch). ✅ verified 2026-04-27 — `Digitizer.vhd:L12` comment: "20150831: Separation of design into two branches, Digital Gammasphere (main trunk) and Majorana (the branch)." The `Majorana_Digitizer/` folder contains the Majorana branch. Key Majorana differences vs DGS: ✅ verified 2026-04-27 — `Digitizer.vhd:L13-17` lists all 5 changes verbatim.
 - CFD removed
@@ -316,11 +317,13 @@ Key record types defined in `Digitizer_pkg`:
 
 | Feature | DGS Main Trunk | Majorana Branch |
 |---------|----------------|-----------------|
-| CFD | Present | Removed |
-| Triple filter | Present | Removed |
+| CFD | Present | Removed (source file `cfd_disc.vhd` still in dir as artifact, not instantiated) |
+| Triple filter | Present | Removed (source file `triple_filter.vhd` still in dir as artifact, not instantiated) |
 | Threshold discriminator input | Filtered signal | Full 24-bit M1/M2 sums |
 | Threshold width | 12-bit | 24-bit |
 | BGO veto | Enabled | Extended events enabled (TODO item) |
+
+✅ verified 2026-04-27 — `Majorana_Digitizer/MAIN_FPGA/Source/Digitizer.vhd:L12-18` (header comment: "CFD is removed", "triple-filter is removed"); `jta_channel.vhd` contains no `cfd_disc_mach` or `triple_filter` instantiation. Files `cfd_disc.vhd`/`triple_filter.vhd` remain as unlinked DGS trunk artifacts.
 
 ### Firmware Constant
 

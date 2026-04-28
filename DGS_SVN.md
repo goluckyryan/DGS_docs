@@ -2,6 +2,18 @@
 
 Stability: C3 - Structural / stable
 
+## Table of Contents
+
+- [What It Is](#what-it-is)
+- [Contents of `dgs/`](#contents-of-dgs)
+- [`Documentation/` — Detector Database & Docs](#documentation--detector-database--docs)
+- [`salvaged_notes/` — Key Historical Documents](#salvaged_notes--key-historical-documents)
+- [`findFile.sh`](#findfilesh)
+- [Usage / Status](#usage--status)
+- [Cross-References](#cross-references)
+
+---
+
 ## What It Is
 
 A mirror/checkout of the DGS legacy **SVN (Subversion)** repository. This is the historical source of DGS code before the migration to Git.

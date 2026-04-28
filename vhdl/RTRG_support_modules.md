@@ -18,6 +18,8 @@ This file documents the RTRG FPGA support modules that are not covered in `260E_
 4. [channel_resets (CHANNEL_RESETS)](#4-channel_resets--channel_resetsvhd)
 5. [plane_bit_count](#5-plane_bit_count--plane_bit_countvhd)
 6. [link_init](#6-link_init--link_initvhd)
+7. [aux_io — AUX/NIM Output Mux](#7-aux_io--aux_iovhd)
+8. [led_ctl — Front-Panel LED Controller](#8-led_ctl--led_ctlvhd)
 
 ---
 
@@ -278,6 +280,103 @@ end generate;
 The RTRG `link_init.vhd` manages the **8 downward links** to digitizers. The MTRG `link_init.vhd` (documented in `vhdl/MTRG_link_init_and_input_pipeline.md`) manages the **8 links from routers**. Both share the same 7-state FSM design and FORCE_SYNC feature. The RTRG also has a separate Router-upward link (Link U/L/R) whose initialization is handled in `TOP.VHD` directly.
 
 **See also:** `deep_fpga_RTRG.md` (RTRG overview), `vhdl/MTRG_link_init_and_input_pipeline.md` (MTRG equivalent)
+
+---
+
+## 7. aux_io — `AUX_IO.VHD`
+
+**Purpose:** Multiplexes four signal sources onto the RTRG's 16 AUX port pins (AUX_A[7:0] + AUX_B[7:0]) and two NIM output lines. Used for diagnostics, external triggering monitors, and VME-controlled digital I/O. ✅ verified 2026-04-27 — `AUX_IO.VHD` (208 lines, read in full)
+
+**Author:** John Anderson
+
+**Entity ports:**
+
+| Port | Dir | Description |
+|------|-----|-------------|
+| `CLK` | in | Master clock |
+| `RST` | in | Active-high master reset |
+| `AUX_IO_CTL_REG[15:0]` | in | VME control register — mux select bits (see below) |
+| `AUX_IO_DATA_REG[15:0]` | in | VME data register — static drive values for mode `10` |
+| `AUX_TRIG_WIDTH_REG[15:0]` | in | Trigger pulse width — bits [3:0] set countdown in clock ticks |
+| `FAST_STROBE_IN` | in | Fast strobe input from CPLD |
+| `TRIGGER_DECISION` | in | High for one tick when a trigger fires |
+| `SYNC_COMMAND` | in | High for one tick when SYNC is issued by the master state machine |
+| `DIAGNOSTIC_BITS_IN[17:0]` | in | Diagnostic bus: bits 17/16 = NIM_OUT 2/1; bits 15:8 = AUX_B 7:0; bits 7:0 = AUX_A 7:0 |
+| `SELECTED_THROTTLE` | in | Throttle output to multiplex onto NIM_OUT2 (mode `10`) |
+| `AUX_A_PORT_OUT[7:0]` | out | AUX_A output pins |
+| `AUX_B_PORT_OUT[7:0]` | out | AUX_B output pins |
+| `NIM_OUT1` | out | NIM output 1 |
+| `NIM_OUT2` | out | NIM output 2 |
+
+**Mux select encoding (AUX_IO_CTL_REG bit pairs):**
+
+| Bits | Controls | Mode `00` | Mode `01` | Mode `10` | Mode `11` |
+|------|----------|-----------|-----------|-----------|-----------|
+| [1:0] | AUX_A[3:0] | FAST_STROBE_IN | ANY_TRIG_PULSE | AUX_IO_DATA_REG[3:0] | DIAGNOSTIC_BITS_IN[11:8] |
+| [4:3] | AUX_A[7:4] | FAST_STROBE_IN | ANY_TRIG_PULSE | AUX_IO_DATA_REG[7:4] | DIAGNOSTIC_BITS_IN[15:12] |
+| [7:6] | AUX_B[3:0] | FAST_STROBE_IN | ANY_TRIG_PULSE | AUX_IO_DATA_REG[11:8] | DIAGNOSTIC_BITS_IN[3:0] |
+| [10:9] | AUX_B[7:4] | FAST_STROBE_IN | ANY_TRIG_PULSE | AUX_IO_DATA_REG[15:12] | DIAGNOSTIC_BITS_IN[7:4] |
+| [13:12] | NIM_OUT1 | FAST_STROBE_IN | ANY_TRIG_PULSE | SYNC_PULSE | DIAGNOSTIC_BITS_IN[16] |
+| [15:14] | NIM_OUT2 | FAST_STROBE_IN | ANY_TRIG_PULSE | SELECTED_THROTTLE | DIAGNOSTIC_BITS_IN[17] |
+
+**Internal signals:**
+
+- **`ANY_TRIG_PULSE`** — stretched trigger pulse. On `TRIGGER_DECISION='1'`, loads `AUX_TRIG_WIDTH_REG[3:0]` into a 4-bit countdown; held high while countdown > 0. Width = N+1 clock cycles (N=0 → 1 cycle, N=15 → 16 cycles at 50 MHz = 20–320 ns). ✅ verified 2026-04-27 — `AUX_IO.VHD:L163-178` (STRETCHA process)
+- **`SYNC_PULSE`** — stretched SYNC indication. On `SYNC_COMMAND='1'`, loads `1010` (10 decimal) → 11-cycle pulse = 220 ns at 50 MHz. Fixed width, not VME-configurable. ✅ verified 2026-04-27 — `AUX_IO.VHD:L179-194` (STRETCHB process)
+
+**Key observation:** NIM_OUT2 uniquely exposes the `SELECTED_THROTTLE` signal in mode `10` (added 2016-05-20 per inline comment). NIM_OUT1 mode `10` exposes SYNC_PULSE instead. This asymmetry lets operators monitor throttle activity on NIM_OUT2 while using NIM_OUT1 for SYNC monitoring, all under VME control.
+
+**EPICS PVs:** `VME32:RTR{N}:reg_AUX_IO_CTL` (write), `VME32:RTR{N}:reg_AUX_IO_DATA` (write). Read-back via corresponding `:reg_*` readback PVs.
+
+---
+
+## 8. led_ctl — `LED_CTL.VHD`
+
+**Purpose:** Controls the RTRG front-panel LED array (12 LEDs: D1–D12, of which D2–D12 are driven here; D1 is tied to FPGA DONE pin by schematic — JTA notes this was a mistake). LEDs are **active-low** — `'0'` = ON, `'1'` = OFF. ✅ verified 2026-04-27 — `LED_CTL.VHD` (162 lines, read in full)
+
+**Author:** John Anderson
+
+**Front-panel layout (front view):**
+```
+ D1   D2   D3
+ D4   D5   D6
+ D7   D8   D9
+D10  D11  D12
+```
+D1 = DONE pin (schematic mistake; not controlled here). D2–D12 are driven by `LED_OUT[12:2]`.
+
+**Entity ports:**
+
+| Port | Dir | Description |
+|------|-----|-------------|
+| `CLK` | in | Master clock |
+| `RST` | in | Active-high master reset |
+| `BLINK_CLK` | in | ~0.3 Hz blink clock (timestamp bit 27 pickoff) |
+| `LED_REG[15:0]` | in | VME LED control register |
+| `LOCK_BUS[15:0]` | in | SERDES lock status — bit N = locked for link N |
+| `INPUT_LINK_MASK[7:0]` | in | Channel mask — bit N = link N is disabled/masked |
+| `CHAN_FSM_STATE[7:0]` | in | Channel FSM state for mode 00 display |
+| `TRIG_DATA[7:0]` | in | Trigger status for mode 01 display |
+| `DIAG_DATA[7:0]` | in | Diagnostic data for mode 10 display |
+| `LED_OUT[12:2]` | out | 11 LED drive signals (D2–D12, active low) |
+
+**Mode select — `LED_REG[15:14]`:**
+
+| Mode | Bits [15:14] | D4–D11 (channels 1–8) | D2–D3 | D12 |
+|------|--------------|-----------------------|-------|-----|
+| `00` | `"00"` | LOCK_STATE[0–7] (lock/mask/blink) | OFF (VCC) | LOCK_BUS[8] (link L locked) |
+| `01` | `"01"` | TRIG_DATA[0–7] (inverted) | OFF/ON | LOCK_BUS[8] |
+| `10` | `"10"` | DIAG_DATA[0–7] (inverted) | ON/OFF | LOCK_BUS[8] |
+| `11` | `"11"` | LED_REG[0–7] (inverted, direct VME drive) | ON/ON | LOCK_BUS[8] |
+
+**LOCK_STATE logic (mode 00):**
+- If link is **masked** (`INPUT_LINK_MASK[i]='1'`) OR **locked** (`LOCK_BUS[i]='0'`): LED ON (`'0'`) — normal/OK
+- If link is **NOT locked** AND **NOT masked**: LED blinks at ~0.3 Hz — indicates lock error
+- `LOCK_BUS[8]` is the upward link-L to master; D12 shows its lock status directly in all modes. ✅ verified 2026-04-27 — `LED_CTL.VHD:L69-74` (LOCK_STATE_BLOCK generate), `L161` (LED_OUT(12) <= LOCK_BUS(8))
+
+**BLINK_CLK source:** Timestamp counter bit 27. At 50 MHz clock, bit 27 toggles at 50 MHz / 2²⁸ ≈ 0.19 Hz. Provides a visible ~5-second blink cycle for lock-error indication.
+
+**Diagnostic note (D2/D3):** D2 and D3 (LED_OUT[2] and LED_OUT[3]) show a fixed 2-bit pattern per mode: mode 00 → both OFF; mode 01 → both OFF; mode 10 → D2 ON / D3 OFF; mode 11 → both ON. This acts as a visual mode indicator. ✅ verified 2026-04-27 — `LED_CTL.VHD:L77-91`
 
 ---
 

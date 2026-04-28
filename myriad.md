@@ -29,6 +29,10 @@ Source: `DGS_tools_pack/FPGA/others/MyRIAD/`
   - [NIM_Delay.vhd — NIM Delay Line](#nim_delayvhd--nim-delay-line-97-lines)
   - [DCBAL_in.vhd — DC-Balance Input Decoder](#dcbal_invhd--dc-balance-input-decoder--clock-domain-crossing-147-lines)
 - [Diagnostic / Debug Features](#diagnostic--debug-features)
+- [VME FPGA Sub-Module Deep Dives](#vme-fpga-sub-module-deep-dives)
+  - [vme_addr_decode.vhd — VME Address Decoder](#vme_addr_decodevhd--vme-address-decoder-293-l)
+  - [external_bus_controller.vhd — External Bus Controller](#external_bus_controllervhd--external-bus-controller-285-l)
+  - [configuration_controller.vhd — FPGA Configuration FSM](#configuration_controllervhd--fpga-configuration-fsm-349-l)
 - [Cross-References](#cross-references)
 
 ---
@@ -579,6 +583,91 @@ Data written per trigger event: header (A+B words) + 3× 32-bit data words (A an
 - **VIO** (Virtual I/O): 64-bit control bits + 16-bit readback data sampled every LACK edge
 - ILA trigger bus: 128-bit wide
 - Loopback pins: `N_OUT_DLY_OUT/IN[7:0]`, `TDC_LOOPBACK_OUT/IN` for fine-tuning ODELAY values
+
+---
+
+## VME FPGA Sub-Module Deep Dives
+
+_Source: `FPGA/others/MyRIAD/VME_FPGA/Source/`. Code-read 2026-04-27._
+
+### `vme_addr_decode.vhd` — VME Address Decoder (293 L)
+
+A 4-state FSM (`WAIT_AS → DECODE → ASSERT_CS → END_CYCLE`) that decodes incoming VME A24/D16 cycles and generates chip-select outputs for the three addressable regions: VME FPGA internal registers, Flash memory, and MAIN FPGA.
+
+**Operation:**
+- **AM codes accepted:** 0x39 (A24 non-priv data), 0x3B (A24 non-priv BLT), 0x3D (A24 supervisory data), 0x3F (A24 supervisory BLT). All others are silently ignored (no response). ✅ verified 2026-04-27 — `vme_addr_decode.vhd:L124-131`
+- **Address space:** responds to `BOARD_BASE:0000h – BOARD_BASE:FFFFh` (16 KB window); `BOARD_BASE` = 8-bit DIP switch value. ✅ verified 2026-04-27 — `vme_addr_decode.vhd:L134` (`VME_ADDR(23 downto 16) = BOARD_BASE`)
+- **Clock:** 60 MHz VME bus clock; FSM uses 2-cycle AS* falling-edge detection (`delayed_AS1/AS2` pipeline).
+
+**Chip-select decode table (address = `0xdd????`):**
+
+| Address Range | `internal_CS` | `flash_CS` | `FPGA_CS[2:0]` | Target |
+|---|---|---|---|---|
+| `0xdd0000–0xdd08FF` | 0 | 0 | `001` | MAIN FPGA (registers) |
+| `0xdd0900–0xdd0982` | 1 | 0 | `000` | VME FPGA internal registers |
+| `0xdd0984–0xdd098E` | 0 | 1 | `000` | Flash memory |
+| `0xdd0990–0xdd09FF` | 0 | 0 | `000` | Unused / no response |
+| `0xdd0A00–0xdd0FFF` | 0 | 0 | `000` | No response |
+| `0xdd1000–0xdd3FFF` | 0 | 0 | `010` | MAIN FPGA (FIFO) |
+| `0xdd4000–0xdd5FFF` | 0 | 0 | `011` | MAIN FPGA (excess decode 011) |
+| `0xdd6000–0xdd7FFF` | 0 | 0 | `100` | MAIN FPGA (excess decode 100) |
+| `0xdd8000–0xdd9FFF` | 0 | 0 | `101` | MAIN FPGA (excess decode 101) |
+| `0xddA000–0xddAFFF` | 0 | 0 | `110` | MAIN FPGA (excess decode 110) |
+| `0xddB000–0xddDFFF` | 0 | 0 | `000` | No response |
+| `0xddE000–0xddEFFF` | 0 | 0 | `111` | MAIN FPGA (excess decode 111) |
+| `0xddF000–0xddFFFF` | 0 | 0 | `000` | No response |
+
+✅ verified 2026-04-27 — `vme_addr_decode.vhd:L181-241` (full case statement)
+
+**Block transfer support:** BLT AM codes (0x3B/0x3F) set `BLOCK_XFR_FLAG`. In BLT mode, `END_CYCLE` loops back to `DECODE` on each successive DS* assertion (rather than waiting for full AS* release), enabling multi-word transfers at full VME speed. ✅ verified 2026-04-27 — `vme_addr_decode.vhd:L108-113, L279-293`
+
+---
+
+### `external_bus_controller.vhd` — External Bus Controller (285 L)
+
+An 8-state FSM that arbitrates between VME cycles and FPGA configuration accesses on the shared external bus (Flash memory + MAIN FPGA). Runs at **50 MHz** (20 ns/cycle).
+
+**States:** `IDLE → CONFIGURE | WRITE_FLASH_INDIRECT | READ_FLASH_INDIRECT | WRITE_MAIN_FPGA | READ_MAIN_FPGA | READ_EXTERNAL_FIFO | HOLD_DTACK`
+
+**Priority:** configuration request (`config_request`) takes highest priority; VME flash/FPGA cycles run from IDLE only when no config is pending. ✅ verified 2026-04-27 — `external_bus_controller.vhd:L117-122`
+
+**VME vs. Flash vs. FPGA routing:**
+- **Flash read** (`READ_FLASH_INDIRECT`): 10-cycle sequence; address comes from `flash_reg_addr` register (not from VME address lines); data returned to VME after 8-cycle `flash_OE` assert. ✅ verified 2026-04-27 — `external_bus_controller.vhd:L186-201`
+- **Flash write** (`WRITE_FLASH_INDIRECT`): 14-cycle sequence; address from register; WE* pulse at cycles 6–12. ✅ verified 2026-04-27 — `external_bus_controller.vhd:L163-180`
+- **MAIN FPGA read** (`READ_MAIN_FPGA`): asserts `fpga_strb` at delay_count=2; waits for `fpga_ack` pipeline (2-stage `fpga_ack_p1/p2`) to capture data; times out at delay_count=14. ✅ verified 2026-04-27 — `external_bus_controller.vhd:L204-229`
+- **MAIN FPGA write** (`WRITE_MAIN_FPGA`): asserts address at cycle 0, data at cycle 1, `fpga_strb` at cycle 4; done at cycle 10. ✅ verified 2026-04-27 — `external_bus_controller.vhd:L232-248`
+- **FIFO read** (`READ_EXTERNAL_FIFO`, `FPGA_CS="010"`, added 2013-03-05): identical to `READ_MAIN_FPGA` but in a separate state for future differentiation. ✅ verified 2026-04-27 — `external_bus_controller.vhd:L251-273`
+- **Configuration** (`CONFIGURE`): passes `cnfg_addr_in` from configuration_controller as flash address; drives `cnfg_data_out ← external_data_in`; holds flash CE/OE asserted; stays until `config_request` deasserts. ✅ verified 2026-04-27 — `external_bus_controller.vhd:L135-153`
+- **HOLD_DTACK**: holds DTACK until the address decoder releases chip-selects (end of VME cycle), then returns to IDLE.
+
+**Direction control:** `external_ddir` output controls bidirectional bus buffer direction (`'0'` = output/write, `'1'` = input/read). Default is input.
+
+---
+
+### `configuration_controller.vhd` — FPGA Configuration FSM (349 L)
+
+Controls automatic configuration of the **MAIN FPGA** from Flash memory on power-up (and optionally from VME command). Uses a 12-state FSM that serializes 16-bit Flash words MSB-first to the MAIN FPGA's SelectMap/serial configuration pins.
+
+**States:** `STARTUP → ASSERT_PRGM → HOLD_PRGM → RELEASE_PRGM → WAIT_INIT → READ_WORD → SHIFT_DATA_A → SHIFT_DATA_B → SHIFT_DATA_C → ERROR | DONE → IDLE`
+
+**Configuration bitstream layout in Flash:**
+- Starts at address `0x000000` (hard-coded constant `dcf_cnfg_start_addr_i`)
+- Stop address: `0x180000` (a round number above the Spartan-3 XC3S5000 bitstream size of ~1,659K words; machine exits early when FPGA asserts DONE). ✅ verified 2026-04-27 — `configuration_controller.vhd:L76-82`
+- Diagnostic firmware region: `0x400000–0x7FFFFEh` (defined but not used in normal operation)
+
+**Sequence:**
+1. **STARTUP**: reset counters, go to ASSERT_PRGM
+2. **ASSERT_PRGM**: hold `fpga_pgm='0'` for 32 cycles (≈1.28 µs; spec: ≥500 ns); also holds external bus via `configuration_flag='1'` to claim Flash access
+3. **HOLD_PRGM**: extend PGM assert using `pgm_count` counter (32 × 40 ns = 1.28 µs additional hold)
+4. **RELEASE_PRGM**: raise PGM; hold for 12 more cycles; load `init_count = 125000` (5 ms timeout for INIT)
+5. **WAIT_INIT**: wait for `fpga_init_in='1'` (MAIN FPGA INIT assertion indicates internal clear complete). Timeout after 125,000 × 20 ns = 5 ms → ERROR if INIT never asserts. ✅ verified 2026-04-27 — `configuration_controller.vhd:L218-228`
+6. **READ_WORD**: latch 16 bits from Flash; check if `fpga_done='1'` → DONE. Load `shift_count=16`.
+7. **SHIFT_DATA_A/B/C**: shift one bit per iteration (A=data setup, B=CCLK high, C=CCLK low + shift register advance). Address incremented 4 cycles before the word boundary to meet Flash access timing. 16 bits per word = 16 iterations per Flash word. ✅ verified 2026-04-27 — `configuration_controller.vhd:L280-299`
+8. **DONE**: configuration complete; deassert `configuration_flag`; assert `config_complete`. Wait for VME software to acknowledge (`config_done_ack='1'`) before going IDLE.
+9. **ERROR**: same as DONE but also asserts `config_error`. Triggered by address overflow or INIT timeout.
+10. **IDLE**: quiescent; re-triggered by `request_config='1'` from VME register write.
+
+**Key design note:** CCLK is generated directly by this FSM (not by buffering the master clock) per Xilinx app note #5154. `fpga_init_out` is tied high and `fpga_init_t` is tied high (init pin used as input only — "big hack 2009-03-27"). ✅ verified 2026-04-27 — `configuration_controller.vhd:L96-97`
 
 ---
 

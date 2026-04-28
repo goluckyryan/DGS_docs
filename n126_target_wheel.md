@@ -11,6 +11,28 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+1. [Purpose](#purpose)
+2. [FPGA](#fpga)
+   - [Firmware Source Files](#firmware-source-files)
+   - [Top-Level Ports](#top-level-ports-key-groups)
+3. [EPICS IOC (Raspberry Pi)](#epics-ioc-raspberry-pi)
+   - [EPICS Source Files](#epics-source-files-n126appsrc)
+4. [EPICS PV Register Map](#epics-pv-register-map)
+   - [Control Registers (Write)](#control-registers-write)
+   - [Status Registers (Read)](#status-registers-read)
+   - [Bitgroup PVs](#bitgroup-pvs-sub-field-access-via-mask)
+5. [Quadrature Decoder](#quadrature-decoder-quadrature_decodervhd)
+6. [Stepper Motor — DRV8824](#stepper-motor--drv8824)
+7. [DC Motor — L6203](#dc-motor--l6203)
+8. [I²C Power Board](#ic-power-board)
+9. [LED Display](#led-display)
+10. [Relationship to Other DGS Systems](#relationship-to-other-dgs-systems)
+11. [Related Files](#related-files)
+
+---
+
 ## Purpose
 
 The N=126 target wheel is an **auxiliary nuclear physics device** used with Gammasphere at ANL. It physically rotates a thin nuclear target to expose fresh material to the beam (preventing damage/burnout). The encoder interface board:

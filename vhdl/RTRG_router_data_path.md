@@ -49,6 +49,8 @@ Key ports:
 | `DIAG_PIN_CTL_REG` | in | 16 | Sub-mode for FIFO input mode "10" |
 | `ENABLE_VETO` | in | 1 | Forwarded to all chan_in instances |
 
+✅ verified 2026-04-27 — `router_data_path.vhd:L28-59` (entity port list; all port names, directions, and widths confirmed; note: DIAG_INTER_COARSE_GE_SUM VHDL comment erroneously says "six-bit" but signal type is `MBO_2x5_Array` = 5-bit — KB "5-bit" is correct)
+
 ## Link-L Output Word Format (LINKL_RAW_DATA, 16-bit becomes bits [16:1] of 18-bit SerDes word)
 ```
 [15]    = ANY_THROTTLE_REQUEST
@@ -86,20 +88,20 @@ Each channel: `DIGITIZER_LOCKED(i)='1'` if masked OR if LOCK_BUS(i)='0' (active-
 Two-bit mode per channel (CHAN_MON_FIFO_CTL_REG[2i-1:2i-2]):
 | Mode | Data in FIFO |
 |---|---|
-| "00" | RAW_DATA(i) — 16-bit post-DC-balance data |
-| "01" | ANY_X, ANY_Y flags + throttle request + THROTTLE_REQUESTS bus |
-| "10" | Y_PLANE_COUNT + disc_mach STATE_MON + X_PLANE_COUNT + Ge/BGO edges (sub-selected by DIAG_PIN_CTL_REG[9:7]) |
-| "11" | Y_PLANE_COUNT[2:0] & X_PLANE_COUNT[2:0] & RAW_DATA[9:0] |
+| "00" | `RAW_DATA(i)` — 16-bit post-DC-balance data ✅ verified 2026-04-27 — `router_data_path.vhd:L265` |
+| "01" | `ANY_Xs(i) & ANY_Ys(i) & ANY_THROTTLE_REQUEST & "00000" & THROTTLE_REQUESTS` — any-X/Y hit flags + throttle data ✅ verified 2026-04-27 — `router_data_path.vhd:L268` |
+| "10" | Sub-mux via DIAG_PIN_CTL_REG[9:7] (8 cases): cases 0–4 = `Y_PLANE_COUNT[15:12] & '0' & STATE_MON(n)[2:0] & X_PLANE_COUNT[7:4] & "00" & GE_EDGE & BGO_EDGE`; case 5 = `ANY_Xs & ANY_Ys & "0000" & GE_EDGE_DIAGS(5) & BGO_EDGE_DIAGS(5)`; cases 6/7 = 0x0110/0x0111 (debug sentinels); others = 0x0BAD ✅ verified 2026-04-27 — `router_data_path.vhd:L273-284` |
+| "11" | `Y_PLANE_COUNT[2:0] & X_PLANE_COUNT[2:0] & RAW_DATA[9:0]` ✅ verified 2026-04-27 — `router_data_path.vhd:L287` |
 
 Two-bit write enable per channel (CHAN_MON_FIFO_WE_CTL_REG):
 | Mode | Write when… |
 |---|---|
-| "00" | Never |
-| "01" | Always |
-| "10" | This channel's disc bits nonzero (lower 10 bits of xxxCHAN_MON_FIFO_INs checked) |
-| "11" | Any channel's disc bits nonzero |
+| "00" | Never ✅ verified 2026-04-27 — `router_data_path.vhd:L298-300` |
+| "01" | Always ✅ verified 2026-04-27 — `router_data_path.vhd:L300-301` |
+| "10" | This channel's `CHAN_FIFO_DATA_NONZERO(i)` nonzero (checked from `xxxCHAN_MON_FIFO_INs[9:0]`) ✅ verified 2026-04-27 — `router_data_path.vhd:L302-307` |
+| "11" | Any channel's `CHAN_FIFO_DATA_NONZERO` byte nonzero (`/= X"00"`) ✅ verified 2026-04-27 — `router_data_path.vhd:L308-311` |
 
-Input is triple-registered (mux → xxxCHAN_MON_FIFO_INs → xxCHAN_MON_FIFO_INs → xCHAN_MON_FIFO_INs → CHAN_MON_FIFO_INs output) to align with WE latency. ✅ verified 2026-04-24 — `router_data_path.vhd:L244-250` (pipeline registers; output assigned from xCHAN_MON_FIFO_INs via combinatorial SIGNAL ASSIGNMENTS at L166)
+Input is **2-stage clocked pipeline**: mux assigns `xxxCHAN_MON_FIFO_INs` (combinatorial) → clocked to `xxCHAN_MON_FIFO_INs` → clocked to `xCHAN_MON_FIFO_INs` → combinatorial output to `CHAN_MON_FIFO_INs` (L153). Only `xx` and `x` stages are registered; `xxx` is purely combinatorial. ✅ verified 2026-04-27 — `router_data_path.vhd:L84-86,L153,L252-253` (signals declared; x←xx←xxx clocked at L252-253; output L153 combinatorial). **Correction from prior summary**: KB previously said "triple-registered" — accurate count is 2 clock-stage pipeline.
 
 ## Key Constants / Parameters
 - 8 input channels (for i in 1 to 8)

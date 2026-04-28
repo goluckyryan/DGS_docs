@@ -184,6 +184,19 @@ Links G, H, R, U are unused (`X`) in this config. Link L of each RTRG connects b
 - **`Serdes_Linkup.sh`:** Sequential wrapper that invokes Stages 1–5 in order. Sets `SCRIPT_DIR` to `${ANLDAQ_DIR}/gui/scripts/new_scripts` (legacy path — `new_scripts/` subdir does not exist in the current repo; stage scripts live directly in `scripts/`). ✅ verified 2026-04-17 — `Serdes_Linkup.sh:L3` (SCRIPT_DIR assignment), `L48/57/67/78/87` (stage invocations)
   - ⚠️ After completion, **Link L F1 propagation is removed** — cross-system clock/triggering must be reconstituted manually after this script finishes (noted in end-of-script echo block: `Serdes_Linkup.sh:L106–111`)
   - Also documents the EPICS **whole-register vs breakout PV gotcha** (see Key Design Notes below)
+- **`enableScriptList.txt`:** Plain-text whitelist of scripts enabled for GUI invocation. Contains exactly two entries: `basic_settings_LED.py` and `Serdes_Linkup.sh`. The GUI (`commander.py`) reads this file to determine which scripts appear as active buttons in the "Setup Script" section — scripts not listed are shown disabled. ✅ verified 2026-04-27 — `enableScriptList.txt` (2 lines).
+- **`basic_settings_LED.py`:** Python 3 utility (uses `pyepics`) that configures a single VME crate's digitizers to **LED (Leading-Edge Discrimination) mode** with threshold=300 and `IntAcptAll` trigger mode. For benchtop/diagnostic use, not production DGS runs. Key settings applied per channel CH5–9:
+  - `cfd_mode` → `LED_Mode`; `trigger_polarity` → `RiseEdge`; `led_threshold` → 300
+  - LED window parameters: `p1_window=0.07`, `p2_window=0.05`, `m_window=2.5`, `k0_window=0.5`, `k_window=0.5`, `d_window=0.16`
+  - `trigger_mux_select` → `IntAcptAll`; `veto_enable` → 0; fires `master_fifo_reset` (reset→run)
+  - Safety epilogue: sets `Online_CS_StartStop=Stop`, `Online_CS_SaveData=No Save`
+  - Default scope: VME66 only; VME6/VME10 exception: MDIG1 only (others: MDIG1+MDIG2)
+  - ✅ verified 2026-04-27 — `basic_settings_LED.py` (full source read)
+- **`terminals`** (bash, no extension): Helper launched by the EDM GUI to open terminal windows for softIOC and VME IOCs on the local machine.
+  - `S` → spawns `dgsSoftIOC` in a gnome-terminal (checks for existing instance first via `ps` grep)
+  - `<N>` → opens gnome-terminal with `telnet ${TERMINAL_SERVER} $((2000 + N))` to IOC serial console port
+  - Env vars required: `TERMINAL_SERVER`, `ANLDAQ_DIR`, `EPICS_HOST_ARCH`; geometry 100×30 (SoftIOC) or 100×100+0+0 (IOC)
+  - ✅ verified 2026-04-27 — `terminals:L1–55` (full source; comment misspells "script" as "scrPortt")
 
 ---
 

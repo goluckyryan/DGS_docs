@@ -2,7 +2,7 @@
 Stability: C3 - Structural / stable
 
 Source: `FPGA/MTRG/Firmware/MAIN_FPGA/trunk/Source/sum_hits_XY.vhd`  
-Lines: 158 ✅ verified 2026-04-24 — file confirmed 158 lines
+Lines: 158 ✅ verified 2026-04-24, 2026-04-27 — `wc -l sum_hits_XY.vhd` = 158 (both 20180507 tag and trunk)
 
 ---
 
@@ -44,8 +44,8 @@ Port (
     TRIG_DIST_MASK    : in std_logic_vector(7 downto 0);
     TRIGGER_ENABLE    : in std_logic;
     TRIGGER_VETO      : in std_logic;
-    TRIGGER_HOLDOFF   : in std_logic_vector(15 downto 0);  -- added 20251022
-    TRIG_HOLDOFF_ENBL : in std_logic;                      -- added 20251022
+    TRIGGER_HOLDOFF   : in std_logic_vector(15 downto 0);  -- added 20251022 ✅ verified 2026-04-27 — trunk:L42
+    TRIG_HOLDOFF_ENBL : in std_logic;                      -- added 20251022 ✅ verified 2026-04-27 — trunk:L43
     TRIGGER_PRESCALE  : in std_logic_vector(15 downto 0);
     TRIG_FIFO_RE      : in std_logic;
     TRIG_FIFO_ACK     : in std_logic;
@@ -65,7 +65,7 @@ Port (
     DIAG_TRIG_FIFO_WE         : out std_logic;
     DIAG_EVENT_COUNT          : out std_logic_vector(7 downto 0);
     DIAG_PRESCALE_ENABLE      : out std_logic;
-    DIAG_HOLDOFF_IN_PROGRESS  : out std_logic;  -- added 20251022
+    DIAG_HOLDOFF_IN_PROGRESS  : out std_logic;  -- added 20251022 ✅ verified 2026-04-27 — trunk:L56
     RAW_NONVETOED_TRIG_ACK    : out std_logic;
     ENABLED_TRIG_ACK          : out std_logic;
     ENABLED_NONVETOED_TRIG_ACK: out std_logic;
@@ -117,4 +117,4 @@ All standard trigger bookkeeping (FIFO management, prescaler, holdoff, veto, mon
 
 ---
 
-*Analysis date: 2026-04-24*
+*Analysis date: 2026-04-24 | Last reviewed: 2026-04-27*

@@ -97,7 +97,7 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 | [EPICS_RTrig_templates.md](EPICS_RTrig_templates.md) | RTrig EPICS DB templates deep-dive: complete raw register inventory (RTrigRegisters.template), all user-facing PV groups (RTrigUser.template) — NIM/LED, LVDS pre-emphasis, channel FIFO modes, X/Y plane mapping, 80-PV XMAP/YMAP arrays, discriminator delays, throttle, SERDES power/loopback, FIFO resets, status readbacks |
 | [EPICS.md](EPICS.md) | EPICS primer: record types, tools, Python integration for DGS |
 | [EPICS_asyn.md](EPICS_asyn.md) | asyn driver support: caput flow diagram, port concept, worker threads, bulk writes, passive hardware callbacks |
-| [EPICS_implementation_tools.md](EPICS_implementation_tools.md) | DGS/DFMA EPICS PV database generation workflow: DBGEN macro system (Perl scripts, substitution files, `make_Substitutions.pl`, `gen_db.pl`), LabWindows/CVI engineer access (EPICS_CA.dll, waveform-record PV bridge), database maintenance scripts (`maintainDB.sh`), cross-reference to template files and PV naming conventions |
+| [EPICS_implementation_tools.md](EPICS_implementation_tools.md) | DGS/DFMA EPICS implementation tools: Excel→Python PV database generation workflow, GammaWare (LabWindows/CVI, WDGS Windows 7 laptop, JTAG/Chipscope), Carlware EDM GUI (`dgscommander`), CSS auto-generated GUIs, remote access via Sonata (`rdesktop wdgs`, `ssh dgs@dgs1`), VME peek/poke via IOC console (`d`/`m`/`reboot`) |
 | [vxworks.md](vxworks.md) | VxWorks cross-compilation: build pipeline, directory structure, munch process, glossary, legacy `devGData.c`, `MergedAsynDigParams.c` DIG param registration (222 params), `FlashMaintenance.c`, `profile.c`, `equalSub.c`, `restoreSub.c` |
 | [vxworks_state_machines.md](vxworks_state_machines.md) | DAQ runtime state machines: `inLoop.st` (FIFO readout, board enable), `outLoop.st` (data validation, buffer routing), `MiniSender.st` (TCP send port 9001), Port 9010 FIFO grabber plan; trigger board drivers (`asynTrigCommonDriver` base, `asynTrigRouterDriver` RTRG 188 params, `asynTrigMasterDriver` MTRG 369 params); `vmeDriverMutex` cross-driver VME bus lock; `QueueManagement.c` three-queue buffer pool |
 | [vxworks_trigger_drivers.md](vxworks_trigger_drivers.md) | Trigger asyn driver deep-dive: `asynTrigCommonDriver` (base class, 1-second polling thread, VME mutex, `0xaaaa0000` sub-field mask, `address_list[]` param-to-VME-offset map), `asynTrigMasterDriver` (MTRG, 369 params, card init from reg 0x15C), `asynTrigRouterDriver` (RTRG, 188 params), firmware type code table (ftype 0–F), `asynMTrigParams.c`/`asynRTrigParams.c` textual-include parameter registration |
@@ -277,6 +277,6 @@ Where the wiki (`wiki.anl.gov/gsdaq`) contradicts the source code, the source co
 
 ---
 
-*Maintained by General DGS (AI assistant). Last updated: 2026-04-25. MEMORY.md Knowledge Base Index replaced by this file as the single source of truth.*
+*Maintained by General DGS (AI assistant). Last updated: 2026-04-27. MEMORY.md Knowledge Base Index replaced by this file as the single source of truth.*
 
 

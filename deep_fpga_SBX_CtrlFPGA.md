@@ -3,7 +3,7 @@
 Stability: C3 - Structural / stable
 
 **Source:** `~/FPGA_svn2git/MotherBoard_git/CtrlFPGA/Source/`  
-**Date analyzed:** 2026-04-24  
+**Date analyzed:** 2026-04-24; sub-modules added 2026-04-27  
 **Author:** John T. Anderson (ANL), created 2020-10-05  
 **Related KB files:** [slope_box_interface.md](slope_box_interface.md), [fpga.md](fpga.md)
 
@@ -31,6 +31,7 @@ Stability: C3 - Structural / stable
 18. [Firmware Version Registers](#firmware-version-registers)
 19. [Chipscope / ILA Debug](#chipscope--ila-debug)
 20. [Address Decode (LOOK_UP_TABLE1)](#address-decode-look_up_table1)
+21. [Pickoff Card Sub-Modules (Revision\_C/Source/)](#pickoff-card-sub-modules-revision_csource)
 21. [EPICS-Side C Support Files (CollectorBox_CtrlFPGA/)](#epics-side-c-support-files-collectorbox-ctrlFPGA)
 
 ---
@@ -439,6 +440,69 @@ Several standalone `.c` files define address arrays for specific signal types. T
 | `TEMP.c` | `ADC_TEMP_ADDR[6]` | 6 | ADC temperature register per stripe: S1(147), S3(168), S5(189), S2(210), S4(231), S6(252). ✅ verified 2026-04-26 — TEMP.c:L1-9 (all 6 values confirmed). |
 
 **ADC stripe ordering:** All 6-element arrays follow stripe order S1, S3, S5, S2, S4, S6 (odd stripes first, then even). This matches the physical DPRAM layout where odd stripes occupy addresses 128–191 and even stripes 192–254.
+
+---
+
+## Pickoff Card Sub-Modules (Revision\_C/Source/)
+
+_Source: `FPGA/collectorBox/PickoffCard_SBX_Extension/Revision_C/Source/`. Read 2026-04-27._
+
+Note: Revision C and Revision B are described as "supposed to be the same" (ReadMe.txt). These sub-modules are instantiated by `SlopeBoxInt_TopLevel_RevC.vhd` and are companion files to the PI_TRANSACTOR, I2C_template, and LOOK_UP_TABLE1 already documented above.
+
+### ADGS5412_CONTROLLER (ADGS5412_controller.vhd, 136 L, JTA 2019-08-15)
+
+- **Purpose:** SPI controller for the ADGS5412 analog switch IC (slope box mux control). Sends a 16-bit word at 50 MHz (SCLK = CLK_100MHZ ÷ 2) on a `MACH_ENABLE` rising edge. ✅ verified 2026-04-27 — `ADGS5412_controller.vhd:L31` (comment: "should run at 1/2 CLK_100MHZ")
+- **States:** IDLE → ASSERT_CS → ASSERT_DATA → SCK_ON ↔ SCK_OFF (×16) → DEASSERT_CS. ✅ verified 2026-04-27 — `ADGS5412_controller.vhd:L41` (state enum)
+- **Data source:** `LATCHED_PI_DATA[15:0]` — filled by PI_TRANSACTOR.
+- **Edge detect:** 2-stage pipeline `MACH_ENABLE_PIPE[1:0]`; fires on "01" pattern.
+- **Note:** `SERIAL_DATA_FROM_ADGS5412` input is received but noted as "currently goes nowhere" — read-back not implemented.
+
+### LTC1660_CONTROLLER (LTC1660_controller.vhd, 196 L, JTA 2019-08-19)
+
+- **Purpose:** SPI controller for the LTC1660 8-channel 10-bit DAC (BGO threshold + gain outputs). Triggered by `MACH_ENABLE` rising edge.
+- **Clock:** CLK_100MHZ ÷ 4 → 12.5 MHz SCLK. ✅ verified 2026-04-27 — `LTC1660_controller.vhd:L43` (comment: "machine divides CLK_100MHZ by 4 to get 12.5MHz")
+- **States:** IDLE → ASSERT_CS → ASSERT_DATA → CLK_ON ↔ CLK_OFF (×16) → DEASSERT_CS → DELAY_STATE. ✅ verified 2026-04-27 — `LTC1660_controller.vhd:L54` (state enum)
+- **Data format (16-bit):** Bits 15:12 = control code (from `LATCHED_PI_Address[3:0]`); Bits 11:2 = 10-bit DAC value (`LATCHED_PI_DATA[9:0]`); Bits 1:0 = don't-care.
+- **DELAY_STATE:** 4-clock hold after CS deassert for LTC1660 CS recovery before returning to IDLE.
+
+### SlopeBoxScanner (SlopeBoxScan.vhd, 813 L, JTA 2019-08-21)
+
+- **Purpose:** Over-arching scanner FSM orchestrating all slope box read/write transactions. Runs at 4 MHz. Contains two nested state machines: **scanner** and **transactor**.
+- **Scanner states:** INIT → START → RESET_SLOPE_BOX1/2 → INIT_ADC1–4 → ADC_LOOP1/2/3 → PAUSE → PI_TRANSACTION_START → WAIT_PI_COMMAND_COMPLETE. Cycles through slope box ADC channels, resets, and inserts Pi-commanded writes between scan cycles.
+- **Transactor states:** IDLE → START → CLOCK_HIGH1 → CLOCK_HIGH2 → CLOCK_LOW1 → CLOCK_LOW2 → LATCH_RESULT → CYCLE_END_DELAY. Each transaction is 16 bits at 4 MHz.
+- **SCAN_CONTROL[1:0]:** 00 = no action; 01 = scan only; 10 = command only; 11 = scan + command.
+- **CYCLE_DELAY:** Upper 16 bits of 4 MHz cycle count between full scan loops (CYCLE_DELAY_REG at DPRAM address 0x12).
+- **Output:** ADC results written into `SlopeBoxDomainCrossFIFO` (clock-domain crossing to 100 MHz). `SLOPE_BOX_ID[7:0]` identifies which slope box responded; `FIFO2_DATA_OUT[15:0]` carries data + ID composite.
+- **Diagnostic hooks (added 2023-03-09):** `DIAG_LAST_SLOPEBOX_DATA`, `DIAG_TRANSACTION_COMPLETE`, `DIAG_SCANNER_STATE[6:0]` (bits 6:3 = scan state, 2:0 = transaction state), `DIAG_DC_RESET`.
+
+### Scanner_ROMs / MULTIPLE_ROM (Scanner_ROMs.vhd, 377 L)
+
+- **Purpose:** Encapsulates multiple Spartan-6 18Kb BRAM ROMs used by `I2C_STARTUP_ROM` instances. Generic `ROMSEL` selects which ROM is compiled into each instance.
+- **ROM #1 (ROMSEL=1):** PREAMP startup ROM — I2C initialization sequence for preamp chips. 9-bit address, 32-bit words. ✅ verified 2026-04-27 — `Scanner_ROMs.vhd:L34-36`
+- **ROM #2 (ROMSEL=2):** Power Board startup ROM — I2C init for power board peripherals. ✅ verified 2026-04-27 — `Scanner_ROMs.vhd:L149-151`
+- **ROM #3 (ROMSEL=3):** Dongle startup ROM — I2C init for GS_ID dongle. ✅ verified 2026-04-27 — `Scanner_ROMs.vhd:L264-266`
+- **Format:** Each 32-bit word is an I2C command word. **End-of-sequence:** `CONTINUE` bit (bit 31) = 0 stops the machine; `CONTINUE=1` continues. ✅ corrected 2026-04-27 — `I2C_STARTUP_ROM.vhd:L78` (CONTINUE field), `L578` (DO(31) => ROM_DATA.CONTINUE), `L310,L325` (machine stops when CONTINUE=0). Prior claim of `0xFFFFFFFF` marker was incorrect — it is the CONTINUE bit that determines termination.
+
+### sync_capture_controller (sync_capture_controller.vhd, 120 L, MBO, JTA mod 2013-12-10)
+
+- **Purpose:** Synchronizes diagnostic rate counters across the SBX system. Produces `EXT_COUNTER_CTRL` to gate all attached `sync_capture_counter` instances identically.
+- **Modes:**
+  - `REMOTE_COUNT_MODE=1` (REMOTE_MODE): `EXT_COUNTER_CTRL` pulses when `TIMESTAMP[15:0] == 0x0000` — i.e., each timestamp rollover.
+  - `REMOTE_COUNT_MODE=0` (RATE_MODE): local 16-bit rate counter at 100 MHz; pulses `EXT_COUNTER_CTRL` when counter expires, then reloads.
+- **States:** DISABLED / REMOTE_MODE / RATE_MODE.
+
+### sync_capture_counter (sync_capture_counter.vhd, 93 L, MBO)
+
+- **Purpose:** Individual 16-bit diagnostic counter with `sync_capture_controller`-driven gate.
+- **COUNTER_MODE:**
+  - 0 (External): accumulates while `EXT_COUNTER_CTRL` is high; resets and latches count on falling edge (rate output).
+  - 1 (Accumulate): ignores `EXT_COUNTER_CTRL`; accumulates freely when `COUNT_EN` is high.
+- **RATE_UPDATE:** single-clock pulse when rate count is latched and output.
+
+### mult_count (mult_count.vhd, 159 L)
+
+- **Purpose:** 7-input popcount ROM. Given `D_IN[7:1]` (7-bit vector), outputs `Count_out[2:0]` = number of set bits (0–7), implemented as a clocked case statement (registered LUT ROM).
+- **Usage:** Internal; likely used for BGO pattern multiplicity counting.
 
 ---
 

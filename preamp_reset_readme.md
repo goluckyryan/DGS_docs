@@ -8,6 +8,20 @@ Stability: C3 - Structural / stable
 
 ---
 
+## Table of Contents
+
+1. [What is a Preamp Reset?](#1-what-is-a-preamp-reset)
+2. [How the FPGA Detects a Preamp Reset](#2-how-the-fpga-detects-a-preamp-reset)
+3. [What Happens When a Reset Is Detected](#3-what-happens-when-a-reset-is-detected)
+4. [Side Effect: BGO Veto Gate](#4-side-effect-bgo-veto-gate)
+5. [Timestamp of the Last Reset (PARST)](#5-timestamp-of-the-last-reset-parst)
+6. [Remote Reset via Frame 15 (FRONT_END_RESET)](#6-remote-reset-via-frame-15-front_end_reset)
+7. [Summary Flow](#7-summary-flow)
+8. [Key Registers](#8-key-registers)
+9. [Key Source Files](#9-key-source-files)
+
+---
+
 ## 1. What is a Preamp Reset?
 
 A germanium detector preamplifier works like a leaky bucket: charge from each gamma-ray hit accumulates on a capacitor, building up a step on the output voltage. Eventually the capacitor fills up and the preamp **resets** — it rapidly discharges, swinging the output voltage hard (up or down, depending on polarity) before settling back to baseline.

@@ -316,7 +316,7 @@ Decodes **GRETINA Mode-3** raw crystal data. Mode 3 is the raw per-crystal digit
 - `eSeg` — 2D: segment energy spectrum
 - `spb88e` — 2D: diagnostic energy spectrum
 
-Used for full GRETINA+Gammasphere coincidence experiments where raw crystal data (not tracked/decomposed) is processed. The function name is `exit_bin_mode3` (note: named with `bin_` prefix, unlike other exit functions). ⚠️ Note: earlier KB description ("decomposition/tracking output") was incorrect — corrected 2026-04-26.
+Used for experiments requiring raw GRETINA crystal data (mode3 format — not tracked or decomposed). Only processes GEB types `GEB_TYPE_RAW` and `GEB_TYPE_GT_MOD29` — no DGS/Gammasphere data paths in this sorter. ✅ verified 2026-04-27 — `bin_mode3.c:L199,L367,L466,L520` (only GEB_TYPE_RAW and GEB_TYPE_GT_MOD29 handled; no DGS type checks). The function name is `exit_bin_mode3` (note: named with `bin_` prefix, unlike other exit functions — e.g. `exit_dgs`, `exit_tac2`, `exit_angcor_DGS`). ✅ verified 2026-04-27 — grep of all `gebsort/*.c` exit functions confirms all others use `exit_<shortname>()` pattern; only `exit_bin_mode1/2/3` and `exit_bin_ndc` use the `bin_` prefix. ⚠️ Note: earlier KB description ("decomposition/tracking output") was incorrect — corrected 2026-04-26.
 
 ---
 
@@ -580,6 +580,32 @@ In the current build, `validate()` effectively only applies the CC-count multipl
 
 ---
 
+## ROOT CINT Macro Helpers (`bar.cc`, `curve.cc`) ✅ verified 2026-04-27 — `gebsort/bar.cc` (43 L) + `gebsort/curve.cc` (30 L)
+
+_Source: `gebsort/bar.cc`, `gebsort/curve.cc`. Code-read 2026-04-27. These are GRETINA tracking analysis macros, not DGS-specific._
+
+Two small ROOT CINT macro snippets for interactive GRETINA tracking analysis. They are **not** compiled into any GEBSort binary — they are loaded directly in a ROOT interactive session via `.L bar.cc` or `{ ... }` syntax.
+
+### `bar.cc` — ROOT TControlBar for GRETINA GUI (43 L)
+
+Defines a ROOT `TControlBar` GUI panel (vertical layout, titled "GRETINA GEB") with clickable buttons for common GRETINA tracking analysis actions:
+- Load data files: `GTDATA/wsi.root`, `nsi.root`, `test.root` via `dload()`
+- Update spectra (`update()`), list objects (`ls()`), create canvas (`mkcanvas()`)
+- Display histograms: `dtbtev` (1D/2D), `CCsum`, `hitpat`, `radius_all`, `SMAP_allhits`, `rate_mode2_min`, `CCe` matrix, `fm` (figure of merit), `fomXe` projections at FOM thresholds 0.5–2.0
+- The FOM projections (`pjx("fomXe","x",0,N)`) demonstrate the Compton tracking Figure of Merit gate sweep used for peak-to-background optimization.
+
+**Context:** `GSUtil.cc` must be compiled first (first button: `.L GSUtil.cc++`). This is a GRETINA interactive analysis utility — predates DGS; retained in the `gebsort/` directory as legacy GRETINA support.
+
+### `curve.cc` — FOM Curve Export Script (30 L)
+
+A ROOT CINT script body (no function wrapper — executed as a block) that sweeps FOM thresholds 0.1–2.05 in steps of 0.1 and exports:
+- For each threshold `N`: `pjx("fomXe","x",0,N)` → `wrspe("x","fomNN.spe")` — projects the `fomXe` 2D matrix onto X at FOM < N and writes as a Radford `.spe` spectrum file.
+- Additionally exports: `CCadd.spe`, `CCsum.spe`, `CCadd_raw.spe`, `CCsum_raw.spe`, `fm.spe`, `z_plot.spe`.
+
+**Purpose:** Generates a full set of FOM-gated spectra for peak-to-background curve analysis — used to determine the optimal tracking FOM cut for a given experiment. Output `.spe` files are read by `gf3` (Radford spectrum viewer).
+
+---
+
 ## Cross-References
 
 - `knowledgeBase/gebsort.md` — Core GEBSort framework: GEBMerge, bin_dgs, jta, calibration workflow
@@ -589,4 +615,4 @@ In the current build, `validate()` effectively only applies the CC-count multipl
 - `knowledgeBase/dgs_analysis.md` — Modern parquet_pysort alternative pipeline
 
 ---
-*Created: 2026-04-26. Split from gebsort.md. Source: `DGS_tools_pack/gebsort/`. Updated 2026-04-26: Math/utility helpers section added.*
+*Created: 2026-04-26. Split from gebsort.md. Source: `DGS_tools_pack/gebsort/`. Updated 2026-04-26: Math/utility helpers section added. Updated 2026-04-27: bar.cc + curve.cc GRETINA ROOT macro helpers added.*

@@ -7,6 +7,26 @@ _Documented: 2026-04-19 by General DGS_
 
 ---
 
+## Table of Contents
+- [Overview](#overview)
+- [con6 Access](#con6-access)
+- [Key Directories on con6](#key-directories-on-con6)
+  - [CVS Repository: `/home/gam/repository/`](#cvs-repository-homegamrepository)
+  - [`lnfill/src/` Source Files](#lnfillsrc-source-files)
+  - [Production Trees: `/home/gam/prod/`](#production-trees-homegamprod)
+- [VxWorks 68040 Cross-Compiler](#vxworks-68040-cross-compiler)
+- [Disk Usage on con6](#disk-usage-on-con6)
+- [Archiving Priority (before con6 retirement)](#archiving-priority-before-con6-retirement)
+- [ln2con — NFS Boot Host for LN2 IOC](#ln2con--nfs-boot-host-for-ln2-ioc)
+  - [Archived Files in DGS_tools_pack](#archived-files-in-dgs_tools_pack)
+- [con6 Retirement Plan Summary](#con6-retirement-plan-summary)
+- [ln2con Log Tools (`tools/`)](#ln2con-log-tools-tools)
+  - [`lnlogs` — Fill Log Browser](#lnlogs--fill-log-browser-18-lines)
+  - [`process_logs` — Fill Statistics Report](#process_logs--fill-statistics-report-179-lines)
+- [Cross-References](#cross-references)
+
+---
+
 ## Overview
 
 **con6** (`192.168.203.136`) is a **Sun Blade 100 running Solaris 10 (SunOS 5.10)** — the original analog Gammasphere software development server, predating DGS. Most content is from the **analog DAQ era** (pre-DGS).
@@ -190,6 +210,85 @@ Local archive at `DGS_tools_pack/ln2con/` (key files only):
 | D | Build GCC m68k-vxworks from source | Possible, complex |
 
 **Immediate action:** Archive the CVS source from con6 before it fails. See `Con6_Retirement_Plan.md` for exact commands.
+
+---
+
+## ln2con Log Tools (`tools/`)
+
+_Source: `DGS_tools_pack/ln2con/tools/` (code-read 2026-04-27)_
+
+Three scripts in `tools/` support offline analysis of the VxWorks lnfill IOC log files located at `/home/lncon/prod/lnfill/log/` on ln2con. These are very old analog-era utilities (1993, by A.K. Biocca); they predate Python and expect to run directly on ln2con where the log files live.
+
+| Script | Lines | Description |
+|--------|-------|-------------|
+| `lnlogs` | 18 | Interactive log browser — displays fill logs in reverse chronological order, one file at a time, via `more` |
+| `process_logs` | 179 | AWK report generator — reads up to 100 recent fill log files, computes per-detector open-time statistics, prints a formatted text report |
+| `log_cleanup` | 0 | Empty placeholder — no functionality |
+
+### `lnlogs` — Fill Log Browser (18 lines)
+
+**Language:** `#!/bin/sh`  
+**Author:** A.K. Biocca, 1993-04-02  
+**Source:** `tools/lnlogs:L1-18` ✅ verified 2026-04-27
+
+Changes to `log/` directory, then iterates over all `fill_*log` files in **reverse chronological order** (`ls -t`). For each file:
+- Strips `INVALID` lines with `grep -v INVALID`
+- Pipes through `more` (paged display)
+- Prompts `"type return for next logfile, Control-C to quit"` between files
+
+**Usage (on ln2con):** `cd /home/lncon/prod/lnfill && tools/lnlogs`  
+Press Return to advance to the next (older) fill; Ctrl-C to exit.
+
+### `process_logs` — Fill Statistics Report (179 lines)
+
+**Language:** `#!/usr/bin/gawk -f`  
+**Author:** A.K. Biocca, 1993-04-06 (updated 1994-11-18)  
+**Source:** `tools/process_logs:L1-179` ✅ verified 2026-04-27
+
+An AWK script that reads up to the 100 most recent fill log files and produces a per-item statistical summary.
+
+**Inputs:**
+- Fill log files at `/home/lncon/prod/lnfill/log/fill_*` (found via `ls -t`)
+- Skips MANUAL fill logs from all but the most recent file
+- Stops processing after `history = 100` log files
+
+**Log file format expected (columns):**
+```
+$1=type   $2=label  $3=hole  $4=openTime  $7=threshold  $8=enableCode  $9=state
+```
+- `$1` types recognized: `Detector`, `Manifold`, `Tank`, `Supply`, `type_of_fill`
+- `$8` enable codes: `0=AUTO`, `1=MAN_OPEN`, `2=DISABLED`
+- `$9` states recognized: `OVERTIME`, `UNDERTIME`, `OFF_LINE`, `INITIALIZED`, `ABORTED`, `INVALID`
+
+**Per-detector statistics computed:**
+- `avg` — mean valve open time (seconds) across all valid fills
+- `sd` — standard deviation of open times
+- `diff` — `(current - avg) / sd` — z-score for most recent fill vs historical average
+- `min`, `max` — range of observed open times
+- `num` — count of valid fills included
+- `unders[item]` — count of UNDERTIME events (filled too fast)
+- `overs[item]` — count of OVERTIME events (filled too slow / didn't close in time)
+
+**Exclusion rules (a fill entry is skipped for statistics):**
+- `openTime == 0` — zero-time dud
+- State is `ABORTED`, `INVALID`, or `INITIALIZED`
+- `OFF_LINE` → forces `openTime = 0` (then excluded as dud)
+
+**Output format (text report to stdout):**
+```
+# N Automatic Logfiles Processed
+# Most Recent Fill: fill_YYYYMMDD.log  <type_of_fill>
+# Detectors Enabled: <fill1_id> N   <fill2_id> N
+# Stn Hole Thresh Enable   State     Open  Dif  Avg  Min  Max  SD    N  UT   OT
+LNHx-yy  <hole>  <thresh>  AUTO      OK       400   0.3  380  300  500  50  42   0    1
+```
+
+**Key insight:** The `Dif` column (z-score) is the most operationally useful value — a large positive `Dif` for a detector means its most recent fill took much longer than average, which can indicate a detector warming up (vacuum degradation), a slow valve, or a connection problem. Conversely, a large negative `Dif` means it filled very quickly (possibly already cold before fill, or a sensor issue).
+
+**Also outputs:** `diff ln_log ln_log%` at the end — a diff of the current vs previous `ln_log` master log file.
+
+**Usage (on ln2con):** `gawk -f /home/lncon/prod/lnfill/tools/process_logs > report.txt`  
+(Or simply run: `tools/process_logs` from the lnfill directory — it is self-contained AWK.)
 
 ---
 
