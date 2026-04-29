@@ -266,7 +266,7 @@ Pulse Delay units: 100s of ns (time from end of pulse n to beginning of pulse n+
 - 16 counters total (8 × `TRIG_RATE_COUNTERs` + 8 × `RAW_TRIG_RATE_COUNTERs`); reset and captured synchronously during same interval as front ends ✅ verified 2026-04-24 — `MTRG/top.vhd:L4494-4516` (RATE_COUNTER_BLOCK generate loop)
 - First 8 (`TRIG_RATE_COUNTERs`, VME 0x2000–0x203C): count `ENABLED_NONVETOED_TRIG_ACK` — triggers actually sent to digitizers (veto-filtered)
 - Second 8 (`RAW_TRIG_RATE_COUNTERs`, VME 0x2040–0x207C): count `ENABLED_TRIG_ACK` — algorithm satisfied, whether or not vetoed
-- ⚠️ **Correction:** KB previously stated "second 8 = blocked by throttle/veto" — this is wrong. Neither counter directly measures blocked triggers. Dead-time estimate = (RAW − TRIG) / RAW per type.
+- ⚠️ **Correction:** KB previously stated "second 8 = blocked by throttle/veto" — this is wrong. Neither counter directly measures blocked triggers. Dead-time estimate = (RAW − TRIG) / RAW per type. ✅ verified 2026-04-28 — `MTRG/top.vhd:L4494-4516` (RATE_COUNTER_BLOCK generate; TRIG_RATE_COUNTERs counts ENABLED_NONVETOED_TRIG_ACK, RAW_TRIG_RATE_COUNTERs counts ENABLED_TRIG_ACK)
 - These counters are **separate** from the running counters used by Frame 12
 
 ---
