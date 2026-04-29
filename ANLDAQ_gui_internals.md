@@ -422,7 +422,7 @@ PVs are sorted into special groups by prefix; unmatched PVs fall into a generic 
 |---|---|---|
 | `XMAP_`, `YMAP_` | `RMapTwoStateButton` 32×32 | Mapping RAM |
 | `DISCRIMINATOR_DELAY` | `RMapLineEdit` | Delay map |
-| `LOCK`, `DEN`, `REN`, `SYNC`, `RPwr`, `TPwr`, `SLiL`, `SLoL`, `ILM`, `LINK`, `GATED_THROTTLE`, `RAW_THROTTLE` | `RMapTwoStateButton` row (per type) | Link/Control group; LOCK/ILM/RAW_THROTTLE have inverted color |
+| `LOCK`, `DEN`, `REN`, `SYNC`, `RPwr`, `TPwr`, `SLiL`, `SLoL`, `ILM`, `LINK`, `GATED_THROTTLE`, `RAW_THROTTLE` | `RMapTwoStateButton` row (per type) | Link/Control group; LOCK/ILM/RAW_THROTTLE have inverted color ✅ verified 2026-04-29 — `gui_Board.py:L256-258` (`SetInvertStateColor(True)` for LOCK/ILM/RAW_THROTTLE) |
 | `Diag_`, `LOCK_COUNT` | `RMapLineEdit` | Diagnostics (inline with Link group) |
 | `FIFOReset` | `RMapTwoStateButton` column | FIFO Reset group |
 | `VETO_RAM`, `TRIG_RAM`, `SWEEP_RAM` | `RAMWindow` popup on demand | RAM dropdown |
@@ -433,6 +433,7 @@ PVs are sorted into special groups by prefix; unmatched PVs fall into a generic 
 
 - **Channel selector:** if `board.NumChannels > 0` and `channelNo < 0`, combo opens child `BoardPVWindow` for a specific channel.
 - **RAM selector:** opens `RAMWindow` popup; reuses existing window if open.
+- **PV classification prefix lists verified** ✅ 2026-04-29 — `gui_Board.py:L55-83`: `map_pv=[XMAP_/YMAP_/DISCRIMINATOR_DELAY]`, `link_pv` (12 entries), `diag_pv=[Diag_/LOCK_COUNT]`, `fifoReset_pv=[FIFOReset]`, `ram_pv=[VETO_RAM/TRIG_RAM/SWEEP_RAM]`, `mtrg_link_pv=[LINK_L/R/U_PROPAGATE]`, `veto_pv` (5 entries EN_*_VETO_)
 - **`closeEvent`:** hides (not destroys) window — keeps PV subscriptions alive. ✅ verified 2026-04-27 — `gui_Board.py:L354-357` (`hide()` + `event.ignore()`)
 - **`UpdatePVs`:** 500 ms timer; only runs when `isActiveWindow() and isVisible()`. ✅ verified 2026-04-27 — `gui_Board.py:L347,L359-361`
 
