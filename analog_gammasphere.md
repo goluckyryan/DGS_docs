@@ -59,6 +59,8 @@ sgaInit
 
 ### Example `c1.cmd` configuration file
 
+✅ verified 2026-04-30 — wiki.anl.gov/gsdaq/Analog_Gammasphere: c1.cmd example matches verbatim (commands, flags, format)
+
 ```
 # cmd file created by "savepars" command
 # SAT MAY 11 03:04:24 2013
@@ -222,13 +224,13 @@ The VXI processors booted from **dgs6** (Scientific Linux 6.4 blade in the DGS r
 
 ## Notes
 
-- `gsts1` was the analog DAQ console server (telnet port 2009)
-- `gslinux1` was a Linux data collection/storage host
-- `gsexportfs` / `gsunexportfs` are custom ANL scripts for NFS-exporting USB disks
+- `gsts1` was the analog DAQ console server (telnet port 2009) ✅ verified 2026-04-30 — wiki.anl.gov/gsdaq/Analog_Gammasphere: `telnet gsts1 2009` as setup step 1
+- `gslinux1` was a Linux data collection/storage host ✅ verified 2026-04-30 — wiki.anl.gov/gsdaq/Analog_Gammasphere: `datadir gslinux1 /media/...` in example c1.cmd
+- `gsexportfs` / `gsunexportfs` are custom ANL scripts for NFS-exporting USB disks ✅ verified 2026-04-30 — wiki.anl.gov/gsdaq/Analog_Gammasphere: `gsexportfs 20140304` step documented
 - `dgs6` IP: 192.168.203.184 ✅ verified 2026-04-25 - overview_DGS.md (confirmed from wiki.anl.gov/gsdaq/Computers_and_networks 2026-04-19)
 - CES = Compact Electronics Standard (VME-based event building hardware)
 - The analog system used **FERA** (Fastbus Electronics for Readout Anywhere) ADCs; `feradelay 8` sets timing ✅ verified 2026-04-25 - FERA interface confirmed on MyRIAD hardware (myriad.md; FERA_FULL/ACK/OVF/WSI/VETO signals verified from MyRIAD.vhd:L142-148)
-- `getimewin` / `bgotimewin`: Ge and BGO coincidence time windows (in ns or ADC channels)
+- `getimewin` / `bgotimewin`: Ge and BGO coincidence time windows (in ADC channel units, e.g. `getimewin 3950 4030`, `bgotimewin 1950 2030`) ✅ verified 2026-04-30 — wiki.anl.gov/gsdaq/Analog_Gammasphere example c1.cmd
 - This system is superseded; wiki page is maintained for legacy reference only
 
 ---

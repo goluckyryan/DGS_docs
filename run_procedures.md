@@ -268,6 +268,7 @@ See `knowledgeBase/dgs_analysis.md` for full details on each step.
 | GEB data format + type codes | `knowledgeBase/data_structures.md`, `knowledgeBase/dgs_analysis.md` § GEB |
 | GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | `knowledgeBase/gebsort.md` |
 | Snapshot PV / save+restore settings | `knowledgeBase/snapshot_pv.md` |
+| DuoGe commissioning walkthrough (HV setup, IOC boot, trigger, DAQ) | `knowledgeBase/DGS_setup_guide.md` |
 
 ---
 

@@ -77,12 +77,12 @@ Each ControlStripe board manages one "stripe" — a group of up to 5 SlopeBox mo
 
 | Port | Direction | Description |
 |------|-----------|-------------|
-| `STRIPE_ID[0:2]` | in | 3-bit stripe ID (board-wired); decoded to STRIPE_CODE |
+| `STRIPE_ID[0:2]` | in | 3-bit stripe ID (board-wired); decoded to STRIPE_CODE ✅ verified 2026-04-29 — `ControlStripe_git/Source/Top.vhd:L37` (`STRIPE_ID : in std_logic_vector(0 to 2)`) |
 | `OSC_CLOCK_1/2` | in | Free-running 50 MHz oscillator clocks |
 | `TRIG_CLK_P/N` | in | LVDS trigger clock from Honeycomb/trigger decoder |
 | `TRIG_SYNC` | in | Sync pulse from Honeycomb/trigger decoder |
 | `PI_SCK/CE/MISO/MOSI` | in/out | SPI interface from CtlFanout (board-wide fanout) |
-| `PI_DEVSEL[0:4]` | in | 5-bit device select driven directly by RPi |
+| `PI_DEVSEL[0:4]` | in | 5-bit device select driven directly by RPi ✅ verified 2026-04-29 — `ControlStripe_git/Source/Top.vhd:L50` (`PI_DEVSEL : in std_logic_vector(0 to 4); -- Driven directly by RPi`) |
 | `CLK_50MHZ_P/N[1:5]` | out | LVDS 50 MHz clock outputs to 5 SBX slots |
 | `COLL_CE/SCK/SDI/SDO[1:5]` | inout | SPI signals to/from 5 SBX slots |
 | `SYNC[1:5]` | inout | SYNC pulse outputs to 5 SBX slots |
@@ -105,8 +105,9 @@ DCM_INPUT_SEL = forced (via STRIPE_CTL_REG[15:14]) OR
                 '0' if TRIG DCM not locked (fall back to oscillator) OR
                 '1' if TRIG DCM locked and not forced otherwise
 ```
+✅ verified 2026-04-29 — `ControlStripe_git/Source/Top.vhd:L363-369` (STRIPE_CTL_REG[14]=force-enable, STRIPE_CTL_REG[15]=source-select; '0' when DCM_TRIG_LOCKED='0'; '1' when locked and reg[15]='1').
 
-The 50 MHz clock to each SBX slot can be **gated off per slot** (`SBX_CLOCK_OUT_DISABLE[i]`) and globally disabled (`GLOBAL_CLOCK_OUT_DISABLE`) if the selected DCM is not locked. Clock outputs use OBUFTDS (LVDS_25, with P/N **swapped** from standard convention — N drives P pin and vice versa in the UCF).
+The 50 MHz clock to each SBX slot can be **gated off per slot** (`SBX_CLOCK_OUT_DISABLE[i]`) and globally disabled (`GLOBAL_CLOCK_OUT_DISABLE`) if the selected DCM is not locked. Clock outputs use OBUFTDS (LVDS_25, with P/N **swapped** from standard convention — N drives P pin and vice versa in the UCF). ✅ verified 2026-04-29 — `ControlStripe_git/Source/Top.vhd:L309` (comment: "Note that N and P signals are swapped"); L316-317 (O=>CLK_50MHZ_N, OB=>CLK_50MHZ_P confirms inversion).
 
 ### DEVSEL / SPI Routing
 

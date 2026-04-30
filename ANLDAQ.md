@@ -157,10 +157,10 @@ cd tcpReceiver && make
 
 ### Running a DAQ Run
 
-1. Click **Edit IOC Config** → set IOC IP, port (default 9001), data type (default 8)
+1. Click **Edit IOC Config** → set IOC IP, port (default 9001), data type (default 8) ✅ verified 2026-04-29 — `gui/gui_DataTaking.py:L22` (IOCConfigDialog label text); `L8` (RECEIVER_BIN path)
 2. Enter experiment folder and run name
 3. Set run duration
-4. Click **Start Run** → spawns `tcpReceiverMT`
+4. Click **Start Run** → spawns `tcpReceiverMT` ✅ verified 2026-04-29 — `gui/gui_DataTaking.py:L45,L104,L137` (RunStatusWindow docstring: "spawns tcpReceiverMT"; subprocess.Popen call)
 5. Monitor with **Guceiver** (live waveform/spectrum view)
 6. Click **Stop Run** → data saved to `{expFolder}/{expName}_{runID:03d}/`
 
@@ -500,7 +500,7 @@ The per-crate VxWorks boot scripts follow a fixed structure:
 4. **Timezone:** `putenv("EPICS_TS_MIN_WEST=360")` (CDT)
 5. **Load all DB files:** `dbLoadRecords` calls for each module (MDIGx, SDIGx, RTRx, MTRG, GLBL); uses `CRATE=NN` and `BOARD=MDIGx` substitutions
 6. **Configure asyn ports:** `asynDigitizerConfig("MDIG1", slot, ...)`, `asynTrigRouterConfig1(...)`, `asynTrigMasterConfig1(...)` — one per physical board
-7. **Set package data (PID):** `putenv("PkgData_MDIG1=NNN")` etc.; formula: `[(crate-1)×4]+101+board#`
+7. **Set package data (PID):** `dbpf "VMExx:MDIG1:user_package_data","NNN"` etc. ✅ verified 2026-04-29 — `ioc/boot/vme01.cmd:L149-152` (`dbpf`, **not** `putenv`); formula: `[(crate-1)×4]+101+board#` where board# ∈ {0,1,2,3} for MDIG1/SDIG1/MDIG2/SDIG2; MTRG=150, RTR1=151 (future — no PV register as of 20230331)
 8. **iocInit**
 9. **Start sequencers:** `seq &inLoop, "CRATE=NN,B0=MDIG1,..."` and `seq &outLoop, "CRATE=NN,..."` and `seq &MiniSender, ...`
 

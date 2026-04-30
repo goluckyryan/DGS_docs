@@ -141,22 +141,24 @@ Sets all digitizer channels to **LED (Leading-Edge Discriminator) mode** with ha
 
 | Parameter | Value | Meaning |
 |---|---|---|
-| `cfd_mode` | `LED_Mode` | Leading-edge discriminator (no CFD) |
-| `led_threshold{ch}` | 300 | Fixed LED threshold |
-| `trigger_polarity{ch}` | `RiseEdge` | Rising-edge trigger |
-| `raw_data_delay{ch}` | 0.5 µs | Pre-trigger delay |
-| `raw_data_length{ch}` | 0.32 µs | Waveform capture window |
-| `p1_window{ch}` | 0.07 µs | Peaking time window 1 |
-| `p2_window{ch}` | 0.05 µs | Peaking time window 2 |
-| `m_window{ch}` | 2.5 µs | Main gate window |
-| `k0_window{ch}` | 0.5 µs | Pre-gate k0 |
-| `k_window{ch}` | 0.5 µs | Gate k |
-| `d_window{ch}` | 0.16 µs | Delay window |
-| `CS_Ena` | `Enable` | Enable coincidence sorting |
-| `veto_enable` | 0 | Disable veto |
-| `trigger_mux_select` | `IntAcptAll` | Accept all internal triggers |
-| `Online_CS_StartStop` | `Stop` | Ensure run is stopped |
-| `Online_CS_SaveData` | `No Save` | No data saved (safe default) |
+| `cfd_mode` | `LED_Mode` | Leading-edge discriminator (no CFD) ✅ verified 2026-04-30 — `MDigUser.template:L6935` (`ZNAM,"LED_Mode"`) |
+| `led_threshold{ch}` | 300 | Fixed LED threshold ✅ verified 2026-04-30 — `basic_settings_LED.py:L12` (`THRESHOLD = 300`); `L60` (`caput(f"{prefix}:led_threshold{ch}", THRESHOLD)`) |
+| `trigger_polarity{ch}` | `RiseEdge` | Rising-edge trigger ✅ verified 2026-04-30 — `basic_settings_LED.py:L59` |
+| `raw_data_delay{ch}` | 0.5 µs | Pre-trigger delay ✅ verified 2026-04-30 — `basic_settings_LED.py:L61` |
+| `raw_data_length{ch}` | 0.32 µs | Waveform capture window ✅ verified 2026-04-30 — `basic_settings_LED.py:L62` |
+| `p1_window{ch}` | 0.07 µs | Peaking time window 1 ✅ verified 2026-04-30 — `basic_settings_LED.py:L17` |
+| `p2_window{ch}` | 0.05 µs | Peaking time window 2 ✅ verified 2026-04-30 — `basic_settings_LED.py:L18` |
+| `m_window{ch}` | 2.5 µs | Main gate window ✅ verified 2026-04-30 — `basic_settings_LED.py:L19` |
+| `k0_window{ch}` | 0.5 µs | Pre-gate k0 ✅ verified 2026-04-30 — `basic_settings_LED.py:L20` |
+| `k_window{ch}` | 0.5 µs | Gate k ✅ verified 2026-04-30 — `basic_settings_LED.py:L21` |
+| `d_window{ch}` | 0.16 µs | Delay window ✅ verified 2026-04-30 — `basic_settings_LED.py:L22` |
+| `CS_Ena` | `Enable` | Enable coincidence sorting ✅ verified 2026-04-30 — `basic_settings_LED.py:L64` |
+| `veto_enable` | 0 | Disable veto ✅ verified 2026-04-30 — `basic_settings_LED.py:L65` |
+| `trigger_mux_select` | `IntAcptAll` | Accept all internal triggers ✅ verified 2026-04-30 — `basic_settings_LED.py:L66` |
+| `Online_CS_StartStop` | `Stop` | Ensure run is stopped ✅ verified 2026-04-30 — `basic_settings_LED.py:L72` |
+| `Online_CS_SaveData` | `No Save` | No data saved (safe default) ✅ verified 2026-04-30 — `basic_settings_LED.py:L73` |
+
+✅ verified 2026-04-29 — `ANLDAQ/gui/scripts/basic_settings_LED.py`: THRESHOLD=300 (L12); trigger_polarity=RiseEdge (L59); raw_data_delay=0.5, raw_data_length=0.32 (L61-62); p1_window=0.07, p2_window=0.05, m_window=2.5, k0_window=0.5, k_window=0.5, d_window=0.16 (L17-22); CS_Ena=Enable (L64); veto_enable=0 (L65); trigger_mux_select=IntAcptAll (L66); Online_CS_StartStop=Stop, Online_CS_SaveData=No Save (L72-73).
 
 **Operation:**
 1. For each board: `master_logic_enable=Reset` → set all parameters → `master_fifo_reset=reset→run`
@@ -178,14 +180,14 @@ A bash helper script that opens `gnome-terminal` windows connecting to VME IOC c
 | Arg | Effect |
 |---|---|
 | `S` | Spawn a new SoftIOC in a gnome-terminal (checks if already running first via `ps ax \| grep SoftIOC`) |
-| `1`–`N` | Open a gnome-terminal → `telnet $TERMINAL_SERVER $((2000 + N))` (e.g., `1` → port 2001) |
+| `1`–`N` | Open a gnome-terminal → `telnet $TERMINAL_SERVER $((2000 + N))` (e.g., `1` → port 2001) | ✅ verified 2026-04-29 — `ANLDAQ/gui/scripts/terminals:L42,L51` (`Port=$((2000 + $1))`; `telnet ${terminalServer} ${Port}`)
 
 **Environment variables required:**
 - `$TERMINAL_SERVER` — hostname/IP of the terminal server (set in `EPICS_para.sh`; for DGS: 192.168.203.186 / .91)
 - `$ANLDAQ_DIR` — path to ANLDAQ repo root
 - `$EPICS_HOST_ARCH` — EPICS architecture string (e.g. `linux-x86_64`)
 
-**SoftIOC path:** `$ANLDAQ_DIR/EPICS/softIOC/iocBoot/iocdgsSoftIOC/dgsSoftIoc.cmd`
+**SoftIOC path:** `$ANLDAQ_DIR/EPICS/softIOC/iocBoot/iocdgsSoftIOC/dgsSoftIoc.cmd` ✅ verified 2026-04-29 — `ANLDAQ/gui/scripts/terminals:L24-26` (`softTop=${ANLDAQ_DIR}/EPICS/softIOC`; `cd $softTop/iocBoot/iocdgsSoftIOC`; `../../bin/${EPICS_HOST_ARCH}/dgsSoftIOC dgsSoftIoc.cmd`)
 
 **Note:** This script runs the gnome-terminal windows locally (on the machine running the ANLDAQ GUI), not remotely. Telnet provides a serial console to the VxWorks IOC boot prompt over the terminal server's serial port.
 

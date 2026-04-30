@@ -226,7 +226,7 @@ _Source: wiki.anl.gov/gsdaq/DAQ_system ✅ visited 2026-04-27_
 
 ## Trigger Cycle (2 µs)
 
-- 20 frames × 100 ns/frame = 2 µs total cycle
+- 20 frames × 100 ns/frame = 2 µs total cycle ✅ verified 2026-04-29 — `mstr_mach.vhd:L299` (CURRENT_FRAME wraps at 20, CURRENT_WORD wraps at 5); `top.vhd:L246-247` (mclk=50 MHz → 20 ns/tick; 5 words×20 ns=100 ns/frame; 20 frames×100 ns=2 µs)
 - **Upstream:** DIG discriminates → RTRG aggregates multiplicity → MTRG runs algorithms → decision
 - **Downstream:** MTRG broadcasts 20-frame command → RTRG forwards → DIG accepts/rejects events
 - Trigger decision latency (DIG → RTRG → MTRG → decision → RTRG → DIG): **~2–4 µs** (1–2 trigger cycles) ✅ verified 2026-04-07 — `fpga.md` End-to-End Timeline section; must complete within ~20 µs TRIG_DELAY window
@@ -258,7 +258,7 @@ _Source: wiki.anl.gov/gsdaq/DAQ_system ✅ visited 2026-04-27_
 
 ## Raspberry Pi Camera (darekpi02)
 
-- **Host:** `darekpi02` / `192.168.203.2` (onenet)
+- **Host:** `darekpi02` / `192.168.203.2` (onenet) ⚠️ unverified - source needed: IP `.2` is also listed as `pi5-dgs` (Ryan's admin Pi, retired 2026-04-15); unclear if darekpi02 shares that IP, has a separate `.2`, or if the wiki is stale. Confirm actual IP on network.
 - **Purpose:** Live video streaming inside the Gammasphere area
 - **Boot:** Connect Cat6 to onenet switch + USB power; keyboard/monitor optional
 - **Password:** Default DGS password (not the default Raspberry Pi password)

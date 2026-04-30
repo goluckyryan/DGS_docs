@@ -197,14 +197,14 @@ bash SaveTemp.sh
 | `VMExx:MDIG1:trigger_mux_select_RBV` | Current trigger mode (ExtTTCL/IntAcptAll/etc) |
 | `VME99:MTRG:EN_NIM1_DELAY` | NIM In 1 delay enabled? |
 | `VMExx:MTRG:MISC_STAT` | NIM IN 1/2 state + misc status bits |
-| `GS$(N)_SBX_Present` | Is SBX connected for this detector? |
-| `GS$(N)_SlopeBoxGe_HV_On` | Is Ge HV on for this detector? |
+| `GS$(N)_SBX_Present` | Is SBX connected for this detector? | ✅ verified 2026-04-30 — SlopeBox.db:L6 (`GS${DetNbr}_SBX_Present`) |
+| `GS$(N)_SlopeBoxGe_HV_On` | Is Ge HV on for this detector? | ✅ verified 2026-04-30 — Pickoff.db:L1488 (`GS${DetNbr}_SlopeBoxGe_HV_On`, bi record) |
 | `DAQC$(CRATE)_OL_TotalBufsLost` | Total outLoop buffers lost (data loss counter) |
 | `DAQC$(CRATE)_CV_OutLoop{0-6}` | Per-board data lost in outLoop |
 | `DAQC$(CRATE)_OL_DataRate{0-6}` | Per-board output rate (kB/s) |
 | `DAQC$(CRATE)_CV_SendRate` | Total MiniSender output rate (kB/s) |
 | `DAQC$(CRATE)_OL_NumFreeBuffers` | Free buffer pool entries (watch for depletion) |
-| `MOD###_DIG_PREAMP_RESET_DELAY` | PRK holdoff delay per channel (8-bit x 512 x 10 ns) |
+| `MOD###_DIG_PREAMP_RESET_DELAY` | PRK holdoff delay per channel (8-bit x 512 x 10 ns) | ✅ verified 2026-04-30 — FPGA/DIG/PREAMP_RESET.md:L67,70,160 (8-bit × 512 cycles × 10 ns/cycle = max ~1.3 ms) |
 | `MOD###_DIG_HIHILOLO_CNT` | Preamp reset event counter per channel |
 
 ---

@@ -890,3 +890,4 @@ Top-level directories on vol5 (18 named experiments + test areas):
 - `knowledgeBase/lnfill.md` — LN2 fill system; lnfill scripts on vol3, ln2con home on vol3
 - `knowledgeBase/ANLDAQ.md` — Data acquisition; raw run files land on NFS vol4/vol5
 - `knowledgeBase/dgs_analysis.md` — Post-analysis; reads from NFS experiment directories
+- `knowledgeBase/ioc.md` — NFS-hosted IOC software tree (`vol2/global_32/ioc/`): boot scripts, EPICS DB, py_scripts, dgsReceiver, dgsSoftIOC, EDM screens, FW_Maint

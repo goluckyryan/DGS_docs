@@ -239,7 +239,7 @@ _Source: `GenerateCmdFile.py::get_dvi_number()`, `get_vme_num()` ✅ verified 20
 | 203 | 7 | `(cable−1) // 10 + 7` |
 | 204 | 10 | `(cable−1) // 10 + 10` |
 
-Each box spans up to 3 VME crates (10 cables per crate). Together the 4 boxes cover VME crates 1–12, matching the 12 IOC crates (`192.168.203.141–145, 177–183`).
+Each box spans up to 3 VME crates (10 cables per crate). Together the 4 boxes cover VME crates 1–12, matching the 12 IOC crates (`192.168.203.141–145, 177–183`). ✅ verified 2026-04-30 — `GenerateCmdFile.py:L248` (`_VME_OFFSETS = {201:1, 202:4, 203:7, 204:10}`) + `L251-252` (formula: `(cable-1)//10 + offset` → 3 crates/box); IOC IP list confirmed `ANLDAQ/EPICS_env.sh:L48-59`.
 
 ### Autosave .req File Generation
 _Source: `GenerateCmdFile.py::generate_req()` ✅ verified 2026-04-19 — GenerateCmdFile.py:L388-430_
@@ -273,7 +273,7 @@ Autosave saves listed PVs every 30 seconds to `/home/dgs/autosave/softIOC_<N>_se
 ## softioc_postscript.sh — Post-Init Hardware Commissioning
 _Source: `collectorboxpi/softioc_postscript.sh` — 673-line Bash script_
 
-Runs automatically after IOC init completes (launched by `startSoftIOC.sh`). Performs a 6-phase hardware commissioning sequence over EPICS CA using `caget`/`caput`. Logs to `~/softioc_<N>_postScript_log.txt`. All `caget`/`caput` calls use a 150 ms timeout (`-w 0.150 -t`).
+Runs automatically after IOC init completes (launched by `startSoftIOC.sh`). Performs a 6-phase hardware commissioning sequence over EPICS CA using `caget`/`caput`. Logs to `~/softioc_<N>_postScript_log.txt`. All `caget`/`caput` calls use a 150 ms timeout (`-w 0.150 -t`). ✅ verified 2026-04-30 — `collectorboxpi/softioc_postscript.sh:L3` (`WAIT_TIME=0.150`).
 
 **Input:** `$LIST_OF_VME_GS_NUMBERS` (exported by `collectorBox.sh` as space-separated string; converted internally to Bash array)
 

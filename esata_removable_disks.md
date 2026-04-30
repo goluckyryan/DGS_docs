@@ -70,19 +70,19 @@ umount /media/<label>
    sudo /sbin/fdisk /dev/sdd
    # At fdisk prompt: p, n, p, 1, <Enter>, <Enter>, w
    ```
-   This creates `/dev/sdd1`.
+   This creates `/dev/sdd1`. ✅ verified 2026-04-30 - wiki.anl.gov/gsdaq/Handeling_removable_disks_under_ESATA
 3. Format with EXT4:
    ```
    sudo /sbin/mkfs.ext4 -m 0 /dev/sdd1
    ```
-   The `-m 0` flag removes the 5% root-reserved space — acceptable for data disks, **not** for system disks.
-   - Note: `mkfs.ext4` is slow on Scientific Linux, fast on Fedora 15+.
+   The `-m 0` flag removes the 5% root-reserved space — acceptable for data disks, **not** for system disks. ✅ verified 2026-04-30 - wiki.anl.gov/gsdaq/Handeling_removable_disks_under_ESATA
+   - Note: `mkfs.ext4` is slow on Scientific Linux, fast on Fedora 15+. ✅ verified 2026-04-30 - wiki.anl.gov/gsdaq/Handeling_removable_disks_under_ESATA
 
 4. Label the partition (use a unique, date-based label):
    ```
    sudo /sbin/e2label /dev/sdd1 20120611a
    ```
-   Auto-mounted USB disks will appear as `/media/20120611a`.
+   Auto-mounted USB disks will appear as `/media/20120611a`. ✅ verified 2026-04-30 - wiki.anl.gov/gsdaq/Handeling_removable_disks_under_ESATA
 
 5. Mount and set permissions for non-root writes:
    ```

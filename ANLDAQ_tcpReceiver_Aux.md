@@ -108,7 +108,7 @@ Extracts a single bit from a 32-bit word. Returns false for positions > 31. ✅ 
 - The receiver does **not** byte-swap; `DIG_Hit` handles byte order itself ✅ verified 2026-04-27 — `class_DIG.h:L19`
 - `EVENT_TIMESTAMP` is 48-bit: combined from Words 2 and 3 (bits 15:0) ✅ verified 2026-04-27 — `class_DIG.h:L29` (field declaration comment)
 - All Word 1 fields (CH_ID, USER_DEF, PACKET_LENGTH, GEO_ADDR), Word 3 header fields, Word 4 flag bits, and `TS_OF_COARSE` cross-word extraction all verified ✅ 2026-04-27 — `class_DIG.h:L24-69,L255-357`
-- `PEAK_TIMESTAMP` is 16-bit; to get full peak time: `(EVENT_TIMESTAMP & 0xFFFFFFFF0000) + PEAK_TIMESTAMP`, handle rollover by adding 0x10000 if result < EVENT_TIMESTAMP
+- `PEAK_TIMESTAMP` is 16-bit; to get full peak time: `(EVENT_TIMESTAMP & 0xFFFFFFFF0000) + PEAK_TIMESTAMP`, handle rollover by adding 0x10000 if result < EVENT_TIMESTAMP ✅ verified 2026-04-29 — `class_DIG.h:L174-175` (`peak_ts = EVENT_TIMESTAMP & 0xFFFFFFFF0000 + PEAK_TIMESTAMP; if( peak_ts < EVENT_TIMESTAMP ) peak_ts += 0x10000`)
 - CFD_SAMPLE_* are sign-extended from 14-bit two's complement
 
 ---
@@ -141,7 +141,7 @@ Models one TAC-II 200 MHz TDC measurement. Four independent phase channels (0–
 **CalVernier():** Extracts per-channel vernier values from `vernierAB`/`vernierCD`:
 - `vernier[0]` = `vernierAB[11:6]`, `vernier[1]` = `vernierAB[5:0]`
 - `vernier[2]` = `vernierCD[11:6]`, `vernier[3]` = `vernierCD[5:0]`
-- `validBit` = `vernierAB[15:12]`
+- `validBit` = `vernierAB[15:12]` ✅ verified 2026-04-29 — `class_TDC.h:L50` (`(vernierAB >> 12) & 0xF`)
 
 **FindVernierOrder():** Sorts channels by vernier value (ascending) and encodes rank order as a decimal integer.
 
@@ -180,8 +180,8 @@ Decodes a complete TAC-II 16-word data packet.
 | `coarseTS` | uint16_t | Coarse TDC timestamp |
 | `triggerBitMask` | uint16_t | Trigger bit mask |
 | `tdcData` | TDC200MHz | Vernier TDC measurement |
-| `trashData` | bool | True if counters match trash pattern (0x1006,0x1005,0x1004,0x1003) |
-| `phaseOffset[4]` | const float | {0,1,2,3} ns per-channel phase offset |
+| `trashData` | bool | True if counters match trash pattern (0x1006,0x1005,0x1004,0x1003) | ✅ verified 2026-04-29 — `class_TDC.h:L200-202`
+| `phaseOffset[4]` | const float | {0,1,2,3} ns per-channel phase offset | ✅ verified 2026-04-29 — `class_TDC.h:L111` (`const float phaseOffset[4] = {0, 1, 2, 3}`)
 
 **FillTDC(uint32_t * data, bool debug):**
 - `data[]` is the 32-bit packed payload (each 32-bit word = two 16-bit TAC words)
@@ -190,10 +190,10 @@ Decodes a complete TAC-II 16-word data packet.
 - Calls `CalVernier()` at end
 
 **CalTAC_simple(bool debug):**
-- Computes absolute phase times: `baseTime + fourNanoSec + phaseOffset[i] - 0.05 * vernier[i]`
-  - baseTime = `timestampTrig` rounded to 2^18 (262144 ns) grid
+- Computes absolute phase times: `baseTime + fourNanoSec + phaseOffset[i] - 0.05 * vernier[i]` ✅ verified 2026-04-29 — `class_TDC.h:L235`
+  - baseTime = `timestampTrig` rounded to 2^18 (262144 ns) grid ✅ verified 2026-04-29 — `class_TDC.h:L224` (`timestampTrig - timestampTrig % 262144`; comment: `262144 = 2^18`)
   - vernier step = 50 ps (0.05 ns)
-- Returns `avgPhaseTimestamp`; returns -1 if trashData
+- Returns `avgPhaseTimestamp`; returns -1 if trashData ✅ verified 2026-04-29 — `class_TDC.h:L222` (`if( trashData ) return -1`)
 
 ---
 
@@ -266,7 +266,7 @@ Compares LED vs CFD digitizer files: peak timestamp distribution and energy spec
 3. CFD loops: fills peak time and energy for all hits
 4. Draws 2-pad canvas: peak time overlay (LED=black, CFD1=red, CFD2=green) + energy overlay
 
-**Note:** LED histogram label is misleading — it actually reads a CFD file (`LED_01_...` is type 7 but the DIG_Hit is decoded in CFD mode based on `CFD_VALID_FLAG` check). The `ZeroCrossing` call present in the loop uses a bug: samples at offsets (0, −10, −20) but passes `CFD_SAMPLE_1` for both the second and third point (copy-paste error). Result is discarded (not filled into any histogram).
+**Note:** LED histogram label is misleading — it actually reads a CFD file (`LED_01_...` is type 7 but the DIG_Hit is decoded in CFD mode based on `CFD_VALID_FLAG` check). The `ZeroCrossing` call present in the loop uses a bug: samples at offsets (0, −10, −20) but passes `CFD_SAMPLE_1` for both the second and third point (copy-paste error). Result is discarded (not filled into any histogram). ✅ verified 2026-04-29 — `script_LED.cpp:L100-101` (both `points.push_back` calls use `digHit.CFD_SAMPLE_1`; `CFD_SAMPLE_0` and `CFD_SAMPLE_2` absent)
 
 ---
 

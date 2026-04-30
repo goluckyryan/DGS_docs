@@ -754,6 +754,7 @@ _Source: `ANLDAQ/gui/Guceiver/` (code-read 2026-04-27)_
 | `ANLDAQ_gui_sys.md` | gui_SYS.py window detail |
 | `ANLDAQ_commander.md` | Commander run control GUI (top-level window) |
 | `link_sys_analysis.md` | link_sys.py LinkSys internals (called by gui_LinkSys.py) |
+| `DGS_setup_guide.md` | DuoGe commissioning guide — DAQ/GUI startup in context (Section 8–9) |
 
 ---
 

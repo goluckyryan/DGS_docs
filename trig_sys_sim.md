@@ -131,7 +131,7 @@ These match the production MTRG register map (see also `MTRG_registers.md`):
 | `MISC_CTL2` | 0x0844 | Per Generated_top.vhd:L1875-1877: bits 11/12/13=EN_LINKL/R/U_TX_DCBAL, bit 15=EN_RTR_DCBAL. Testbench stimulus comments describe bit 15 as 'TX DC balance' and bit 14 as 'RX DC balance' — bit 14 is **not** assigned in production firmware; this is a testbench comment discrepancy. ✅ verified 2026-04-24 — Generated_top.vhd:L1875-1878 + regio_tb.vhd:L734-748 |
 | `GENERIC_TEST_FIFO` | 0x0848 | |
 | `DIAG_PIN_CTL_REG` | 0x084C | |
-| `TRIG_MASK` | 0x0850 | Bit 0 = manual trigger, bit 5 = Link-L remote (bit 6 = Link-R remote) |
+| `TRIG_MASK` | 0x0850 | Bit 0 = EN_MAN_AUX (manual trigger), bit 5 = EN_LINK_L, bit 6 = EN_LINK_R ✅ verified 2026-04-29 — Generated_top.vhd:L1884-1890 (full bit map: 0=EN_MAN_AUX, 1=EN_SUM_X, 2=EN_SUM_Y, 3=EN_SUM_XY, 4=EN_ALGO5, 5=EN_LINK_L, 6=EN_LINK_R, 7=EN_MYRIAD_LINK_U, 8=EN_NIM_AUX, 9=EN_TRIG_RAM_AUX, 10=EN_REM_MSTR_VETO, 11=SOFTWARE_VETO, 12=EN_RAM_VETO, 13=ENBL_MON7_VETO, 14=ENBL_NIM_VETO, 15=ENBL_THROTTLE_VETO) |
 | `TRIG_DIST_MASK` | 0x0854 | |
 | `SYNC_RST_RT_FIFO_MASK` / `LOCAL_FRAME_12_DATA_0` | 0x0858 | Dual-name |
 | `SYNC_RST_RT_DIAG_MASK` / `LOCAL_FRAME_12_DATA_1` | 0x085C | Dual-name |
@@ -197,6 +197,8 @@ The testbench exercises a specific init + manual trigger sequence:
 ---
 
 ## BUILD_TYPE Firmware Code Map (from `MstrTrig_pkg.vhd`)
+
+✅ verified 2026-04-29 — MstrTrig_pkg.vhd:L16-33 (all BUILD_TYPE codes match exactly)
 
 | Code | Firmware Type |
 |------|--------------|

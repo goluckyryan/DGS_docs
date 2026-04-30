@@ -85,11 +85,11 @@ All delay parameters can be loaded into registers in any order without affecting
    - INVALID_D3_TO_M2 → M2 starts adding
    - INVALID_M2_TO_T1 → M2 starts tracking
 
-**CHAIN_INVALID** stays asserted for the entire duration; **CHAIN_INVALID_PULSE** is a short pulse at start.
+**CHAIN_INVALID** stays asserted for the entire duration; **CHAIN_INVALID_PULSE** is a short pulse at start. ✅ verified 2026-04-30 — `jta_channel.vhd:L453-457` (CHAIN_INVALID_PULSE='1' on count "0100", then count decrements to "0011" → `others` branch, no re-assertion → single 10-ns pulse); `L417-441` (CHAIN_INVALID asserted at power-up or LOAD_VALS, cleared only when CHAIN_VALID_PULSE arrives).
 
-**SUBSECTION_RESETS(9:0)**: Set to "1111111111" on LOAD_VALS, held until CHAIN_VALID_PULSE exits pipeline, then zeroes shift in from bit 0 to bit 9. Different bits control different channel subsystems (discriminator, pileup, etc.) allowing ordered release.
+**SUBSECTION_RESETS(9:0)**: Set to "1111111111" on LOAD_VALS, held until CHAIN_VALID_PULSE exits pipeline, then zeroes shift in from bit 0 to bit 9. Different bits control different channel subsystems (discriminator, pileup, etc.) allowing ordered release. ✅ verified 2026-04-30 — `jta_channel.vhd:L469-473` (`SUBSECTION_RESETS <= "1111111111"` on LOAD_vals_pipe(1); on CHAIN_VALID_PULSE: bit 0 cleared; otherwise: `(9 downto 1) <= (8 downto 0)` shift); `L519` (SUBSECTION_RESETS(1) controls discriminator reset); `L569` (SUBSECTION_RESETS(9) controls final subsystem).
 
-**Best init practice**: Set initial ADC value register to estimated baseline for each channel before LOAD_VALS. This prevents false step at start. ENERGY_INVALID (derived from CHAIN_INVALID delayed by post-rise buffer length) further suppresses the threshold discriminator after chain release. First discriminator edge after reset is ignored as secondary safeguard. Full tracking can take ~25 µs.
+**Best init practice**: Set initial ADC value register to estimated baseline for each channel before LOAD_VALS. This prevents false step at start. ENERGY_INVALID (derived from CHAIN_INVALID delayed by post-rise buffer length) further suppresses the threshold discriminator after chain release. ✅ verified 2026-04-30 — `jta_channel.vhd:L867` (`EXTRA_IN(1) => CHAIN_INVALID` fed into 'm' buffer; `EXTRA_OUT(1) => ENERGY_INVALID` — CHAIN_INVALID delayed by the 'm' (post-rise) buffer before releasing discriminator); `L282` (ENERGY_INVALID signal declaration). First discriminator edge after reset is ignored as secondary safeguard. Full tracking can take ~25 µs.
 
 ---
 

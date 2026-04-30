@@ -56,7 +56,7 @@ The `.E` field of each `LNHx-xx_SM:SUB` record is **NOT set in `gamln.db`** — 
 
 **Complete hose→detID mapping** ✅ verified 2026-04-18 — extracted from `dgs@ln2con:/home/lncon/prod/lnfill/log/ln.inits` (IOC state-save file written at each boot by `dfill_sub_init`).
 
-> ✅ **`ln.inits` snapshot confirmed 2026-04-18** — archived at `DGS_tools_pack/ln2con/ln.inits.snapshot.20260418`. Table matches exactly; H4-25/H4-26 duplicate (detID=22) is persistent, not a one-time error. IOC was last rebooted 2026-04-02 16:47. If rebooted again with hoses rerouted, verify against the live file or a recent fill log.
+> ✅ **`ln.inits` snapshot confirmed 2026-04-18** — archived at `DGS_tools_pack/ln2con/ln.inits.snapshot.20260418`. **Updated 2026-04-29:** H4-25 corrected from detID=22 to detID=425 (spare/non-standard slot) by Ryan — resolves the H4-25/H4-26 duplicate. H4-26 remains detID=22. Verified live on ln2con 2026-04-29.
 
 Format: `Hx-yy  detID  manifold_num  ...`
 
@@ -86,14 +86,14 @@ Format: `Hx-yy  detID  manifold_num  ...`
 | H1-22 | 77 | H2-22 | 33 | H3-22 | 322 | H4-22 | 68 |
 | H1-23 | 523 | H2-23 | 27 | H3-23 | 20 | H4-23 | 80 |
 | H1-24 | 83 | H2-24 | 11 | H3-24 | 56 | H4-24 | 38 |
-| H1-25 | 19 | H2-25 | 23 | H3-25 | 44 | H4-25 | 22 |
+| H1-25 | 19 | H2-25 | 23 | H3-25 | 44 | H4-25 | 425 |
 | H1-26 | 526 | H2-26 | 17 | H3-26 | 74 | H4-26 | 22 |
 | H1-27 | 55 | H2-27 | 45 | H3-27 | 28 | H4-27 | 36 |
 | H1-28 | 37 | H2-28 | 35 | H3-28 | 328 | H4-28 | 428 |
 
 Notes:
 - detIDs 5xx, 2xx, 3xx, 4xx = non-standard (spare/special detectors, DUO, or empty slots)
-- H4-25 and H4-26 both show detID=22 — possible duplicate/error in ln.inits
+- H4-25 was detID=22 (duplicate of H4-26) — **fixed 2026-04-29**: H4-25 now detID=425 (spare slot). H4-26 remains detID=22. ✅ verified live on ln2con 2026-04-29
 - Hx-yy maps directly to EPICS PV `LNHx-yy_SM:SUB.E` and Python `mid=x, vid=yy`
 - This mapping is set by `dfill_sub_init` in `lnfiller.vx` at IOC boot; `ln.inits` is the state-save record
 

@@ -700,6 +700,8 @@ gnome-terminal -- bash -c "telnet 192.168.203.54 2001; exec bash"
 - `knowledgeBase/vxworks_fifo_readout.md` — DMA buffer architecture, trigger FIFO readout, Type-F synthetic headers, FIFO index map
 - `knowledgeBase/vxworks_trigger_drivers.md` — Deep-dive into trigger asyn drivers (`asynTrigCommonDriver`, `asynTrigMasterDriver`, `asynTrigRouterDriver`); firmware type code table
 - `knowledgeBase/troubleshooting.md` — IOC connectivity issues, SYNC bit gotcha
+- `knowledgeBase/DGS_setup_guide.md` — DuoGe commissioning walkthrough (living doc): full step-by-step setup from IOC boot through data taking for the 2-detector DuoGe system on tangerine/vme66
+- `knowledgeBase/nfs_layout.md` — NFS-hosted IOC software tree on `vol2/global_32/ioc/` (boot scripts, py_scripts, dgsReceiver, dgsSoftIOC, fastEventContructor, FW_Maint, EDM screens)
 
 ---
 

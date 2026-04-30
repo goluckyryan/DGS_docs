@@ -53,7 +53,7 @@ MULTIPLICITY[3:0] <= UNBAL_ROUTER_DATA[15:12]  (when not masked)
 ```
 ✅ verified 2026-04-18 — `mt_input_channel.vhd:L183` (MTRG/MAIN_FPGA/20120424): `MULTIPLICITY <= UNBAL_ROUTER_DATA(15 downto 12) when (CHANNEL_MASK = '0') else "0000"`
 
-This extracts the top 4 bits of the recovered Link-L word. In the current RTRG 0x260E format, bit [15] = throttle, bits [14:12] = top 3 bits of the 7-bit Y-plane sum. The `MULTIPLICITY` output therefore reflects a partial Y-count (the upper 3 bits, i.e., the value divided by 16 in 7-bit terms) — useful for rapid multiplicity prescreening without needing the full 7-bit sum.
+This extracts the top 4 bits of the recovered Link-L word. In the current RTRG 0x260E format, bit [15] = throttle ✅ verified 2026-04-30 — `VIVADO_MAIN_FPGA/trunk/Source/mt_input_channel.vhd:L120`: `THROTTLE_REQUEST <= UNBAL_ROUTER_DATA(15)`, bits [14:12] = top 3 bits of the 7-bit Y-plane sum. The `MULTIPLICITY` output therefore reflects a partial Y-count (the upper 3 bits, i.e., the value divided by 16 in 7-bit terms) — useful for rapid multiplicity prescreening without needing the full 7-bit sum.
 
 The full X and Y sums (bits [6:0] and [14:8] of the Link-L word) are consumed by higher-level blocks in `eight_mt_channel` that read `RTR_SUM_OF_X` and `RTR_SUM_OF_Y` directly.
 
@@ -83,8 +83,8 @@ The RTRG connected to our 2-detector DUO transmits Link-L with `Y_SUM = 2`. At t
 
 Each `mt_input_channel` instance in the trunk variant exposes two additional outputs beyond the base version:
 
-- `RTR_SUM_OF_X[7:0]` — the 7-bit X-plane multiplicity sum from that RTRG's Link-L word (bits [6:0])
-- `RTR_SUM_OF_Y[7:0]` — the 7-bit Y-plane multiplicity sum from that RTRG's Link-L word (bits [14:8])
+- `RTR_SUM_OF_X[7:0]` — the 7-bit X-plane multiplicity sum from that RTRG's Link-L word (bits [6:0]) ✅ verified 2026-04-30 — `VIVADO_MAIN_FPGA/trunk/Source/mt_input_channel.vhd:L125`: `RTR_SUM_OF_X <= "0" & UNBAL_ROUTER_DATA(6 downto 0)`
+- `RTR_SUM_OF_Y[7:0]` — the 7-bit Y-plane multiplicity sum from that RTRG's Link-L word (bits [14:8]) ✅ verified 2026-04-30 — `VIVADO_MAIN_FPGA/trunk/Source/mt_input_channel.vhd:L126`: `RTR_SUM_OF_Y <= "0" & UNBAL_ROUTER_DATA(14 downto 8)`; also confirms bit [7]=DATA_VALID gate (L121: `if(UNBAL_ROUTER_DATA(7) = '0') then ... RTR_SUM_OF_X/Y <= X"00"`)
 
 These are 8-bit fields (the 7-bit RTRG sum zero-extended to 8 bits), accommodating the maximum of 80 hits per RTRG (8 channels × 10 discriminator bits each).
 

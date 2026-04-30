@@ -253,7 +253,7 @@ Shared `keep(pv)` function used by `dumpPVs.py`, `putPVs.py`, `verifyPVs.py`, an
 - Collector box PVs: 2,471 / 14,200 kept = **83% filtered out** ✅ verified 2026-04-14 — `python3 -c "from pv_filter import keep; ..."` on collector201_db.txt
 - VME PVs: 1,545 / 7,599 kept = **80% filtered out** ✅ verified 2026-04-14 — same method on vme01_db.txt
 
-> ⚠️ **Not used by `watchDog.py`** — that script has its own separate hardcoded filter (see above). Keep both in sync when adding new noisy PV patterns.
+> ⚠️ **Not used by `watchDog.py`** — that script has its own separate hardcoded filter (see above). Keep both in sync when adding new noisy PV patterns. ✅ verified 2026-04-29 — `watchDog.py:L56-77` defines its own local `keep(pv)` closure with hardcoded `EXCLUDE_CONTAINS`, `EXCLUDE_STARTSWITH`, `EXCLUDE_ENDSWITH` dicts; no `from pv_filter import keep` anywhere in watchDog.py.
 
 ---
 
