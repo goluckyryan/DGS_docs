@@ -409,20 +409,20 @@ The Raspberry Pi (collectorboxpi soft IOC) communicates with both FPGAs via SPI:
 - StripeFPGA relay/LED control is driven from the Pi via the EPICS IOC
 - PickoffCard `PI_TRANSACTOR.vhd` implements the Pi ↔ pickoff card SPI protocol
 
-See: `knowledgeBase/collectorboxpi.md`, `knowledgeBase/collectorbox_devicesupport.md`, `knowledgeBase/sbx.md`
+See: [collectorboxpi.md](collectorboxpi.md), [collectorbox_devicesupport.md](collectorbox_devicesupport.md), [sbx.md](sbx.md)
 
 ---
 
 ## Cross-References
 
-- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC, PXE boot, HV control
-- `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector ✅ verified 2026-04-16)
-- `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support internals, SPI driver, CAMAC_IO
-- `knowledgeBase/collector_box_fpga.md` — ControlStripe + CtlFanout FPGAs (PSG SVN origin, sister codebase): per-stripe 48V relay/clock/SYNC control (Spartan-3) and RPi SPI gateway + ADS1158 ADC scanning (Spartan-6)
-- `knowledgeBase/sbx.md` — Slope Box Extension hardware, BGO HV, GS_ID dongle
-- `knowledgeBase/deep_fpga_SBX_CtrlFPGA.md` — Deep VHDL analysis of SBX Motherboard Control FPGA (entity SlopeBoxInt, Rev C, Spartan-6 XC6SLX9): 24-bit SPI, register file, I2C buses, BGO DDR outputs, analog switch control, preamp clamp, timestamp, firmware version registers
-- `knowledgeBase/collector_ctrlFPGA_registers.md` — Complete CtrlFPGA register interface (Excel-VBA generated, 141 registers): control outputs (pulsed_control, FPGA_CTL_REG, ILA mux, DPRAM bank select), read-only status registers, per-stripe ADC monitoring (GFI/48VI/rail voltages/VCC/gain/temp), BGO FPGA voltages
-- `knowledgeBase/collector_stripeFPGA_registers.md` — Complete StripeFPGA register map (48 registers, 6 stripes): relay_control (irly/grly/prly), stripe_control (clock/SYNC/crly), tristate_control, stripe_status, LED pulser, sandbox, code_revision; EPICS PV naming and address layout
+- [collectorboxpi.md](collectorboxpi.md) — Raspberry Pi soft IOC, PXE boot, HV control
+- [collectorbox_PVs.md](collectorbox_PVs.md) — Full PV list (1,431 records/detector ✅ verified 2026-04-16)
+- [collectorbox_devicesupport.md](collectorbox_devicesupport.md) — EPICS device support internals, SPI driver, CAMAC_IO
+- [collector_box_fpga.md](collector_box_fpga.md) — ControlStripe + CtlFanout FPGAs (PSG SVN origin, sister codebase): per-stripe 48V relay/clock/SYNC control (Spartan-3) and RPi SPI gateway + ADS1158 ADC scanning (Spartan-6)
+- [sbx.md](sbx.md) — Slope Box Extension hardware, BGO HV, GS_ID dongle
+- [deep_fpga_SBX_CtrlFPGA.md](deep_fpga_SBX_CtrlFPGA.md) — Deep VHDL analysis of SBX Motherboard Control FPGA (entity SlopeBoxInt, Rev C, Spartan-6 XC6SLX9): 24-bit SPI, register file, I2C buses, BGO DDR outputs, analog switch control, preamp clamp, timestamp, firmware version registers
+- [collector_ctrlFPGA_registers.md](collector_ctrlFPGA_registers.md) — Complete CtrlFPGA register interface (Excel-VBA generated, 141 registers): control outputs (pulsed_control, FPGA_CTL_REG, ILA mux, DPRAM bank select), read-only status registers, per-stripe ADC monitoring (GFI/48VI/rail voltages/VCC/gain/temp), BGO FPGA voltages
+- [collector_stripeFPGA_registers.md](collector_stripeFPGA_registers.md) — Complete StripeFPGA register map (48 registers, 6 stripes): relay_control (irly/grly/prly), stripe_control (clock/SYNC/crly), tristate_control, stripe_status, LED pulser, sandbox, code_revision; EPICS PV naming and address layout
 
 ---
 

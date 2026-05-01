@@ -124,7 +124,7 @@ Standard `ai`/`ao` records hold 16-bit values, limiting single-call transfers to
 | `DEVSEL_bus.c` | DEVSEL bus utilities |
 | `ScanADCs.c` | ADC scanning loop |
 | `initTrace.c` | Trace/debug init |
-| `bcm2835.c` / `.h` | Raspberry Pi GPIO/SPI library |
+| `bcm2835.c` / `.h` | Raspberry Pi GPIO/SPI library (see [`collectorboxpi.md`](collectorboxpi.md) for Pi hardware setup) |
 
 ---
 
@@ -190,7 +190,7 @@ The lower nibble of `0x0x`/`0x1x`/`0x2x`/`0x3x` = number of data bytes. For >2 b
 **DTYP string:** `CollectorStep`  
 ✅ verified 2026-04-19 — `CollectorStep_AI.c` lines 1–362
 
-`CollectorStep` is a **software closed-loop controller** implemented as an EPICS AI record. It does not directly write to hardware; instead it computes a new demand value that other PVs apply to the hardware (HV DAC). The SCAN rate of the CollectorStep PV determines how fast the stepping occurs.
+`CollectorStep` is a **software closed-loop controller** implemented as an EPICS AI record. It does not directly write to hardware; instead it computes a new demand value that other PVs apply to the hardware (HV DAC — see [`collector_fpga.md`](collector_fpga.md) for the CtrlFPGA SPI DAC register map). The SCAN rate of the CollectorStep PV determines how fast the stepping occurs.
 
 ### Operating Modes
 
@@ -403,7 +403,7 @@ Mode 12 is the most complex: it masks `mailbox[Aidx1]` with `N`, shifts the resu
 
 ### Usage Context
 
-In the collector HV control chain: `CollectorCalc` BI PVs compute interlock conditions (e.g., "is temperature below threshold?", "is HV current within range?") and write the result to a mailbox slot that `CollectorStep` checks in its enable-bitmask gate. This creates a pure-software interlock chain without any dedicated hardware interlock logic.
+In the collector HV control chain (see [`collectorbox_PVs.md`](collectorbox_PVs.md) for HV-related PV names): `CollectorCalc` BI PVs compute interlock conditions (e.g., "is temperature below threshold?", "is HV current within range?") and write the result to a mailbox slot that `CollectorStep` checks in its enable-bitmask gate. This creates a pure-software interlock chain without any dedicated hardware interlock logic.
 
 ---
 
@@ -612,10 +612,10 @@ No functions are implemented. The actual ADC scanning logic is handled via `Coll
 
 ## Cross-References
 
-- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC: PXE boot, HV control, collector assignments
-- `knowledgeBase/collector_fpga.md` — CtrlFPGA and StripeFPGA firmware; SPI register maps
-- `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector)
-- `knowledgeBase/sbx.md` — Slope Box Extension; pickoff card; BGO HV; GS_ID dongle
-- `knowledgeBase/EPICS.md` — EPICS record types and device support concepts
+- [`collectorboxpi.md`](collectorboxpi.md) — Raspberry Pi soft IOC: PXE boot, HV control, collector assignments
+- [`collector_fpga.md`](collector_fpga.md) — CtrlFPGA and StripeFPGA firmware; SPI register maps
+- [`collectorbox_PVs.md`](collectorbox_PVs.md) — Full PV list (1,431 records/detector)
+- [`sbx.md`](sbx.md) — Slope Box Extension; pickoff card; BGO HV; GS_ID dongle
+- [`EPICS.md`](EPICS.md) — EPICS record types and device support concepts
 
 *Created: 2026-04-06 | Last reviewed: 2026-04-25*

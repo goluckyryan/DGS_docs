@@ -146,7 +146,20 @@ GS5_GE_HV_DEMAND_VOLTS value=3000.0 1743890400000000000
 **PVs read:** `MOD001_DV_TEMP` + `MOD001_DV_EN` … `MOD110_DV_TEMP` + `MOD110_DV_EN` (from collector box softIOC via pyepics). If `DV_TEMP > 520 K`, the detector is not connected — value stored as 0. ✅ verified 2026-04-13 — `StoreDetTemps.py:L95` (`if detTemp[gsid] > 520: detTemp[gsid] = 0 # not connected`)
 **Also logs to:** `templog/templog_YYYYMMDD.csv` (CSV backup on DCS2)
 
-### 2. DGS PV Snapshots (`DGS` database)
+### 2. Fill Duration (`HPGeTemp` database, table `FillDuration`)
+
+**Scripts:** `DGS_tools_pack/lnFill/parse_fill_log.py` + `batch_push_fill.py` (spark-ca9f); `parse_fill_log.py` + `gsid_to_geid.json` also deployed on pi5-lnFill
+**Populated:** 2026-04-30 — historical backfill of 168 F fills (Jan–Apr 2026), 10,428 lines pushed
+**Data written:**
+- `FillDuration,gsid=NNN,GeID=<M> value=<seconds>` — per-detector LN2 fill time per F fill event
+- Timestamp = fill start time (Chicago local → UTC nanoseconds)
+- `gsid` = zero-padded 3-digit GS hole number (001–110)
+- `GeID` = physical Ge crystal ID from `GS${N}_Ge_ID` EPICS PV; detectors with GeID=0 (empty holes) skipped
+**Source logs:** `~/lnFill/logs/fill_YYYYMMDD_HHMM.log` on pi5-lnFill
+**F fill detection:** line `To Fill: Tanks ManA ManB ManC ManD` (two header formats supported)
+**Future:** `parse_fill_log.py` to be called at end of `LNFill_cron.sh` for live per-fill pushes
+
+### 3. DGS PV Snapshots (`DGS` database)
 
 **Script:** `snapshot_pv/dumpPVs.py` with `WriteInflux()` function
 **Status:** Code exists but is **commented out** — currently writes to files only
@@ -177,7 +190,7 @@ Dashboards are stored in `grafana.db` (no read access from `dcsu`). Based on wha
 - LN2 fill status and tank levels
 - Possibly: PV history browser (when `DGS` db is activated)
 
-> 💡 **Planned:** Custom Gammasphere detector map panel — all 110 GS holes as two polar projections (N+S hemisphere), colored by temperature from `HPGeTemp`. Geometry data: `knowledgeBase/gammasphere_geometry.md`. *(Design notes file not yet created.)*
+> 💡 **Planned:** Custom Gammasphere detector map panel — all 110 GS holes as two polar projections (N+S hemisphere), colored by temperature from `HPGeTemp`. Geometry data: [`gammasphere_geometry.md`](gammasphere_geometry.md). *(Design notes file not yet created.)*
 
 ---
 
@@ -222,6 +235,9 @@ _Source: DCS2 exploration via SSH (dcsu@DCS2.onenet). Created: 2026-04-05_
 
 ## Cross-References
 
-- `knowledgeBase/lnfill.md` — LN2 fill system; writes temperature data to HPGeTemp InfluxDB database
-- `knowledgeBase/expMemory_2008_Chiara.md` — Active experiment log; references monitoring dashboards
-- `knowledgeBase/nfs_layout.md` — DCS2 filesystem layout; InfluxDB/Grafana run on DCS2 (192.168.203.56)
+- [`lnfill.md`](lnfill.md) — LN2 fill system; writes temperature data to HPGeTemp InfluxDB database
+- [`con6_lnfill.md`](con6_lnfill.md) — Cron job scheduling for LN2 fill (pi5-lnFill `SaveTemp.sh` every 10 min)
+- [`snapshot_pv.md`](snapshot_pv.md) — DGS PV snapshot scripts (`dumpPVs.py`); InfluxDB write path is present but commented out
+- [`gammasphere_geometry.md`](gammasphere_geometry.md) — GS hole geometry; planned Grafana detector map panel
+- [`expMemory_2008_Chiara.md`](expMemory_2008_Chiara.md) — Active experiment log; references monitoring dashboards
+- [`nfs_layout.md`](nfs_layout.md) — DCS2 filesystem layout; InfluxDB/Grafana run on DCS2 (192.168.203.56)

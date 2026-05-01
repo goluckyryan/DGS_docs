@@ -403,7 +403,7 @@ fastEventConstructor / parquet_pysort (post-run)
 
 _Source: `gebsort/DataExtract.c` (685 lines). Code-read 2026-04-26._
 
-`DataExtract.c` is the canonical reference implementation for decoding all ANL digitizer header formats within the GEBSort analysis framework. It provides the `DecodeHeader()` dispatch function and one decoder per header format family.
+`DataExtract.c` is the canonical reference implementation for decoding all ANL digitizer header formats within the [GEBSort](gebsort.md) analysis framework. It provides the `DecodeHeader()` dispatch function and one decoder per header format family.
 
 ### Function Hierarchy
 
@@ -464,13 +464,13 @@ Type 0xE (14) was intended to be unique for Majorana digitizers, but the firmwar
 - `dgs_analysis/armory/fastEventContructor/class_TDC.h` — TAC-II TDC decoder
 
 **Related knowledge base files:**
-- `knowledgeBase/ANLDAQ.md` — tcpReceiverMT and IOC sender; how GEB data is produced and transmitted
-- `knowledgeBase/guceiver.md` — Guceiver live GUI; decodes DIG and TAC-II packets from TCP stream
-- `knowledgeBase/dgs_analysis.md` — fastEventConstructor and parquet_pysort; consume GEB binary data
-- `knowledgeBase/DIG_firmware_expert.md` — Full DIG event header field definitions + readout modes (expert reference)
-- `knowledgeBase/deep_fpga_DIG_eventpacket.md` — FPGA-level DIG event packet format: LED/CFD header layout, WF bit encoding, pole-zero, waveform samples, integration timelines
-- `knowledgeBase/ttcl.md` — TTCL spec; timestamp generation that populates GEB timestamp field
-- `knowledgeBase/gebsort.md` — GEBSort event builder; reads GEB format, builds coincidence events
+- [`ANLDAQ.md`](ANLDAQ.md) — tcpReceiverMT and IOC sender; how GEB data is produced and transmitted
+- [`guceiver.md`](guceiver.md) — Guceiver live GUI; decodes DIG and TAC-II packets from TCP stream
+- [`dgs_analysis.md`](dgs_analysis.md) — fastEventConstructor and parquet_pysort; consume GEB binary data
+- [`DIG_firmware_expert.md`](DIG_firmware_expert.md) — Full DIG event header field definitions + readout modes (expert reference)
+- [`deep_fpga_DIG_eventpacket.md`](deep_fpga_DIG_eventpacket.md) — FPGA-level DIG event packet format: LED/CFD header layout, WF bit encoding, pole-zero, waveform samples, integration timelines
+- [`ttcl.md`](ttcl.md) — TTCL spec; timestamp generation that populates GEB timestamp field
+- [`gebsort.md`](gebsort.md) — GEBSort event builder; reads GEB format, builds coincidence events
 - `gebsort/DataExtract.c` — canonical decoder for all ANL DIG header formats (types 1–8, 0xE); used by GEBSort
 
 ---

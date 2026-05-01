@@ -543,42 +543,42 @@ Per-DIG-link (A–H), per-channel (0–9) input delay registers.
 
 | Offset | Register | R/W | Description |
 |--------|----------|-----|-------------|
-| `0x0800` | `reg_INPUT_LINK_MASK` | R/W | Input link mask |
-| `0x0804` | `reg_LED_REG` | R/W | Front-panel LED |
-| `0x0808` | `reg_SKEW_CTL_A` | R/W | SERDES skew control A |
-| `0x080C` | `reg_SKEW_CTL_B` | R/W | SERDES skew control B |
-| `0x0810` | `reg_SKEW_CTL_C` | R/W | SERDES skew control C |
-| `0x0814` | `reg_MISC_CLK_CTL` | R/W | Miscellaneous clock control |
-| `0x0818` | `reg_AUX_IO_CTL` | R/W | Auxiliary I/O control |
-| `0x081C` | `reg_AUX_IO_DATA` | R/W | Auxiliary I/O data |
-| `0x0820` | `reg_AUX_INPUT_SELECT` | R/W | Auxiliary input select |
-| `0x0824` | `reg_AUX_COUNTDOWN` | R/W | Auxiliary countdown timer |
-| `0x0828` | `reg_SERDES_TPOWER` | R/W | SERDES transmit power |
-| `0x082C` | `reg_SERDES_RPOWER` | R/W | SERDES receive power |
-| `0x0830` | `reg_SERDES_LOCAL_LE` | R/W | SERDES local loopback |
-| `0x0834` | `reg_SERDES_LINE_LE` | R/W | SERDES line loopback |
-| `0x0838` | `reg_LVDS_PREEMPHASIS` | R/W | LVDS pre-emphasis |
-| `0x083C` | `reg_LINK_LRU_CTL` | R/W | Link L/R/U control |
-| `0x0840` | `reg_MISC_CTL1` | R/W | Miscellaneous control 1 |
-| `0x0844` | `reg_MISC_CTL2` | R/W | Miscellaneous control 2 |
-| `0x0848` | `reg_GENERIC_TEST_FIFO` | R/W | Generic test FIFO |
-| `0x084C` | `reg_DIAG_PIN_CTL` | R/W | Diagnostic pin control |
-| `0x0850` | `reg_FORCE_SYNC_REG` | R/W | Force sync register |
-| `0x0854` | `reg_SPARE_854` | — | Spare / reserved |
-| `0x0858–0x0874` | `reg_X_PLANE_MAP_A–H` | R/W | X-plane multiplicity map per link (8 registers) |
-| `0x0878–0x0894` | `reg_Y_PLANE_MAP_A–H` | R/W | Y-plane multiplicity map per link (8 registers) |
-| `0x0898` | `reg_ANY_THROTTLE_WIDTH` | R/W | Throttle gate width |
-| `0x089C` | `reg_THROTTLE_LIMIT_TIME` | R/W | Throttle rate limit time |
-| `0x08A0–0x08BC` | `reg_MON1–8_FIFO_SEL` | R/W | Monitor FIFO 1–8 selection |
-| `0x08C0` | `reg_CHAN_MON_FIFO_CTL` | R/W | Channel monitor FIFO control |
-| `0x08C4` | `reg_CHAN_MON_FIFO_WE_CTL` | R/W | Channel monitor FIFO write-enable control |
-| `0x08C8` | `reg_TSCATTER_DELAY` | R/W | Time scatter delay |
-| `0x08CC` | `reg_CLEAN_DIRTY` | R/W | Clean/dirty flag |
-| `0x08E0` | `reg_PULSED_CTL1` | R/W | Pulsed control 1 |
-| `0x08E4` | `reg_PULSED_CTL2` | R/W | Pulsed control 2 |
-| `0x08E8` | `reg_SPARE_8E8` | — | Spare |
-| `0x08EC` | `reg_SPARE_8EC` | — | Spare |
-| `0x08F0` | `reg_FIFO_RESETS` | R/W | FIFO reset |
+| `0x0800` | `reg_INPUT_LINK_MASK` | R/W | Input link mask | ✅ verified 2026-04-30 — `asynRTrigParams.c:L424`
+| `0x0804` | `reg_LED_REG` | R/W | Front-panel LED | ✅ verified 2026-04-30 — `asynRTrigParams.c:L425`
+| `0x0808` | `reg_SKEW_CTL_A` | R/W | SERDES skew control A | ✅ verified 2026-04-30 — `asynRTrigParams.c:L426`
+| `0x080C` | `reg_SKEW_CTL_B` | R/W | SERDES skew control B | ✅ verified 2026-04-30 — `asynRTrigParams.c:L427`
+| `0x0810` | `reg_SKEW_CTL_C` | R/W | SERDES skew control C | ✅ verified 2026-04-30 — `asynRTrigParams.c:L428`
+| `0x0814` | `reg_MISC_CLK_CTL` | R/W | Miscellaneous clock control | ✅ verified 2026-04-30 — `asynRTrigParams.c:L429`
+| `0x0818` | `reg_AUX_IO_CTL` | R/W | Auxiliary I/O control | ✅ verified 2026-04-30 — `asynRTrigParams.c:L430`
+| `0x081C` | `reg_AUX_IO_DATA` | R/W | Auxiliary I/O data | ✅ verified 2026-04-30 — `asynRTrigParams.c:L431`
+| `0x0820` | `reg_AUX_INPUT_SELECT` | R/W | Auxiliary input select | ✅ verified 2026-04-30 — `asynRTrigParams.c:L432`
+| `0x0824` | `reg_AUX_COUNTDOWN` | R/W | Auxiliary countdown timer | ✅ verified 2026-04-30 — `asynRTrigParams.c:L433`
+| `0x0828` | `reg_SERDES_TPOWER` | R/W | SERDES transmit power | ✅ verified 2026-04-30 — `asynRTrigParams.c:L434`
+| `0x082C` | `reg_SERDES_RPOWER` | R/W | SERDES receive power | ✅ verified 2026-04-30 — `asynRTrigParams.c:L435`
+| `0x0830` | `reg_SERDES_LOCAL_LE` | R/W | SERDES local loopback | ✅ verified 2026-04-30 — `asynRTrigParams.c:L436`
+| `0x0834` | `reg_SERDES_LINE_LE` | R/W | SERDES line loopback | ✅ verified 2026-04-30 — `asynRTrigParams.c:L437`
+| `0x0838` | `reg_LVDS_PREEMPHASIS` | R/W | LVDS pre-emphasis | ✅ verified 2026-04-30 — `asynRTrigParams.c:L438`
+| `0x083C` | `reg_LINK_LRU_CTL` | R/W | Link L/R/U control | ✅ verified 2026-04-30 — `asynRTrigParams.c:L439`
+| `0x0840` | `reg_MISC_CTL1` | R/W | Miscellaneous control 1 | ✅ verified 2026-04-30 — `asynRTrigParams.c:L440`
+| `0x0844` | `reg_MISC_CTL2` | R/W | Miscellaneous control 2 | ✅ verified 2026-04-30 — `asynRTrigParams.c:L441`
+| `0x0848` | `reg_GENERIC_TEST_FIFO` | R/W | Generic test FIFO | ✅ verified 2026-04-30 — `asynRTrigParams.c:L442`
+| `0x084C` | `reg_DIAG_PIN_CTL` | R/W | Diagnostic pin control | ✅ verified 2026-04-30 — `asynRTrigParams.c:L443`
+| `0x0850` | `reg_FORCE_SYNC_REG` | R/W | Force sync register | ✅ verified 2026-04-30 — `asynRTrigParams.c:L444`
+| `0x0854` | `reg_SPARE_854` | — | Spare / reserved | ✅ verified 2026-04-30 — `asynRTrigParams.c:L445`
+| `0x0858–0x0874` | `reg_X_PLANE_MAP_A–H` | R/W | X-plane multiplicity map per link (8 registers) | ✅ verified 2026-04-30 — `asynRTrigParams.c:L446-453`
+| `0x0878–0x0894` | `reg_Y_PLANE_MAP_A–H` | R/W | Y-plane multiplicity map per link (8 registers) | ✅ verified 2026-04-30 — `asynRTrigParams.c:L454-461`
+| `0x0898` | `reg_ANY_THROTTLE_WIDTH` | R/W | Throttle gate width | ✅ verified 2026-04-30 — `asynRTrigParams.c:L462`
+| `0x089C` | `reg_THROTTLE_LIMIT_TIME` | R/W | Throttle rate limit time | ✅ verified 2026-04-30 — `asynRTrigParams.c:L463`
+| `0x08A0–0x08BC` | `reg_MON1–8_FIFO_SEL` | R/W | Monitor FIFO 1–8 selection | ✅ verified 2026-04-30 — `asynRTrigParams.c:L464-471`
+| `0x08C0` | `reg_CHAN_MON_FIFO_CTL` | R/W | Channel monitor FIFO control | ✅ verified 2026-04-30 — `asynRTrigParams.c:L472`
+| `0x08C4` | `reg_CHAN_MON_FIFO_WE_CTL` | R/W | Channel monitor FIFO write-enable control | ✅ verified 2026-04-30 — `asynRTrigParams.c:L473`
+| `0x08C8` | `reg_TSCATTER_DELAY` | R/W | Time scatter delay | ✅ verified 2026-04-30 — `asynRTrigParams.c:L474`
+| `0x08CC` | `reg_CLEAN_DIRTY` | R/W | Clean/dirty flag | ✅ verified 2026-04-30 — `asynRTrigParams.c:L475`
+| `0x08E0` | `reg_PULSED_CTL1` | R/W | Pulsed control 1 | ✅ verified 2026-04-30 — `asynRTrigParams.c:L476`
+| `0x08E4` | `reg_PULSED_CTL2` | R/W | Pulsed control 2 | ✅ verified 2026-04-30 — `asynRTrigParams.c:L477`
+| `0x08E8` | `reg_SPARE_8E8` | — | Spare | ✅ verified 2026-04-30 — `asynRTrigParams.c:L478`
+| `0x08EC` | `reg_SPARE_8EC` | — | Spare | ✅ verified 2026-04-30 — `asynRTrigParams.c:L479`
+| `0x08F0` | `reg_FIFO_RESETS` | R/W | FIFO reset | ✅ verified 2026-04-30 — `asynRTrigParams.c:L480`
 
 ---
 

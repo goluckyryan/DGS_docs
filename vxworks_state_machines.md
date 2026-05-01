@@ -4,7 +4,7 @@ Stability: C2 - Active / semi-stable
 
 Runtime components of the DGS VxWorks IOC: three-machine data pipeline (inLoop → outLoop → MiniSender), trigger board drivers (RTRG/MTRG), shared VME bus mutex, and queue management.
 
-_Split from `vxworks.md` on 2026-04-23. Sources: `dgsDrivers/dgsDriverApp/src/`_
+_Split from [`vxworks.md`](vxworks.md) on 2026-04-23. Sources: `dgsDrivers/dgsDriverApp/src/`_
 
 ---
 
@@ -134,7 +134,7 @@ Also manages the `SendNextEmpty[]` prescale array — a per-board flag that thro
 - `-5` — board not empty but less than one full event available (ignorable during drain)
 - `< 0` (other) — FIFO error; board is reset and re-enabled
 
-**Cross-references:** `vxworks_fifo_readout.md` (DMA buffer architecture, FIFO index map, type-F header details); `QueueManagement.c` section below; `vxworks.md` § outLoop.st (next stage); `VME_registers.md` (full register map).
+**Cross-references:** [`vxworks_fifo_readout.md`](vxworks_fifo_readout.md) (DMA buffer architecture, FIFO index map, type-F header details); `QueueManagement.c` section below; [`vxworks.md`](vxworks.md) § outLoop.st (next stage); [`VME_registers.md`](VME_registers.md) (full register map).
 
 ---
 
@@ -388,7 +388,7 @@ typedef union {
 
 **Global sockets:** `SocketForRequests` (listen socket), `ReadWriteSocket` (accepted connection socket) — both file-static with `sender_debug_level`-gated diagnostic prints. `sender_debug_level` is a VxWorks shell-accessible `extern int` for live debug.
 
-**Cross-reference:** `ANLDAQ_tcpReceiver.md` — `tcpReceiverMT` protocol details; how it connects, sends requests, and receives data from MiniSender.
+**Cross-reference:** [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) — `tcpReceiverMT` protocol details; how it connects, sends requests, and receives data from MiniSender.
 
 ---
 
@@ -561,7 +561,7 @@ Thin wrappers around raw pointer dereference:
 
 ### Sub-Field Mask Encoding — `0xaaaa0000` sentinel
 
-The same sub-field mask scheme as the trigger drivers (see `vxworks_trigger_drivers.md`):
+The same sub-field mask scheme as the trigger drivers (see [`vxworks_trigger_drivers.md`](vxworks_trigger_drivers.md)):
 - Masks with `(mask & 0xffff0000) == 0xaaaa0000` signal a sub-field extraction.
 - `(mask & 0x0000ff00) >> 8` = number of bits in field.
 - `(mask & 0x000000ff)` = bit shift (LSB position within register).

@@ -66,7 +66,7 @@ Open the terminal window for the miscreant IOC from DGS Commander.
 
 **Check:** Use Router channel FIFOs to verify real discriminator data (bits 9:0) is arriving. ✅ verified 2026-04-17 — `260E_trigger_scheme.md:L38,42` (`DELAYED_DATA[9:0]`: bits[9:5] = Ge ch discriminators, bits[4:0] = BGO sum discriminators; as recovered by `chan_in` DCBAL_IN sub-block)
 
-*(Source: [wiki: Triggers and Digitizers](https://wiki.anl.gov/gsdaq/Triggers_and_digitizers) — see `wiki_gsdaq.md`)*
+*(Source: [wiki: Triggers and Digitizers](https://wiki.anl.gov/gsdaq/Triggers_and_digitizers) — see [`wiki_gsdaq.md`](wiki_gsdaq.md))*
 
 ---
 
@@ -78,13 +78,13 @@ Open the terminal window for the miscreant IOC from DGS Commander.
 
 **Fix:** Clear SYNC bit — `caput VMExx:RTRy:LRUCtl02 0` for each router. Stage 5 of the SERDES link-up (`link_sys.py:L651`) does this automatically. ✅ verified 2026-04-15 — `link_sys.py:L651` (`LRUCtl02=0` cleared per router in Stage 5)
 
-*(Source: [wiki: Triggers and Digitizers](https://wiki.anl.gov/gsdaq/Triggers_and_digitizers))*
+*(Source: [wiki: Triggers and Digitizers](https://wiki.anl.gov/gsdaq/Triggers_and_digitizers) — see [`wiki_gsdaq.md`](wiki_gsdaq.md))*
 
 ---
 
 ## Problem: IOC Boot Fails — VxWorks
 
-**See:** `vxworks_migration.md` for known build/boot issues from Solaris→Ubuntu migration.
+**See:** [`vxworks_migration.md`](vxworks_migration.md) for known build/boot issues from Solaris→Ubuntu migration.
 
 Key issues documented:
 - Missing `makeSymTbl` tool → replaced with `munch` process
@@ -122,7 +122,7 @@ Key issues documented:
 - Clock jitter budget — total accumulated jitter must be < 250 ps ✅ verified 2026-04-17 — `ttcl.md:L72` (from `20160418 trig command link.pdf`: "Recommendation: total accumulated jitter < 250 ps at the far end")
 - Link L clock recovery on Routers
 
-*(Source: `ttcl.md`, `DIG_firmware_expert.md`)*
+*(Source: [`ttcl.md`](ttcl.md), [`DIG_firmware_expert.md`](DIG_firmware_expert.md))*
 
 ---
 
@@ -140,7 +140,7 @@ Key issues documented:
 
 **Fix:** Reduce `PREAMP_RESET_DELAY` or disable it (`PREAMP_RESET_DELAY_EN=0`) for the affected channel.
 
-*(Source: `preamp_reset_readme.md`, `Digitizer.vhd:L1121-1130`)*
+*(Source: [`preamp_reset_readme.md`](preamp_reset_readme.md), `Digitizer.vhd:L1121-1130`)*
 
 ---
 
@@ -184,7 +184,7 @@ bash SaveTemp.sh
 
 **Note:** Temperatures stale for <30 min = transient hiccup (SaveTemp.sh can hang occasionally). Stale for >1 hour + SSH failure = genuine pi5 problem requiring action.
 
-**See also:** `lnfill.md` — System Roles + Emergency Fallback sections; `influxdb_grafana.md` — InfluxDB query API.
+**See also:** [`lnfill.md`](lnfill.md) — System Roles + Emergency Fallback sections; [`influxdb_grafana.md`](influxdb_grafana.md) — InfluxDB query API.
 
 *(Documented: 2026-04-21 — based on incident where pi5-lnFill SSH was refusing connections for 9+ hours)*
 
@@ -211,17 +211,17 @@ bash SaveTemp.sh
 
 ## Cross-References
 
-- `knowledgeBase/ioc.md` — IOC config, boot scripts, firmware versions
-- `knowledgeBase/IOC_cmd.md` — VxWorks / iocsh commands for diagnostics (VMERead32, dbl, dbpr)
-- `knowledgeBase/link_sys_analysis.md` — SERDES link init sequence (5-stage); often the cause of SYNC/lock issues
-- `knowledgeBase/trig_setup_scripts.md` — 5-stage trigger setup scripts (trig_setup_Stage1–5.sh): full step-by-step MTRG→RTRG→DIG init; use when bringing up the system from cold
-- `knowledgeBase/DIG_firmware_expert.md` — trigger_mux_select modes, readout configuration
-- `knowledgeBase/preamp_reset_readme.md` — PREAMP_RESET handling: CHANNEL_KILLED, delay register
-- `knowledgeBase/EPICS.md` — EPICS CA tools for PV inspection
-- `knowledgeBase/VME_registers.md` — VME register addresses for low-level hardware inspection
-- `knowledgeBase/run_procedures.md` — Standard run start/stop procedures
-- `knowledgeBase/lnfill.md` — LN2 fill system: pi5-lnFill roles, emergency fallback (DCS2 backup watchdog), fill script locations
-- `knowledgeBase/influxdb_grafana.md` — InfluxDB 3 on DCS2: query API, detector temperature database (HPGeTemp)
+- [`ioc.md`](ioc.md) — IOC config, boot scripts, firmware versions
+- [`IOC_cmd.md`](IOC_cmd.md) — VxWorks / iocsh commands for diagnostics (VMERead32, dbl, dbpr)
+- [`link_sys_analysis.md`](link_sys_analysis.md) — SERDES link init sequence (5-stage); often the cause of SYNC/lock issues
+- [`trig_setup_scripts.md`](trig_setup_scripts.md) — 5-stage trigger setup scripts (trig_setup_Stage1–5.sh): full step-by-step MTRG→RTRG→DIG init; use when bringing up the system from cold
+- [`DIG_firmware_expert.md`](DIG_firmware_expert.md) — trigger_mux_select modes, readout configuration
+- [`preamp_reset_readme.md`](preamp_reset_readme.md) — PREAMP_RESET handling: CHANNEL_KILLED, delay register
+- [`EPICS.md`](EPICS.md) — EPICS CA tools for PV inspection
+- [`VME_registers.md`](VME_registers.md) — VME register addresses for low-level hardware inspection
+- [`run_procedures.md`](run_procedures.md) — Standard run start/stop procedures
+- [`lnfill.md`](lnfill.md) — LN2 fill system: pi5-lnFill roles, emergency fallback (DCS2 backup watchdog), fill script locations
+- [`influxdb_grafana.md`](influxdb_grafana.md) — InfluxDB 3 on DCS2: query API, detector temperature database (HPGeTemp)
 
 ---
 

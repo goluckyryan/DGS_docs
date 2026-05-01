@@ -304,6 +304,8 @@ _Source: `dgs_analysis/armory/gray_apps/src/Fitter/` — explored 2026-04-07_
 | Topic | File |
 |-------|------|
 | dgs_analysis overview (EventBuilders, parquet_pysort, working/ scripts) | [`dgs_analysis.md`](dgs_analysis.md) |
+| `gain_from_parquet.py` + other working/ calibration scripts using GrayCAL | [`dgs_analysis_working.md`](dgs_analysis_working.md) |
+| ROOT analysis scripts (gamma gating, GEB readers, spectra) | [`dgs_analysis_root_scripts.md`](dgs_analysis_root_scripts.md) |
 | Pole-zero correction theory + `pz_from_parquet.py` workflow | [`pole_zero.md`](pole_zero.md) |
 | GEBSort full reference | [`gebsort.md`](gebsort.md) |
 | GEB binary data format | [`data_structures.md`](data_structures.md) |

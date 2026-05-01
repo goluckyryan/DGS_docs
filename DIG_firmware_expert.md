@@ -114,7 +114,7 @@ Subtracts "delayed" input from "prompt" input every 10 ns. For positive pulses, 
 
 **Discriminator Hold-off**: On first threshold crossing, loads hold-off counter; discriminator disabled for that many 10-ns ticks. Ensures one fire per edge. Output pulse is 10 ns wide (one clock).
 
-**Preamp Reset Kill**: Handles transistor-reset preamplifiers (Gammasphere uses these). Preamplifier integrates leakage current → slow sawtooth ramp → periodic transistor resets. SBX differentiator converts signals to exponentials, turns resets into large opposite-polarity spikes. Preamp Reset Kill uses an opposite-polarity discriminator with large preset threshold to detect reset, then starts a delay count during which main discriminator is disabled. Reset rate: every few ms to few hundred ms depending on neutron damage. SBX clamp time: **~100 µs** default (`PARST_SWITCH_COUNT`=5000 × 2 × 10 ns at 100 MHz; max ~655 µs via register; configurable per detector) → dead time from PRK not significant unless detector is near needing anneal. ✅ verified 2026-04-21 — `SlopeboxInt_TopLevel_RevC.vhd:L552,L3208-3237` (default=5000 → 100 µs; prior claim of 200–250 µs was incorrect — not found in firmware source; correction from `sbx.md` 2026-04-06)
+**Preamp Reset Kill**: Handles transistor-reset preamplifiers (Gammasphere uses these). Preamplifier integrates leakage current → slow sawtooth ramp → periodic transistor resets. [SBX](sbx.md) differentiator converts signals to exponentials, turns resets into large opposite-polarity spikes. Preamp Reset Kill uses an opposite-polarity discriminator with large preset threshold to detect reset, then starts a delay count during which main discriminator is disabled. Reset rate: every few ms to few hundred ms depending on neutron damage. SBX clamp time: **~100 µs** default (`PARST_SWITCH_COUNT`=5000 × 2 × 10 ns at 100 MHz; max ~655 µs via register; configurable per detector) → dead time from PRK not significant unless detector is near needing anneal. ✅ verified 2026-04-21 — `SlopeboxInt_TopLevel_RevC.vhd:L552,L3208-3237` (default=5000 → 100 µs; prior claim of 200–250 µs was incorrect — not found in firmware source; correction from `sbx.md` 2026-04-06)
 
 **Peak Detector** (in LED mode): When discriminator fires, saves filtered ADC value at "prompt" input. Every clock, compares current prompt to saved value; if still climbing, updates. Peak declared when saved value not updated for N consecutive clocks (N = peak sensitivity value, typically 4). If peak found before holdoff expires → timestamp saved in header, PEAK_VALID set. If holdoff expires first → peak timestamp = 0, PEAK_VALID not set. Optional: early holdoff termination when peak found (useful for variable rise time signals).
 
@@ -640,12 +640,12 @@ _Document complete. PDF: 72 pages, SVN rev #6185, Sept 2021. Written to file: 20
 
 ## See Also
 
-- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware architecture overview: target devices, memory, source file list, build branches
-- `knowledgeBase/deep_fpga_DIG_channel.md` — Per-channel signal processing VHDL deep-dive: LED/CFD discriminator, delay chain, pileup logic
-- `knowledgeBase/deep_fpga_DIG_eventpacket.md` — DIG event packet format: LED/CFD header layout, field reconstruction, waveform samples
-- `knowledgeBase/preamp_reset_readme.md` — Detailed preamp reset (PRK) explanation: detection logic, blanking, BGO gate, PARST timestamp
-- `knowledgeBase/data_structures.md` — Complete DIG event packet format (all header types, GEB header, TAC-II)
-- `knowledgeBase/connectors.md` — DIG connector pinouts (36-pin Aux I/O, RJ45, front bus)
+- [deep_fpga_DIG.md](deep_fpga_DIG.md) — DIG firmware architecture overview: target devices, memory, source file list, build branches
+- [deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md) — Per-channel signal processing VHDL deep-dive: LED/CFD discriminator, delay chain, pileup logic
+- [deep_fpga_DIG_eventpacket.md](deep_fpga_DIG_eventpacket.md) — DIG event packet format: LED/CFD header layout, field reconstruction, waveform samples
+- [preamp_reset_readme.md](preamp_reset_readme.md) — Detailed preamp reset (PRK) explanation: detection logic, blanking, BGO gate, PARST timestamp
+- [data_structures.md](data_structures.md) — Complete DIG event packet format (all header types, GEB header, TAC-II)
+- [connectors.md](connectors.md) — DIG connector pinouts (36-pin Aux I/O, RJ45, front bus)
 
 ---
 

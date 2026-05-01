@@ -236,7 +236,7 @@ Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[dev
 
 ## CollectorDPRSupport_AI — DPRAM Read Flow
 
-`DTYP = "CollectorDPRAM"` ai PVs — reads from the CtrlFPGA dual-port RAM (bank 1, addrs 128-255) via SPI.
+`DTYP = "CollectorDPRAM"` ai PVs — reads from the [CtrlFPGA](collector_fpga.md) dual-port RAM (bank 1, addrs 128-255) via SPI.
 
 **CAMAC_IO field mapping:**
 - `B` bits[4:0] -> `Bidx` (DEVSEL, 0-31)
@@ -259,7 +259,7 @@ Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[dev
 | 5 | Loop read, incrementing address. N = start address, increments each iteration. Mailbox = loop count. Results stored in DataArray. PV gets last read value. |
 | 6-7 | AndMask limited to 8 bits (`A & 0x00FF`). **No SPI read executed** — no `case 6:` or `case 7:` exists in the main read switch; these modes appear **unimplemented**. ✅ verified 2026-04-08 — `CollectorDPRSupport_AI.c:L179-184` (AndMask set) + switch body (no case 6/7 handlers). |
 
-**Bank select:** If `Bank != 0`, a write to addr 127 with the bank number is performed before the data read. Used to access CtrlFPGA DPRAM bank 1 (ADC scan results, addrs 128-255). Verified: CollectorDPRSupport_AI.c:L145
+**Bank select:** If `Bank != 0`, a write to addr 127 with the bank number is performed before the data read. Used to access [CtrlFPGA](collector_ctrlFPGA_registers.md) DPRAM bank 1 (ADC scan results, addrs 128-255). Verified: CollectorDPRSupport_AI.c:L145
 
 **SPI transaction:** `Do_SPI1_transaction(RWflag, Bidx, addr, data)` returns 32 bits: bits[23:16] = FPGA status byte, bits[15:0] = 16-bit read data.
 
@@ -289,12 +289,12 @@ Debug prints enabled when `GLBL_CollectorControlVals[Bidx][0] != 0` (mailbox[dev
 
 ## Cross-References
 
-- `knowledgeBase/collectorbox_devicesupport_advanced.md` — Advanced DTYP modules: CollectorI2C, CollectorStep, CollectorDPRSupport, CollectorCalc AI/BI, CollectorCtl_Waveform, CollectorADC
-- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC: PXE boot, HV control, collector assignments
-- `knowledgeBase/collector_fpga.md` — CtrlFPGA and StripeFPGA firmware; SPI register maps
-- `knowledgeBase/collector_ctrlFPGA_registers.md` — CtrlFPGA register interface (141 registers): all control bits + per-stripe ADC monitoring layout
-- `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector)
-- `knowledgeBase/sbx.md` — Slope Box Extension; pickoff card; BGO HV; GS_ID dongle
-- `knowledgeBase/EPICS.md` — EPICS record types and device support concepts
+- [`collectorbox_devicesupport_advanced.md`](collectorbox_devicesupport_advanced.md) — Advanced DTYP modules: CollectorI2C, CollectorStep, CollectorDPRSupport, CollectorCalc AI/BI, CollectorCtl_Waveform, CollectorADC
+- [`collectorboxpi.md`](collectorboxpi.md) — Raspberry Pi soft IOC: PXE boot, HV control, collector assignments
+- [`collector_fpga.md`](collector_fpga.md) — CtrlFPGA and StripeFPGA firmware; SPI register maps
+- [`collector_ctrlFPGA_registers.md`](collector_ctrlFPGA_registers.md) — CtrlFPGA register interface (141 registers): all control bits + per-stripe ADC monitoring layout
+- [`collectorbox_PVs.md`](collectorbox_PVs.md) — Full PV list (1,431 records/detector)
+- [`sbx.md`](sbx.md) — Slope Box Extension; pickoff card; BGO HV; GS_ID dongle
+- [`EPICS.md`](EPICS.md) — EPICS record types and device support concepts
 
 *Created: 2026-04-06 | Last reviewed: 2026-04-26 | Split: advanced modules → collectorbox_devicesupport_advanced.md*

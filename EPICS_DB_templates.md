@@ -24,13 +24,13 @@ Stability: C2 - Active / semi-stable
 12. [MTrigUser.template](#mtriguser-template)
 13. [dgsGlobals DB files](#dgsglobals-db-files)
 14. [Instantiation per VME Crate](#instantiation-per-vme-crate)
-15. [user_package_data Numbering](#user_package_data-numbering) → see ioc.md
-16. [IOC Boot Sequence](#ioc-boot-sequence) → see ioc.md
-17. [EPICS CA Port Assignments](#epics-channel-access-port-assignments) → see ioc.md
-18. [Board Type Encoding](#board-type-encoding) → see ioc.md
+15. [user_package_data Numbering](#user_package_data-numbering) → see [`ioc.md`](ioc.md)
+16. [IOC Boot Sequence](#ioc-boot-sequence) → see [`ioc.md`](ioc.md)
+17. [EPICS CA Port Assignments](#epics-channel-access-port-assignments) → see [`ioc.md`](ioc.md)
+18. [Board Type Encoding](#board-type-encoding) → see [`ioc.md`](ioc.md)
 19. [Fifo Select Encoding](#fifo-select-encoding)
 20. [`gretDet.dbd` — EPICS Database Definition File](#gretdetdbd--epics-database-definition-file)
-21. [dgsSoftIOC / JustGlobals.db — System-Wide Fanout PVs](#dgssoftioc--justglobalsdb--system-wide-fanout-pvs) → see `EPICS_softIOC.md`
+21. [dgsSoftIOC / JustGlobals.db — System-Wide Fanout PVs](#dgssoftioc--justglobalsdb--system-wide-fanout-pvs) → see [`EPICS_softIOC.md`](EPICS_softIOC.md)
 
 ---
 
@@ -759,17 +759,16 @@ The `.dbd` file registers all record types, device support entries, drivers, and
 
 ## See Also
 
-- `knowledgeBase/ioc.md` — IOC startup: how `vme*.cmd` files instantiate these templates (cardno, IP, port assignments)
-- `knowledgeBase/IOC_cmd.md` — Full IOC shell command reference; asynDigitizerConfig, ProgramFlash, VMERead32 commands that accompany these DB records
-- `knowledgeBase/EPICS_RTrig_templates.md` — RTrig DB templates deep-dive: complete RTrigRegisters + RTrigUser PV inventory (split from this file)
-- `knowledgeBase/EPICS_implementation_tools.md` — DBGEN macro/substitution workflow that generates templates for new hardware
-- `knowledgeBase/EPICS.md` — EPICS primer: record types (mbbo, mbbi, longout, waveform) used throughout these templates
-- `knowledgeBase/EPICS_asyn.md` — How asyn translates caput/caget into VME register reads/writes (the underlying mechanism these templates rely on)
-- `knowledgeBase/DGS_PVs.md` — Full DGS PV list (all records instantiated from these templates for the 12-crate DGS system)
-- `knowledgeBase/VME_registers.md` — VME register address map for DIG/MTRG/RTRG; matches the register indices referenced in `daqSegment2.template`, `MTrigUser.template`, etc.
-- `knowledgeBase/vxworks.md` — VxWorks IOC build pipeline; the `.dbd` files that register these template records with the EPICS database
-- `knowledgeBase/data_structures.md` — DIG event packet format; DIG firmware fields that the `MDigUser.template` PVs expose (e.g. `trigger_mux_select`, `code_revision`)
-- `knowledgeBase/EPICS_softIOC.md` — dgsSoftIOC / JustGlobals.db fanout PV architecture (split from this file 2026-04-27)
+- [`ioc.md`](ioc.md) — IOC startup: how `vme*.cmd` files instantiate these templates (cardno, IP, port assignments)
+- [`IOC_cmd.md`](IOC_cmd.md) — Full IOC shell command reference; asynDigitizerConfig, ProgramFlash, VMERead32 commands that accompany these DB records
+- [`EPICS_RTrig_templates.md`](EPICS_RTrig_templates.md) — RTrig DB templates deep-dive: complete RTrigRegisters + RTrigUser PV inventory (split from this file)
+- [`EPICS_implementation_tools.md`](EPICS_implementation_tools.md) — DBGEN macro/substitution workflow that generates templates for new hardware
+- [`EPICS.md`](EPICS.md) — EPICS primer: record types (mbbo, mbbi, longout, waveform) used throughout these templates
+- [`DGS_PVs.md`](DGS_PVs.md) — Full DGS PV list (all records instantiated from these templates for the 12-crate DGS system)
+- [`VME_registers.md`](VME_registers.md) — VME register address map for DIG/MTRG/RTRG; matches the register indices referenced in `daqSegment2.template`, `MTrigUser.template`, etc.
+- [`vxworks.md`](vxworks.md) — VxWorks IOC build pipeline; the `.dbd` files that register these template records with the EPICS database
+- [`data_structures.md`](data_structures.md) — DIG event packet format; DIG firmware fields that the `MDigUser.template` PVs expose (e.g. `trigger_mux_select`, `code_revision`)
+- [`EPICS_softIOC.md`](EPICS_softIOC.md) — dgsSoftIOC / JustGlobals.db fanout PV architecture (split from this file 2026-04-27)
 
 ---
 

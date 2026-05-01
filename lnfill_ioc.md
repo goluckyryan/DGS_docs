@@ -344,7 +344,7 @@ Columns: hose-slot, detID, fill_time_s, temp_before, temp_after, sensor_before, 
 
 ## Auxiliary Scripts (lnfill repo)
 
-_Documented 2026-04-21 — code-verified from `DGS_tools_pack/lnfill/`._
+_Documented 2026-04-21 — code-verified from `DGS_tools_pack/lnFill/`._
 
 ### `AddPress.sh` (V2.3, 2024-06-28)
 

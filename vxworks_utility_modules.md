@@ -263,7 +263,7 @@ A background epicsThread (`asynDebugDriver_Task`) at medium priority runs a `whi
 ## MergedAsynDigParams.c — DIG Asyn Parameter Registration
 
 **File:** `MergedAsynDigParams.c` (672 L) ✅ verified 2026-04-22 — `wc -l MergedAsynDigParams.c` (222 `createParam()` calls)
-**Purpose:** Registers all DIG EPICS PV names with the asyn framework. Not a standalone translation unit — `#include`d directly into the `drvAsynDigitizer.c` constructor body.
+**Purpose:** Registers all DIG EPICS PV names with the asyn framework. Not a standalone translation unit — `#include`d directly into the `drvAsynDigitizer.c` constructor body (see [`IOC_cmd.md`](IOC_cmd.md) for `asynDigitizerConfig` boot script call).
 
 ### Design
 
@@ -301,6 +301,8 @@ All 222 parameters use type `asynParamUInt32Digital`. Integer handles are member
 - [`VME_registers.md`](VME_registers.md) — full digitizer/trigger register maps; FlashMaintenance 0x09xx range is in the VME FPGA config block
 - [`ioc.md`](ioc.md) — boot script where `asynDebugConfig`, `asynDebugCard`, `devGDigSetRestFile` are called
 - [`vxworks_fifo_readout.md`](vxworks_fifo_readout.md) — FIFO readout pipeline (DMA buffer arch, readTrigFIFO.c, Type-F headers); QueueManagement section there is older (2026-04-22) — this file has the authoritative updated version
+- [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) — PC-side TCP receiver that MiniSender connects to; handles multi-crate aggregation and event building
+- [`IOC_cmd.md`](IOC_cmd.md) — IOC boot script commands including `asynDigitizerConfig` (calls `drvAsynDigitizer.c`), `setupFIFOReader`, sequencer launches
 
 ---
 
@@ -308,7 +310,7 @@ All 222 parameters use type `asynParamUInt32Digital`. Integer handles are member
 
 **File:** `QueueManagement.c` (495 L), `QueueManagement.h` (61 L) ✅ verified 2026-04-26 — `wc -l QueueManagement.c QueueManagement.h`  
 **Author:** Michael Oberling  
-**Purpose:** Manages the VxWorks message-queue-based event buffer pool that mediates data flow between the inLoop FIFO reader, the outLoop data packer, and the MiniSender TCP transmitter.
+**Purpose:** Manages the VxWorks message-queue-based event buffer pool that mediates data flow between the inLoop FIFO reader, the outLoop data packer, and the MiniSender TCP transmitter (all three state machines documented in [`vxworks_state_machines.md`](vxworks_state_machines.md); MiniSender connects to [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) on the PC side).
 
 ### Architecture: Three-Queue Buffer Pool
 

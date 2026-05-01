@@ -34,7 +34,7 @@ _Created: 2026-04-05. Last updated: 2026-04-23._
 
 The RJ45 connector on the digitizer is **not Ethernet-compatible**. It connects to the Router Trigger (RTRG) via a custom shielded RJ45-to-2mm hard Metric cable.
 
-Carries: TTCL commands (receive), fast event data (transmit), and the 50 MHz system clock (recovered by SER/DES).
+Carries: [TTCL](ttcl.md) commands (receive), fast event data (transmit), and the 50 MHz system clock (recovered by SER/DES).
 
 ```
   RJ45 (viewed from front, tab down)
@@ -128,7 +128,7 @@ Carries: TTCL commands (receive), fast event data (transmit), and the 50 MHz sys
 
 **⚠️ Disabled as of 2022-09-30:** The AUX_DIN(10) path was commented out in `Digitizer.vhd` (src mode `"010"`) because the **digitizer fanout board** (added July 2022) physically covers the Aux I/O pins, making front-panel access impossible. ✅ verified 2026-04-08 — `Digitizer.vhd:L994` (comment: "The digitizer fanout board covers the AUX I/O pins so use of the AUX I/O as an external discriminator is now valueless.")
 
-Current `"010"` mode instead routes **BGO pattern/sum discriminator bits** from the front bus (not the Aux I/O pin).
+Current `"010"` mode instead routes **BGO pattern/sum discriminator bits** from the front bus (not the Aux I/O pin). See [sbx.md](sbx.md) for BGO detector electronics context.
 
 - ⚠️ If Aux I/O is configured with bit 10 as an **output**, it cannot be used as an external discriminator input (moot in current hardware config)
 
@@ -147,7 +147,7 @@ Connects Master digitizer to Slave digitizer(s) within the same VME crate.
   - **FBUS_8BIT[7:0]** — 8-bit section: carries BGO pattern bits (`BGOp_DISCBIT[4:0]`, 5-bit) and other signals ✅ verified 2026-04-19 — `Front_Bus.vhd:L66,L172-173`
   - **FBUS_3BIT[2:0]** — 3-bit section: carries additional BGO pattern bits (bits [1:0] → `BGOp_DISCBIT[1:0]`) ✅ verified 2026-04-19 — `Front_Bus.vhd:L69,L173`
   - FRONT_BUS_LEFT board DRIVES the 10-bit section and RECEIVES the 8-bit and 3-bit sections; FRONT_BUS_RIGHT board does the opposite
-- **Legacy firmware (pre-2022):** Used `FBUS_MDATA[17:0]`: bits [15:0] = TTCL clock data; bit 16 = Master **ch 9** discriminator bit (ext disc source for Slave channels; was ch 0 before 2014-12-02); bit 17 = master reset signal ✅ verified 2026-04-19 — `DIG_firmware_expert.md:L514-517` (cross-referenced against `Front_Bus.vhd` of pre-2022 tag)
+- **Legacy firmware (pre-2022):** Used `FBUS_MDATA[17:0]`: bits [15:0] = TTCL clock data; bit 16 = Master **ch 9** discriminator bit (ext disc source for Slave channels; was ch 0 before 2014-12-02); bit 17 = master reset signal ✅ verified 2026-04-19 — [`DIG_firmware_expert.md`](DIG_firmware_expert.md):L514-517 (cross-referenced against `Front_Bus.vhd` of pre-2022 tag)
   - ⚠️ Old doc said "bit 17 = ch 0 discriminator" — **WRONG on two counts**: the discriminator was on bit 16 (not 17), and it was ch 9 (not ch 0) since 2014-12-02
 - No dedicated pinout documented here — see schematic `31Y334-Schematic-10ChanDigitizer-Rev4.2.pdf`
 
@@ -227,7 +227,7 @@ Each link uses **2 rows (one "wafer")** of the connector. Per-link signal layout
 | F | 11–12 | Master→Router or Router→Digitizer |
 | G | 13–14 | Master→Router or Router→Digitizer |
 | H | 15–16 | Master→Router or Router→Digitizer |
-| L | 17–18 | Clock source input; GITMO (DGS) or Master-to-Master sync |
+| L | 17–18 | Clock source input; GITMO (DGS) or Master-to-Master sync — see [multi_system_linking.md](multi_system_linking.md) |
 | R | 19–20 | Cross-system or diagnostic (MγRIAD, Master-to-Master) |
 | U | 21–22 | Cross-system or diagnostic (MγRIAD, Master-to-Master) |
 
@@ -285,7 +285,7 @@ Two NIM inputs and two NIM outputs:
 | Signal | Name | Direction | DGS Firmware Function |
 |--------|------|-----------|------------------------|
 | NIM In 1 | `NIM_IN1` | Input | Auxiliary trigger source (selectable via `EN_NIM_AUX`) |
-| NIM In 2 | `NIM_IN2` | Input | **TAC-II TDC input — connect RF clock here** for timing measurements; also hard-wired as trigger veto source (`ENBL_NIM_VETO`) |
+| NIM In 2 | `NIM_IN2` | Input | **[TAC-II TDC](tac2.md) input — connect RF clock here** for timing measurements; also hard-wired as trigger veto source (`ENBL_NIM_VETO`) |
 | NIM Out 1 | `NIMSrc1` | Output | Trigger output — source selectable via `NIMSrc1` + `NIM1_SubSelect` PVs |
 | NIM Out 2 | `NIMSrc2` | Output | Trigger output — source selectable via `NIMSrc2` + `NIM2_SubSelect` PVs |
 
@@ -366,5 +366,11 @@ Two differential ECL output signals provided alongside the Auxiliary I/O connect
 - `knowledgeBase/deep_fpga_DIG.md` — DIG firmware: signal flow from RJ45 inputs through ADC pipeline
 - `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: 125-pin SERDES connector, NIM I/O, Aux I/O, TAC-II (NIM IN 2)
 - `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: SERDES links A–H to DIGs, Link L to MTRG
-- `knowledgeBase/myriad.md` — MγRIAD NIM I/O (8 in/4 out) and ECL connectors; connected to MTRG Link U
-- `knowledgeBase/reference_index.md` — Hardware drawings index: schematic PDFs for DIG, MTRG, RTRG, SBX
+- [`myriad.md`](myriad.md) — MγRIAD NIM I/O (8 in/4 out) and ECL connectors; connected to MTRG Link U
+- [`reference_index.md`](reference_index.md) — Hardware drawings index: schematic PDFs for DIG, MTRG, RTRG, SBX
+- [`ttcl.md`](ttcl.md) — TTCL command protocol carried on RJ45 / SERDES links
+- [`ttcl_frame_spec.md`](ttcl_frame_spec.md) — TTCL frame bit-level specification
+- [`tac2.md`](tac2.md) — TAC-II TDC implementation using NIM IN 2
+- [`DIG_firmware_expert.md`](DIG_firmware_expert.md) — Digitizer firmware details including legacy front-bus signal assignments
+- [`sbx.md`](sbx.md) — Slope Box / BGO detector electronics (BGO pattern bits on front bus)
+- [`multi_system_linking.md`](multi_system_linking.md) — Multi-system linking: GITMO, DGS↔DFMA sync via Link L/U

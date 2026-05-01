@@ -4,7 +4,7 @@ _Firmware: MTRG (current trunk) — consumes RTRG 0x260E link-format data_
 _Example: 2-detector DUO (BGO ch-0 → Ge ch-5, BGO ch-1 → Ge ch-6; Y_MAP=A5/A6)_
 _Source: `DGS_tools_pack/FPGA/` — mt_input_channel.vhd, eight_mt_channel.vhd, sum_hits_X.vhd, calc_total_sum.vhd, top.vhd_
 _Last updated: 2026-04-26_
-_Split from: `260E_trigger_scheme.md` (2026-04-26) — see that file for RTRG-side details (sections 1–4)_
+_Split from: [260E_trigger_scheme.md](260E_trigger_scheme.md) (2026-04-26) — see that file for RTRG-side details (sections 1–4)_
 
 ---
 
@@ -381,11 +381,11 @@ graph TD
 
 ## See Also
 
-- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware overview: Virtex-4 device, source file index, VME register map, disc_mach.vhd, Router→MTRG SERDES frame format
-- `knowledgeBase/fpga.md` — System-level trigger hierarchy: DIG→RTRG→MTRG signal flow, end-to-end timing, throttle mechanism
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG: consumes RTRG multiplicity/hit data to make global trigger decisions
-- `knowledgeBase/deep_fpga_DIG.md` — DIG: upstream source of the 18-bit SERDES words that chan_in.vhd receives
-- `knowledgeBase/ttcl.md` — TTCL frame format: frames 12/14 (inter-trigger/remote trigger) that the RTRG forwards with nulls
+- [deep_fpga_RTRG.md](deep_fpga_RTRG.md) — RTRG firmware overview: Virtex-4 device, source file index, VME register map, disc_mach.vhd, Router→MTRG SERDES frame format
+- [fpga.md](fpga.md) — System-level trigger hierarchy: DIG→RTRG→MTRG signal flow, end-to-end timing, throttle mechanism
+- [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — MTRG: consumes RTRG multiplicity/hit data to make global trigger decisions
+- [deep_fpga_DIG.md](deep_fpga_DIG.md) — DIG: upstream source of the 18-bit SERDES words that chan_in.vhd receives
+- [ttcl.md](ttcl.md) — TTCL frame format: frames 12/14 (inter-trigger/remote trigger) that the RTRG forwards with nulls
 - `knowledgeBase/vhdl/` — Per-module plain-English VHDL summaries: `RTRG_chan_in.md`, `RTRG_disc_mach.md`, `RTRG_router_data_path.md`, `MTRG_top.md`, `MTRG_calc_total_sum.md`, etc.
-- `knowledgeBase/EPICS_RTrig_templates.md` — EPICS PVs that configure the RTRG firmware described here (ILM, X/Y maps, throttle, delays, SERDES power)
-- `knowledgeBase/vxworks_trigger_drivers.md` — VxWorks asyn drivers (asynTrigRouterDriver, asynTrigMasterDriver) that write the VME registers these modules read
+- [EPICS_RTrig_templates.md](EPICS_RTrig_templates.md) — EPICS PVs that configure the RTRG firmware described here (ILM, X/Y maps, throttle, delays, SERDES power)
+- [vxworks_trigger_drivers.md](vxworks_trigger_drivers.md) — VxWorks asyn drivers (asynTrigRouterDriver, asynTrigMasterDriver) that write the VME registers these modules read

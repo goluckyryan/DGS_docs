@@ -327,13 +327,14 @@ The same I2C engine + opcode format is used in **both the SBX Stripe FPGA and th
 
 ## Cross-References
 
-- `knowledgeBase/deep_fpga_SBX_CtrlFPGA.md` — Deep analysis of SBX Motherboard Control FPGA firmware (Spartan-6 XC6SLX9): SPI interface, 128-register file, 3× I2C buses, BGO discriminator DDR outputs, slope box serial, analog switch control, preamp reset clamp, timestamp, fake-Pi detection
-- `knowledgeBase/pickoff_card_fpga.md` — Pickoff Card FPGA (SBX Extension RevC, Spartan-6 XC6SLX9): full 128-register SPI map, PULSED_CONTROL/FPGA_CTL bit maps, BGO serializer, I2C channels, gain/offset DAC, preamp reset clamp
-- `knowledgeBase/sbxPi_ioc.md` — SBX Pi standalone IOC (PickoffApp_RevC): EPICS soft IOC on Pi mounted on SBX; CAMAC_IO device support, HV ramp logic, global mailboxes
-- `knowledgeBase/collector_fpga.md` — Pickoff card FPGAs (SBX Interface + Extension) that interface to SBX
-- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC; controls BGO HV via pickoff card
-- `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support; SPI protocol to pickoff card
-- `knowledgeBase/collectorbox_PVs.md` — Full PV list including BGO HV, SBX presence, slope box PVs
-- `knowledgeBase/DIG_firmware_expert.md` — Preamp Reset Kill (PRK) details; ADC threshold detection and kill state
-- `knowledgeBase/hardware_architecture.md` — Signal chain overview: detector → slope box → pickoff → collector FPGA → digitizer
-- `knowledgeBase/gammasphere_geometry.md` — GS hole numbering system used for GS_ID dongle addressing
+- [deep_fpga_SBX_CtrlFPGA.md](deep_fpga_SBX_CtrlFPGA.md) — Deep analysis of SBX Motherboard Control FPGA firmware (Spartan-6 XC6SLX9): SPI interface, 128-register file, 3× I2C buses, BGO discriminator DDR outputs, slope box serial, analog switch control, preamp reset clamp, timestamp, fake-Pi detection
+- [pickoff_card_fpga.md](pickoff_card_fpga.md) — Pickoff Card FPGA (SBX Extension RevC, Spartan-6 XC6SLX9): full 128-register SPI map, PULSED_CONTROL/FPGA_CTL bit maps, BGO serializer, I2C channels, gain/offset DAC, preamp reset clamp
+- [sbxPi_ioc.md](sbxPi_ioc.md) — SBX Pi standalone IOC (PickoffApp_RevC): EPICS soft IOC on Pi mounted on SBX; CAMAC_IO device support, HV ramp logic, global mailboxes
+- [collector_fpga.md](collector_fpga.md) — Pickoff card FPGAs (SBX Interface + Extension) that interface to SBX
+- [collectorboxpi.md](collectorboxpi.md) — Raspberry Pi soft IOC; controls BGO HV via pickoff card
+- [collectorbox_devicesupport.md](collectorbox_devicesupport.md) — EPICS device support; SPI protocol to pickoff card
+- [collectorbox_PVs.md](collectorbox_PVs.md) — Full PV list including BGO HV, SBX presence, slope box PVs
+- [DIG_firmware_expert.md](DIG_firmware_expert.md) — Preamp Reset Kill (PRK) details; ADC threshold detection and kill state
+- [hardware_architecture.md](hardware_architecture.md) — Signal chain overview: detector → slope box → pickoff → collector FPGA → digitizer
+- [gammasphere_geometry.md](gammasphere_geometry.md) — GS hole numbering system used for GS_ID dongle addressing
+- [slope_box_interface.md](slope_box_interface.md) — Slope Box Interface firmware/scripts: SlopeBoxInterface SVN source, slopebox_scripts, EPICS device support for small systems

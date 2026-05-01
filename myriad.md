@@ -306,7 +306,7 @@ MyRIAD implements a **Auxiliary Detector ↔ Gammasphere coincidence window**:
 
 ## TTCL Trigger Interface
 
-MyRIAD receives TTCL (Trigger, Timestamp, Command Link) messages from the DGS master trigger via SERDES:
+MyRIAD receives [TTCL](ttcl.md) (Trigger, Timestamp, Command Link) messages from the DGS master trigger via SERDES:
 
 - `TTCL_TRIG_TIMESTAMP [47:0]`: timestamp embedded in trigger packet
 - `TTCL_TRIG_FLAG`: high when trigger received
@@ -323,7 +323,7 @@ MyRIAD receives TTCL (Trigger, Timestamp, Command Link) messages from the DGS ma
 _Source: `FPGA/others/MyRIAD/MAIN_FPGA/Source/GITMO_TOP.vhd` (795 lines) + `GITMO_RCV_MACH.vhd` (372 lines). Code-read 2026-04-27._
 
 `GITMO_TOP.vhd` implements a historical adapter role:
-- Collects clock and trigger data from an **analog Gammasphere Master Trigger crate** via the VXI backplane
+- Collects clock and trigger data from an **[analog Gammasphere](analog_gammasphere.md) Master Trigger crate** via the VXI backplane
 - Packs this into the DGS SERDES data stream for the Digital Gammasphere Master Trigger
 - Bridges legacy GS analog trigger system to digital DGS infrastructure
 - Has same dual-FIFO interface (FIFO A + FIFO B) as MyRIAD main FPGA (but FIFOs are driven to constant 0 — unused in GITMO)
@@ -398,7 +398,7 @@ The GITMO sits in a VXI crate and receives analog Gammasphere backplane signals:
 
 ### `GITMO_RCV_MACH.vhd` — GITMO Receive State Machine (372 lines)
 
-Implemented in the **DGS Master Trigger** (MTRG) `MAIN_FPGA`, not in the GITMO module itself. Locks onto the SERDES data stream from the GITMO (Link L) and extracts GS trigger signals. Author: John T. Anderson, ANL, 2011-09-03.
+Implemented in the **[DGS Master Trigger](deep_fpga_MTRG_MAIN.md)** (MTRG) `MAIN_FPGA`, not in the GITMO module itself. Locks onto the SERDES data stream from the GITMO (Link L) and extracts GS trigger signals. Author: John T. Anderson, ANL, 2011-09-03.
 
 **Purpose:** Receives the continuous 5-word-per-frame GITMO uplink and decodes Gammasphere trigger/status bits into MTRG-usable signals.
 
@@ -459,7 +459,7 @@ _Source: `FPGA/others/MyRIAD/MAIN_FPGA/Source/`. Code-read 2026-04-27._
 
 ### `mstr_mach.vhd` — MyRIAD Master State Machine (968 lines)
 
-A **satellite master trigger state machine** that generates the full 20-frame TTCL command sequence. MyRIAD-specific adaptation of the standard DGS `mstr_mach.vhd` — same frame structure, with additions for Frame 17 (Auxiliary Detector) and satellite clock-source synchronization.
+A **satellite master trigger state machine** that generates the full 20-frame [TTCL](ttcl.md) command sequence. MyRIAD-specific adaptation of the standard DGS `mstr_mach.vhd` — same frame structure, with additions for Frame 17 (Auxiliary Detector) and satellite clock-source synchronization.
 
 **Port highlights:**
 - `CLK` (50 MHz), `RST`, `INIT_FLAG` (holds machine in init state via VME)
@@ -484,7 +484,7 @@ A **satellite master trigger state machine** that generates the full 20-frame TT
 | F11 | Spare | Null; TRIG_COLLECT_RST at W1; arms TRIG_COLLECT_FLAG for F12/W1 |
 | F12 | Internal Control | Router counter resets (W2), FIFO resets (W3), Data Generator resets (W4) |
 | F13 | Demand Slow Data | Fixed: 0x40FB / A5 / 5A / A5 / A5 |
-| F14 | Inter-Trigger Cmd | Digitizer Tester control (cmd/TS compare/pulse count+delay); pipelines async FIFO for F15 |
+| F14 | Inter-Trigger Cmd | [Digitizer Tester](digitizer_tester.md) control (cmd/TS compare/pulse count+delay); pipelines async FIFO for F15 |
 | F15 | Front End Cmd | Synchronous (FRAME_15_DATA) or async FIFO drain (5 words); null if neither |
 | F16 | Spare | Null; pre-fetches first word of aux FIFO at W4/W5 |
 | F17 | Auxiliary Detector | Aux FIFO drain (5 words for ancillary detector commands) |

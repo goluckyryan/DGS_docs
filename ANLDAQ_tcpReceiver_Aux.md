@@ -283,8 +283,8 @@ Compares LED vs CFD digitizer files: peak timestamp distribution and energy spec
 
 ## 6. See Also {#see-also}
 
-- `ANLDAQ_tcpReceiver.md` — `reader.h`, `tcpReceiver.cpp`, `tcpReceiverMT.cpp`, shell scripts
-- `data_structures.md` — GEB header, DIG packet format, TAC-II packet layout
-- `DIG_firmware_expert.md` — digitizer firmware: LED/CFD modes, packet header fields
-- `ttcl.md` / `ttcl_frame_spec.md` — trigger packet structures
-- `tac2.md` — TAC-II hardware overview
+- [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) — `reader.h`, `tcpReceiver.cpp`, `tcpReceiverMT.cpp`, shell scripts
+- [`data_structures.md`](data_structures.md) — GEB header, DIG packet format, TAC-II packet layout
+- [`DIG_firmware_expert.md`](DIG_firmware_expert.md) — digitizer firmware: LED/CFD modes, packet header fields
+- [`ttcl.md`](ttcl.md) / [`ttcl_frame_spec.md`](ttcl_frame_spec.md) — trigger packet structures
+- [`tac2.md`](tac2.md) — TAC-II hardware overview

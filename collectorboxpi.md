@@ -528,21 +528,21 @@ EPICS CA port is set via `EPICS_env.sh`: **5064/5065** for array use, **5074/507
 
 ## Connections to Other Subsystems
 
-- **ioc/** — shares the same IOC concept (VxWorks IOC for hardware boards; this is the Pi soft IOC for collector boxes)
-- **ANLDAQ** — may monitor collector box PVs via EPICS CA
-- **lnfill/** — parallel infrastructure (also Pi-based, also uses EPICS)
+- **[ioc](ioc.md)** — shares the same IOC concept (VxWorks IOC for hardware boards; this is the Pi soft IOC for collector boxes)
+- **[ANLDAQ](ANLDAQ.md)** — may monitor collector box PVs via EPICS CA
+- **[lnfill](lnfill.md)** — parallel infrastructure (also Pi-based, also uses EPICS)
 
 ## Cross-References
 
-- `knowledgeBase/collectorboxpi_commissioning.md` — Pre_EPICS_Collector commissioning utilities detail: Src/ C library (SPI/DEVSEL/ADC/relay), Programs/ internals (TurnOnAllConnected, Dump_Preamp_EEPROM, Write_to_EEPROM)
-- `knowledgeBase/collector_fpga.md` — CtrlFPGA + StripeFPGA firmware detail (git repo); the hardware the Pi IOC talks to
-- `knowledgeBase/collector_box_fpga.md` — ControlStripe + CtlFanout FPGAs (PSG SVN origin): per-stripe 48V relay/clock/SYNC/LED control (Spartan-3) and RPi SPI gateway + ADS1158 ADC scanning (Spartan-6)
-- `knowledgeBase/collectorbox_PVs.md` — Full PV list (1,431 records/detector); use exec grep for PV lookups
-- `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support internals: SPI driver, CAMAC_IO link
-- `knowledgeBase/sbx.md` — Slope Box Extension hardware; BGO HV, GS_ID dongle, pickoff card
-- `knowledgeBase/nfs_layout.md` — PXE boot infrastructure on fs2.onenet; piserver NFS layout and MAC table
-- `knowledgeBase/gammasphere_geometry.md` — GS hole numbering and collector box assignments
-- `knowledgeBase/influxdb_grafana.md` — Temperature data pushed to InfluxDB by SaveTemp.sh (runs on Pi)
-- `knowledgeBase/collector_ctrlFPGA_registers.md` — CtrlFPGA register interface detail (141 registers): pulsed_control bits, FPGA_CTL_REG bits, ILA mux, DPRAM bank select, per-stripe ADC monitoring, BGO FPGA voltages
+- [collectorboxpi_commissioning.md](collectorboxpi_commissioning.md) — Pre_EPICS_Collector commissioning utilities detail: Src/ C library (SPI/DEVSEL/ADC/relay), Programs/ internals (TurnOnAllConnected, Dump_Preamp_EEPROM, Write_to_EEPROM)
+- [collector_fpga.md](collector_fpga.md) — CtrlFPGA + StripeFPGA firmware detail (git repo); the hardware the Pi IOC talks to
+- [collector_box_fpga.md](collector_box_fpga.md) — ControlStripe + CtlFanout FPGAs (PSG SVN origin): per-stripe 48V relay/clock/SYNC/LED control (Spartan-3) and RPi SPI gateway + ADS1158 ADC scanning (Spartan-6)
+- [collectorbox_PVs.md](collectorbox_PVs.md) — Full PV list (1,431 records/detector); use exec grep for PV lookups
+- [collectorbox_devicesupport.md](collectorbox_devicesupport.md) — EPICS device support internals: SPI driver, CAMAC_IO link
+- [sbx.md](sbx.md) — Slope Box Extension hardware; BGO HV, GS_ID dongle, pickoff card
+- [nfs_layout.md](nfs_layout.md) — PXE boot infrastructure on fs2.onenet; piserver NFS layout and MAC table
+- [gammasphere_geometry.md](gammasphere_geometry.md) — GS hole numbering and collector box assignments
+- [influxdb_grafana.md](influxdb_grafana.md) — Temperature data pushed to InfluxDB by SaveTemp.sh (runs on Pi)
+- [collector_ctrlFPGA_registers.md](collector_ctrlFPGA_registers.md) — CtrlFPGA register interface detail (141 registers): pulsed_control bits, FPGA_CTL_REG bits, ILA mux, DPRAM bank select, per-stripe ADC monitoring, BGO FPGA voltages
 
 *Created: 2026-04-06 | Last reviewed: 2026-04-27*

@@ -245,11 +245,11 @@ Also present: **LBL Digitizer** (`FPGA/others/LBL_Digitizer/`) — the GRETINA d
 
 | File | Relationship |
 |------|--------------|
-| `deep_fpga_DIG.md` | Main DGS digitizer firmware (trunk from which Majorana branched) |
-| `deep_fpga_DIG_channel.md` | Per-channel signal processing detail (shared with Majorana) |
-| `fpga.md` | FPGA firmware overview including this branch |
-| `hardware_architecture.md` | HPGe + BGO detector hardware context |
-| `preamp_reset_readme.md` | Preamp reset detection (FPGA feature in shared codebase) |
+| [`deep_fpga_DIG.md`](deep_fpga_DIG.md) | Main DGS digitizer firmware (trunk from which Majorana branched) |
+| [`deep_fpga_DIG_channel.md`](deep_fpga_DIG_channel.md) | Per-channel signal processing detail (shared with Majorana) |
+| [`fpga.md`](fpga.md) | FPGA firmware overview including this branch |
+| [`hardware_architecture.md`](hardware_architecture.md) | HPGe + BGO detector hardware context |
+| [`preamp_reset_readme.md`](preamp_reset_readme.md) | Preamp reset detection (FPGA feature in shared codebase) |
 
 ---
 

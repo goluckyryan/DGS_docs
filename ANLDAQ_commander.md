@@ -34,7 +34,7 @@ Stability: C2 - Active / semi-stable
 - Configuring and monitoring the IOC TCP receiver
 - Opening board-specific control windows (DIG, RTR, MTRG)
 - Controlling the SoftIOC and IOC terminal sessions
-- Launching utility panels (scalar monitor, link system, live trace monitor)
+- Launching utility panels ([scalar monitor](ANLDAQ_gui_sys.md), [link system](link_sys_analysis.md), live trace monitor via [Guceiver](guceiver.md))
 
 Launched by sourcing `EPICS_para.sh` (sets `SYSTEM`, `IOC_IP`, `ANLDAQ_DIR`, `EPICS_HOST_ARCH`, `TERMINAL_SERVER`, etc.) then running `python3 commander.py`. If `SYSTEM` is not set when invoked directly, the script re-execs itself under bash after sourcing `EPICS_para.sh`.
 
@@ -67,7 +67,7 @@ DIG_BOARD_LIST, RTR_BOARD_LIST, MTRG_BOARD_LIST, DAQ_PV, DAQ_LIST =
   GeneratePVLists('../ioc/All_PV.json')
 ```
 
-CollectorBox PVs loaded optionally (DGS-only, fails gracefully):
+CollectorBox PVs loaded optionally (DGS-only, fails gracefully) — see [`collectorbox_PVs.md`](collectorbox_PVs.md) for the full PV list:
 ```python
 from cb_json2pv import LoadCollectorBoxPVs
 CB_PV, CB_DET_LIST = LoadCollectorBoxPVs('../collectorBox/CollectorBox_PV.json')
@@ -199,7 +199,7 @@ Sub-windows are lazy-initialized (created on first open, re-raised if already op
 ## Other GUI Panels
 
 ### Live Trace Monitor (Guceiver)
-The Guceiver live data monitor is embedded from `ANLDAQ/gui/Guceiver/`. It is injected with `IOC_IP` entries from the environment so operators don't need to retype IPs. GUI class: `from Guceiver import GUI as GuceiverGUI`.
+The [Guceiver](guceiver.md) live data monitor is embedded from `ANLDAQ/gui/Guceiver/`. It is injected with `IOC_IP` entries from the environment so operators don't need to retype IPs. GUI class: `from Guceiver import GUI as GuceiverGUI`.
 
 ### Scalar Window
 `ScalarWindow(DIG_BOARD_LIST, DIG_List, CB_DET_LIST)` — positioned to the **left** of the main window.
@@ -211,7 +211,7 @@ The Guceiver live data monitor is embedded from `ANLDAQ/gui/Guceiver/`. It is in
 
 ## SoftIOC Auto-Spawn
 
-On startup, `CheckACQCanStart()` runs:
+See [`EPICS_softIOC.md`](EPICS_softIOC.md) for the SoftIOC DB layout and PV namespace. On startup, `CheckACQCanStart()` runs:
 1. Attempts `epics.caget("Online_CS_StartStop", timeout=5.0)` up to **3 times** with 2-second retries. ✅ verified 2026-04-25 — `commander.py:L756-762` (`for attempt in range(3)`, `timeout=5.0`, `time.sleep(2)`)
 2. If the PV is unreachable, calls `OpenSoftIOC()`.
 
@@ -284,14 +284,16 @@ The file is created with header if it doesn't exist. ✅ verified 2026-04-25 —
 
 ## Cross-References
 
-- `knowledgeBase/ANLDAQ.md` — ANLDAQ system overview: tcpReceiverMT, IOC sender, production DAQ pipeline
-- `knowledgeBase/ANLDAQ_GUI_windows.md` — Board-specific GUI windows launched from the commander (DIG, MTRG, RTRG, collector)
-- `knowledgeBase/ANLDAQ_tcpReceiver.md` — TCP data receiver (tcpReceiverMT) that commander starts/stops
-- `knowledgeBase/run_procedures.md` — Operator run procedures: full context for how commander fits into a run
-- `knowledgeBase/trig_setup_scripts.md` — Stage 1–5 trigger initialization scripts invoked via the Script Runner
-- `knowledgeBase/utility_scripts.md` — Helper scripts listed in `enableScriptList.txt` (basic_settings_LED.py, Serdes_Linkup.sh)
-- `knowledgeBase/guceiver.md` — Guceiver diagnostic GUI: optionally embedded as child widget inside commander
-- `knowledgeBase/ioc.md` — IOC configuration; PVs that commander reads/writes originate from VME IOC DB templates
-- `knowledgeBase/snapshot_pv.md` — PV snapshot utilities called at run start; commander triggers dumpPVs.py
+- [`ANLDAQ.md`](ANLDAQ.md) — ANLDAQ system overview: tcpReceiverMT, IOC sender, production DAQ pipeline
+- [`ANLDAQ_GUI_windows.md`](ANLDAQ_GUI_windows.md) — Board-specific GUI windows launched from the commander (DIG, MTRG, RTRG, collector)
+- [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) — TCP data receiver (tcpReceiverMT) that commander starts/stops
+- [`run_procedures.md`](run_procedures.md) — Operator run procedures: full context for how commander fits into a run
+- [`trig_setup_scripts.md`](trig_setup_scripts.md) — Stage 1–5 trigger initialization scripts invoked via the Script Runner
+- [`utility_scripts.md`](utility_scripts.md) — Helper scripts listed in `enableScriptList.txt` (basic_settings_LED.py, Serdes_Linkup.sh)
+- [`guceiver.md`](guceiver.md) — Guceiver diagnostic GUI: optionally embedded as child widget inside commander
+- [`ioc.md`](ioc.md) — IOC configuration; PVs that commander reads/writes originate from VME IOC DB templates
+- [`snapshot_pv.md`](snapshot_pv.md) — PV snapshot utilities called at run start; commander triggers dumpPVs.py
+- [`EPICS_softIOC.md`](EPICS_softIOC.md) — SoftIOC DB layout and PV namespace for `Online_CS_*` PVs; auto-spawned by commander at startup
+- [`collectorbox_PVs.md`](collectorbox_PVs.md) — CollectorBox PV list loaded via `cb_json2pv` at startup (DGS SYSTEM only)
 
 *Source: `DGS_tools_pack/ANLDAQ/commander.py`. Created: 2026-04-23.*

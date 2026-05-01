@@ -299,12 +299,13 @@ Sequence: `ProgramFlash(bdnum, bank=0, file)` → `taskDelay(100)` → `Configur
 
 | File | Relationship |
 |------|--------------|
-| `vxworks.md` | VxWorks IOC overview including devGVME.c context |
-| `vxworks_fifo_readout.md` | FIFO readout layer built on top of this devlayer |
-| `vxworks_state_machines.md` | inLoop/outLoop state machines using the structures defined here |
-| `vxworks_trigger_drivers.md` | Trigger asyn drivers (asynTrigMaster/Router) use same VME mutex |
-| `ioc.md` | IOC boot scripts calling `devGVMECardInit` |
-| `IOC_cmd.md` | VMERead32/VMEWrite32 shell commands wrapping this layer |
+| [`vxworks.md`](vxworks.md) | VxWorks IOC overview including devGVME.c context |
+| [`vxworks_fifo_readout.md`](vxworks_fifo_readout.md) | FIFO readout layer built on top of this devlayer |
+| [`vxworks_state_machines.md`](vxworks_state_machines.md) | inLoop/outLoop state machines using the structures defined here |
+| [`vxworks_trigger_drivers.md`](vxworks_trigger_drivers.md) | Trigger asyn drivers (asynTrigMaster/Router) use same VME mutex |
+| [`vxworks_utility_modules.md`](vxworks_utility_modules.md) | profile, asynDebugDriver, FlashMaintenance, QueueManagement modules built on this layer |
+| [`ioc.md`](ioc.md) | IOC boot scripts calling `devGVMECardInit` |
+| [`IOC_cmd.md`](IOC_cmd.md) | VMERead32/VMEWrite32 shell commands wrapping this layer |
 
 ---
 

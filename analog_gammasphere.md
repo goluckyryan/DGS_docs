@@ -21,7 +21,7 @@ Stability: C3 - Structural / stable
 
 ## Overview
 
-Analog Gammasphere was the version of data acquisition used **prior to the Digital Gammasphere (DGS) upgrade**. It used VXI-bus processors running VxWorks, a CES-based event builder, and USB-disk based data storage via NFS export. Data monitoring was done via the `GSSort` package under ROOT.
+Analog Gammasphere was the version of data acquisition used **prior to the [Digital Gammasphere (DGS)](overview_DGS.md) upgrade**. It used VXI-bus processors running [VxWorks](vxworks.md), a CES-based event builder, and USB-disk based data storage via NFS export. Data monitoring was done via the `GSSort` package under ROOT.
 
 This system is no longer in active use but is documented here for historical reference and comparison with DGS.
 
@@ -130,7 +130,7 @@ Data monitoring used the `GSSort` package (ROOT-based).
 ### Getting GSSort
 
 ```bash
-svn checkout https://svn.anl.gov/repos/gs_analysis/GSSort .
+svn checkout https://svn.anl.gov/repos/gs_analysis/GSSort .  # see DGS_SVN.md for SVN repo layout
 # or
 wget http://www.phy.anl.gov/gammasphere/doc/GSSort/src/src.tgz
 tar -zxvf src.tgz
@@ -212,11 +212,11 @@ The VXI processors booted from **dgs6** (Scientific Linux 6.4 blade in the DGS r
 
 | Aspect | Analog GS | Digital GS |
 |--------|-----------|------------|
-| Event builder | CES VME hardware | Software (GEBMerge/GEBsort) |
+| Event builder | CES VME hardware | Software ([GEBMerge/GEBsort](gebsort.md)) |
 | Data storage | USB disk via NFS export | Network (collector to RAID/NFS) |
 | Monitoring | GSSort + ROOT shared memory | Online sort, EPICS PVs |
-| Boot host | dgs6 (SL 6.4 blade) | DGS1 (see ioc.md) |
-| Processor | VXI / 68030 (niCpu030-t) | VME / PowerPC (VxWorks) |
+| Boot host | dgs6 (SL 6.4 blade) | DGS1 (see [ioc.md](ioc.md)) |
+| Processor | VXI / 68030 (niCpu030-t) | VME / PowerPC ([VxWorks](vxworks.md)) |
 | Console access | `telnet gsts1 2009` | EPICS IOC shell / serial |
 | Config files | `c1.cmd` / `sga2` | IOC startup scripts |
 
@@ -227,9 +227,9 @@ The VXI processors booted from **dgs6** (Scientific Linux 6.4 blade in the DGS r
 - `gsts1` was the analog DAQ console server (telnet port 2009) ✅ verified 2026-04-30 — wiki.anl.gov/gsdaq/Analog_Gammasphere: `telnet gsts1 2009` as setup step 1
 - `gslinux1` was a Linux data collection/storage host ✅ verified 2026-04-30 — wiki.anl.gov/gsdaq/Analog_Gammasphere: `datadir gslinux1 /media/...` in example c1.cmd
 - `gsexportfs` / `gsunexportfs` are custom ANL scripts for NFS-exporting USB disks ✅ verified 2026-04-30 — wiki.anl.gov/gsdaq/Analog_Gammasphere: `gsexportfs 20140304` step documented
-- `dgs6` IP: 192.168.203.184 ✅ verified 2026-04-25 - overview_DGS.md (confirmed from wiki.anl.gov/gsdaq/Computers_and_networks 2026-04-19)
+- `dgs6` IP: 192.168.203.184 ✅ verified 2026-04-25 - [overview_DGS.md](overview_DGS.md) (confirmed from wiki.anl.gov/gsdaq/Computers_and_networks 2026-04-19)
 - CES = Compact Electronics Standard (VME-based event building hardware)
-- The analog system used **FERA** (Fastbus Electronics for Readout Anywhere) ADCs; `feradelay 8` sets timing ✅ verified 2026-04-25 - FERA interface confirmed on MyRIAD hardware (myriad.md; FERA_FULL/ACK/OVF/WSI/VETO signals verified from MyRIAD.vhd:L142-148)
+- The analog system used **FERA** (Fastbus Electronics for Readout Anywhere) ADCs; `feradelay 8` sets timing ✅ verified 2026-04-25 - FERA interface confirmed on MyRIAD hardware ([myriad.md](myriad.md); FERA_FULL/ACK/OVF/WSI/VETO signals verified from MyRIAD.vhd:L142-148)
 - `getimewin` / `bgotimewin`: Ge and BGO coincidence time windows (in ADC channel units, e.g. `getimewin 3950 4030`, `bgotimewin 1950 2030`) ✅ verified 2026-04-30 — wiki.anl.gov/gsdaq/Analog_Gammasphere example c1.cmd
 - This system is superseded; wiki page is maintained for legacy reference only
 
@@ -239,11 +239,13 @@ The VXI processors booted from **dgs6** (Scientific Linux 6.4 blade in the DGS r
 
 | File | Relationship |
 |------|--------------|
-| `overview_DGS.md` | DGS machine overview, IP table including dgs6 |
-| `ioc.md` | DGS1 as digital GS boot host (successor) |
-| `myriad.md` | MyRIAD provides FERA interface for the old analog chain |
-| `hardware_architecture.md` | HPGe detector hardware common to both systems |
-| `nfs_layout.md` | NFS storage includes some analog-era data directories |
+| [overview_DGS.md](overview_DGS.md) | DGS machine overview, IP table including dgs6 |
+| [ioc.md](ioc.md) | DGS1 as digital GS boot host (successor) |
+| [myriad.md](myriad.md) | MyRIAD provides FERA interface for the old analog chain |
+| [hardware_architecture.md](hardware_architecture.md) | HPGe detector hardware common to both systems |
+| [nfs_layout.md](nfs_layout.md) | NFS storage includes some analog-era data directories |
+| [DGS_SVN.md](DGS_SVN.md) | SVN repository layout including `gs_analysis/GSSort` checkout path |
+| [gebsort.md](gebsort.md) | GEBsort/GEBmerge — DGS replacement for CES event building |
 
 ---
 

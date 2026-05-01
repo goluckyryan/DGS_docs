@@ -113,9 +113,9 @@ Stability: C3 - Structural / stable
 
 ## Cross-References
 
-- `knowledgeBase/DGS_SVN.md` — `Digitizer_Tester/` entry in the SVN archive index
-- `knowledgeBase/fpga.md` — FPGA firmware overview; Digitizer Tester injects test signals into the trigger chain
-- `knowledgeBase/ttcl.md` — TTCL spec; the Digitizer Tester generates compatible discriminator bit patterns
-- `knowledgeBase/connectors.md` — RJ45 pinout (same connector as digitizer); MTRG/RTRG 125-pin SERDES links the Tester connects to
-- `knowledgeBase/DIG_firmware_expert.md` — digitizer firmware being tested
-- `knowledgeBase/troubleshooting.md` — General DGS troubleshooting guide (no specific Digitizer Tester section; commissioning use is undocumented)
+- [`DGS_SVN.md`](DGS_SVN.md) — `Digitizer_Tester/` entry in the SVN archive index
+- [`fpga.md`](fpga.md) — FPGA firmware overview; Digitizer Tester injects test signals into the trigger chain
+- [`ttcl.md`](ttcl.md) — TTCL spec; the Digitizer Tester generates compatible discriminator bit patterns
+- [`connectors.md`](connectors.md) — RJ45 pinout (same connector as digitizer); MTRG/RTRG 125-pin SERDES links the Tester connects to
+- [`DIG_firmware_expert.md`](DIG_firmware_expert.md) — digitizer firmware being tested
+- [`troubleshooting.md`](troubleshooting.md) — General DGS troubleshooting guide (no specific Digitizer Tester section; commissioning use is undocumented)

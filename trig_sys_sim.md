@@ -89,7 +89,7 @@ Bus mux (`BUS_MUX` process, 1 GHz oversample clock):
 
 ## VME Register Address Constants (from `MstrTrig_pkg.vhd`)
 
-These match the production MTRG register map (see also `MTRG_registers.md`):
+These match the production MTRG register map (see also [`MTRG_registers.md`](vhdl/MTRG_registers.md)):
 
 | Name | Address | Notes |
 |------|---------|-------|
@@ -232,9 +232,9 @@ The testbench exercises a specific init + manual trigger sequence:
 
 ## See Also
 
-- `knowledgeBase/vhdl/MTRG_registers.md` — production MTRG register map (same addresses used in regio_tb.vhd stimulus)
-- `knowledgeBase/vhdl/MTRG_Generated_top.md` — `trigger_top` entity (what's being simulated)
-- `knowledgeBase/fpga.md` — FPGA firmware overview and build type table
-- `knowledgeBase/myriad.md` — MyRIAD module documentation
-- `knowledgeBase/deep_fpga_building.md` — FPGA build toolchain (ISE/Vivado); Firmware_Tags archive; original brief simulation note (stub points here)
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — production ISE MTRG Main FPGA internals; same `trigger_top` component
+- [`vhdl/MTRG_registers.md`](vhdl/MTRG_registers.md) — production MTRG register map (same addresses used in regio_tb.vhd stimulus)
+- [`vhdl/MTRG_Generated_top.md`](vhdl/MTRG_Generated_top.md) — `trigger_top` entity (what's being simulated)
+- [`fpga.md`](fpga.md) — FPGA firmware overview and build type table
+- [`myriad.md`](myriad.md) — MyRIAD module documentation
+- [`deep_fpga_building.md`](deep_fpga_building.md) — FPGA build toolchain (ISE/Vivado); Firmware_Tags archive; original brief simulation note (stub points here)
+- [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) — production ISE MTRG Main FPGA internals; same `trigger_top` component

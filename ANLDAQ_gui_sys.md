@@ -173,7 +173,7 @@ Parameters (20 total): ✅ verified 2026-04-25 — `gui_SYS.py:L459-478` (20 ent
 | Raw Delay | `raw_data_delay` | Numeric |
 | P1 Window | `p1_window` | Numeric |
 | P2 Window | `p2_window` | Numeric |
-| PARST Delay | `preamp_reset_delay` | Numeric |
+| PARST Delay | `preamp_reset_delay` | Numeric — see [`preamp_reset_readme.md`](preamp_reset_readme.md) |
 | CFD Fraction | `CFD_fraction` | Numeric |
 | Disc Width | `disc_width` | Numeric |
 | Coarse Disc Width | `coarse_disc_thresh` | Numeric |
@@ -232,12 +232,12 @@ Note the inconsistent PV prefix naming across board families (a historical artif
 
 | File | Relationship |
 |------|--------------|
-| `ANLDAQ.md` | Parent ANLDAQ overview; this file split from it |
-| `ANLDAQ_GUI_windows.md` | Other ANLDAQ GUI window documentation |
-| `ANLDAQ_gui_internals.md` | GUI helper classes and internals |
-| `deep_fpga_MTRG_MAIN.md` | MTRG FPGA internals (PVs shown in this window) |
-| `deep_fpga_RTRG.md` | RTRG FPGA internals (PVs shown in this window) |
-| `VME_registers.md` | Register map for PVs displayed here |
+| [`ANLDAQ.md`](ANLDAQ.md) | Parent ANLDAQ overview; this file split from it |
+| [`ANLDAQ_GUI_windows.md`](ANLDAQ_GUI_windows.md) | Other ANLDAQ GUI window documentation |
+| [`ANLDAQ_gui_internals.md`](ANLDAQ_gui_internals.md) | GUI helper classes and internals |
+| [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) | MTRG FPGA internals (PVs shown in this window) |
+| [`deep_fpga_RTRG.md`](deep_fpga_RTRG.md) | RTRG FPGA internals (PVs shown in this window) |
+| [`VME_registers.md`](VME_registers.md) | Register map for PVs displayed here |
 
 ---
 

@@ -519,20 +519,20 @@ The GLBL DB (`db/MDigRegisters.template`, etc.) is loaded with `CRATE=NN` substi
 
 ## See Also
 
-- `knowledgeBase/ANLDAQ_tcpReceiver.md` — `tcpReceiverMT` deep-dive: 3 binaries, TCP protocol, GEB header, class_DIG.h/class_TDC.h decoders, run control scripts (split from this file)
-- `knowledgeBase/ANLDAQ_GUI_windows.md` — GUI window reference: gui_MTRG (5 tabs), gui_Det, gui_scalar, gui_RTR, gui_Board (generic PV table), gui_CH (per-channel 5-tab), gui_RAM, gui_SYS, gui_LinkSys, gui_DataTaking (split from this file)
-- `knowledgeBase/ANLDAQ_commander.md` — commander.py deep-dive: top-level run control GUI, startup/env, board init, run start/stop flow, duration/repeat modes, SoftIOC auto-spawn, IOC terminal access, script runner, RunTimestamp CSV log (split from this file)
-- `knowledgeBase/ioc.md` — EPICS IOC boot scripts, DB files, PV definitions
-- `knowledgeBase/vxworks.md` — VxWorks build pipeline (produces the firmware ANLDAQ talks to)
-- `knowledgeBase/fpga.md` — DIG/RTRG/MTRG firmware overview
-- `knowledgeBase/trig_setup_scripts.md` — 5-stage trigger setup scripts (trig_setup_Stage1–5.sh); system bring-up from cold
-- `knowledgeBase/dgs_analysis.md` — Downstream analysis (fastEventConstructor, parquet_pysort) consuming `tcpReceiverMT` output
-- `knowledgeBase/snapshot_pv.md` — PV snapshot utility (`dumpPVs.py` / `putPVs.py`) invoked by `start_run.sh`
-- `knowledgeBase/ttcl.md` — TTCL trigger timing (feeds the MTRG TAC-II data decoded in `class_TDC.h`)
-- `knowledgeBase/DIG_firmware_expert.md` — DIG firmware details; confirms packet format matched by `class_DIG.h`
-- `knowledgeBase/EPICS_asyn.md` — asyn driver internals: caput/caget flow, port concept, asynUInt32Digital
-- `knowledgeBase/collectorbox_devicesupport.md` — collector box EPICS device support (SPI driver, CAMAC_IO link)
-- `knowledgeBase/guceiver.md` — Guceiver live diagnostic GUI (waveform/spectrum/TAC-II tabs); companion to the main ANLDAQ GUI
+- [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) — `tcpReceiverMT` deep-dive: 3 binaries, TCP protocol, GEB header, class_DIG.h/class_TDC.h decoders, run control scripts (split from this file)
+- [`ANLDAQ_GUI_windows.md`](ANLDAQ_GUI_windows.md) — GUI window reference: gui_MTRG (5 tabs), gui_Det, gui_scalar, gui_RTR, gui_Board (generic PV table), gui_CH (per-channel 5-tab), gui_RAM, gui_SYS, gui_LinkSys, gui_DataTaking (split from this file)
+- [`ANLDAQ_commander.md`](ANLDAQ_commander.md) — commander.py deep-dive: top-level run control GUI, startup/env, board init, run start/stop flow, duration/repeat modes, SoftIOC auto-spawn, IOC terminal access, script runner, RunTimestamp CSV log (split from this file)
+- [`ioc.md`](ioc.md) — EPICS IOC boot scripts, DB files, PV definitions
+- [`vxworks.md`](vxworks.md) — VxWorks build pipeline (produces the firmware ANLDAQ talks to)
+- [`fpga.md`](fpga.md) — DIG/RTRG/MTRG firmware overview
+- [`trig_setup_scripts.md`](trig_setup_scripts.md) — 5-stage trigger setup scripts (trig_setup_Stage1–5.sh); system bring-up from cold
+- [`dgs_analysis.md`](dgs_analysis.md) — Downstream analysis (fastEventConstructor, parquet_pysort) consuming `tcpReceiverMT` output
+- [`snapshot_pv.md`](snapshot_pv.md) — PV snapshot utility (`dumpPVs.py` / `putPVs.py`) invoked by `start_run.sh`
+- [`ttcl.md`](ttcl.md) — TTCL trigger timing (feeds the MTRG TAC-II data decoded in `class_TDC.h`)
+- [`DIG_firmware_expert.md`](DIG_firmware_expert.md) — DIG firmware details; confirms packet format matched by `class_DIG.h`
+- [`EPICS_asyn.md`](EPICS_asyn.md) — asyn driver internals: caput/caget flow, port concept, asynUInt32Digital
+- [`collectorbox_devicesupport.md`](collectorbox_devicesupport.md) — collector box EPICS device support (SPI driver, CAMAC_IO link)
+- [`guceiver.md`](guceiver.md) — Guceiver live diagnostic GUI (waveform/spectrum/TAC-II tabs); companion to the main ANLDAQ GUI
 
 ---
 

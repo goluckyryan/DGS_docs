@@ -395,7 +395,7 @@ Separate process `VETO_DECODER` added 2016-04-18. Fires on the 5th word of every
 | `SYNC_CAPTURE_LENGTH` | 16 | F16 capture length |
 | `SYNC_CAPTURE_FIFO_DELAY` | 16 | F16 FIFO capture delay |
 | `TRIG_MON_DET_DATA` | 16 | F2 W1: detector state at time of trigger (e.g. target wheel) |
-| `TRIG_MON_XTRA_DATA` | 16 | F2 W2: extra state data (TBD) |
+| `TRIG_MON_XTRA_DATA` | 16 | F2 W2: multiplicity information (live or latched-at-trigger); only present in TTCL mode (zeroed when PEQ_BYPASS='1') ✅ verified 2026-04-30 — Channel_Readout_Mach.vhd:L331-337 (20180507 + 20230809 tags: "the TRIG_MON_XTRA_DATA is, as of 20180425, multiplicity information… data should only be present in the header if in TTCL mode") |
 | `WORD_INDEX` | 8 | Diagnostic: current word index (bit7=1 during prelock) |
 | `UNQUALIFIED_SM_LOCKED` | 1 | Diagnostic: equals DATA_CHECK_FLAG (ignores STRINGENT_LOCK_FLAG) |
 

@@ -259,7 +259,7 @@ Shared `keep(pv)` function used by `dumpPVs.py`, `putPVs.py`, `verifyPVs.py`, an
 
 ## Integration with start_run.sh
 
-Each run automatically snapshots all PVs:
+Each run automatically snapshots all PVs (see [`run_procedures.md`](run_procedures.md) for full run start sequence):
 ```bash
 # In start_run.sh (from ANLDAQ or NFS scripts):
 python3 ~/snapshot_pv/dumpPVs.py --all \
@@ -299,8 +299,9 @@ _Created: 2026-04-05_
 
 ## Cross-References
 
-- `knowledgeBase/collectorbox_PVs.md` — Full list of collector box PVs that snapshot_pv captures
-- `knowledgeBase/DGS_PVs.md` — DGS VME system PV list (VME crate PVs captured by snapshot_pv)
-- `knowledgeBase/EPICS.md` — EPICS record types and CA tools; context for PV naming conventions
-- `knowledgeBase/ioc.md` — IOC config; PVs originate from DB templates loaded at boot
-- `knowledgeBase/influxdb_grafana.md` — InfluxDB/Grafana monitoring stack (complementary to snapshot for trending)
+- [`collectorbox_PVs.md`](collectorbox_PVs.md) — Full list of collector box PVs that snapshot_pv captures
+- [`DGS_PVs.md`](DGS_PVs.md) — DGS VME system PV list (VME crate PVs captured by snapshot_pv)
+- [`EPICS.md`](EPICS.md) — EPICS record types and CA tools; context for PV naming conventions
+- [`ioc.md`](ioc.md) — IOC config; PVs originate from DB templates loaded at boot
+- [`influxdb_grafana.md`](influxdb_grafana.md) — InfluxDB/Grafana monitoring stack (complementary to snapshot for trending)
+- [`run_procedures.md`](run_procedures.md) — Run start/stop procedures; `start_run.sh` is the caller that invokes `dumpPVs.py`

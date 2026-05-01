@@ -189,7 +189,7 @@ Run folder structure:
 Start sequence:
 1. Creates `runFolder = expFolder/expName_RRR/` via `os.makedirs(..., exist_ok=True)`
 2. Writes `ioc_config.txt` from the dialog's `configText`
-3. Auto-compiles `tcpReceiverMT` via `make tcpReceiverMT` in `tcpReceiver/` — skips if already up to date
+3. Auto-compiles `tcpReceiverMT` via `make tcpReceiverMT` in `tcpReceiver/` — skips if already up to date (see [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) for full receiver internals)
 4. Spawns `tcpReceiverMT configFile filePrefix` as a subprocess (`subprocess.Popen`, line-buffered stdout)
 5. `QTimer` fires every 200 ms to read stdout via `select.select` (non-blocking) ✅ verified 2026-04-18 — `gui_DataTaking.py:L109-111,L156-158` (`timer.start(200)`, `select.select(...,0)`)
 6. ANSI color codes stripped (`re.sub(r'\033\[[0-9;]*m', '', line)`) before display
@@ -675,7 +675,7 @@ Tabs instantiated once at startup, added in order: Timestamp → Link Status →
 
 _Source: `ANLDAQ/gui/Guceiver/` (7 files, ~2,236 lines). Code-read 2026-04-27._
 
-**Purpose:** PyQt6 + Matplotlib GUI that connects directly to one IOC's TCP server (port 9001) and displays live waveforms, energy spectra, raw event data, and TAC-II timing. **Online monitor / debugging tool** — not the production file-writing receiver (`tcpReceiverMT`).
+**Purpose:** PyQt6 + Matplotlib GUI that connects directly to one IOC's TCP server (port 9001) and displays live waveforms, energy spectra, raw event data, and TAC-II timing. **Online monitor / debugging tool** — not the production file-writing receiver ([`tcpReceiverMT`](ANLDAQ_tcpReceiver.md)). See also: [`guceiver.md`](guceiver.md) for the standalone Guceiver reference.
 
 ### `Guceiver.py` — Main Window (331 lines)
 
@@ -689,7 +689,7 @@ _Source: `ANLDAQ/gui/Guceiver/` (7 files, ~2,236 lines). Code-read 2026-04-27._
 1. **Waveform** — `WaveformTab`: live ADC trace; `fillWaveformArray=True`
 2. **Spectrum** — `SpectrumTab`: energy histogram; `fillEnergyArray=True`
 3. **Data** — `dataTab`: raw event field table; `fillDataArray=True`
-4. **TAC-II** — `tacTab`: TAC timing display; `fillTACArray=True`
+4. **TAC-II** — `tacTab`: TAC timing display; `fillTACArray=True` (see [`tac2.md`](tac2.md) for TAC-II hardware details)
 
 **Start/Stop:**
 - Start: `caput Online_CS_SaveData Save` + `caput Online_CS_StartStop Start` → connect TCP → start active tab's plot timer
@@ -719,11 +719,11 @@ _Source: `ANLDAQ/gui/Guceiver/` (7 files, ~2,236 lines). Code-read 2026-04-27._
 
 ### `class_DIG.py` — Python DIG Decoder
 
-Python reimplementation of `Aux/class_DIG.h`. Fields: `USER_DEF` (board index), `CH_ID`, `PRE_RISE_ENERGY`, `POST_RISE_ENERGY`, `waveform[]` (14-bit ADC samples).
+Python reimplementation of `Aux/class_DIG.h`. Fields: `USER_DEF` (board index), `CH_ID`, `PRE_RISE_ENERGY`, `POST_RISE_ENERGY`, `waveform[]` (14-bit ADC samples). See [`data_structures.md`](data_structures.md) for the canonical DIG event packet layout and [`ANLDAQ_tcpReceiver_Aux.md`](ANLDAQ_tcpReceiver_Aux.md) for the C++ equivalent.
 
 ### `class_TAC.py` — Python TAC-II Decoder (110 lines)
 
-Python reimplementation of `Aux/class_TDC.h`. Decodes 16-word TAC-II packets.
+Python reimplementation of `Aux/class_TDC.h`. Decodes 16-word TAC-II packets. See [`tac2.md`](tac2.md) for TAC-II hardware and firmware context.
 
 ### Display Tab Classes
 
@@ -749,12 +749,17 @@ _Source: `ANLDAQ/gui/Guceiver/` (code-read 2026-04-27)_
 
 | File | Relationship |
 |------|--------------|
-| `ANLDAQ.md` | Parent ANLDAQ overview; this file split from it |
-| `ANLDAQ_GUI_windows.md` | Per-window GUI documentation (uses classes defined here) |
-| `ANLDAQ_gui_sys.md` | gui_SYS.py window detail |
-| `ANLDAQ_commander.md` | Commander run control GUI (top-level window) |
-| `link_sys_analysis.md` | link_sys.py LinkSys internals (called by gui_LinkSys.py) |
-| `DGS_setup_guide.md` | DuoGe commissioning guide — DAQ/GUI startup in context (Section 8–9) |
+| [`ANLDAQ.md`](ANLDAQ.md) | Parent ANLDAQ overview; this file split from it |
+| [`ANLDAQ_GUI_windows.md`](ANLDAQ_GUI_windows.md) | Per-window GUI documentation (uses classes defined here) |
+| [`ANLDAQ_gui_sys.md`](ANLDAQ_gui_sys.md) | gui_SYS.py window detail |
+| [`ANLDAQ_commander.md`](ANLDAQ_commander.md) | Commander run control GUI (top-level window) |
+| [`link_sys_analysis.md`](link_sys_analysis.md) | link_sys.py LinkSys internals (called by gui_LinkSys.py) |
+| [`DIG_firmware_expert.md`](DIG_firmware_expert.md) | Digitizer firmware internals — channel FIFO, throttle, ADC details |
+| [`tac2.md`](tac2.md) | TAC-II hardware and firmware (decoded by class_TAC.py) |
+| [`guceiver.md`](guceiver.md) | Standalone Guceiver reference |
+| [`data_structures.md`](data_structures.md) | DIG event packet format (decoded by class_DIG.py) |
+| [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) | tcpReceiverMT — production data-writing receiver |
+| [`collectorbox_devicesupport.md`](collectorbox_devicesupport.md) | CollectorBox EPICS device support (PV sources for gui_GS/gui_Det) |
 
 ---
 

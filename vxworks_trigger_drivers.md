@@ -28,7 +28,7 @@ The DGS VxWorks IOC controls the Master Trigger (MTRG) and Router Trigger (RTRG)
 
 All trigger drivers use:
 - **`asynUInt32Digital`** as the primary interface (same as the digitizer driver)
-- The **`0xaaaa0000` mask sentinel** for multi-bit sub-field access (same encoding as `asynDigitizerDriver` — documented in `EPICS_asyn.md`)
+- The **`0xaaaa0000` mask sentinel** for multi-bit sub-field access (same encoding as `asynDigitizerDriver` — documented in [`EPICS_asyn.md`](EPICS_asyn.md))
 - A **VME mutex** (`vme_driver_mutex`) to serialize concurrent VME bus transactions
 - A **1-second polling background thread** that reads all registered VME parameters and calls `callParamCallbacks()` to push updates to EPICS records
 
@@ -87,7 +87,7 @@ Runs forever, every **1.0 second** (reduced from 2.0s by JTA 2022-09-16): ✅ ve
 
 ### `0xaaaa0000` Sub-Field Mask Encoding
 
-**Shared** with `asynDigitizerDriver` (see `EPICS_asyn.md` §Custom Sub-Field Mask Encoding):
+**Shared** with `asynDigitizerDriver` (see [`EPICS_asyn.md`](EPICS_asyn.md) §Custom Sub-Field Mask Encoding):
 
 ```
 mask = 0xaaaa_NNSS
@@ -207,7 +207,7 @@ Parameters that have no VME address (soft controls or staging regs) appear in ot
 - **Lines:** 1,111 (1,111 = 369 pairs + comments + spacing) ✅ verified 2026-04-26 — `wc -l asynMTrigParams.c = 1111`
 - **Parameters:** 369 (`createParam()` calls = 369) ✅ verified 2026-04-26 — `grep -c createParam asynMTrigParams.c = 369`
 - **`setAddress()` calls:** 369 (every param has a VME address)
-- Covers all MTRG VME registers (mirrors `MTrigRegisters.template` and the MTRG VHDL register map in `MTRG_registers.md`)
+- Covers all MTRG VME registers (mirrors `MTrigRegisters.template` and the MTRG VHDL register map in [`VME_registers.md`](VME_registers.md))
 
 Key parameter groups (sampled):
 
@@ -292,15 +292,15 @@ dbLoadRecords("RTrigUser.template",      "CRATE=01,BOARD=RTR1,PORT=VME01_RTR1")
 
 | File | Relationship |
 |------|--------------|
-| `vxworks.md` | VxWorks IOC overview, asyn framework context |
-| `vxworks_state_machines.md` | inLoop/outLoop state machines (work above the trigger drivers) |
-| `vxworks_vme_devlayer.md` | VME device layer (devGVME.c) these drivers rely on |
-| `EPICS_asyn.md` | asyn framework explanation |
-| `EPICS_DB_templates.md` | MTrigUser/MDig/SDig template overview (split — see EPICS_RTrig_templates.md for RTrig) |
-| `EPICS_RTrig_templates.md` | Complete RTrigRegisters + RTrigUser PV inventory (deep-dive, split from EPICS_DB_templates.md) |
-| `260E_trigger_scheme.md` | End-to-end RTRG/MTRG firmware trigger algorithm that the driver registers map to |
-| `deep_fpga_MTRG_MAIN.md` | MTRG FPGA internals (registers the MTRG driver reads/writes) |
-| `deep_fpga_RTRG.md` | RTRG FPGA internals (registers the RTRG driver reads/writes) |
+| [`vxworks.md`](vxworks.md) | VxWorks IOC overview, asyn framework context |
+| [`vxworks_state_machines.md`](vxworks_state_machines.md) | inLoop/outLoop state machines (work above the trigger drivers) |
+| [`vxworks_vme_devlayer.md`](vxworks_vme_devlayer.md) | VME device layer (devGVME.c) these drivers rely on |
+| [`EPICS_asyn.md`](EPICS_asyn.md) | asyn framework explanation |
+| [`EPICS_DB_templates.md`](EPICS_DB_templates.md) | MTrigUser/MDig/SDig template overview (split — see EPICS_RTrig_templates.md for RTrig) |
+| [`EPICS_RTrig_templates.md`](EPICS_RTrig_templates.md) | Complete RTrigRegisters + RTrigUser PV inventory (deep-dive, split from EPICS_DB_templates.md) |
+| [`260E_trigger_scheme.md`](260E_trigger_scheme.md) | End-to-end RTRG/MTRG firmware trigger algorithm that the driver registers map to |
+| [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) | MTRG FPGA internals (registers the MTRG driver reads/writes) |
+| [`deep_fpga_RTRG.md`](deep_fpga_RTRG.md) | RTRG FPGA internals (registers the RTRG driver reads/writes) |
 
 ---
 

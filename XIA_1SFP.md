@@ -264,11 +264,11 @@ Slow-clock mode: `MISC_CTL_REG[13] = 1` → ILA only captures on `SLOW_CLK` puls
 
 | File | Relationship |
 |------|--------------|
-| `myriad.md` | MγRIAD hardware overview; shared SERDES/GITMO IP source |
-| `fpga.md` | FPGA firmware overview including XIA 1SFP |
-| `ttcl.md` | TTCL protocol received by this board |
-| `deep_fpga_MTRG_MAIN.md` | MTRG — the trigger master this board links to via Link U |
-| `overview_SmallSystem.md` | XIA test nodes that use this hardware |
+| [`myriad.md`](myriad.md) | MγRIAD hardware overview; shared SERDES/GITMO IP source |
+| [`fpga.md`](fpga.md) | FPGA firmware overview including XIA 1SFP |
+| [`ttcl.md`](ttcl.md) | TTCL protocol received by this board |
+| [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) | MTRG — the trigger master this board links to via Link U |
+| [`overview_SmallSystem.md`](overview_SmallSystem.md) | XIA test nodes that use this hardware |
 
 ---
 

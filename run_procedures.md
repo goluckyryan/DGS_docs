@@ -3,7 +3,7 @@
 Stability: C2 - Active / semi-stable
 
 **Source:** https://wiki.anl.gov/gsdaq/Typical_DGS_run_procedures  
-**Note:** This page describes legacy (pre-ANLDAQ) procedures using GEBSort. Current experiment (exp2008_Chiara) uses `start_run.sh`/`stop_run.sh` from ANLDAQ. Cross-check with `expMemory_2008_Chiara.md` for current setup.
+**Note:** This page describes legacy (pre-ANLDAQ) procedures using GEBSort. Current experiment (exp2008_Chiara) uses `start_run.sh`/`stop_run.sh` from ANLDAQ. Cross-check with [`expMemory_2008_Chiara.md`](expMemory_2008_Chiara.md) for current setup.
 
 ---
 
@@ -76,7 +76,7 @@ start_run.sh "run comment here"   # arg1 = optional comment; run number auto-inc
 # Stop run
 stop_run.sh
 
-# Merge data files from run 123
+# Merge data files from run 123 (see [gebsort.md](gebsort.md) § GEBMerge)
 gebmerge.sh 123
 # → merged file in Merged/, log in LOG_FILES/
 # Note: run gebmerge on a different machine to avoid disrupting receivers
@@ -113,7 +113,7 @@ decay_station_gt3 1000 3000
 
 ```bash
 cd GEBSort
-gebsort.sh 123
+gebsort.sh 123   # see [GEBSort reference](gebsort.md)
 # → ROOT_FILES/run123.root
 
 # View results
@@ -126,6 +126,8 @@ dload("../ROOT_FILES/run123.root")
 ## Calibrations (GEBSort_nogeb / bin_dgs)
 
 ### Step 1 — Generate PZ (Pole-Zero) spectra
+
+See [`pole_zero.md`](pole_zero.md) for PZ theory and the modern `pz_from_parquet.py` workflow.
 
 Enable in `bin_dgs.c` and recompile:
 ```c
@@ -193,7 +195,7 @@ Before sorting, verify `map.dat` is current and matches the array configuration.
 
 Columns: `id` (DAQ channel), `type` (GE/BGO/SIDE/AUX), `tid` (crystal ID). Loaded by C++ as `tlkup[]`/`tid[]` arrays.
 
-See `gammasphere_geometry.md` for the GS hole geometry.
+See [`gammasphere_geometry.md`](gammasphere_geometry.md) for the GS hole geometry.
 
 ---
 
@@ -258,17 +260,17 @@ See `knowledgeBase/dgs_analysis.md` for full details on each step.
 
 | Topic | File |
 |-------|------|
-| Full analysis pipeline (EventBuilder variants, RunParquet, parquetCLI) | `knowledgeBase/dgs_analysis.md` |
-| Pole-zero correction theory + `pz_from_parquet.py` | `knowledgeBase/pole_zero.md` |
-| Troubleshooting IOC, FIFO, link lock issues | `knowledgeBase/troubleshooting.md` |
-| Trigger bring-up (5-stage SERDES link-up scripts) | `knowledgeBase/trig_setup_scripts.md` |
-| DAQ GUI (ANLDAQ commander, data-taking tab) | `knowledgeBase/ANLDAQ.md` |
-| Run control scripts (`start_run.sh`, `stop_run.sh`, `run_control_gui.py`) deep-dive | `knowledgeBase/ANLDAQ_tcpReceiver.md` §Run Control Scripts |
-| DIG firmware — readout modes, data formats | `knowledgeBase/DIG_firmware_expert.md` |
-| GEB data format + type codes | `knowledgeBase/data_structures.md`, `knowledgeBase/dgs_analysis.md` § GEB |
-| GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | `knowledgeBase/gebsort.md` |
-| Snapshot PV / save+restore settings | `knowledgeBase/snapshot_pv.md` |
-| DuoGe commissioning walkthrough (HV setup, IOC boot, trigger, DAQ) | `knowledgeBase/DGS_setup_guide.md` |
+| Full analysis pipeline (EventBuilder variants, RunParquet, parquetCLI) | [`dgs_analysis.md`](dgs_analysis.md) |
+| Pole-zero correction theory + `pz_from_parquet.py` | [`pole_zero.md`](pole_zero.md) |
+| Troubleshooting IOC, FIFO, link lock issues | [`troubleshooting.md`](troubleshooting.md) |
+| Trigger bring-up (5-stage SERDES link-up scripts) | [`trig_setup_scripts.md`](trig_setup_scripts.md) |
+| DAQ GUI (ANLDAQ commander, data-taking tab) | [`ANLDAQ.md`](ANLDAQ.md) |
+| Run control scripts (`start_run.sh`, `stop_run.sh`, `run_control_gui.py`) deep-dive | [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) §Run Control Scripts |
+| DIG firmware — readout modes, data formats | [`DIG_firmware_expert.md`](DIG_firmware_expert.md) |
+| GEB data format + type codes | [`data_structures.md`](data_structures.md), [`dgs_analysis.md`](dgs_analysis.md) § GEB |
+| GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | [`gebsort.md`](gebsort.md) |
+| Snapshot PV / save+restore settings | [`snapshot_pv.md`](snapshot_pv.md) |
+| DuoGe commissioning walkthrough (HV setup, IOC boot, trigger, DAQ) | [`DUO_setup_guide.md`](DUO_setup_guide.md) |
 
 ---
 
@@ -329,7 +331,7 @@ DGS does **not** display live histograms for users. Users must merge, sort, and 
 
 ### Troubleshooting: VME Crash
 
-**Signs:** TCP/IP rate drops to 0.0; Buffs Avail continuously fall below ~190 without recovering. (Old wiki threshold was 380/400; pool is now 200 — adjust proportionally.)
+**Signs:** TCP/IP rate drops to 0.0; Buffs Avail continuously fall below ~190 without recovering. (Also see [`troubleshooting.md`](troubleshooting.md) for general IOC/FIFO/link issues.) (Old wiki threshold was 380/400; pool is now 200 — adjust proportionally.)
 
 **Prevention:** Stop the run and start a new one before Buffs Avail reach 0. If they reach 0.0, the VME has crashed and needs a restart. ✅ verified 2026-04-26 — pool = 200 (`DGS_DEFS.h:L48`); Buffs Avail = `getFreeBufCount()` → PV `DAQCX_CV_BuffersAvail` (`outLoop.st:L97,L473`).
 
@@ -341,7 +343,7 @@ DGS does **not** display live histograms for users. Users must merge, sort, and 
    - Reboot takes >1 min; ignore non-fatal warning messages.
    - When prompt reappears, the IOC is back up.
    - If no auto-boot message or no prompt appears → hard reboot required (see below).
-4. In DGS Main Controller → **Scripts** → run **"Lock All Setup"** (>1 min).
+4. In DGS Main Controller → **Scripts** → run **"Lock All Setup"** (>1 min). See [`trig_setup_scripts.md`](trig_setup_scripts.md) for what this script does.
    - Verify Trigger Summary screen looks correct (accessible under **Trigger** in Main Controller and at the bottom of Big Summary).
 5. Scripts → run **"Digitizer Setup"** (>1 min; issues EPICS channel PV commands for digitizer channels).
 6. Buffs Avail should return to 200; start a new run.
@@ -361,7 +363,7 @@ Required when soft reboot fails.
 1. Go to DGS racks (inside the shack or next to the hemisphere).
 2. Turn off the crashed VME crate; wait **30 seconds** before turning power back on.
 3. Leave the shack and Sweep Area 4.
-4. Back in Data Room: reboot the **Trigger IOC** via DGS Main Controller → Terminals → Trigger IOC → Return → Ctrl+X.
+4. Back in Data Room: reboot the **Trigger IOC** (see [`ioc.md`](ioc.md)) via DGS Main Controller → Terminals → Trigger IOC → Return → Ctrl+X.
 5. Run **"Lock All Setup"** then **"Digitizer Setup"** as above.
 6. If still failing, contact the person **ON CALL**.
 

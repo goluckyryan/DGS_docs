@@ -172,7 +172,7 @@ _Source: `ANLDAQ/gui/gui_GS.py` (209 lines as of Apr 23 commit c2339cb, code-rea
 
 ## GUI: Scalar Window (`gui_scalar.py`)
 
-`ScalarWindow` — "Scalar - All Digitizers" window. Shows all digitizer boards in a scrollable grid of GroupBoxes. Per channel per board, displays (live PV, timer-updated):
+`ScalarWindow` — "Scalar - All Digitizers" window. Shows all [digitizer](DIG_firmware_expert.md) boards in a scrollable grid of GroupBoxes. Per channel per board, displays (live PV, timer-updated):
 - `led_threshold` — LED threshold setting
 - `disc_count` — discriminator fire count
 - `ahit_count` — accepted hit count
@@ -241,7 +241,7 @@ _Source: `ANLDAQ/gui/gui_SYS.py` (code-read 2026-04-09)_
 
 ## Trigger Setup Scripts (`gui/scripts/`)
 
-The `scripts/` directory contains 5 staged shell scripts that initialize the full trigger chain via `caput`. They are invoked by the GUI's "SERDES Link-Up" button (`Serdes_Linkup.sh`).
+See also: [`trig_setup_scripts.md`](trig_setup_scripts.md) for the detailed cross-reference. The `scripts/` directory contains 5 staged shell scripts that initialize the full trigger chain via `caput`. They are invoked by the GUI's "SERDES Link-Up" button (`Serdes_Linkup.sh`).
 
 | Stage | Script | What It Does |
 |-------|--------|--------------|
@@ -306,7 +306,7 @@ _Source: `ANLDAQ/gui/scripts/trig_setup_Stage*.sh` + `Serdes_Linkup.sh` (code-ve
 
 ## `gui_LinkSys.py` — Link System GUI Window
 
-295-line PyQt6 window that wraps `link_sys.py`'s `LinkSys` class with a graphical interface. Opened from the main GUI's "Link System" button.
+295-line PyQt6 window that wraps `link_sys.py`'s [`LinkSys`](link_sys_analysis.md) class with a graphical interface. Opened from the main GUI's "Link System" button.
 
 **Key constants:**
 - `LINK_IDS = ["A","B","C","D","E","F","G","H","L","R","U"]` — all 11 SERDES links
@@ -320,7 +320,7 @@ _Source: `ANLDAQ/gui/scripts/trig_setup_Stage*.sh` + `Serdes_Linkup.sh` (code-ve
 
 **Config persistence** (`SaveConfig`/`LoadConfig`): JSON `linkMap.json` in the gui directory saves/restores full MTRG map, RTR checkbox grid, error-check flag, clock source, and DIG clock selection. Loaded automatically on window open.
 
-**`LinkSysWorker(QThread)`**: runs the full 5-stage `LinkSys` sequence in a background thread so the GUI stays responsive. Emits `stageUpdate(str)` (progress label) and `finished(bool, str)` (success/failure) signals. Runs all 5 stages sequentially — there is no stage-selector; the GUI always runs Stages 1–5 in order.
+**`LinkSysWorker(QThread)`**: runs the full 5-stage [`LinkSys`](link_sys_analysis.md) sequence in a background thread so the GUI stays responsive. Emits `stageUpdate(str)` (progress label) and `finished(bool, str)` (success/failure) signals. Runs all 5 stages sequentially — there is no stage-selector; the GUI always runs Stages 1–5 in order.
 
 _Source: `ANLDAQ/gui/gui_LinkSys.py` (verified 2026-04-23)_
 
@@ -427,8 +427,8 @@ A `QMainWindow` that manages a live DAQ run:
 **On open:**
 1. Creates run folder: `{expFolder}/{expName}_{runNum:03d}/`
 2. Writes `ioc_config.txt` from the IOC config dialog
-3. Auto-compiles `tcpReceiverMT` if needed (`make tcpReceiverMT` in `ANLDAQ_DIR/tcpReceiver/`)
-4. Spawns `tcpReceiverMT <config_file> <file_prefix>` as a subprocess
+3. Auto-compiles [`tcpReceiverMT`](ANLDAQ_tcpReceiver.md) if needed (`make tcpReceiverMT` in `ANLDAQ_DIR/tcpReceiver/`)
+4. Spawns [`tcpReceiverMT`](ANLDAQ_tcpReceiver.md) `<config_file> <file_prefix>` as a subprocess
 
 **Live display (200 ms poll):**
 - Live log output (ANSI codes stripped, max 2000 lines)
@@ -437,8 +437,8 @@ A `QMainWindow` that manages a live DAQ run:
 
 **Stop run flow:**
 1. Prompts for a stop comment (if manual)
-2. Calls `parent.StopAcquisition(comment)` to flush IOC data (triggers EPICS `Online_CS_StartStop=Stop`)
-3. Waits **5 seconds**, then sends `SIGTERM` to `tcpReceiverMT` ✅ verified 2026-04-19 — `gui_DataTaking.py:L209` (`QTimer.singleShot(5000, self._TerminateReceiver)` — 5s QTimer before SIGTERM)
+2. Calls `parent.StopAcquisition(comment)` to flush IOC data (triggers [EPICS](EPICS.md) `Online_CS_StartStop=Stop`)
+3. Waits **5 seconds**, then sends `SIGTERM` to [`tcpReceiverMT`](ANLDAQ_tcpReceiver.md) ✅ verified 2026-04-19 — `gui_DataTaking.py:L209` (`QTimer.singleShot(5000, self._TerminateReceiver)` — 5s QTimer before SIGTERM)
 4. On `SIGTERM` exit (code = -SIGTERM): status = "Stopped"; on 0: "Finished"; other: "Exited(N)" ✅ verified 2026-04-19 — `gui_DataTaking.py:L188` (`elif retcode == -signal.SIGTERM`)
 
 **Key constants:**

@@ -61,7 +61,7 @@ A single VME crate with one MTRG, one RTRG, and two DIGs (BUS_LEFT + BUS_RIGHT p
 
 **Naming:** NFS scripts use `MDIG1/SDIG1/MDIG2/SDIG2` (accurate). ANLDAQ `SYSTEM_DEFINES.sh` uses `MDIG1/MDIG2/MDIG3/MDIG4` (simplified — all called MDIG regardless of role). The IOC boot cmd only configures MDIGs (`asynDigitizerConfig`); SDIGs are accessed via VME but don't need separate SERDES init.
 
-*Sources: `DIG_firmware_expert.md`, `link_sys_analysis.md`, NFS `DGS_SYSTEM_DEFINES.sh` vs ANLDAQ `SYSTEM_DEFINES.sh` diff — 2026-04-05*
+*Sources: [`DIG_firmware_expert.md`](DIG_firmware_expert.md), [`link_sys_analysis.md`](link_sys_analysis.md), NFS `DGS_SYSTEM_DEFINES.sh` vs ANLDAQ `SYSTEM_DEFINES.sh` diff — 2026-04-05*
 
 ---
 
@@ -265,18 +265,18 @@ Gammasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
 
 ## See Also
 
-- `overview_DGS.md` — Full Gammasphere system overview (signal chain, network map, software stack)
-- `overview_SmallSystem.md` — DuoGe (DUO) and X-Array (DXA) small system details
-- `fpga.md` — FPGA firmware architecture (trigger cycle, signal flow, PEQ details)
-- `collectorboxpi.md` — Collector box Raspberry Pi soft IOC (SPI, PXE boot, HV control)
-- `collector_fpga.md` — Collector box FPGA firmware (git repo): CtrlFPGA, StripeFPGA, pickoff card FPGAs
-- `collector_box_fpga.md` — Collector box FPGAs (PSG SVN origin): ControlStripe (Spartan-3, 48V relay/clock/SYNC/LED per stripe) + CtlFanout (Spartan-6, RPi SPI gateway + ADS1158 ADC scanning)
-- `ioc.md` — EPICS IOC configuration (MVME5500 boot, firmware versions, VME setup)
-- `sbx.md` — Slope Box Extension (SBX): signal conversion, BGO pattern/sum, GS_ID dongle, HV map
-- `sbxPi_ioc.md` — SBX Pi standalone IOC (PickoffApp_RevC): SPI1 24-bit transactions, CAMAC_IO device support, global mailboxes, I2C command FIFO protocol, HV ramp logic
-- `myriad.md` — MγRIAD auxiliary detector interface: NIM I/O, ECL, TTCL, DGS link U
-- `gammasphere_geometry.md` — 110 GS detector holes, 17 rings, θ/φ angles, collector box assignments
-- `connectors.md` — All hardware connector pinouts (DIG RJ45, MTRG/RTRG 125-pin SERDES, NIM I/O)
+- [overview_DGS.md](overview_DGS.md) — Full Gammasphere system overview (signal chain, network map, software stack)
+- [overview_SmallSystem.md](overview_SmallSystem.md) — DuoGe (DUO) and X-Array (DXA) small system details
+- [fpga.md](fpga.md) — FPGA firmware architecture (trigger cycle, signal flow, PEQ details)
+- [collectorboxpi.md](collectorboxpi.md) — Collector box Raspberry Pi soft IOC (SPI, PXE boot, HV control)
+- [collector_fpga.md](collector_fpga.md) — Collector box FPGA firmware (git repo): CtrlFPGA, StripeFPGA, pickoff card FPGAs
+- [collector_box_fpga.md](collector_box_fpga.md) — Collector box FPGAs (PSG SVN origin): ControlStripe (Spartan-3, 48V relay/clock/SYNC/LED per stripe) + CtlFanout (Spartan-6, RPi SPI gateway + ADS1158 ADC scanning)
+- [ioc.md](ioc.md) — EPICS IOC configuration (MVME5500 boot, firmware versions, VME setup)
+- [sbx.md](sbx.md) — Slope Box Extension (SBX): signal conversion, BGO pattern/sum, GS_ID dongle, HV map
+- [sbxPi_ioc.md](sbxPi_ioc.md) — SBX Pi standalone IOC (PickoffApp_RevC): SPI1 24-bit transactions, CAMAC_IO device support, global mailboxes, I2C command FIFO protocol, HV ramp logic
+- [myriad.md](myriad.md) — MγRIAD auxiliary detector interface: NIM I/O, ECL, TTCL, DGS link U
+- [gammasphere_geometry.md](gammasphere_geometry.md) — 110 GS detector holes, 17 rings, θ/φ angles, collector box assignments
+- [connectors.md](connectors.md) — All hardware connector pinouts (DIG RJ45, MTRG/RTRG 125-pin SERDES, NIM I/O)
 
 ---
 

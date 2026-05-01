@@ -51,7 +51,7 @@ _Split from `ANLDAQ.md` on 2026-04-16. Source: `DGS_tools_pack/ANLDAQ/tcpReceive
 
 The IOC↔receiver connection is **TCP (`SOCK_STREAM`)** on **port 9001**. This has been verified across all code generations:
 
-**IOC side (VxWorks — `SendReceiveSupport.c`):**
+**IOC side ([VxWorks](vxworks_state_machines.md) — `SendReceiveSupport.c`):**
 ```c
 #define SERVER_PORT 9001
 SocketForRequests = socket(AF_INET, SOCK_STREAM, 0);  // TCP
@@ -180,7 +180,7 @@ int32_t  type       ← GEB_ID from expInfo.sh (e.g. 14)
 int32_t  length     ← packet length in bytes
 uint64_t timestamp  ← 48-bit event timestamp from DIG header
 ```
-This is the format consumed by downstream analysis (fastEventConstructor / parquet_pysort).
+This is the format consumed by downstream analysis ([fastEventConstructor / parquet_pysort](dgs_analysis.md)).
 
 ### `class_DIG.h` — DIG Hit Decoder
 
@@ -224,7 +224,7 @@ Decodes the full DIG event packet header (words 0–13 + optional trace words):
 
 ### `class_TDC.h` — TAC-II Hit Decoder
 
-Decodes the MTRG TDC/TAC-II packet (10 words after repacking):
+Decodes the MTRG [TAC-II](tac2.md) packet (10 words after repacking):
 - `timestampTrig` — MTRG 48-bit trigger timestamp (×10 ns) ✅ verified 2026-04-22 — `class_TDC.h:L189,L207` (`timestampTrig = (((uint64_t) data[2] & 0xFFFF) << 32) + data[1]; ... timestampTrig *= 10;`)
 - `coarseTS` — 16-bit coarse TDC counter ✅ verified 2026-04-22 — `class_TDC.h:L111,L194` (`uint16_t coarseTS`; `coarseTS = data[5] >> 16;`)
 - Four-phase 4 ns counters (0°/90°/180°/270°) + vernier AB/CD (6 bits each, ~50 ps/step) ✅ verified 2026-04-22 — `class_TDC.h:L52` (`vernierAB & 0x3F` = 6 bits); `class_TDC.h:L228` (`0.05 * tdcData.vernier[i]` = 50 ps/step)
@@ -243,7 +243,7 @@ dataFolder="${expFolder}/data"           # Where run subfolders are created
 GEB_ID=14                               # GEB data type (14=DGS, 15=DGSTRIG)
 NEXT_RUN=1                              # Auto-incremented by start_run.sh
 ```
-Create a symlink in `dgs_analysis/working/` for use with `ProcessRUN`:
+Create a symlink in [`dgs_analysis`](dgs_analysis.md) `working/` for use with `ProcessRUN`:
 ```bash
 ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
 ```
@@ -252,7 +252,7 @@ ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
 1. Sources `expInfo.sh` (experiment name, folder, GEB_ID, run number)
 2. Increments `NEXT_RUN` in expInfo.sh
 3. Creates `dataFolder/expName_RRR/`
-4. Runs `~/snapshot_pv/dumpPVs.py` → **snapshot_pv lives on dcs2.onenet, not pi5-dgs**
+4. Runs `~/snapshot_pv/dumpPVs.py` → **[snapshot_pv](snapshot_pv.md) lives on dcs2.onenet, not pi5-dgs**
 5. Appends to `RunTimestamp.txt`
 6. Posts to ELOG (`elog.phy.anl.gov:443`)
 7. Launches `tcpReceiver` (one gnome-terminal per IP) or `tcpReceiverMT` (one process)
@@ -387,7 +387,7 @@ The receiver and `class_DIG.h` are fully consistent with the FPGA DIG packet for
 - There is **no IOC re-encoding** — the FPGA writes 7/8 directly; the IOC DMA-copies raw VME FIFO data to TCP unchanged. The IOC simply DMA-transfers whatever the FPGA put in its event header FIFO directly onto the wire.
 - Prior note claiming "FPGA hardware: LED=4, CFD=5" and "IOC re-encodes" was incorrect and has been removed.
 
-**TRIG packet:** MTRG sends 16 words raw (`0xAAAA0000` header). Receiver repacks to 10 words. `class_TDC.h::FillTDC()` correctly decodes trigger timestamp, trigger type, wheel, multiplicity, coarse TDC, trigger bitmask, four 4 ns phase counters, and vernier AB/CD — all consistent with the TAC-II data path in the MTRG Main FPGA firmware.
+**TRIG packet:** MTRG sends 16 words raw (`0xAAAA0000` header). Receiver repacks to 10 words. `class_TDC.h::FillTDC()` correctly decodes trigger timestamp, trigger type, wheel, multiplicity, coarse TDC, trigger bitmask, four 4 ns phase counters, and vernier AB/CD — all consistent with the TAC-II data path in the [MTRG Main FPGA firmware](deep_fpga_MTRG_MAIN.md).
 
 ---
 
@@ -426,7 +426,7 @@ If `expInfo.sh` is missing, `start_run.sh` creates a template and exits.
 
 1. **Run folder setup:** creates `${dataFolder}/${expName}_NNN/`; increments `NEXT_RUN` in `expInfo.sh` via `sed -i`
 2. **Final adjustments block:** commented `caput` commands for MDIG1/MDIG2 enable, master logic enable, FIFO reset — uncomment as needed per experiment
-3. **PV snapshot:** calls `~/snapshot_pv/dumpPVs.py --all --skip GS085,GS091,GS099,MOD085,MOD091,MOD099 --outdir <runFolder>` (skips 3 known-bad detectors)
+3. **PV snapshot:** calls [`~/snapshot_pv/dumpPVs.py`](snapshot_pv.md) `--all --skip GS085,GS091,GS099,MOD085,MOD091,MOD099 --outdir <runFolder>` (skips 3 known-bad detectors)
 4. **Timestamp log:** appends `YYYYMMDD_HHMMSS, RunNNN, <comment>` to `${expFolder}/RunTimestamp.txt`
 5. **ELOG post:** posts start entry to `elog.phy.anl.gov:443` logbook, Category=Run
 6. **Receiver launch mode** (`USE_MT=false` default):
@@ -593,12 +593,13 @@ Orchestrates all three components for a local self-contained integration test. �
 
 ## See Also
 
-- `knowledgeBase/ANLDAQ.md` — parent overview, VxWorks pipeline, EPICS config
-- `knowledgeBase/ANLDAQ_GUI_windows.md` — gui_DataTaking: GUI front-end that spawns and controls tcpReceiverMT
-- `knowledgeBase/data_structures.md` — GEB header format + DIG event packet layout
-- `knowledgeBase/dgs_analysis.md` — downstream analysis consuming tcpReceiverMT output
-- `knowledgeBase/run_procedures.md` — operator-level run procedures (uses `start_run.sh`/`stop_run.sh` as the key start/stop mechanism)
-- `knowledgeBase/gebsort.md` — GEBSort/GEBMerge: downstream consumers of the raw GEB files tcpReceiverMT writes; also gtReceiver (Tim Lauritsen's alternative test receiver)
-- `knowledgeBase/ANLDAQ_tcpReceiver_Aux.md` — auxiliary receivers: tcpReceiverSingle, DFMA receiver, auxiliary data streams
+- [`ANLDAQ.md`](ANLDAQ.md) — parent overview, VxWorks pipeline, EPICS config
+- [`ANLDAQ_GUI_windows.md`](ANLDAQ_GUI_windows.md) — gui_DataTaking: GUI front-end that spawns and controls tcpReceiverMT
+- [`data_structures.md`](data_structures.md) — GEB header format + DIG event packet layout
+- [`dgs_analysis.md`](dgs_analysis.md) — downstream analysis consuming tcpReceiverMT output
+- [`run_procedures.md`](run_procedures.md) — operator-level run procedures (uses `start_run.sh`/`stop_run.sh` as the key start/stop mechanism)
+- [`gebsort.md`](gebsort.md) — GEBSort/GEBMerge: downstream consumers of the raw GEB files tcpReceiverMT writes; also gtReceiver (Tim Lauritsen's alternative test receiver)
+- [`ANLDAQ_tcpReceiver_Aux.md`](ANLDAQ_tcpReceiver_Aux.md) — auxiliary receivers: tcpReceiverSingle, DFMA receiver, auxiliary data streams
+- [`tac2.md`](tac2.md) — TAC-II TDC hardware details; timing resolution, packet format, calibration
 
 *Created: 2026-04-14 | Last reviewed: 2026-04-27*

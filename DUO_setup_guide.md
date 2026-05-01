@@ -1,11 +1,11 @@
-# DGS Setup Guide — DuoGe Commissioning Walkthrough
+# DUO Setup Guide — DuoGe Commissioning Walkthrough
 
 Stability: C1 - Active / Living Document
 
-> 🔗 **Related:** `overview_DGS.md` — system overview | `ioc.md` — IOC details | `fpga.md` — firmware | `collectorboxpi_commissioning.md` — SBX/collector commissioning
+> 🔗 **Related:** [overview_DGS.md](overview_DGS.md) — system overview | [ioc.md](ioc.md) — IOC details | [fpga.md](fpga.md) — firmware | [collectorboxpi_commissioning.md](collectorboxpi_commissioning.md) — SBX/collector commissioning
 
 **Source:** Live exploration of `tangerine` (192.168.203.78), `/global/ioc/`, ANLDAQ source, KB cross-references  
-**Last updated:** 2026-04-30 (22 passes — all 9 sections + appendix complete. New in pass 22: Detector pair contradiction RESOLVED — GS033+GS091 confirmed as active DuoGe detectors from `/global/edm/scripts/setup_HV.sh` (physical names: GS033=Ge14 in SBX-H3, GS091=Ge67 in SBX-CC). Analyzer.cpp GS062/GS070 references flagged as stale from earlier configuration. Open items requiring Ryan: multiplicity threshold value, MTRG enables for actual runs, clean/dirty trigger source settings, physical signal chain SBX/cable details, BGO bias supply voltages.)
+**Last updated:** 2026-04-30 (25 passes — all 9 sections + appendix complete. New in pass 25: Resolved BGO bias supply voltage question — ~450V and ~400V confirmed as nominal internal SBX rails, derived from `SlopeBox.db` alarm limits. Remaining open item: physical signal chain SBX/cable details (requires Ryan).
 
 ---
 
@@ -325,7 +325,7 @@ CAGET=/global/base/base-3.14.12.8/bin/linux-x86_64/caget
 | `VME66:MDIG2:CS_Ena`            | 1 (enabled)        | Readout enable for MDIG2           |
 | `VME66:MTRG:CS_Ena`             | 1 (enabled)        | Readout enable for MTRG            |
 
-> ⚠️ NOTE: As of 2026-04-29, the vme66 IOC was **not responding to CA** queries from tangerine. The VME crate at 192.168.203.81 pings OK, but CA on port 5080 timed out. This may mean the crate is powered but not booted, or the IOC binary is not loaded. All PV expected values above are from KB/source — not live-verified.
+> ⚠️ NOTE: As of 2026-04-30, the vme66 IOC is **not responding to CA** queries. The VME crate at 192.168.203.81 pings OK (ICMP responding), but CA on port 5080 times out — confirmed both on 2026-04-29 and 2026-04-30. Root cause is likely the vsftpd failure (see Section 2): vme66 cannot FTP-boot its IOC binary from tangerine while vsftpd is down. All PV expected values above are from KB/source — not live-verified. ✅ verified 2026-04-30 — ping 192.168.203.81 OK; `caget VME66:MDIG1:ID` timed out (CA port 5080).
 
 ❓ QUESTION FOR RYAN: Is vme66 normally left booted continuously, or does it need to be manually started?
 
@@ -381,7 +381,7 @@ caput GS091_GE_HV_ABSMAX 3500
 caput GS091_GE_HV_DEMAND_VOLTS 3500
 ```
 
-Also: `GS033_GeCenterGain 3.4MeV` and `GS091_GeCenterGain 3.4MeV` (gain range = 3.4 MeV full scale).
+Also: `setup_HV.sh` sets `GS033_GeCenterGain 3.4MeV` and `GS091_GeCenterGain 3.4MeV` — but `setup_sbx.sh` (run afterwards) overrides this to **4.3 MeV** (final effective value). See SBX Configuration table below.
 
 ### BGO HV Per-PMT Values
 
@@ -420,7 +420,21 @@ From `/global/edm/scripts/setup_sbx.sh` — individual PMT HV settings (14 PMTs 
 | `PA_RST_WidthEnbl` | continuous |
 | `GeSideInputSelect` | Fix8MeV (both segmented & non-segmented) |
 
-❓ QUESTION FOR RYAN: BGO bias supply voltages (400V/450V seen in EDM) — are these nominal for DuoGe BGOs?
+### BGO Bias Supply Voltages
+
+The SBX generates two internal BGO bias supplies, monitored via:
+- `GS$(DetNbr)_Conv_BGO450` — ~**450V** nominal
+- `GS$(DetNbr)_Conv_BGO400` — ~**400V** nominal
+
+Nominal values are deducible from alarm limits in `SlopeBox.db`:
+
+| PV Suffix    | LOLO  | LOW    | HIGH   | HIHI  | Nominal |
+|--------------|-------|--------|--------|-------|---------|
+| `Conv_BGO450`| 405 V | 427.5 V| 477.5 V| 495 V | ~452 V  |
+| `Conv_BGO400`| 360 V | 380 V  | 420 V  | 440 V | ~400 V  |
+
+> ✅ derived 2026-04-30 from `sbxPi/PickoffApp_RevC/db/SlopeBox.db` alarm fields (LOLO/LOW/HIGH/HIHI)  
+> These are **internal SBX supply rails**, not user-settable. Normal operation expects both PVs in the LOW–HIGH band.
 
 ---
 
@@ -499,30 +513,51 @@ Macros: `SYS=DUO`, `VM=66` (master VME crate), `VR=66` (router crate), `V1=66`, 
 - **MTRG** (Master Trigger, slot 7): Collects coincidence decisions, generates global trigger
 - **RTR1** (Router Trigger, slot 6): Routes local trigger signals from detectors to MTRG
 
-### Digitizer CFD Settings (from `/global/tacReceiver/basic_settings_DGS.sh`)
+### Digitizer Settings (from `/global/edm/scripts/setup_dig.sh`)
 
-DuoGe nominally runs in **CFD mode** with Mike's CFD values:
+DuoGe runs in **LED_Mode** (not CFD mode). The actual DuoGe digitizer setup script is `/global/edm/scripts/setup_dig.sh` — applied to both MDIG1 and MDIG2 on VME66. All 10 channels (0–9) are initialized to Reset; specific channels are enabled later by `setup_custom.sh`.
 
-| Parameter      | PV suffix             | Value  | Notes                             |
-|----------------|-----------------------|--------|-----------------------------------|
-| CFD mode       | `cfd_mode`            | CFD_Mode | Applied to MDIG1, MDIG2          |
-| p1 window      | `p1_window{CH}`       | 0.07   | Peaking time 1                    |
-| p2 window      | `p2_window{CH}`       | 0.05   | Peaking time 2                    |
-| m window       | `m_window{CH}`        | 3.5    | Measurement window                |
-| k0 window      | `k0_window{CH}`       | 0.56   | CFD delay                         |
-| k window       | `k_window{CH}`        | 0.2    | Fixed                             |
-| d window       | `d_window{CH}`        | 0.06   | Fixed                             |
-| d3 window      | `d3_window{CH}`       | 0.2    |                                   |
-| CFD fraction   | `CFD_fraction{CH}`    | 25     | %                                 |
-| Trigger polarity| `trigger_polarity{CH}`| RiseEdge |                                |
-| LED threshold  | `led_threshold{CH}`   | 30     | Used in both CFD and LED modes    |
-| Raw data delay | `raw_data_delay{CH}`  | 0.5 µs |                                   |
-| Raw data length| `raw_data_length{CH}` | 0.32 µs| Trace length (minimum)            |
-| Veto enable    | `veto_enable`         | 0      | Veto disabled                     |
+> ⚠️ `/global/tacReceiver/basic_settings_DGS.sh` is **NOT** the DuoGe script — it targets VME01–VME12 (full 110-detector Gammasphere). Do not confuse it with `setup_dig.sh`.
 
-Channels configured: **5–9** (via `basic_settings_DGS.sh`). Applied to both MDIG1 and MDIG2.
+**Global digitizer settings (applied to MDIG1 and MDIG2):**
 
-> ℹ️ `basic_settings_DGS.sh` also sets `master_fifo_reset` to `reset` then `run`, and enables `CS_Ena`. It does **not** call `master_logic_enable Enable` (that is commented out — done separately at run start).
+| Parameter | PV suffix | Value | Notes |
+|-----------|-----------|-------|-------|
+| Trigger mux | `trigger_mux_select` | ExtTTCL | External TTCL trigger |
+| CFD mode | `cfd_mode` | LED_Mode | Leading-edge discriminator |
+| Peak sensitivity | `peak_sensitivity` | 3 | |
+| Coincidence window min | `win_comp_min` | -6.30 | Overridden to -7.60 by setup_custom.sh |
+| Coincidence window max | `win_comp_max` | -5.50 | Overridden to -6.60 by setup_custom.sh |
+| Holdoff time | `holdoff_time` | 1.50 µs | Overridden to 1.2 by setup_custom.sh |
+| Veto enable | `veto_enable` | Disabled | Overridden to Enabled by setup_custom.sh |
+
+**Per-channel settings (all 10 channels, then overridden per-channel by setup_custom.sh):**
+
+| Parameter | PV suffix | Value | Notes |
+|-----------|-----------|-------|-------|
+| Channel enable | `channel_enable{CH}` | Reset | All off; setup_custom.sh enables 0,1,5,6 |
+| Trigger TS mode | `trig_ts_mode{CH}` | TrigMsg | |
+| p1 window | `p1_window{CH}` | 0.07 µs | Peaking time 1 |
+| p2 window | `p2_window{CH}` | 0.05 µs | Peaking time 2 |
+| m window | `m_window{CH}` | 3.5 µs | Measurement window |
+| k0 window | `k0_window{CH}` | 0.5 µs | LED mode (CFD mode uses 0.56) |
+| k window | `k_window{CH}` | 0.5 µs | LED mode (CFD mode uses 0.16) |
+| d window | `d_window{CH}` | 0.10 µs | LED mode (CFD mode uses 0.1) |
+| d3 window | `d3_window{CH}` | 0.2 µs | |
+| LED threshold | `led_threshold{CH}` | 50 | Per-channel overrides in setup_custom.sh |
+| Raw data delay | `raw_data_delay{CH}` | 0.25 µs | |
+| Raw data length | `raw_data_length{CH}` | 0.32 µs | Trace length |
+| Downsample factor | `downsample_factor{CH}` | 1x | |
+| Coarse threshold | `coarse_threshold{CH}` | 100 | |
+| Trigger polarity | `trigger_polarity{CH}` | RiseEdge | Overridden per-channel by setup_custom.sh |
+| Pileup mode | `pileup_mode{CH}` | Accept | GeC ch5/6 set to Reject by setup_custom.sh |
+| Preamp reset delay en | `preamp_reset_delay_en{CH}` | Enabled | |
+| Preamp reset delay | `preamp_reset_delay{CH}` | 45 | |
+| Disc width | `disc_width{CH}` | 0.15 µs | |
+
+✅ verified 2026-04-30 — `/global/edm/scripts/setup_dig.sh`
+
+> ℹ️ `setup_dig.sh` resets all channels, then `setup_custom.sh` selectively enables ch0, ch1 (BGO) and ch5, ch6 (GeC), sets per-channel trigger polarity and pileup modes, and overrides win_comp/holdoff values.
 
 ### Run-Start Digitizer Enable Sequence (from `/global/receiver/start_run.sh`)
 
@@ -570,9 +605,11 @@ Clean/dirty source options (from `RTrigUser.template`):
 | 4     | MODULE      |
 | 0     | DISCBITS    |
 
-❓ QUESTION FOR RYAN: What multiplicity threshold value is used for DuoGe? (Ge-Ge coincidence, or singles?)
+**RESOLVED (2026-04-30):** `setup_custom.sh` confirms:
+- **Multiplicity threshold:** `reg_SUM_OF_X_THRESH = 1` → any single Ge detector hit triggers (singles mode, not coincidence)
+- **Clean/dirty source:** X_SELECT=CLEAN (GeC channels in X-plane XMAP), Y_SELECT=DISCBITS (from `setup_trig.sh`, not overridden)
 
-❓ QUESTION FOR RYAN: What are the clean/dirty source settings for the MTRG in DuoGe running?
+> ✅ verified 2026-04-30 — `/global/edm/scripts/setup_custom.sh`
 
 ### Trigger System Initialization — SERDES Linkup
 
@@ -635,7 +672,61 @@ After SERDES linkup, `/global/edm/scripts/setup_trig.sh` configures the trigger 
 EN_MAN_AUX=off, EN_SUM_X=off, EN_SUM_Y=off, EN_SUM_XY=off
 EN_ALGO5=off, EN_LINK_L=off, EN_LINK_R=off, EN_MYRIAD_LINK_U=off
 ```
-> ❓ QUESTION FOR RYAN: Which MTRG trigger enables are turned on for DuoGe runs? (The setup_trig.sh turns all off as baseline; actual run enables must be set afterward.)
+
+**DuoGe Run Enables — set by `/global/edm/scripts/setup_custom.sh`** (run after `setup_trig.sh`):
+
+Only **EN_SUM_X** is enabled for DuoGe runs:
+
+```bash
+caput VME66:MTRG:EN_SUM_X 1           # Enable BGO sum-X trigger
+caput VME66:MTRG:reg_SUM_OF_X_THRESH 1  # Threshold = 1 (any BGO hit triggers)
+caput VME66:RTR1:X_SELECT CLEAN       # X source = clean multiplicity
+```
+
+All other trigger sources (EN_SUM_Y, EN_SUM_XY, EN_MAN_AUX, EN_ALGO5, links) remain **OFF**.
+
+> ✅ RESOLVED — `/global/edm/scripts/setup_custom.sh` (confirmed 2026-04-30)
+
+**Router XMAP assignments (from setup_custom.sh):**
+
+| Map entry | Value | Meaning |
+|-----------|-------|---------|
+| XMAP_A_0 | 0 | Ch0 (BGO) excluded from X-plane |
+| XMAP_A_1 | 0 | Ch1 (BGO) excluded from X-plane |
+| XMAP_A_5 | 1 | Ch5 (GeC) included in X-plane |
+| XMAP_A_6 | 1 | Ch6 (GeC) included in X-plane |
+| XMAP_C_0 | 0 | Ch0 excluded from C-plane |
+| XMAP_C_1 | 0 | Ch1 excluded from C-plane |
+| XMAP_C_5 | 0 | Ch5 excluded from C-plane |
+| XMAP_C_6 | 0 | Ch6 excluded from C-plane |
+| OVERLAP_DELAY | 50 | 50 × 20 ns = 1 µs (overrides setup_trig.sh value of 25) |
+| ASSERTION_DELAY | 30 | 30 × 20 ns = 600 ns (overrides setup_trig.sh value of 20) |
+
+> ℹ️ Note: BGO channels (ch0/ch1) are excluded from the X-plane XMAP even though X_SELECT=CLEAN and EN_SUM_X=1. The "clean" multiplicity counts only GeC channels (ch5/ch6). BGO signals provide the DISCBITS for Y-plane routing but do **not** directly trigger MTRG in DuoGe.
+
+**Digitizer settings (from setup_custom.sh):**
+
+| PV | Value | Notes |
+|----|-------|-------|
+| `VME66:MDIG1:win_comp_min` | -7.60 | LED mode coincidence window min |
+| `VME66:MDIG1:win_comp_max` | -6.60 | LED mode coincidence window max |
+| `VME66:MDIG1:led_threshold0` | 120 | BGO ch0 LED threshold |
+| `VME66:MDIG1:led_threshold1` | 120 | BGO ch1 LED threshold |
+| `VME66:MDIG1:led_threshold5` | 50 | GeC ch5 LED threshold |
+| `VME66:MDIG1:led_threshold6` | 50 | GeC ch6 LED threshold |
+| `VME66:MDIG1:trigger_polarity0` | FallEdge | BGO ch0 triggers on falling edge |
+| `VME66:MDIG1:trigger_polarity1` | FallEdge | BGO ch1 triggers on falling edge |
+| `VME66:MDIG1:trigger_polarity5` | RiseEdge | GeC ch5 triggers on rising edge |
+| `VME66:MDIG1:trigger_polarity6` | RiseEdge | GeC ch6 triggers on rising edge |
+| `VME66:MDIG1:pileup_mode5` | Reject | Pileup rejection for GeC ch5 |
+| `VME66:MDIG1:pileup_mode6` | Reject | Pileup rejection for GeC ch6 |
+| `VME66:MDIG1:veto_enable` | Enabled | Veto logic enabled |
+| `VME66:MDIG1:peak_sensitivity` | 3 | Peak finding sensitivity |
+| `VME66:MDIG1:holdoff_time` | 1.2 | Holdoff time (µs) |
+
+> ℹ️ MDIG2 has identical settings. BGO channels use falling-edge polarity (inverted signal from SBX); GeC channels use rising-edge.
+
+✅ verified 2026-04-30 — `/global/edm/scripts/setup_custom.sh`
 
 **NIM Input/Output:**
 
@@ -933,7 +1024,7 @@ A PyQt6 live-display GUI is available at `/global/tacReceiver/Guceiver/Guceiver.
 
 > ⚠️ **DuoGe GS detector numbers — CONFLICT:** The live setup scripts on tangerine (`setup_HV.sh`, `setup_sbx.sh`, `setup_dig.sh` in `/global/edm/scripts/`) configure **GS033 and GS091**, while the analysis software (`analyzer.cpp:L32-33`) hardcodes `detX=70` (GS070) and `detY=62` (GS062). These may represent different run configurations or the analyzer may be stale. `findMapping.sh` would query live EPICS PVs to generate the actual current channel map. Ask Ryan which detector pair is currently installed.
 
-> Cross-reference: `dgs_analysis.md` — full DGS analysis tools (fastEventConstructor, parquet_pysort, gray_apps)
+> Cross-reference: [dgs_analysis.md](dgs_analysis.md) — full DGS analysis tools (fastEventConstructor, parquet_pysort, gray_apps)
 
 ---
 
@@ -958,15 +1049,15 @@ A PyQt6 live-display GUI is available at `/global/tacReceiver/Guceiver/Guceiver.
 
 ## See Also
 
-- `knowledgeBase/overview_DGS.md` — DGS/DuoGe system overview: machine table, network map, VME crate layout
-- `knowledgeBase/ioc.md` — IOC details: boot scripts, startup sequence, DB templates, VxWorks shell
-- `knowledgeBase/fpga.md` — FPGA firmware overview: BUILD_TYPE map, firmware versions, programming flow
-- `knowledgeBase/collectorboxpi_commissioning.md` — Collector box Pi commissioning steps
-- `knowledgeBase/run_procedures.md` — Standard run procedures for DGS experiments
-- `knowledgeBase/trig_setup_scripts.md` — Trigger setup scripts (`basic_settings_DGS.sh` and related)
-- `knowledgeBase/DUO_PVs.md` — DuoGe system PV list
-- `knowledgeBase/dgs_analysis.md` — Full DGS analysis tools (fastEventConstructor, parquet_pysort, gray_apps)
-- `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiver / dgsReceiver documentation
-- `knowledgeBase/ANLDAQ_commander.md` — ANLDAQ run control GUI (commander.py)
-- `knowledgeBase/ANLDAQ_gui_internals.md` — ANLDAQ GUI internals: PV widgets, class_Board, gui_DataTaking, gui_GS, gui_MTRG, Guceiver classes
-- `knowledgeBase/overview_SmallSystem.md` — DuoGe and X-Array small system architecture overview
+- [overview_DGS.md](overview_DGS.md) — DGS/DuoGe system overview: machine table, network map, VME crate layout
+- [ioc.md](ioc.md) — IOC details: boot scripts, startup sequence, DB templates, VxWorks shell
+- [fpga.md](fpga.md) — FPGA firmware overview: BUILD_TYPE map, firmware versions, programming flow
+- [collectorboxpi_commissioning.md](collectorboxpi_commissioning.md) — Collector box Pi commissioning steps
+- [run_procedures.md](run_procedures.md) — Standard run procedures for DGS experiments
+- [trig_setup_scripts.md](trig_setup_scripts.md) — Trigger setup scripts (`basic_settings_DGS.sh` and related)
+- [DUO_PVs.md](DUO_PVs.md) — DuoGe system PV list
+- [dgs_analysis.md](dgs_analysis.md) — Full DGS analysis tools (fastEventConstructor, parquet_pysort, gray_apps)
+- [ANLDAQ_tcpReceiver.md](ANLDAQ_tcpReceiver.md) — tcpReceiver / dgsReceiver documentation
+- [ANLDAQ_commander.md](ANLDAQ_commander.md) — ANLDAQ run control GUI (commander.py)
+- [ANLDAQ_gui_internals.md](ANLDAQ_gui_internals.md) — ANLDAQ GUI internals: PV widgets, class_Board, gui_DataTaking, gui_GS, gui_MTRG, Guceiver classes
+- [overview_SmallSystem.md](overview_SmallSystem.md) — DuoGe and X-Array small system architecture overview

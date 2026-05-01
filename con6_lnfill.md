@@ -294,9 +294,11 @@ LNHx-yy  <hole>  <thresh>  AUTO      OK       400   0.3  380  300  500  50  42  
 
 ## Cross-References
 
-- `lnfill.md` — LN2 fill system: valves, fill types, cron jobs, Discord alerts, ops procedures
-- `lnfill_ioc.md` — Deep internals: ln2con IOC boot tree, hose→detID mapping, InfluxDB data flow, DetMan.py state machine
-- `hardware_architecture.md` — System overview including ln2con/lnfill IOC in the network map
+- [`lnfill.md`](lnfill.md) — LN2 fill system: valves, fill types, cron jobs, Discord alerts, ops procedures
+- [`lnfill_ioc.md`](lnfill_ioc.md) — Deep internals: ln2con IOC boot tree, hose→detID mapping, InfluxDB data flow, DetMan.py state machine
+- [`hardware_architecture.md`](hardware_architecture.md) — System overview including ln2con/lnfill IOC in the network map
+- [`analog_gammasphere.md`](analog_gammasphere.md) — Analog GS DAQ era — the era whose source code and toolchain live on con6
+- [`vxworks.md`](vxworks.md) — VxWorks build system overview (DAQ side); context for the lnfill VxWorks IOC architecture
 - `DGS_tools_pack/ln2con/Plan.md` — Full ln2con recovery plan with archived file list
 - `DGS_tools_pack/ln2con/Con6_Inventory.md` — Complete con6 directory survey
 - `DGS_tools_pack/ln2con/Con6_Retirement_Plan.md` — Step-by-step migration plan
