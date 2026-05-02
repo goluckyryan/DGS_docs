@@ -47,7 +47,7 @@ The `Pre_EPICS_Collector/` directory contains standalone C programs that run on 
 1. `ALL_power_OFF` — cut all SBX power
 2. `Scan_Collector_FPGAs` → `SCAN_OUTPUT_1_COLL_<BOX>.txt`
 3. `Scan_DVI_Power` → `SCAN_OUTPUT_2_POWER_<BOX>.txt`
-4. `Scan_DVI_Comms` → `SCAN_OUTPUT_3_COMM_<BOX>.txt` ← this feeds `GenerateCmdFile.py`
+4. `Scan_DVI_Comms` → `SCAN_OUTPUT_3_COMM_<BOX>.txt` ← this feeds `GenerateCmdFile.py` (see [collectorboxpi.md](collectorboxpi.md) for IOC database generation)
 
 ---
 
@@ -63,8 +63,8 @@ Full sequence executed:
 3. `./ALL_power_OFF` — cut power to all SBXs on all stripes
 4. `sleep 5` — allow power to fully discharge
 5. `./Scan_DVI_Power` — scan 48V power state per DVI cable; exit code 0 = all OK, exit 148 (= C exit 404 mod 256) = cables not usable
-6. `./Scan_DVI_Comms` — scan DVI communications; reads SBID from pickoff address; generates `SCAN_OUTPUT_3_COMM_<BOX>.txt`
-7. `./GenerateCmdFile.py` — re-generate `st_20x.cmd` and `softIOC_<N>_settings.req` from scan output
+6. `./Scan_DVI_Comms` — scan DVI communications; reads SBID from [pickoff card](pickoff_card_fpga.md) address; generates `SCAN_OUTPUT_3_COMM_<BOX>.txt`
+7. `./GenerateCmdFile.py` — re-generate `st_20x.cmd` and `softIOC_<N>_settings.req` from scan output (see [collectorboxpi.md](collectorboxpi.md))
 8. `systemctl start softIOC.service` — restart IOC with new configuration
 
 Note: `Scan_Collector_FPGAs` is optional (commented out) — use when Stripe FPGA reachability is in question.
@@ -81,12 +81,12 @@ Note: `Scan_Collector_FPGAs` is optional (commented out) — use when Stripe FPG
 | `Dump_EEPROMs` | Reads and dumps preamp EEPROM contents to screen |
 | `Dump_Preamp_EEPROM` | Reads preamp and dongle EEPROM data for a specific cable |
 | `Scan_Collector_FPGAs` | Tests communication with all Stripe FPGAs; generates SCAN_OUTPUT_1 |
-| `Scan_DVI` | Scans DVI power with per-stripe enable; reads Slope Box ID and Dongle ID |
-| `Scan_DVI_Comms` | Scans DVI comms; reads SBID from pickoff address; generates SCAN_OUTPUT_3 |
+| `Scan_DVI` | Scans DVI power with per-stripe enable; reads [Slope Box](sbx.md) ID and Dongle ID |
+| `Scan_DVI_Comms` | Scans DVI comms; reads SBID from [pickoff card](pickoff_card_fpga.md) address; generates SCAN_OUTPUT_3 |
 | `Scan_DVI_Comms_No_Reg_Writes` | Same as above but without writing to FPGA registers |
 | `Scan_DVI_Grounding` | Scans DVI grounding / ground fault status |
 | `Scan_DVI_Power` | Scans 48V power state per DVI cable; generates SCAN_OUTPUT_2 |
-| `Scan_DVI_Power_with_SBID` | Same as above + reads Slope Box IDs |
+| `Scan_DVI_Power_with_SBID` | Same as above + reads [Slope Box](sbx.md) IDs |
 | `Test_Port_Comms` | Interactive: select channel, enable power, do SPI I/O — for debugging |
 | `TurnOnAllConnected` | Turns on power to all connected cables from a turn-on data file |
 | `Write_to_DPRAM` | Reads a data file and writes it to the DPRAM of a specified SBX |
@@ -383,7 +383,7 @@ Two related DVI cable scan utilities (616L and 714L respectively).
    - Block-reads DPRAM bank 512 (128 words) = dongle EEPROM. Same 0-count/FFFF-count validity check.
 4. **Output file:** `SCAN_OUTPUT_3_COMM_<BOX>.txt` — 17-column TSV with all original POWER columns plus: `COMM_OK`, `SBOX_OK`, `SBOX_ID`, `DNG_OK`, `DNG_ID`, `PA_EE_OK`, `DNG_EE_OK`, `GE_HV_NAMEPLATE`, `GE_HV_OPERATING`, `GE_PREFIX`, `GE_ID`, `GE_TYPE`.
 
-**This output is the primary input to `GenerateCmdFile.py`** (the EPICS IOC database generator).
+**This output is the primary input to `GenerateCmdFile.py`** (the EPICS IOC database generator — see [collectorboxpi.md](collectorboxpi.md)).
 
 **SPI speed:** Hard-coded `SPI1_setup(1, 249)` — very slow (~500 kHz) for cable scan reliability over long DVI harnesses.
 
@@ -420,7 +420,7 @@ Two related DVI cable scan utilities (616L and 714L respectively).
 
 ### 5.15 `Scan_DVI_Power_with_SBID.c`
 
-(594 lines) — **Extended power scan that also reads Slope Box IDs and Dongle IDs.** Functionally a superset of `Scan_DVI_Power.c`: performs the same per-cable power-on, current measurement, and `Cable_usable` determination, **plus** for each populated cable reads:
+(594 lines) — **Extended power scan that also reads [Slope Box](sbx.md) IDs and Dongle IDs.** Functionally a superset of `Scan_DVI_Power.c`: performs the same per-cable power-on, current measurement, and `Cable_usable` determination, **plus** for each populated cable reads:
 - `SBOX_ID` from SBX DPRAM address 28 (bits 7:0) via `Do_Banked_SPI1_transaction(SPI_READ, cable, 28, 0)`
 - `DONGLE_ID` from DPRAM address 641
 
@@ -432,11 +432,11 @@ Two related DVI cable scan utilities (616L and 714L respectively).
 
 ## 6. Cross-References
 
-- `knowledgeBase/collectorboxpi.md` — Parent: EPICS soft IOC overview, database templates, HV control, PXE boot
-- `knowledgeBase/collector_fpga.md` — CtrlFPGA + StripeFPGA firmware (the hardware these programs talk to)
-- `knowledgeBase/collector_ctrlFPGA_registers.md` — CtrlFPGA register map (141 registers): pulsed_control mask, FPGA_CTL_REG bits, ADC monitoring layout — the register space these Pre_EPICS programs access via DPRAM bank 1
-- `knowledgeBase/collector_box_fpga.md` — ControlStripe + CtlFanout FPGAs (PSG SVN origin)
-- `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support: SPI driver, CAMAC_IO link (Pi IOC side)
-- `knowledgeBase/sbx.md` — SBX hardware: GS_ID dongle, BGO HV, pickoff card; dongle ID format
+- [collectorboxpi.md](collectorboxpi.md) — Parent: EPICS soft IOC overview, database templates, HV control, PXE boot
+- [collector_fpga.md](collector_fpga.md) — CtrlFPGA + StripeFPGA firmware (the hardware these programs talk to)
+- [collector_ctrlFPGA_registers.md](collector_ctrlFPGA_registers.md) — CtrlFPGA register map (141 registers): pulsed_control mask, FPGA_CTL_REG bits, ADC monitoring layout — the register space these Pre_EPICS programs access via DPRAM bank 1
+- [collector_box_fpga.md](collector_box_fpga.md) — ControlStripe + CtlFanout FPGAs (PSG SVN origin)
+- [collectorbox_devicesupport.md](collectorbox_devicesupport.md) — EPICS device support: SPI driver, CAMAC_IO link (Pi IOC side)
+- [sbx.md](sbx.md) — SBX hardware: GS_ID dongle, BGO HV, pickoff card; dongle ID format
 
 *Created: 2026-04-26 | Split from collectorboxpi.md | Last reviewed: 2026-04-27*

@@ -153,6 +153,6 @@ sudo apt-get install flex libfl-dev
 
 ## Cross-References
 
-- `knowledgeBase/vxworks.md` — VxWorks cross-compilation: full build pipeline, directory structure, munch process
-- `knowledgeBase/ioc.md` — IOC config and boot scripts that load the compiled VxWorks image
-- `knowledgeBase/DGS_SVN.md` — SVN archive: `VxWorksDocs/` reference docs, `jta_notes_20200501.txt` migration context
+- [`vxworks.md`](vxworks.md) — VxWorks cross-compilation: full build pipeline, directory structure, munch process
+- [`ioc.md`](ioc.md) — IOC config and boot scripts that load the compiled VxWorks image
+- [`DGS_SVN.md`](DGS_SVN.md) — SVN archive: `VxWorksDocs/` reference docs, `jta_notes_20200501.txt` migration context

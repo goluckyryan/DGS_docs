@@ -422,7 +422,7 @@ Pattern: `VME10:MTRG:{register}` (single MTRG in VME10)
 
 Pattern: `GS{N}_{register}` where N = GS hole number (1–110)
 EPICS CA port: part of collector box soft IOC on each Raspberry Pi
-~1,431 PVs per detector ✅ verified 2026-04-16 (see `knowledgeBase/collectorbox_PVs.md` for full list)
+~1,431 PVs per detector ✅ verified 2026-04-16 (see [collectorbox_PVs.md](collectorbox_PVs.md) for full list)
 
 ### 4a. SlopeBox / Detector Identification (SlopeBox.db)
 
@@ -585,8 +585,8 @@ _Last updated: 2026-04-19_
 
 ## Cross-References
 
-- `knowledgeBase/VME_registers.md` — VME register addresses; maps to PV names via asyn driver
-- `knowledgeBase/ioc.md` — IOC boot scripts and DB loading; how these PVs are instantiated
-- `knowledgeBase/EPICS.md` — EPICS record types used in this PV list
-- `knowledgeBase/EPICS_asyn.md` — asyn driver: how caput/caget maps to VME register reads/writes
-- `knowledgeBase/snapshot_pv.md` — snapshot_pv tools for saving/restoring PV values
+- [VME_registers.md](VME_registers.md) — VME register addresses; maps to PV names via asyn driver
+- [ioc.md](ioc.md) — IOC boot scripts and DB loading; how these PVs are instantiated
+- [EPICS.md](EPICS.md) — EPICS record types used in this PV list
+- [EPICS_asyn.md](EPICS_asyn.md) — asyn driver: how caput/caget maps to VME register reads/writes
+- [snapshot_pv.md](snapshot_pv.md) — snapshot_pv tools for saving/restoring PV values

@@ -683,25 +683,25 @@ gnome-terminal -- bash -c "telnet 192.168.203.54 2001; exec bash"
 
 ## Cross-References
 
-- `knowledgeBase/vxworks.md` — VxWorks cross-compilation: build pipeline, munch process, directory structure
-- `knowledgeBase/vxworks_migration.md` — Migration from Solaris/con6 to Ubuntu 24; all path/source fixes
-- `knowledgeBase/EPICS.md` — EPICS record types, CA tools, Python integration
-- `knowledgeBase/EPICS_asyn.md` — asyn driver: caput/caget flow, port concept, worker threads
-- `knowledgeBase/EPICS_implementation_tools.md` — DBGEN macro/substitution workflow: how `make_Substitutions.pl` + `gen_db.pl` generate new template files for new hardware
-- `knowledgeBase/EPICS_DB_templates.md` — All 8 IOC `.template` files documented: PV naming scheme, per-board instantiation, record counts
-- `knowledgeBase/EPICS_RTrig_templates.md` — RTrig EPICS DB templates deep-dive: RTrigRegisters + RTrigUser complete PV inventory (created 2026-04-25)
-- `knowledgeBase/trig_setup_scripts.md` — 5-stage trigger setup scripts (trig_setup_Stage1–5.sh); system bring-up from cold
-- `knowledgeBase/snapshot_pv.md` — PV snapshot utility (`dumpPVs.py` / `putPVs.py`) invoked by `start_run.sh`
-- `knowledgeBase/guceiver.md` — Guceiver live diagnostic GUI (waveform/spectrum/TAC-II tabs); companion to the ANLDAQ GUI
-- `knowledgeBase/VME_registers.md` — Complete VME register addresses extracted from asyn driver source
-- `knowledgeBase/IOC_cmd.md` — IOC shell commands available in DGS VxWorks IOC
-- `knowledgeBase/fpga.md` — FPGA firmware overview; firmware revisions that must match IOC boot scripts
-- `knowledgeBase/vxworks_state_machines.md` — DAQ runtime state machines (`inLoop.st`, `outLoop.st`, `MiniSender.st`); buffer pool; trigger driver summary
-- `knowledgeBase/vxworks_fifo_readout.md` — DMA buffer architecture, trigger FIFO readout, Type-F synthetic headers, FIFO index map
-- `knowledgeBase/vxworks_trigger_drivers.md` — Deep-dive into trigger asyn drivers (`asynTrigCommonDriver`, `asynTrigMasterDriver`, `asynTrigRouterDriver`); firmware type code table
-- `knowledgeBase/troubleshooting.md` — IOC connectivity issues, SYNC bit gotcha
-- `knowledgeBase/DGS_setup_guide.md` — DuoGe commissioning walkthrough (living doc): full step-by-step setup from IOC boot through data taking for the 2-detector DuoGe system on tangerine/vme66
-- `knowledgeBase/nfs_layout.md` — NFS-hosted IOC software tree on `vol2/global_32/ioc/` (boot scripts, py_scripts, dgsReceiver, dgsSoftIOC, fastEventContructor, FW_Maint, EDM screens)
+- [`vxworks.md`](vxworks.md) — VxWorks cross-compilation: build pipeline, munch process, directory structure
+- [`vxworks_migration.md`](vxworks_migration.md) — Migration from Solaris/con6 to Ubuntu 24; all path/source fixes
+- [`EPICS.md`](EPICS.md) — EPICS record types, CA tools, Python integration
+- [`EPICS_asyn.md`](EPICS_asyn.md) — asyn driver: caput/caget flow, port concept, worker threads
+- [`EPICS_implementation_tools.md`](EPICS_implementation_tools.md) — DBGEN macro/substitution workflow: how `make_Substitutions.pl` + `gen_db.pl` generate new template files for new hardware
+- [`EPICS_DB_templates.md`](EPICS_DB_templates.md) — All 8 IOC `.template` files documented: PV naming scheme, per-board instantiation, record counts
+- [`EPICS_RTrig_templates.md`](EPICS_RTrig_templates.md) — RTrig EPICS DB templates deep-dive: RTrigRegisters + RTrigUser complete PV inventory (created 2026-04-25)
+- [`trig_setup_scripts.md`](trig_setup_scripts.md) — 5-stage trigger setup scripts (trig_setup_Stage1–5.sh); system bring-up from cold
+- [`snapshot_pv.md`](snapshot_pv.md) — PV snapshot utility (`dumpPVs.py` / `putPVs.py`) invoked by `start_run.sh`
+- [`guceiver.md`](guceiver.md) — Guceiver live diagnostic GUI (waveform/spectrum/TAC-II tabs); companion to the ANLDAQ GUI
+- [`VME_registers.md`](VME_registers.md) — Complete VME register addresses extracted from asyn driver source
+- [`IOC_cmd.md`](IOC_cmd.md) — IOC shell commands available in DGS VxWorks IOC
+- [`fpga.md`](fpga.md) — FPGA firmware overview; firmware revisions that must match IOC boot scripts
+- [`vxworks_state_machines.md`](vxworks_state_machines.md) — DAQ runtime state machines (`inLoop.st`, `outLoop.st`, `MiniSender.st`); buffer pool; trigger driver summary
+- [`vxworks_fifo_readout.md`](vxworks_fifo_readout.md) — DMA buffer architecture, trigger FIFO readout, Type-F synthetic headers, FIFO index map
+- [`vxworks_trigger_drivers.md`](vxworks_trigger_drivers.md) — Deep-dive into trigger asyn drivers (`asynTrigCommonDriver`, `asynTrigMasterDriver`, `asynTrigRouterDriver`); firmware type code table
+- [`troubleshooting.md`](troubleshooting.md) — IOC connectivity issues, SYNC bit gotcha
+- [`DGS_setup_guide.md`](DGS_setup_guide.md) — DuoGe commissioning walkthrough (living doc): full step-by-step setup from IOC boot through data taking for the 2-detector DuoGe system on tangerine/vme66
+- [`nfs_layout.md`](nfs_layout.md) — NFS-hosted IOC software tree on `vol2/global_32/ioc/` (boot scripts, py_scripts, dgsReceiver, dgsSoftIOC, fastEventContructor, FW_Maint, EDM screens)
 
 ---
 

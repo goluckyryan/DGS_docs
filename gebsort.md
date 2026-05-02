@@ -363,7 +363,7 @@ GGMAX is set via GEBSort.chat and controls the energy axis range of the cubes. T
 
 ## GEBMerge, gtReceiver, GEBClient, dmpdata
 
-Documented in: **`knowledgeBase/gebsort_merge_receive.md`**
+Documented in: **[gebsort_merge_receive.md](gebsort_merge_receive.md)**
 
 Covers: GEBMerge (N-way timestamp-merge), gtReceiver4 (DAQ-side GEB writer), GEBClient (VxWorks IOC → GEB sender), dmpdata (GEB file dump utility).
 
@@ -578,7 +578,7 @@ Both read the same GEB binary files. For DGS exp2008_Chiara, parquet_pysort is t
 
 ## GRETINA-Specific and Additional Detector Sorters
 
-Documented in: **`knowledgeBase/gebsort_additional_sorters.md`**
+Documented in: **[gebsort_additional_sorters.md](gebsort_additional_sorters.md)**
 
 Covers: `bin_angcor_GT`, `bin_DCO_GT`, `bin_g4sim`, `bin_gtcal`, `bin_ft`, `bin_final`, `bin_tac2`, `bin_dub`, `bin_XA`, `bin_dfma`, `bin_angdis`, `bin_ndc`, `bin_mux`, `bin_s800`, `bin_linpol`, `bin_mode3`.
 
@@ -586,20 +586,20 @@ Covers: `bin_angcor_GT`, `bin_DCO_GT`, `bin_g4sim`, `bin_gtcal`, `bin_ft`, `bin_
 ## Cross-References
 
 ### Sub-files (split from this document)
-- `knowledgeBase/gebsort_merge_receive.md` — GEBMerge, gtReceiver, GEBClient, dmpdata detail
-- `knowledgeBase/gebsort_additional_sorters.md` — GRETINA-specific + additional detector sorters (bin_tac2, bin_XA, bin_dfma, etc.)
+- [gebsort_merge_receive.md](gebsort_merge_receive.md) — GEBMerge, gtReceiver, GEBClient, dmpdata detail
+- [gebsort_additional_sorters.md](gebsort_additional_sorters.md) — GRETINA-specific + additional detector sorters (bin_tac2, bin_XA, bin_dfma, etc.)
 
 ### Related knowledge base files
-- `knowledgeBase/run_procedures.md` — Full DGS run workflow: where GEBSort fits in (PZ cal → energy cal → sort)
-- `knowledgeBase/dgs_analysis.md` — Modern alternative: fastEventConstructor (ROOT) + parquet_pysort pipeline
-- `knowledgeBase/data_structures.md` — GEB binary format: the input data format GEBSort reads
-- `knowledgeBase/pole_zero.md` — PZ correction theory; dgs_pz.cal consumed by GEBSort's bin_dgs
-- `knowledgeBase/tac2.md` — TAC-II TDC format: sorted by `bin_tac2`; TDC event packet structure
-- `knowledgeBase/ANLDAQ.md` — tcpReceiverMT produces the raw GEB files that GEBSort/GEBMerge processes
-- `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiverMT deep-dive: packet parsing, FIFO readout, GEB event assembly; contrast with gtReceiver in gebsort_merge_receive.md
-- `knowledgeBase/guceiver.md` — Guceiver live receiver GUI: live waveform/spectrum display from the same TCP data stream
-- `knowledgeBase/nfs_layout.md` — NFS paths where experiment data and GEBSort binaries live (vol4/dgs_testing/)
-- `knowledgeBase/gebsort_utilities.md` — Minor utility programs and support files (listTS, GTPrint, dtbtev, DataExtract, GEBCrop, GEBFilter, GEBSplit, GEBHeader, utils, spe_fun, tlutil, tlutil2, trig_fun, 2d_fun, etc.)
+- [run_procedures.md](run_procedures.md) — Full DGS run workflow: where GEBSort fits in (PZ cal → energy cal → sort)
+- [dgs_analysis.md](dgs_analysis.md) — Modern alternative: fastEventConstructor (ROOT) + parquet_pysort pipeline
+- [data_structures.md](data_structures.md) — GEB binary format: the input data format GEBSort reads
+- [pole_zero.md](pole_zero.md) — PZ correction theory; dgs_pz.cal consumed by GEBSort's bin_dgs
+- [tac2.md](tac2.md) — TAC-II TDC format: sorted by `bin_tac2`; TDC event packet structure
+- [ANLDAQ.md](ANLDAQ.md) — tcpReceiverMT produces the raw GEB files that GEBSort/GEBMerge processes
+- [ANLDAQ_tcpReceiver.md](ANLDAQ_tcpReceiver.md) — tcpReceiverMT deep-dive: packet parsing, FIFO readout, GEB event assembly; contrast with gtReceiver in gebsort_merge_receive.md
+- [guceiver.md](guceiver.md) — Guceiver live receiver GUI: live waveform/spectrum display from the same TCP data stream
+- [nfs_layout.md](nfs_layout.md) — NFS paths where experiment data and GEBSort binaries live (vol4/dgs_testing/)
+- [gebsort_utilities.md](gebsort_utilities.md) — Minor utility programs and support files (listTS, GTPrint, dtbtev, DataExtract, GEBCrop, GEBFilter, GEBSplit, GEBHeader, utils, spe_fun, tlutil, tlutil2, trig_fun, 2d_fun, etc.)
 
 ---
 
@@ -607,7 +607,7 @@ Covers: `bin_angcor_GT`, `bin_DCO_GT`, `bin_g4sim`, `bin_gtcal`, `bin_ft`, `bin_
 
 _Moved to [`gebsort_utilities.md`](gebsort_utilities.md) (2026-04-27 — parent file exceeded 500-line threshold)._
 
-See `knowledgeBase/gebsort_utilities.md` for all minor utility and support file documentation.
+See [gebsort_utilities.md](gebsort_utilities.md) for all minor utility and support file documentation.
 
 ---
 *Created: 2026-04-07. Source: `DGS_tools_pack/gebsort/` README + source files.*

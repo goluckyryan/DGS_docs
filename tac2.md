@@ -312,9 +312,9 @@ Result is relative timing of the NIM input signal w.r.t. the trigger timestamp. 
 
 ## Cross-References
 
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: TAC-II TDC integration; NIM IN 2 as TDC stop input
-- `knowledgeBase/fpga.md` — FPGA firmware overview: TAC-II role in the trigger system
-- `knowledgeBase/ttcl.md` — TTCL: Frame 16 carries TAC-II TDC data back to DIGs
-- `knowledgeBase/data_structures.md` — TAC-II TDC data format in GEB binary stream (type 15 = DGSTRIG)
-- `knowledgeBase/guceiver.md` — Guceiver TAC-II tab: live display of TDC values from TCP stream
-- `knowledgeBase/connectors.md` — MTRG connector pinouts: NIM IN 2 = TAC-II TDC stop input
+- [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) — MTRG Main FPGA: TAC-II TDC integration; NIM IN 2 as TDC stop input
+- [`fpga.md`](fpga.md) — FPGA firmware overview: TAC-II role in the trigger system
+- [`ttcl.md`](ttcl.md) — TTCL: Frame 16 carries TAC-II TDC data back to DIGs
+- [`data_structures.md`](data_structures.md) — TAC-II TDC data format in GEB binary stream (type 15 = DGSTRIG)
+- [`guceiver.md`](guceiver.md) — Guceiver TAC-II tab: live display of TDC values from TCP stream
+- [`connectors.md`](connectors.md) — MTRG connector pinouts: NIM IN 2 = TAC-II TDC stop input

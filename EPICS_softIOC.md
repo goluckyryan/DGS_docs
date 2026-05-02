@@ -161,10 +161,10 @@ Each exists for BGOs/BGOp/GeC/GeS (4× total for each parameter):
 
 ## See Also
 
-- `knowledgeBase/EPICS_DB_templates.md` — VME IOC template files (MDigUser, MTrigUser, dgsGlobals, etc.)
-- `knowledgeBase/ioc.md` — per-crate VME IOC PVs that receive these forwarded values
-- `knowledgeBase/ANLDAQ.md` — dgsSupport.db (setup scripts, run control) also loaded by dgsSoftIOC
-- `knowledgeBase/EPICS_implementation_tools.md` — full DFMA machine description, EPICS env, GammaWare context
-- `knowledgeBase/EPICS_asyn.md` — How asyn bridges EPICS CA to VME hardware registers (used by the VME IOCs receiving GLBL writes)
+- [EPICS_DB_templates.md](EPICS_DB_templates.md) — VME IOC template files (MDigUser, MTrigUser, dgsGlobals, etc.)
+- [ioc.md](ioc.md) — per-crate VME IOC PVs that receive these forwarded values
+- [ANLDAQ.md](ANLDAQ.md) — dgsSupport.db (setup scripts, run control) also loaded by dgsSoftIOC
+- [EPICS_implementation_tools.md](EPICS_implementation_tools.md) — full DFMA machine description, EPICS env, GammaWare context
+- [EPICS_asyn.md](EPICS_asyn.md) — How asyn bridges EPICS CA to VME hardware registers (used by the VME IOCs receiving GLBL writes)
 
 *Created: 2026-04-27. Split from EPICS_DB_templates.md.*

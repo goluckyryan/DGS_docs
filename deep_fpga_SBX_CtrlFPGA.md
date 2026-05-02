@@ -510,7 +510,7 @@ Note: Revision C and Revision B are described as "supposed to be the same" (Read
 
 - [sbx.md](sbx.md) — SBX hardware overview: slope box role, HV generation, BGO pattern/sum, GS_ID dongle, I2C opcode format, SVN location
 - [slope_box_interface.md](slope_box_interface.md) — SBX hardware overview, connector pinout, analog chain
-- [sbxPi_ioc.md](sbxPi_ioc.md) — SBX Pi standalone IOC (PickoffApp_RevC): the EPICS soft IOC that communicates with this FPGA via SPI1; CAMAC_IO device support, global mailboxes, HV ramp logic
+- [PickoffPi_ioc.md](PickoffPi_ioc.md) — SBX Pi standalone IOC (PickoffApp_RevC): the EPICS soft IOC that communicates with this FPGA via SPI1; CAMAC_IO device support, global mailboxes, HV ramp logic
 - [pickoff_card_fpga.md](pickoff_card_fpga.md) — Pickoff Card FPGA (SBX Extension RevC): companion FPGA on the pickoff card, accessed through this CtrlFPGA
 - [fpga.md](fpga.md) — FPGA firmware index across all DGS boards
 - [hardware_architecture.md](hardware_architecture.md) — system-level hardware map

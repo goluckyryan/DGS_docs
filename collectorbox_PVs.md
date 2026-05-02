@@ -1600,8 +1600,8 @@ _Total: 1,431 records_ ✅ verified 2026-04-16 — `grep -c "^record(" Collector
 
 ## Cross-References
 
-- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC that exposes these PVs; boot and build setup
-- `knowledgeBase/collector_fpga.md` — CtrlFPGA + StripeFPGA firmware; hardware behind the PVs
-- `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support: SPI driver, CAMAC_IO, conversion coefficients
-- `knowledgeBase/sbx.md` — SBX hardware; BGO HV PVs and GS_ID dongle
-- `knowledgeBase/gammasphere_geometry.md` — GS hole numbering (gsid) used in PV names
+- [collectorboxpi.md](collectorboxpi.md) — Raspberry Pi soft IOC that exposes these PVs; boot and build setup
+- [collector_fpga.md](collector_fpga.md) — CtrlFPGA + StripeFPGA firmware; hardware behind the PVs
+- [collectorbox_devicesupport.md](collectorbox_devicesupport.md) — EPICS device support: SPI driver, CAMAC_IO, conversion coefficients
+- [sbx.md](sbx.md) — SBX hardware; BGO HV PVs and GS_ID dongle
+- [gammasphere_geometry.md](gammasphere_geometry.md) — GS hole numbering (gsid) used in PV names

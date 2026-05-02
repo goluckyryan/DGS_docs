@@ -499,13 +499,16 @@ If `reg_raw_data_length = 0`, no waveform words are written and the packet ends 
 
 ## Cross-References
 
-- `knowledgeBase/deep_fpga_DIG.md` — DIG architecture, source files, signal flow, SERDES, build options
-- `knowledgeBase/deep_fpga_DIG_channel.md` — Per-channel signal processing: LED/CFD discriminator, delay chain, pileup, VME FPGA
-- `knowledgeBase/DIG_firmware_expert.md` — Expert guide: all readout modes, data format, timing, trigger_mux_select
-- `knowledgeBase/data_structures.md` — GEB binary format: DIG event packet layout
-- `knowledgeBase/pole_zero.md` — Pole-zero correction detail and register settings
-- `knowledgeBase/deep_fpga_DIG_modules.md` — DIG module analysis Part 1: `SERDES_TX_Mach_DGS.vhd`, `event_packer.vhd`, `pileup_processor.vhd`, `SERDES_RX_Mach.vhd`, `Timestamp_Generator.vhd`, `Trigger_Mux.vhd`, `Channel_Readout_Controller.vhd`, `Channel_Readout_Mach.vhd`
-- `knowledgeBase/deep_fpga_DIG_modules2.md` — DIG module analysis Part 2: `Event_Header_FIFO.vhd` (LED/CFD header FIFO, all 14 header words), `decimator.vhd` (waveform decimation/averaging, 3-state FSM, PAUSE mode), `event_data_fifo.vhd` (per-channel waveform FIFO, 32-bit packing)
+- [`deep_fpga_DIG.md`](deep_fpga_DIG.md) — DIG architecture, source files, signal flow, SERDES, build options
+- [`deep_fpga_DIG_channel.md`](deep_fpga_DIG_channel.md) — Per-channel signal processing: LED/CFD discriminator, delay chain, pileup, VME FPGA
+- [`DIG_firmware_expert.md`](DIG_firmware_expert.md) — Expert guide: all readout modes, data format, timing, trigger_mux_select
+- [`data_structures.md`](data_structures.md) — GEB binary format: DIG event packet layout
+- [`pole_zero.md`](pole_zero.md) — Pole-zero correction detail and register settings
+- [`deep_fpga_DIG_modules.md`](deep_fpga_DIG_modules.md) — DIG module analysis Part 1: `SERDES_TX_Mach_DGS.vhd`, `event_packer.vhd`, `pileup_processor.vhd`, `SERDES_RX_Mach.vhd`, `Timestamp_Generator.vhd`, `Trigger_Mux.vhd`, `Channel_Readout_Controller.vhd`, `Channel_Readout_Mach.vhd`
+- [`deep_fpga_DIG_modules2.md`](deep_fpga_DIG_modules2.md) — DIG module analysis Part 2: `Event_Header_FIFO.vhd` (LED/CFD header FIFO, all 14 header words), `decimator.vhd` (waveform decimation/averaging, 3-state FSM, PAUSE mode), `event_data_fifo.vhd` (per-channel waveform FIFO, 32-bit packing)
+- [`preamp_reset_readme.md`](preamp_reset_readme.md) — Preamp reset (PRK) detection logic, blanking timing, BGO veto gate, and `PARST` timestamp fields; explains `TS_OF_LAST_PREAMP_RESET` context
+- [`ttcl.md`](ttcl.md) — TTCL spec: full frame-by-frame breakdown of the 20-frame command structure; defines `TS_OF_TRIGGER` arrival and trigger type encoding
+- [`ANLDAQ.md`](ANLDAQ.md) — DAQ software: `class_DIG.h` unpacks the event packet header fields documented here
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Dig*/` — VHDL source. PDF: `ANL Digitizer Firmware for Experts.pdf`. Split from `deep_fpga_DIG.md`: 2026-04-16.*

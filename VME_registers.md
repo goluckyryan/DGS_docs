@@ -669,8 +669,8 @@ VMERead32(0, 0x0600)
 
 ## See Also
 
-- `knowledgeBase/reference_index.md` — CSV-based register maps (from Excel spreadsheets with VBA); higher-level register groups and field descriptions. Use for register names → field meanings.
-- `knowledgeBase/EPICS_asyn.md` — How asyn driver translates EPICS caput/caget into VME reads/writes
-- `knowledgeBase/ioc.md` — IOC startup configuration; board cardno assignments (which cardno maps to which physical slot)
-- `knowledgeBase/deep_fpga_DIG.md`, `knowledgeBase/deep_fpga_MTRG_MAIN.md`, `knowledgeBase/deep_fpga_RTRG.md` — FPGA firmware context for what each register does
-- `knowledgeBase/IOC_cmd.md` — `VMERead32`/`VMEWrite32` VxWorks shell commands for direct register access
+- [reference_index.md](reference_index.md) — CSV-based register maps (from Excel spreadsheets with VBA); higher-level register groups and field descriptions. Use for register names → field meanings.
+- [EPICS_asyn.md](EPICS_asyn.md) — How asyn driver translates EPICS caput/caget into VME reads/writes
+- [ioc.md](ioc.md) — IOC startup configuration; board cardno assignments (which cardno maps to which physical slot)
+- [deep_fpga_DIG.md](deep_fpga_DIG.md), [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md), [deep_fpga_RTRG.md](deep_fpga_RTRG.md) — FPGA firmware context for what each register does
+- [IOC_cmd.md](IOC_cmd.md) — `VMERead32`/`VMEWrite32` VxWorks shell commands for direct register access

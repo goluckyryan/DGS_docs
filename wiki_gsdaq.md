@@ -208,8 +208,8 @@ Stability: C1 - Operational / volatile
 
 ## Cross-References
 
-- `knowledgeBase/overview_DGS.md` — Full Gammasphere system overview (primary reference, more detailed than wiki)
-- `knowledgeBase/hardware_architecture.md` — Hardware breakdown; expands on wiki's system overview
-- `knowledgeBase/collectorboxpi.md` — Collector box Pi IOC; expands on wiki's collector box page
-- `knowledgeBase/troubleshooting.md` — DGS troubleshooting; sourced from wiki's problems page + operational experience
-- `knowledgeBase/run_procedures.md` — Typical run procedures; expands on wiki's run procedures page
+- [overview_DGS.md](overview_DGS.md) — Full Gammasphere system overview (primary reference, more detailed than wiki)
+- [hardware_architecture.md](hardware_architecture.md) — Hardware breakdown; expands on wiki's system overview
+- [collectorboxpi.md](collectorboxpi.md) — Collector box Pi IOC; expands on wiki's collector box page
+- [troubleshooting.md](troubleshooting.md) — DGS troubleshooting; sourced from wiki's problems page + operational experience
+- [run_procedures.md](run_procedures.md) — Typical run procedures; expands on wiki's run procedures page

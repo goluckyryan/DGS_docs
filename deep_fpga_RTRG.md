@@ -393,21 +393,21 @@ Each Router sends one 132-bit word to the MTRG per trigger cycle (2 µs), one wo
 
 ## See Also
 
-- `knowledgeBase/fpga.md` — System-level overview: trigger hierarchy, throttle mechanism, SERDES link summary
-- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware: upstream multiplicity bits the RTRG receives, downstream command frames DIG acts on
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG firmware: trigger algorithms consuming RTRG multiplicity data
-- `knowledgeBase/ttcl.md` — TTCL: frame 12 (inter-trigger) and frame 14 (remote trigger) that RTRG replaces with null before forwarding to DIG
-- `knowledgeBase/connectors.md` — RTRG connector pinouts: 125-pin SERDES links, NIM I/O, CPLD ribbons
-- `knowledgeBase/260E_trigger_scheme.md` — Deep dive into RTRG 0x260E trigger scheme: `chan_in.vhd` serial reception + bit alignment, `router_data_path.vhd` multiplicity aggregation, X/Y plane maps, Link-L output format; verified against VHDL source
-- `knowledgeBase/vhdl/RTRG_chan_in.md` — `chan_in.vhd` plain-English analysis: 18-bit SERDES word decoding, 640 ns DPRAM delay alignment, discriminator bit extraction, CLEAN_DIRTY register modes
-- `knowledgeBase/vhdl/RTRG_disc_mach.md` — `disc_mach.vhd` analysis: discriminator classifier (clean/dirty/BGO-only), event tagging logic
-- `knowledgeBase/vhdl/RTRG_overlap_mach.md` — `overlap_mach.vhd` analysis: generic 2-input coincidence window detector — answers "did SIG_A and SIG_B both fire within OVERLAP_DELAY clocks?" (one-tick OVERLAP_OCCURRED output); ⚠️ NOT instantiated in RTRG (disc_mach.vhd has equivalent logic inlined) — module exists in source tree but is unused ✅ verified 2026-04-25
-- `knowledgeBase/vhdl/RTRG_support_modules.md` — overlap_machine, throttle_monos, throttle_limiters, channel_resets, Plane_bit_count: coincidence detection, throttle monostable stretchers (2 µs/rank-cascaded limiter), per-channel pipeline reset, 1024-entry popcount LUT
-- `knowledgeBase/vhdl/RTRG_router_data_path.md` — `router_data_path.vhd` analysis: Link-L multiplicity aggregation, data forwarding to MTRG
-- `knowledgeBase/vhdl/RTRG_top.md` — `TOP.VHD` analysis: top-level RTRG block wiring, port map, all sub-module instantiation
-- `knowledgeBase/vxworks_trigger_drivers.md` — VxWorks IOC trigger asyn drivers: `asynTrigRouterDriver` (RTRG, 188 params, ftype=6), firmware type code table, shared poll/VME mutex infrastructure
-- `knowledgeBase/vxworks_state_machines.md` — VxWorks state machines: inLoop/outLoop/MiniSender pipeline; trigger driver overview (summary level)
-- `knowledgeBase/multi_system_linking.md` — Cross-system clock/trigger sharing; RTRG LINK_LRU_CTL_REG (0x83C) DEN/REN/SYNC bits are the key per-system interlock for multi-system setups
+- [fpga.md](fpga.md) — System-level overview: trigger hierarchy, throttle mechanism, SERDES link summary
+- [deep_fpga_DIG.md](deep_fpga_DIG.md) — DIG firmware: upstream multiplicity bits the RTRG receives, downstream command frames DIG acts on
+- [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — MTRG firmware: trigger algorithms consuming RTRG multiplicity data
+- [ttcl.md](ttcl.md) — TTCL: frame 12 (inter-trigger) and frame 14 (remote trigger) that RTRG replaces with null before forwarding to DIG
+- [connectors.md](connectors.md) — RTRG connector pinouts: 125-pin SERDES links, NIM I/O, CPLD ribbons
+- [260E_trigger_scheme.md](260E_trigger_scheme.md) — Deep dive into RTRG 0x260E trigger scheme: `chan_in.vhd` serial reception + bit alignment, `router_data_path.vhd` multiplicity aggregation, X/Y plane maps, Link-L output format; verified against VHDL source
+- [vhdl/RTRG_chan_in.md](vhdl/RTRG_chan_in.md) — `chan_in.vhd` plain-English analysis: 18-bit SERDES word decoding, 640 ns DPRAM delay alignment, discriminator bit extraction, CLEAN_DIRTY register modes
+- [vhdl/RTRG_disc_mach.md](vhdl/RTRG_disc_mach.md) — `disc_mach.vhd` analysis: discriminator classifier (clean/dirty/BGO-only), event tagging logic
+- [vhdl/RTRG_overlap_mach.md](vhdl/RTRG_overlap_mach.md) — `overlap_mach.vhd` analysis: generic 2-input coincidence window detector — answers "did SIG_A and SIG_B both fire within OVERLAP_DELAY clocks?" (one-tick OVERLAP_OCCURRED output); ⚠️ NOT instantiated in RTRG (disc_mach.vhd has equivalent logic inlined) — module exists in source tree but is unused ✅ verified 2026-04-25
+- [vhdl/RTRG_support_modules.md](vhdl/RTRG_support_modules.md) — overlap_machine, throttle_monos, throttle_limiters, channel_resets, Plane_bit_count: coincidence detection, throttle monostable stretchers (2 µs/rank-cascaded limiter), per-channel pipeline reset, 1024-entry popcount LUT
+- [vhdl/RTRG_router_data_path.md](vhdl/RTRG_router_data_path.md) — `router_data_path.vhd` analysis: Link-L multiplicity aggregation, data forwarding to MTRG
+- [vhdl/RTRG_top.md](vhdl/RTRG_top.md) — `TOP.VHD` analysis: top-level RTRG block wiring, port map, all sub-module instantiation
+- [vxworks_trigger_drivers.md](vxworks_trigger_drivers.md) — VxWorks IOC trigger asyn drivers: `asynTrigRouterDriver` (RTRG, 188 params, ftype=6), firmware type code table, shared poll/VME mutex infrastructure
+- [vxworks_state_machines.md](vxworks_state_machines.md) — VxWorks state machines: inLoop/outLoop/MiniSender pipeline; trigger driver overview (summary level)
+- [multi_system_linking.md](multi_system_linking.md) — Cross-system clock/trigger sharing; RTRG LINK_LRU_CTL_REG (0x83C) DEN/REN/SYNC bits are the key per-system interlock for multi-system setups
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Rtr4704*/` — VHDL source + bitfiles. Created: 2026-04-05.*

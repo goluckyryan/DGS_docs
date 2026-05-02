@@ -41,15 +41,15 @@ MTRG/
 
 ## Cross-References
 
-- `knowledgeBase/fpga.md` — FPGA system overview: DIG/RTRG/MTRG hierarchy, trigger timing
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — Main FPGA: trigger algorithms, TAC-II TDC, 20-frame command structure, VME map
-- `knowledgeBase/deep_fpga_MTRG_VIVADO.md` — Vivado port: Kintex UltraScale XCK060 version
-- `knowledgeBase/deep_fpga_MTRG_VME.md` — VME FPGA: Spartan-3, A32/D32 slave, FPGA config manager
-- `knowledgeBase/deep_fpga_MTRG_CPLD.md` — CPLD: fast strobe multiplicity logic (~1 µs latency)
-- `knowledgeBase/tac2.md` — TAC-II TDC detail: vernier interpolation, 250 MHz 4-phase clock, 64-tap delay lines
-- `knowledgeBase/ttcl.md` — TTCL spec: 20-frame command structure sent by MTRG
-- `knowledgeBase/VME_registers.md` — MTRG VME register address map
-- `knowledgeBase/connectors.md` — MTRG front panel: 125-pin SERDES, NIM I/O, CPLD ribbons
+- [fpga.md](fpga.md) — FPGA system overview: DIG/RTRG/MTRG hierarchy, trigger timing
+- [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — Main FPGA: trigger algorithms, TAC-II TDC, 20-frame command structure, VME map
+- [deep_fpga_MTRG_VIVADO.md](deep_fpga_MTRG_VIVADO.md) — Vivado port: Kintex UltraScale XCK060 version
+- [deep_fpga_MTRG_VME.md](deep_fpga_MTRG_VME.md) — VME FPGA: Spartan-3, A32/D32 slave, FPGA config manager
+- [deep_fpga_MTRG_CPLD.md](deep_fpga_MTRG_CPLD.md) — CPLD: fast strobe multiplicity logic (~1 µs latency)
+- [tac2.md](tac2.md) — TAC-II TDC detail: vernier interpolation, 250 MHz 4-phase clock, 64-tap delay lines
+- [ttcl.md](ttcl.md) — TTCL spec: 20-frame command structure sent by MTRG
+- [VME_registers.md](VME_registers.md) — MTRG VME register address map
+- [connectors.md](connectors.md) — MTRG front panel: 125-pin SERDES, NIM I/O, CPLD ribbons
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/` + `DGS_tools_pack/fpga/` (git repos on gitlab.phy.anl.gov/dgs-tools-pack). Created: 2026-04-05.*

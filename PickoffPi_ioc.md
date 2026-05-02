@@ -2,7 +2,7 @@
 
 Stability: C2 - Active / semi-stable
 
-**Source:** `DGS_tools_pack/sbxPi/PickoffApp_RevC/`  
+**Source:** `DGS_tools_pack/PickoffPi/PickoffApp_RevC/`  
 **Last updated:** 2026-04-26  
 **See also:** [`sbx.md`](sbx.md) — SBX hardware + Collector Box Pi IOC overview
 
@@ -38,7 +38,7 @@ Stability: C2 - Active / semi-stable
 
 The `PickoffApp_RevC` is a standalone EPICS soft IOC designed to run on a **Raspberry Pi mounted directly on the SBX (Slope Box Extension)** for single-detector operation. It controls and monitors one detector (GeCenter, GeSide, BGO sum/pattern, Ge HV, BGO HV, slope box ADC readbacks, power board, preamp) via direct **SPI1** communication from the Pi to the Pickoff Card FPGA.
 
-This differs from the full system where the **Collector Box Pi** IOC handles up to 28 detectors via a shared SPI bus. The sbxPi IOC is used for:
+This differs from the full system where the **Collector Box Pi** IOC handles up to 28 detectors via a shared SPI bus. The PickoffPi IOC is used for:
 - **Standalone detector operation** (e.g. G-wing lab test stand)
 - **Small system configurations** where one Pi per SBX is practical
 - **Commissioning and characterization** of individual detectors
@@ -414,13 +414,13 @@ The Ge HV is not simply written to a DAC — it is **ramped step-by-step** via a
 
 ## Relationship to Collector Box Pi IOC
 
-The `PickoffApp_RevC` (sbxPi) and the Collector Box Pi IOC (`collectorboxpi`) share the same fundamental approach:
+The `PickoffApp_RevC` (PickoffPi) and the Collector Box Pi IOC (`collectorboxpi`) share the same fundamental approach:
 - Both use `bcm2835` library for SPI
 - Both use `CAMAC_IO` link type for PVs
 - Both use the same global mailbox pattern for inter-PV state sharing
 - Key difference: `PickoffApp_RevC` has **one Pi per detector** (direct SPI); Collector Box Pi handles **up to 28 detectors** (multiplexed via Collector Box FPGA routing using GPIO `DetAddr`)
 
-The `DetAddr` (`B` field) = 0 in sbxPi PVs because there is no routing needed — the Pi is wired directly to a single Pickoff FPGA.
+The `DetAddr` (`B` field) = 0 in PickoffPi PVs because there is no routing needed — the Pi is wired directly to a single Pickoff FPGA.
 
 ---
 
@@ -434,7 +434,7 @@ The backup uses a **different `camacio` field mapping** from the current code:
 
 | Field | Backup (`PickoffSupportBackup.c`) | Current (`PickoffSupport_AI.c` etc.) |
 |-------|----------------------------------|---------------------------------------|
-| `b` | `DetAddr` — GPIO/routing byte (which detector in a collector-box scenario) | Unused in sbxPi (always 0) |
+| `b` | `DetAddr` — GPIO/routing byte (which detector in a collector-box scenario) | Unused in PickoffPi (always 0) |
 | `c` | `TransactionLength` — # of bits in SPI transaction (nominally 24) | Mode + mailbox index (e.g. `0x8096`) |
 | `n` | Combined RW flag + 7-bit address: upper byte nonzero → RW=1, lower byte = addr | 7-bit SPI register address only; RW direction hardcoded by record type |
 | `a` | AND mask for read-modify-write | AND mask (bit-field extraction) |
@@ -465,13 +465,13 @@ This file is the best single reference for **understanding the DGS Pi EPICS devi
 
 ## Cross-References
 
-- `knowledgeBase/hardware_architecture.md` — Gammasphere hardware overview; slope box and pickoff card context
-- `knowledgeBase/sbx.md` — Slope Box Extension (SBX) hardware: signal chain, BGO pattern/sum, GS_ID dongle, HV map
-- `knowledgeBase/pickoff_card_fpga.md` — Pickoff Card FPGA (SBX Extension RevC, Spartan-6): the hardware this IOC communicates with via SPI; full 128-register map, PULSED_CONTROL/FPGA_CTL bit maps
-- `knowledgeBase/deep_fpga_SBX_CtrlFPGA.md` — SBX Motherboard Control FPGA (Spartan-6): 24-bit SPI interface, 128-addr register file, I2C buses, BGO disc/DDR outputs, preamp reset clamp
-- `knowledgeBase/collectorboxpi.md` — Collector Box Pi IOC: shares same CAMAC_IO/global-mailbox/SPI pattern as sbxPi
-- `knowledgeBase/slope_box_interface.md` — SBX slope box interface; PickoffLocalSerial framework shared with sbxPi
-- `knowledgeBase/EPICS_DB_templates.md` — EPICS DB template system; same record types (ao, ai) used in DetSpec.db and HV_STEP.db
-- `knowledgeBase/collectorbox_devicesupport.md` — Device support layer; `CAMAC_IO` link type shared with sbxPi
+- [`hardware_architecture.md`](hardware_architecture.md) — Gammasphere hardware overview; slope box and pickoff card context
+- [`sbx.md`](sbx.md) — Slope Box Extension (SBX) hardware: signal chain, BGO pattern/sum, GS_ID dongle, HV map
+- [`pickoff_card_fpga.md`](pickoff_card_fpga.md) — Pickoff Card FPGA (SBX Extension RevC, Spartan-6): the hardware this IOC communicates with via SPI; full 128-register map, PULSED_CONTROL/FPGA_CTL bit maps
+- [`deep_fpga_SBX_CtrlFPGA.md`](deep_fpga_SBX_CtrlFPGA.md) — SBX Motherboard Control FPGA (Spartan-6): 24-bit SPI interface, 128-addr register file, I2C buses, BGO disc/DDR outputs, preamp reset clamp
+- [`collectorboxpi.md`](collectorboxpi.md) — Collector Box Pi IOC: shares same CAMAC_IO/global-mailbox/SPI pattern as PickoffPi
+- [`slope_box_interface.md`](slope_box_interface.md) — SBX slope box interface; PickoffLocalSerial framework shared with PickoffPi
+- [`EPICS_DB_templates.md`](EPICS_DB_templates.md) — EPICS DB template system; same record types (ao, ai) used in DetSpec.db and HV_STEP.db
+- [`collectorbox_devicesupport.md`](collectorbox_devicesupport.md) — Device support layer; `CAMAC_IO` link type shared with PickoffPi
 
 *Source: `DGS_tools_pack/DGS_SVN/psg/` (PickoffApp_RevC). Created: 2026-04-23.*

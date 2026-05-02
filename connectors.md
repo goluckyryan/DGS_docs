@@ -363,9 +363,9 @@ Two differential ECL output signals provided alongside the Auxiliary I/O connect
 
 ## Cross-References
 
-- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware: signal flow from RJ45 inputs through ADC pipeline
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: 125-pin SERDES connector, NIM I/O, Aux I/O, TAC-II (NIM IN 2)
-- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: SERDES links A–H to DIGs, Link L to MTRG
+- [deep_fpga_DIG.md](deep_fpga_DIG.md) — DIG firmware: signal flow from RJ45 inputs through ADC pipeline
+- [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — MTRG Main FPGA: 125-pin SERDES connector, NIM I/O, Aux I/O, TAC-II (NIM IN 2)
+- [deep_fpga_RTRG.md](deep_fpga_RTRG.md) — RTRG firmware: SERDES links A–H to DIGs, Link L to MTRG
 - [`myriad.md`](myriad.md) — MγRIAD NIM I/O (8 in/4 out) and ECL connectors; connected to MTRG Link U
 - [`reference_index.md`](reference_index.md) — Hardware drawings index: schematic PDFs for DIG, MTRG, RTRG, SBX
 - [`ttcl.md`](ttcl.md) — TTCL command protocol carried on RJ45 / SERDES links

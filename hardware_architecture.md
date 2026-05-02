@@ -37,7 +37,7 @@ A single VME crate with one MTRG, one RTRG, and two DIGs (BUS_LEFT + BUS_RIGHT p
 | DIG board × 2 | Digitizer pair (BUS_LEFT + BUS_RIGHT) — 10 ch each, 20 ch total |
 | Ge detector | Germanium crystal — primary gamma-ray detector (two types: segmented and non-segmented, see below) |
 | BGO detector | Anti-Compton shield around Ge |
-| Slope box | Signal conditioning — shapes and conditions Ge/BGO signals before DIG |
+| [Slope box](sbx.md) | Signal conditioning — shapes and conditions Ge/BGO signals before DIG |
 | Raspberry Pi | Runs soft IOC (EPICS) for slope box / collector box HV and monitoring |
 | Terminal server | Serial console access to MVME5500 and boards (gs-ts-south: 192.168.203.186, gs-ts-north: 192.168.203.91) ✅ verified 2026-04-14 — `ANLDAQ/EPICS_para.sh:L47` |
 | Network switch | Connects IOC, Pi, host computer, EPICS CA traffic |
@@ -88,8 +88,8 @@ Slot 7: MTRG
 - Each VME system hosts **up to 4 digitizers** → up to 12 DIGs per crate, 40 channels per VME system, 120 ch per crate ✅ verified 2026-04-18 — `DGS_SVN/dgs/daq_system_tags/SL6_DGS_20220923/ioc/boot/vme01-10.cmd`: most VME systems configure 4 DIGs (MDIG1/SDIG1/MDIG2/SDIG2 at slots 4–7); VME06 configures only 2 (short backplane — MDIG2+SDIG2 commented out), VME04 configures 3 (SDIG1 slot empty). Actual Gammasphere install: 44 DIG boards per MEMORY.md (10×4 + 2×2 crates).
 - **4 RTRGs total** service all 11 DIG VME systems; each RTRG shares a VME system with DIGs (not a dedicated VME system): RTR1 (IOC1/slot 7) → IOC1/2/3; RTR2 (IOC4/slot 3) → IOC4/5/6; RTR3 (IOC32/slot 6, same VME as MTRG) → IOC7/8; RTR4 (IOC10/slot 3) → IOC9/10/11 ✅ verified 2026-04-20 — `DGS_SVN/dgs/daq_system_tags/SL6_DGS_20220923/ioc/boot/vme32.cmd:L48-51`
 - Each VME backplane also has **one IOC board (MVME5500)** ✅ verified 2026-04-19 — `ioc/boot/vme66.cmd:L133-140` (Slot 1 = IOC MVME5500); all other crate cmd files follow same slot-1 IOC pattern
-- **VME Fiber Expander** board (PCB #3174, ANL part `21pc032`, Rev A, Sept 2021) provides fully optical interface between MTRG (System Trigger) and RTRGs — replaced original copper/Cat5 Trigger Paddle Cards; installed July 2022. Requires DC balance enabled (`EN_RTR_DCBAL`, `LinkL_DCbal`) and cable pre-emphasis **disabled** (`PEHLRU=PEEFG=PEABCD=0`). ✅ verified 2026-04-17 — `knowledgeBase/DGS_SVN.md` (PCB #3174), `knowledgeBase/link_sys_analysis.md:1I`, `knowledgeBase/trig_setup_scripts.md` (fiber expander notes)
-- Prior to digital upgrade: VXI crates used (larger, housed in a separate electronics "shack" room); VXI system dismantled post-upgrade. VXI5 specifically decommissioned by September 2021 ✅ verified 2026-04-26 — wiki Digital_Gammasphere_Upgrade_Project: "As of September, 2021 ... VXI 5 has been decommissioned, allowing grey cables for GS 81-109 to be removed from array." Full VXI system (remaining crates) teardown date: ⚠️ unverified — source needed (wiki only documents VXI5 decommission; other VXI crate removal timeline not found in available sources). Indirect evidence: GITMO firmware interface (VXI–MTRG bridge) removed from MTRG FPGA trunk on 20220412 ✅ `knowledgeBase/vhdl/MTRG_top.md:L65` — consistent with full VXI decommission by mid-2022, but schematic/hardware removal date unconfirmed
+- **VME Fiber Expander** board (PCB #3174, ANL part `21pc032`, Rev A, Sept 2021) provides fully optical interface between MTRG (System Trigger) and RTRGs — replaced original copper/Cat5 Trigger Paddle Cards; installed July 2022. Requires DC balance enabled (`EN_RTR_DCBAL`, `LinkL_DCbal`) and cable pre-emphasis **disabled** (`PEHLRU=PEEFG=PEABCD=0`). ✅ verified 2026-04-17 — [`DGS_SVN.md`](DGS_SVN.md) (PCB #3174), [`link_sys_analysis.md`](link_sys_analysis.md):1I, [`trig_setup_scripts.md`](trig_setup_scripts.md) (fiber expander notes)
+- Prior to digital upgrade: VXI crates used (larger, housed in a separate electronics "shack" room); VXI system dismantled post-upgrade. VXI5 specifically decommissioned by September 2021 ✅ verified 2026-04-26 — wiki Digital_Gammasphere_Upgrade_Project: "As of September, 2021 ... VXI 5 has been decommissioned, allowing grey cables for GS 81-109 to be removed from array." Full VXI system (remaining crates) teardown date: ⚠️ unverified — source needed (wiki only documents VXI5 decommission; other VXI crate removal timeline not found in available sources). Indirect evidence: GITMO firmware interface (VXI–MTRG bridge) removed from MTRG FPGA trunk on 20220412 ✅ [vhdl/MTRG_top.md:L65](vhdl/MTRG_top.md:L65) — consistent with full VXI decommission by mid-2022, but schematic/hardware removal date unconfirmed
 
 ### VME Backplane
 
@@ -128,10 +128,10 @@ Each RTRG manages a "sector" of 8 DIGs = 80 channels = one VME crate.
 
 - DGS digitizer boards are **GRETINA-origin hardware** (designed by LBNL; firmware completely new for ANL experiments) ✅ wiki `/gsdaq/Digitizers` 2026-04-17
 - ADC samples: **signed 14-bit @ 100 MHz (10 ns period)** ✅ verified 2026-04-17 — `jta_channel.vhd:L39,L41` (20230809 tag: `CLK: in std_logic — 100MHz system clock`; `RAW_ADC_DATA: in std_logic_vector(13 downto 0) — 14 bits 2's comp data from ADC`)
-- Experiments using this hardware/firmware family: DGS, DFMA (Digital FMA), X-Array, DuoGe (DUO) — HELIOS used DGS digitizers only for preamp characterization testing (2016 SVN data, not a full firmware user) ✅ verified 2026-04-17 — `DGS_SVN.md`: `DFMA_20220711`/`DXA_20220720`/`DUB_20211101` tags confirm DFMA/DXA/DUO as firmware users; HELIOS limited to `HELIOS_Preamp_data` (one alpha-source test run, 2016); "since 2018" X-Array claim dropped — earliest verifiable X-Array experiment tag is July 2022 (`DXA_20220720`); DFMA naming appears in CSS OPI screens as early as 2013 (`how_to_python.txt`)
+- Experiments using this hardware/firmware family: DGS, DFMA (Digital FMA), X-Array, DuoGe (DUO) — HELIOS used DGS digitizers only for preamp characterization testing (2016 SVN data, not a full firmware user) ✅ verified 2026-04-17 — [`DGS_SVN.md`](DGS_SVN.md): `DFMA_20220711`/`DXA_20220720`/`DUB_20211101` tags confirm DFMA/DXA/DUO as firmware users; HELIOS limited to `HELIOS_Preamp_data` (one alpha-source test run, 2016); "since 2018" X-Array claim dropped — earliest verifiable X-Array experiment tag is July 2022 (`DXA_20220720`); DFMA naming appears in CSS OPI screens as early as 2013 (`how_to_python.txt`)
 - **Center/Sum DIGs** (MDIG/BUS_LEFT): connected to RTRG — participate in trigger and veto logic
 - **Side/Pattern DIGs** (SDIG/BUS_RIGHT): receive clock+trigger via front-bus cable from neighbor; one-way link — cannot participate in trigger or veto
-- As of 2023: **Slope Box Extension (SBX) replaced old pickoff cards** — provides programmable time constants and replaces original power/control/monitoring system
+- As of 2023: **Slope Box Extension (SBX) replaced old [pickoff cards](pickoff_card_fpga.md)** — provides programmable time constants and replaces original power/control/monitoring system
 
 ### Additional Hardware vs. DuoGe
 
@@ -152,14 +152,14 @@ Each RTRG manages a "sector" of 8 DIGs = 80 channels = one VME crate.
   - Ge Center copy at fixed energy range (8 MeV or 20 MeV range)
   Source: wiki Collector_Box page ✅ visited 2026-04-27
 
-**Electric Honeycomb:** A nearest-neighbor BGO coincidence scheme implemented in a dedicated FPGA inside each Collector Box. Combines fast discriminator bits from the 7 BGO segments of each detector with the 6 individual face-to-face BGO bits from neighboring detectors to suppress cross-detector Compton scatter. Increases Compton suppression by up to **~10% @ 1 MeV** versus conventional BGO sum alone. Source: wiki Collector_Box page ✅ visited 2026-04-27
+**Electric Honeycomb:** A nearest-neighbor BGO coincidence scheme implemented in a dedicated FPGA inside each Collector Box (see [collector_box_fpga.md](collector_box_fpga.md)). Combines fast discriminator bits from the 7 BGO segments of each detector with the 6 individual face-to-face BGO bits from neighboring detectors to suppress cross-detector Compton scatter. Increases Compton suppression by up to **~10% @ 1 MeV** versus conventional BGO sum alone. Source: wiki Collector_Box page ✅ visited 2026-04-27
 
 ```
 Many slope boxes (1 per Ge detector)
     │
     ▼
 Collector box (1 per sector, ~25–31 detectors) ✅ verified 2026-04-07 — collectorBox.sh:L8-49
-    │  SPI bus (bcm2835, 5-bit DEVSEL, 24-bit transactions) ✅ verified 2026-04-25 — DEVSEL_bus.c:L28-35 (5 GPIO lines: 13,23,24,25,26); sbxPi_ioc.md:L26 (bcm2835 SPI1); slope_box_interface.md:L33 (24-bit)
+    │  SPI bus (bcm2835, 5-bit DEVSEL, 24-bit transactions) ✅ verified 2026-04-25 — DEVSEL_bus.c:L28-35 (5 GPIO lines: 13,23,24,25,26); PickoffPi_ioc.md:L26 (bcm2835 SPI1); slope_box_interface.md:L33 (24-bit)
     ▼
 Raspberry Pi (PXE boot from fs2.onenet)
     │  EPICS soft IOC (CollectorBox_RevA)
@@ -273,11 +273,11 @@ Gammasphere has **two kinds of HPGe detectors**: segmented and non-segmented.
 - [collector_box_fpga.md](collector_box_fpga.md) — Collector box FPGAs (PSG SVN origin): ControlStripe (Spartan-3, 48V relay/clock/SYNC/LED per stripe) + CtlFanout (Spartan-6, RPi SPI gateway + ADS1158 ADC scanning)
 - [ioc.md](ioc.md) — EPICS IOC configuration (MVME5500 boot, firmware versions, VME setup)
 - [sbx.md](sbx.md) — Slope Box Extension (SBX): signal conversion, BGO pattern/sum, GS_ID dongle, HV map
-- [sbxPi_ioc.md](sbxPi_ioc.md) — SBX Pi standalone IOC (PickoffApp_RevC): SPI1 24-bit transactions, CAMAC_IO device support, global mailboxes, I2C command FIFO protocol, HV ramp logic
+- [PickoffPi_ioc.md](PickoffPi_ioc.md) — SBX Pi standalone IOC (PickoffApp_RevC): SPI1 24-bit transactions, CAMAC_IO device support, global mailboxes, I2C command FIFO protocol, HV ramp logic
 - [myriad.md](myriad.md) — MγRIAD auxiliary detector interface: NIM I/O, ECL, TTCL, DGS link U
 - [gammasphere_geometry.md](gammasphere_geometry.md) — 110 GS detector holes, 17 rings, θ/φ angles, collector box assignments
 - [connectors.md](connectors.md) — All hardware connector pinouts (DIG RJ45, MTRG/RTRG 125-pin SERDES, NIM I/O)
 
 ---
 
-*Source: DGS_tools_pack code exploration, link_sys_analysis.md, nfs_layout.md. Created: 2026-04-05. Updated: 2026-04-23 (added VME Crate Power PDUs section from wiki; previous update: 2026-04-22 added Table of Contents, sbxPi_ioc.md to See Also).*
+*Source: DGS_tools_pack code exploration, link_sys_analysis.md, nfs_layout.md. Created: 2026-04-05. Updated: 2026-04-23 (added VME Crate Power PDUs section from wiki; previous update: 2026-04-22 added Table of Contents, PickoffPi_ioc.md to See Also).*

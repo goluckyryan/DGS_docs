@@ -101,6 +101,8 @@ ConfigureFlash(0, 0)
 
 ### FIFO Debug Readout (VxWorks shell — global C symbols, not iocsh-registered)
 
+See also [`vxworks_fifo_readout.md`](vxworks_fifo_readout.md) for in-depth DIG and trigger FIFO structure documentation.
+
 These functions are **not** iocsh-registered. On VxWorks, any global C symbol is callable directly from the shell.
 
 #### `dbgReadDigFifo(board, numwords, mode)` — `readDigFIFO.c`
@@ -169,7 +171,7 @@ There is **no** `debugRead()` IOC shell command — PV access is the only interf
 
 ### State Machines (DAQ control)
 
-Started via `seq &name` in boot script. Not normally called interactively.
+Started via `seq &name` in boot script. Not normally called interactively. See [`vxworks_state_machines.md`](vxworks_state_machines.md) for full Sequencer state machine documentation.
 
 | Symbol | Description |
 |--------|-------------|
@@ -560,7 +562,7 @@ IOC IPs are for **data stream only** — do not telnet to them for shell access.
 
 **Location:** `vxworks/dgsIoc/iocBoot/iocArray/` — plain-text VxWorks shell scripts (no extension)
 
-These scripts predate the EPICS `ConfigureFlash` command and use the VxWorks `m` (memory-modify) command to directly write to the VME FPGA control register on the **old GRETINA trigger crate** (MTRG + RTRGs). They are **not used for DIG boards** (DIGs use `ConfigureFlash` via devGVME.c instead).
+These scripts predate the EPICS `ConfigureFlash` command and use the VxWorks `m` (memory-modify) command to directly write to the VME FPGA control register on the **old GRETINA trigger crate** (MTRG + RTRGs). They are **not used for DIG boards** (DIGs use `ConfigureFlash` via devGVME.c instead). See [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) and [`vxworks_trigger_drivers.md`](vxworks_trigger_drivers.md) for the corresponding FPGA and driver details.
 
 ### How It Works
 
@@ -611,13 +613,17 @@ On the MVME5500, the VME A32 window is mapped at local offset **0xe8000000**. Co
 
 ## Cross-References
 
-- `knowledgeBase/ioc.md` — IOC boot scripts, startup sequence, firmware versions
-- `knowledgeBase/vxworks.md` — VxWorks cross-compilation, munch process, build pipeline
-- `knowledgeBase/EPICS_asyn.md` — asyn driver internals: port concept, worker threads, bulk writes
-- `knowledgeBase/VME_registers.md` — complete VME register address map for DIG/RTRG/MTRG
-- `knowledgeBase/EPICS.md` — EPICS record types, CA tools, Python integration
-- `knowledgeBase/EPICS_implementation_tools.md` — DGS/DFMA EPICS implementation workflow: PSG spreadsheet → DB/template generation → IOC deployment
-- `knowledgeBase/troubleshooting.md` — IOC connectivity issues, common failures
+- [`ioc.md`](ioc.md) — IOC boot scripts, startup sequence, firmware versions
+- [`vxworks.md`](vxworks.md) — VxWorks cross-compilation, munch process, build pipeline
+- [`EPICS_asyn.md`](EPICS_asyn.md) — asyn driver internals: port concept, worker threads, bulk writes
+- [`VME_registers.md`](VME_registers.md) — complete VME register address map for DIG/RTRG/MTRG
+- [`EPICS.md`](EPICS.md) — EPICS record types, CA tools, Python integration
+- [`EPICS_implementation_tools.md`](EPICS_implementation_tools.md) — DGS/DFMA EPICS implementation workflow: PSG spreadsheet → DB/template generation → IOC deployment
+- [`troubleshooting.md`](troubleshooting.md) — IOC connectivity issues, common failures
+- [`vxworks_fifo_readout.md`](vxworks_fifo_readout.md) — DIG and trigger FIFO structure, readout flow
+- [`vxworks_state_machines.md`](vxworks_state_machines.md) — inLoop/outLoop Sequencer state machines
+- [`vxworks_trigger_drivers.md`](vxworks_trigger_drivers.md) — MTRG/RTRG asyn driver internals
+- [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) — MTRG main FPGA register map and VME interface
 
 ---
 

@@ -42,9 +42,9 @@ _Author: T. Lauritsen (ANL) and contributors._
 
 ## Cross-References
 
-- `knowledgeBase/gebsort.md` — Main GEBSort documentation (core programs, calibration workflow, sorters)
-- `knowledgeBase/gebsort_merge_receive.md` — GEBMerge, gtReceiver, GEBClient, dmpdata
-- `knowledgeBase/gebsort_additional_sorters.md` — GRETINA-specific + additional detector sorters
+- [gebsort.md](gebsort.md) — Main GEBSort documentation (core programs, calibration workflow, sorters)
+- [gebsort_merge_receive.md](gebsort_merge_receive.md) — GEBMerge, gtReceiver, GEBClient, dmpdata
+- [gebsort_additional_sorters.md](gebsort_additional_sorters.md) — GRETINA-specific + additional detector sorters
 
 ---
 

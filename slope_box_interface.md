@@ -186,10 +186,10 @@ Historical reference only — not used in DGS.
 
 ## See Also
 
-- `knowledgeBase/deep_fpga_SBX_CtrlFPGA.md` — Deep VHDL analysis of SBX Motherboard Control FPGA (Spartan-6 XC6SLX9, entity SlopeBoxInt): SPI protocol, register map, I2C scanner machines, BGO disc/DDR outputs, slope box serial, preamp reset clamp, firmware version registers
-- `knowledgeBase/sbx.md` — SBX hardware overview: slope box FPGA, HV generation, BGO pattern/sum, GS_ID dongle, Pi IOC
-- `knowledgeBase/sbxPi_ioc.md` — SBX Pi standalone IOC (PickoffApp_RevC): active SPI1 device support, CAMAC_IO link, global mailboxes
-- `knowledgeBase/collectorboxpi.md` — Collector box Raspberry Pi soft IOC (active); uses the same `PickoffSupportBackup.c` device support traced here
-- `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support internals: SPI driver, CAMAC_IO link type, conversion coefficients
-- `knowledgeBase/EPICS_asyn.md` — asyn driver support (the alternative framework that was evaluated and rejected for SBX)
-- `knowledgeBase/DGS_SVN.md` — SVN archive inventory; `SlopeBoxInterface/` and `SlopeBoxExtension/` entry
+- [deep_fpga_SBX_CtrlFPGA.md](deep_fpga_SBX_CtrlFPGA.md) — Deep VHDL analysis of SBX Motherboard Control FPGA (Spartan-6 XC6SLX9, entity SlopeBoxInt): SPI protocol, register map, I2C scanner machines, BGO disc/DDR outputs, slope box serial, preamp reset clamp, firmware version registers
+- [sbx.md](sbx.md) — SBX hardware overview: slope box FPGA, HV generation, BGO pattern/sum, GS_ID dongle, Pi IOC
+- [PickoffPi_ioc.md](PickoffPi_ioc.md) — SBX Pi standalone IOC (PickoffApp_RevC): active SPI1 device support, CAMAC_IO link, global mailboxes
+- [collectorboxpi.md](collectorboxpi.md) — Collector box Raspberry Pi soft IOC (active); uses the same `PickoffSupportBackup.c` device support traced here
+- [collectorbox_devicesupport.md](collectorbox_devicesupport.md) — EPICS device support internals: SPI driver, CAMAC_IO link type, conversion coefficients
+- [EPICS_asyn.md](EPICS_asyn.md) — asyn driver support (the alternative framework that was evaluated and rejected for SBX)
+- [DGS_SVN.md](DGS_SVN.md) — SVN archive inventory; `SlopeBoxInterface/` and `SlopeBoxExtension/` entry

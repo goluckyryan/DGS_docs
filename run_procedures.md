@@ -82,7 +82,7 @@ gebmerge.sh 123
 # Note: run gebmerge on a different machine to avoid disrupting receivers
 ```
 
-> ✅ verified 2026-04-14 — `start_run.sh:L49` (`argComment="$1"`); run number comes from `NEXT_RUN` in `expInfo.sh`, not a CLI argument. See `knowledgeBase/ANLDAQ.md` §expInfo.sh for full setup.
+> ✅ verified 2026-04-14 — `start_run.sh:L49` (`argComment="$1"`); run number comes from `NEXT_RUN` in `expInfo.sh`, not a CLI argument. See [`ANLDAQ.md`](ANLDAQ.md) §expInfo.sh for full setup.
 
 ---
 
@@ -252,7 +252,7 @@ python working/gain_from_parquet.py expFolder/Parquet/decode/exp2008_003_dgs.par
     out.root <timeWindow_ns> 0 0 12 4 <parquet_files...>
 ```
 
-See `knowledgeBase/dgs_analysis.md` for full details on each step.
+See [`dgs_analysis.md`](dgs_analysis.md) for full details on each step.
 
 ---
 

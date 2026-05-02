@@ -42,11 +42,11 @@ Each NewBlackBox **collector box chassis** contains two FPGA boards on the mothe
 | Board | FPGA | Function |
 |-------|------|----------|
 | **CtlFanout** | Spartan-6 XC6SLX4 | RPi SPI gateway; ADS1158 ADC scanning; CE/MISO fan-out to all other FPGAs | ✅ verified 2026-04-23 — `CtlFanout_git/Source/Top.vhd:L9` (Target Devices: XC6SLX4-2TQG144)
-| **ControlStripe** (×6) | Spartan-3 XC3S400 (revised from XC6SLX4 in 2021 due to supply chain) | Per-stripe power/relay/clock/sync control; SPI passthrough to 5 SlopeBox FPGAs | ✅ verified 2026-04-23 — `ControlStripe_git/Source/Top.vhd:L9` (original XC6SLX4-2TQG144, revised XC3S400-4TQG144C Oct 2021)
+| **ControlStripe** (×6) | Spartan-3 XC3S400 (revised from XC6SLX4 in 2021 due to supply chain) | Per-stripe power/relay/clock/sync control; SPI passthrough to 5 [SlopeBox](sbx.md) FPGAs | ✅ verified 2026-04-23 — `ControlStripe_git/Source/Top.vhd:L9` (original XC6SLX4-2TQG144, revised XC3S400-4TQG144C Oct 2021)
 
 The **CtlFanout** sits between the Raspberry Pi and the rest of the board. It decodes the 5-bit DEVSEL bus, fans out CE signals selectively, muxes MISO back to the Pi, and scans the ADS1158 temperature/voltage ADCs.
 
-The **ControlStripe** (one per stripe group of up to 5 SlopeBoxes) handles per-stripe power control, clock distribution (LVDS 50 MHz to SBXs), SYNC propagation, ground-check relay, and LED status controller.
+The **ControlStripe** (one per stripe group of up to 5 [SlopeBoxes](sbx.md)) handles per-stripe power control, clock distribution (LVDS 50 MHz to SBXs), SYNC propagation, ground-check relay, and LED status controller.
 
 ---
 
@@ -65,8 +65,8 @@ The **ControlStripe** (one per stripe group of up to 5 SlopeBoxes) handles per-s
 
 ### Role & Purpose
 
-Each ControlStripe board manages one "stripe" — a group of up to 5 SlopeBox modules. It:
-- Distributes **LVDS 50 MHz clock** (selectable: internal oscillator or TTCL trigger clock from Electric Honeycomb) to up to 5 SBX slots
+Each ControlStripe board manages one "stripe" — a group of up to 5 [SlopeBox](sbx.md) modules. It:
+- Distributes **LVDS 50 MHz clock** (selectable: internal oscillator or TTCL trigger clock from [Electric Honeycomb](hardware_architecture.md#electric-honeycomb)) to up to 5 SBX slots
 - Routes **SYNC** pulses from the Honeycomb trigger decoder to SBX slots
 - Controls **48 V power enable relays** (one per SBX slot) — active-low logic; polarity inverted per STRIPE_ID parity
 - Controls **ground-check relay** and **coax communication relay**
@@ -325,9 +325,9 @@ Three VHDL library files are shared across ControlStripe (and potentially other 
 
 ## Cross-References
 
-- `knowledgeBase/collector_fpga.md` — Collector box FPGA firmware (Git repo, current): CtrlFPGA and StripeFPGA architecture
-- `knowledgeBase/collectorboxpi.md` — Collector Box Raspberry Pi IOC; interfaces with CtlFanout (ADS1158 ADC) and ControlStripe (SPI registers) via SPI1
-- `knowledgeBase/collectorbox_devicesupport.md` — EPICS device support for collector box PVs; routes CA writes to FPGA registers
-- `knowledgeBase/hardware_architecture.md` — Gammasphere hardware overview; collector box role in signal chain
-- `knowledgeBase/sbxPi_ioc.md` — SBX Pi IOC; shares same `PickoffLocalSerial` / SPI framework as CtlFanout
-- `knowledgeBase/gammasphere_geometry.md` — 110 GS detector holes and collector box quadrant assignments (SE/SW/NE/NW)
+- [`collector_fpga.md`](collector_fpga.md) — Collector box FPGA firmware (Git repo, current): CtrlFPGA and StripeFPGA architecture
+- [`collectorboxpi.md`](collectorboxpi.md) — Collector Box Raspberry Pi IOC; interfaces with CtlFanout (ADS1158 ADC) and ControlStripe (SPI registers) via SPI1
+- [`collectorbox_devicesupport.md`](collectorbox_devicesupport.md) — EPICS device support for collector box PVs; routes CA writes to FPGA registers
+- [`hardware_architecture.md`](hardware_architecture.md) — Gammasphere hardware overview; collector box role in signal chain
+- [`PickoffPi_ioc.md`](PickoffPi_ioc.md) — SBX Pi IOC; shares same `PickoffLocalSerial` / SPI framework as CtlFanout
+- [`gammasphere_geometry.md`](gammasphere_geometry.md) — 110 GS detector holes and collector box quadrant assignments (SE/SW/NE/NW)

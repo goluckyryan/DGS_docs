@@ -592,17 +592,17 @@ _All defaults ✅ verified 2026-04-26 — `asynDigitizerDriver.cpp:L65-73`_
 
 ## Cross-References
 
-- `knowledgeBase/ioc.md` — IOC config, boot scripts, firmware versions, MVME5500 setup
-- `knowledgeBase/vxworks_migration.md` — Detailed migration notes from Solaris/con6 to Ubuntu 24
-- `knowledgeBase/vxworks_fifo_readout.md` — DMA buffer architecture, trigger FIFO readout, Type-F headers
-- `knowledgeBase/EPICS_asyn.md` — asyn driver internals: port model, worker threads, write flow
-- `knowledgeBase/VME_registers.md` — VME register addresses used by the IOC driver; full register map extracted from `asynDigParams.c` / `MergedAsynDigParams.c`
-- `knowledgeBase/fpga.md` — FPGA firmware overview; the firmware binaries loaded by VxWorks
-- `knowledgeBase/ANLDAQ.md` — High-level pipeline overview (inLoop/outLoop/MiniSender data flow diagram + key PVs); complements the detailed state machine docs in this file
-- `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiverMT protocol; the TCP receiver MiniSender connects to
-- `knowledgeBase/deep_fpga_RTRG.md` / `knowledgeBase/deep_fpga_MTRG_MAIN.md` — RTRG/MTRG FPGA firmware; maps to trigger driver params in this file
-- `knowledgeBase/vxworks_trigger_drivers.md` — **Deep-dive into the trigger asyn drivers** (`asynTrigCommonDriver`, `asynTrigMasterDriver`, `asynTrigRouterDriver`): poll loop internals, `address_list[]` map, `0xaaaa0000` sub-field mask, firmware type code table, boot sequence; split from the summary in this file
-- `knowledgeBase/vxworks_vme_devlayer.md` — VME hardware abstraction layer (`devGVME.c`/`devGData.c`/`DGS_DEFS.h`): board init, VMERead32/VMEWrite32, flash programming, `daqBoard`/`daqRegister` structs, board type codes (`BrdType_*`); foundational layer below the state machines and asyn drivers
-- `knowledgeBase/vxworks_utility_modules.md` — `MergedAsynDigParams.c` / `asynDigParams.c` parameter registration; `MergedAsynDigParams` asyn class details
+- [ioc.md](ioc.md) — IOC config, boot scripts, firmware versions, MVME5500 setup
+- [vxworks_migration.md](vxworks_migration.md) — Detailed migration notes from Solaris/con6 to Ubuntu 24
+- [vxworks_fifo_readout.md](vxworks_fifo_readout.md) — DMA buffer architecture, trigger FIFO readout, Type-F headers
+- [EPICS_asyn.md](EPICS_asyn.md) — asyn driver internals: port model, worker threads, write flow
+- [VME_registers.md](VME_registers.md) — VME register addresses used by the IOC driver; full register map extracted from `asynDigParams.c` / `MergedAsynDigParams.c`
+- [fpga.md](fpga.md) — FPGA firmware overview; the firmware binaries loaded by VxWorks
+- [ANLDAQ.md](ANLDAQ.md) — High-level pipeline overview (inLoop/outLoop/MiniSender data flow diagram + key PVs); complements the detailed state machine docs in this file
+- [ANLDAQ_tcpReceiver.md](ANLDAQ_tcpReceiver.md) — tcpReceiverMT protocol; the TCP receiver MiniSender connects to
+- [deep_fpga_RTRG.md](deep_fpga_RTRG.md) / [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — RTRG/MTRG FPGA firmware; maps to trigger driver params in this file
+- [vxworks_trigger_drivers.md](vxworks_trigger_drivers.md) — **Deep-dive into the trigger asyn drivers** (`asynTrigCommonDriver`, `asynTrigMasterDriver`, `asynTrigRouterDriver`): poll loop internals, `address_list[]` map, `0xaaaa0000` sub-field mask, firmware type code table, boot sequence; split from the summary in this file
+- [vxworks_vme_devlayer.md](vxworks_vme_devlayer.md) — VME hardware abstraction layer (`devGVME.c`/`devGData.c`/`DGS_DEFS.h`): board init, VMERead32/VMEWrite32, flash programming, `daqBoard`/`daqRegister` structs, board type codes (`BrdType_*`); foundational layer below the state machines and asyn drivers
+- [vxworks_utility_modules.md](vxworks_utility_modules.md) — `MergedAsynDigParams.c` / `asynDigParams.c` parameter registration; `MergedAsynDigParams` asyn class details
 
 *Created (split): 2026-04-23 | Last reviewed: 2026-04-24*

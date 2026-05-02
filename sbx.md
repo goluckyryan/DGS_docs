@@ -329,7 +329,7 @@ The same I2C engine + opcode format is used in **both the SBX Stripe FPGA and th
 
 - [deep_fpga_SBX_CtrlFPGA.md](deep_fpga_SBX_CtrlFPGA.md) — Deep analysis of SBX Motherboard Control FPGA firmware (Spartan-6 XC6SLX9): SPI interface, 128-register file, 3× I2C buses, BGO discriminator DDR outputs, slope box serial, analog switch control, preamp reset clamp, timestamp, fake-Pi detection
 - [pickoff_card_fpga.md](pickoff_card_fpga.md) — Pickoff Card FPGA (SBX Extension RevC, Spartan-6 XC6SLX9): full 128-register SPI map, PULSED_CONTROL/FPGA_CTL bit maps, BGO serializer, I2C channels, gain/offset DAC, preamp reset clamp
-- [sbxPi_ioc.md](sbxPi_ioc.md) — SBX Pi standalone IOC (PickoffApp_RevC): EPICS soft IOC on Pi mounted on SBX; CAMAC_IO device support, HV ramp logic, global mailboxes
+- [PickoffPi_ioc.md](PickoffPi_ioc.md) — SBX Pi standalone IOC (PickoffApp_RevC): EPICS soft IOC on Pi mounted on SBX; CAMAC_IO device support, HV ramp logic, global mailboxes
 - [collector_fpga.md](collector_fpga.md) — Pickoff card FPGAs (SBX Interface + Extension) that interface to SBX
 - [collectorboxpi.md](collectorboxpi.md) — Raspberry Pi soft IOC; controls BGO HV via pickoff card
 - [collectorbox_devicesupport.md](collectorbox_devicesupport.md) — EPICS device support; SPI protocol to pickoff card

@@ -433,7 +433,7 @@ Nominal values are deducible from alarm limits in `SlopeBox.db`:
 | `Conv_BGO450`| 405 V | 427.5 V| 477.5 V| 495 V | ~452 V  |
 | `Conv_BGO400`| 360 V | 380 V  | 420 V  | 440 V | ~400 V  |
 
-> ✅ derived 2026-04-30 from `sbxPi/PickoffApp_RevC/db/SlopeBox.db` alarm fields (LOLO/LOW/HIGH/HIHI)  
+> ✅ derived 2026-04-30 from `PickoffPi/PickoffApp_RevC/db/SlopeBox.db` alarm fields (LOLO/LOW/HIGH/HIHI)  
 > These are **internal SBX supply rails**, not user-settable. Normal operation expects both PVs in the LOW–HIGH band.
 
 ---

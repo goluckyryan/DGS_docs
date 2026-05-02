@@ -317,10 +317,10 @@ Values 5, 7, 9–11 are undefined (`BrdType_UNDEF_*`). ✅ verified 2026-04-22 �
 
 ## Cross-References
 
-- `knowledgeBase/vxworks.md` — VxWorks build, IOC overview, munch process, glossary
-- `knowledgeBase/VME_registers.md` — VME register addresses used by the driver
-- `knowledgeBase/ioc.md` — IOC config, boot scripts, firmware versions
-- `knowledgeBase/fpga.md` — FPGA firmware overview; counterpart to the IOC driver
-- `knowledgeBase/deep_fpga_DIG_eventpacket.md` — Digitizer event packet format (counterpart to Type-F headers)
-- `knowledgeBase/vxworks_vme_devlayer.md` — VME hardware abstraction layer (`devGVME.c`/`devGData.c`/`DGS_DEFS.h`): board init, VMERead32/VMEWrite32, flash programming, `daqBoard` struct, board type codes, `rawEvt` struct definition
-- `knowledgeBase/vxworks_utility_modules.md` — `asynDebugDriver`, `FlashMaintenance`, and QueueManagement.c (authoritative/updated version with verified RAW_Q_SIZE=200, DMA sizing, sentinel values)
+- [vxworks.md](vxworks.md) — VxWorks build, IOC overview, munch process, glossary
+- [VME_registers.md](VME_registers.md) — VME register addresses used by the driver
+- [ioc.md](ioc.md) — IOC config, boot scripts, firmware versions
+- [fpga.md](fpga.md) — FPGA firmware overview; counterpart to the IOC driver
+- [deep_fpga_DIG_eventpacket.md](deep_fpga_DIG_eventpacket.md) — Digitizer event packet format (counterpart to Type-F headers)
+- [vxworks_vme_devlayer.md](vxworks_vme_devlayer.md) — VME hardware abstraction layer (`devGVME.c`/`devGData.c`/`DGS_DEFS.h`): board init, VMERead32/VMEWrite32, flash programming, `daqBoard` struct, board type codes, `rawEvt` struct definition
+- [vxworks_utility_modules.md](vxworks_utility_modules.md) — `asynDebugDriver`, `FlashMaintenance`, and QueueManagement.c (authoritative/updated version with verified RAW_Q_SIZE=200, DMA sizing, sentinel values)

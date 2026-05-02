@@ -171,14 +171,14 @@ The `20180507` tag also contains a `TestBranches/Cross_Arch_Test_Branch/` subdir
 
 ## Cross-References
 
-- `knowledgeBase/fpga.md` — FPGA system overview: which firmware runs on which device
-- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware: ISE 14.7 Spartan-3 project, build branches
-- `knowledgeBase/deep_fpga_MTRG.md` — MTRG overview: ISE / Vivado projects, 3 devices
-- `knowledgeBase/deep_fpga_MTRG_VIVADO.md` — MTRG Vivado port: Kintex UltraScale build details
-- `knowledgeBase/deep_fpga_MTRG_VME.md` — MTRG VME FPGA: Spartan-3 VME interface firmware + tag history
-- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: Virtex-4, ISE project
-- `knowledgeBase/vxworks.md` — VxWorks cross-compilation (IOC driver side of the build chain)
-- `knowledgeBase/trig_sys_sim.md` — Full MTRG VHDL simulation testbench documentation (split from this file 2026-04-24)
+- [`fpga.md`](fpga.md) — FPGA system overview: which firmware runs on which device
+- [`deep_fpga_DIG.md`](deep_fpga_DIG.md) — DIG firmware: ISE 14.7 Spartan-3 project, build branches
+- [`deep_fpga_MTRG.md`](deep_fpga_MTRG.md) — MTRG overview: ISE / Vivado projects, 3 devices
+- [`deep_fpga_MTRG_VIVADO.md`](deep_fpga_MTRG_VIVADO.md) — MTRG Vivado port: Kintex UltraScale build details
+- [`deep_fpga_MTRG_VME.md`](deep_fpga_MTRG_VME.md) — MTRG VME FPGA: Spartan-3 VME interface firmware + tag history
+- [`deep_fpga_RTRG.md`](deep_fpga_RTRG.md) — RTRG firmware: Virtex-4, ISE project
+- [`vxworks.md`](vxworks.md) — VxWorks cross-compilation (IOC driver side of the build chain)
+- [`trig_sys_sim.md`](trig_sys_sim.md) — Full MTRG VHDL simulation testbench documentation (split from this file 2026-04-24)
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/` + `DGS_tools_pack/fpga/`. Created: 2026-04-07.*

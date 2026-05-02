@@ -402,16 +402,16 @@ When `perform_error_checks=False`, Stages 3, 4, 5 skip all `ALL_LOCKED_RBV` and 
 
 The GUI's 5-stage Python sequence (`link_sys.py`) maps directly to 5 bash scripts (`trig_setup_Stage{1-5}.sh`) that perform the same EPICS PV writes in the same order. The scripts add sub-step granularity (1A–1I, 2A–2B, 4A–4C, 5A–5D) and contain key design comments (EPICS double-write pattern, fiber DC balance notes, author JTA).
 
-Full shell script documentation: **`knowledgeBase/trig_setup_scripts.md`** (added 2026-04-17)
+Full shell script documentation: **[trig_setup_scripts.md](trig_setup_scripts.md)** (added 2026-04-17)
 
 ---
 *Source: `DGS_tools_pack/ANLDAQ/gui/link_sys.py` (669 lines) — Python LinkSys class. Verified 2026-04-10 against source. Created: 2026-04-05.*
 
 ## Cross-References
 
-- `knowledgeBase/trig_setup_scripts.md` — Full shell script counterpart: SYSTEM_DEFINES.sh GS topology, per-stage sub-step tables (1A–5D), key design notes (DC balance, fiber, EPICS double-write, JTA authorship)
-- `knowledgeBase/ANLDAQ.md` — ANLDAQ GUI: trigger setup scripts (5-stage shell), SerdesLinkup button that calls this Python class
-- `knowledgeBase/fpga.md` — FPGA firmware overview: SERDES link role in 3-tier hierarchy
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: SERDES link registers driven by Stage 1
-- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: SERDES link registers driven by Stages 2–4
-- `knowledgeBase/troubleshooting.md` — Router lock loss, SYNC bit gotcha (Stage 5 clears SYNC)
+- [trig_setup_scripts.md](trig_setup_scripts.md) — Full shell script counterpart: SYSTEM_DEFINES.sh GS topology, per-stage sub-step tables (1A–5D), key design notes (DC balance, fiber, EPICS double-write, JTA authorship)
+- [ANLDAQ.md](ANLDAQ.md) — ANLDAQ GUI: trigger setup scripts (5-stage shell), SerdesLinkup button that calls this Python class
+- [fpga.md](fpga.md) — FPGA firmware overview: SERDES link role in 3-tier hierarchy
+- [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — MTRG Main FPGA: SERDES link registers driven by Stage 1
+- [deep_fpga_RTRG.md](deep_fpga_RTRG.md) — RTRG firmware: SERDES link registers driven by Stages 2–4
+- [troubleshooting.md](troubleshooting.md) — Router lock loss, SYNC bit gotcha (Stage 5 clears SYNC)

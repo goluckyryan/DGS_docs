@@ -446,15 +446,15 @@ Key improvements with ReadPool (vs without):
 
 | Topic | File |
 |-------|------|
-| GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | `knowledgeBase/gebsort.md` |
-| Typical DGS run procedures (GEBSort workflow + modern ANLDAQ workflow) | `knowledgeBase/run_procedures.md` |
-| Pole-zero correction theory + `pz_from_parquet.py` detail | `knowledgeBase/pole_zero.md` |
-| GEB binary data format + GEBHeader struct | `knowledgeBase/data_structures.md` |
-| Gammasphere geometry (GS hole → θ/φ, map.dat context) | `knowledgeBase/gammasphere_geometry.md` |
-| DIG firmware readout modes (source of raw GEB payloads) | `knowledgeBase/DIG_firmware_expert.md` |
-| ROOT analysis scripts (analyzer_*.cpp, Cali_e, checkTACFile, findMapping/findGS) | `knowledgeBase/dgs_analysis_root_scripts.md` |
-| gray_apps toolkit (GrayCAL, GrayMAN, grayfit) | `knowledgeBase/dgs_analysis_grayapps.md` |
-| working/ scripts (parquetCLI, ProcessRUN, RunParquet, gain/pz_from_parquet, DownloadRaw, Benchmark) | `knowledgeBase/dgs_analysis_working.md` |
+| GEBSort full reference (all programs, GEBSort.chat, find_MK, fwhm_onepeak, dgs_ecal) | [gebsort.md](gebsort.md) |
+| Typical DGS run procedures (GEBSort workflow + modern ANLDAQ workflow) | [run_procedures.md](run_procedures.md) |
+| Pole-zero correction theory + `pz_from_parquet.py` detail | [pole_zero.md](pole_zero.md) |
+| GEB binary data format + GEBHeader struct | [data_structures.md](data_structures.md) |
+| Gammasphere geometry (GS hole → θ/φ, map.dat context) | [gammasphere_geometry.md](gammasphere_geometry.md) |
+| DIG firmware readout modes (source of raw GEB payloads) | [DIG_firmware_expert.md](DIG_firmware_expert.md) |
+| ROOT analysis scripts (analyzer_*.cpp, Cali_e, checkTACFile, findMapping/findGS) | [dgs_analysis_root_scripts.md](dgs_analysis_root_scripts.md) |
+| gray_apps toolkit (GrayCAL, GrayMAN, grayfit) | [dgs_analysis_grayapps.md](dgs_analysis_grayapps.md) |
+| working/ scripts (parquetCLI, ProcessRUN, RunParquet, gain/pz_from_parquet, DownloadRaw, Benchmark) | [dgs_analysis_working.md](dgs_analysis_working.md) |
 
 ---
 

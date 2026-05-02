@@ -135,7 +135,7 @@ Decodes TAC-II trigger packets (GEB type `GEB_TYPE_DGSTRIG`) within coincidence 
 
 **External variables set:** `dgs_tac2`, `dgs_tac2_valid`, `dgs_trig_ts` (all used by `bin_dgs.c` for DGS-TAC2 timing correlation).
 
-See also: `knowledgeBase/tac2.md` — TAC-II TDC hardware and packet format.
+See also: [`tac2.md`](tac2.md) — TAC-II TDC hardware and packet format.
 
 ---
 
@@ -608,11 +608,11 @@ A ROOT CINT script body (no function wrapper — executed as a block) that sweep
 
 ## Cross-References
 
-- `knowledgeBase/gebsort.md` — Core GEBSort framework: GEBMerge, bin_dgs, jta, calibration workflow
-- `knowledgeBase/gebsort_merge_receive.md` — GEB utility tools: GEBFilter, GEBCrop, GEBSplit, dtbtev
-- `knowledgeBase/tac2.md` — TAC-II TDC hardware and packet format (consumed by `bin_tac2`)
-- `knowledgeBase/data_structures.md` — GEB binary format input used by all sorters
-- `knowledgeBase/dgs_analysis.md` — Modern parquet_pysort alternative pipeline
+- [`gebsort.md`](gebsort.md) — Core GEBSort framework: GEBMerge, bin_dgs, jta, calibration workflow
+- [`gebsort_merge_receive.md`](gebsort_merge_receive.md) — GEB utility tools: GEBFilter, GEBCrop, GEBSplit, dtbtev
+- [`tac2.md`](tac2.md) — TAC-II TDC hardware and packet format (consumed by `bin_tac2`)
+- [`data_structures.md`](data_structures.md) — GEB binary format input used by all sorters
+- [`dgs_analysis.md`](dgs_analysis.md) — Modern parquet_pysort alternative pipeline
 
 ---
 *Created: 2026-04-26. Split from gebsort.md. Source: `DGS_tools_pack/gebsort/`. Updated 2026-04-26: Math/utility helpers section added. Updated 2026-04-27: bar.cc + curve.cc GRETINA ROOT macro helpers added.*

@@ -87,7 +87,7 @@ Instantiated inside `dc_balance_mach`. Implements a 256-entry ROM that returns t
 
 ### Role
 
-The "accordion" FIFO for the per-channel waveform data path. Accumulates 16-bit waveform words from the `decimator` and presents them as 32-bit pairs to `event_packer`. Called an accordion FIFO because it buffers data to allow time for header injection between consecutive event readouts without losing waveform continuity.
+The "accordion" FIFO for the per-channel waveform data path. Accumulates 16-bit waveform words from the `decimator` and presents them as 32-bit pairs to `event_packer` (see [deep_fpga_DIG_modules.md](deep_fpga_DIG_modules.md)). Called an accordion FIFO because it buffers data to allow time for header injection between consecutive event readouts without losing waveform continuity.
 
 ### Signal Interface
 
@@ -564,7 +564,7 @@ All 199 registers are defined in a constant `R : tREGISTER_CONFIG_ARRAY(1 to 199
 
 **Source:** `MAIN_FPGA_ISE11/Source/dp_srl_template.vhd`  
 **Entity:** `PEHQ`  
-**Role:** Wrapper for the Pending Event History Queue (`PEHQ_SRL_DELAY`) SRL-based shift-register delay. Implements a 324-bit wide, up-to-16-deep FIFO using Xilinx SRL primitives. Used by `jta_channel.vhd` as the per-channel PEHQ buffer.
+**Role:** Wrapper for the Pending Event History Queue (`PEHQ_SRL_DELAY`) SRL-based shift-register delay. Implements a 324-bit wide, up-to-16-deep FIFO using Xilinx SRL primitives. Used by `jta_channel.vhd` (see [deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md)) as the per-channel PEHQ buffer.
 
 ### Ports
 
@@ -589,7 +589,7 @@ All 199 registers are defined in a constant `R : tREGISTER_CONFIG_ARRAY(1 to 199
 
 ### Notes
 
-- The 324-bit data width matches the PEHQ entry format defined in `jta_channel.vhd` (full per-channel event descriptor)
+- The 324-bit data width matches the PEHQ entry format defined in `jta_channel.vhd` ([deep_fpga_DIG_channel.md](deep_fpga_DIG_channel.md) — full per-channel event descriptor)
 - The SRL delay naturally implements a LIFO if `a` is held fixed; incrementing `a` on write and decrementing on read gives FIFO semantics with last-written word always at the SRL output
 - `dp_srl_template.vhd` is distinct from `jta_dpram_template.vhd` (BRAM-based); this file uses SRL shift registers (lower latency, higher density for small queues)
 - Uses `Digitizer_pkg.all` for type definitions

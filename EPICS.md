@@ -530,13 +530,13 @@ In the DGS collector box IOC:
 
 ## See Also
 
-- `knowledgeBase/EPICS_asyn.md` — asyn driver internals: caput/caget flow, port concept, worker threads, bulk writes
-- `knowledgeBase/ioc.md` — DGS EPICS IOC config, boot scripts, firmware versions, MVME5500 setup
-- `knowledgeBase/collectorbox_devicesupport.md` — Collector box device support: SPI driver, CAMAC_IO link, conversion coefficients
-- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC, PXE boot, HV control
-- `knowledgeBase/vxworks.md` — VxWorks build pipeline (the RTOS running the VME IOCs)
-- `knowledgeBase/DGS_PVs.md` / `knowledgeBase/collectorbox_PVs.md` — Full PV lists for DGS and collector box
-- `knowledgeBase/EPICS_implementation_tools.md` — DGS/DFMA EPICS implementation workflow: PSG spreadsheet → DB generation → IOC deployment
+- [`EPICS_asyn.md`](EPICS_asyn.md) — asyn driver internals: caput/caget flow, port concept, worker threads, bulk writes
+- [`ioc.md`](ioc.md) — DGS EPICS IOC config, boot scripts, firmware versions, MVME5500 setup
+- [`collectorbox_devicesupport.md`](collectorbox_devicesupport.md) — Collector box device support: SPI driver, CAMAC_IO link, conversion coefficients
+- [`collectorboxpi.md`](collectorboxpi.md) — Raspberry Pi soft IOC, PXE boot, HV control
+- [`vxworks.md`](vxworks.md) — VxWorks build pipeline (the RTOS running the VME IOCs)
+- [`DGS_PVs.md`](DGS_PVs.md) / [`collectorbox_PVs.md`](collectorbox_PVs.md) — Full PV lists for DGS and collector box
+- [`EPICS_implementation_tools.md`](EPICS_implementation_tools.md) — DGS/DFMA EPICS implementation workflow: PSG spreadsheet → DB generation → IOC deployment
 
 ---
 

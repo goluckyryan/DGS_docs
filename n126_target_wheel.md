@@ -226,19 +226,21 @@ Numeric 7-segment LED display (Adafruit I²C backpack, HT16K33 driver):
 
 ## Relationship to Other DGS Systems
 
-- Uses same **SPI/EPICS framework** (`PickoffLocalSerial`, `NonEPICS_SPI_lib`) as Collector Box Pi IOC and Slope Box Pi IOC
+- Uses same **SPI/EPICS framework** (`PickoffLocalSerial`, `NonEPICS_SPI_lib`) as [Collector Box Pi IOC](collectorboxpi.md) and [Slope Box Pi IOC](slope_box_interface.md)
 - **Not part of the main DGS DAQ trigger chain** — auxiliary experiment hardware
-- **No TTCL link** — standalone Pi EPICS IOC; not connected to DGS Master Trigger
+- **No TTCL link** — standalone [Pi EPICS IOC](ioc.md); not connected to DGS Master Trigger
 - **Location in SVN:** `psg/` (not `dgs/`) — part of Paul Gruss's physics group hardware, not core DGS firmware
 
 ---
 
-## Related Files
+## See Also
 
-- `knowledgeBase/collectorboxpi.md` — similar Pi EPICS IOC pattern
-- `knowledgeBase/slope_box_interface.md` — same `PickoffLocalSerial` framework
-- `knowledgeBase/sbx.md` — Slope Box hardware context
-- `knowledgeBase/myriad.md` — another auxiliary detector interface
+- [collectorboxpi.md](collectorboxpi.md) — similar Raspberry Pi EPICS IOC pattern using `PickoffLocalSerial`
+- [slope_box_interface.md](slope_box_interface.md) — same `PickoffLocalSerial` SPI framework
+- [sbx.md](sbx.md) — Slope Box hardware context
+- [myriad.md](myriad.md) — another auxiliary detector interface with similar Pi IOC structure
+- [ioc.md](ioc.md) — general DGS IOC architecture and boot process
+- [EPICS.md](EPICS.md) — EPICS framework overview for DGS
 
 ---
 

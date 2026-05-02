@@ -386,6 +386,6 @@ graph TD
 - [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — MTRG: consumes RTRG multiplicity/hit data to make global trigger decisions
 - [deep_fpga_DIG.md](deep_fpga_DIG.md) — DIG: upstream source of the 18-bit SERDES words that chan_in.vhd receives
 - [ttcl.md](ttcl.md) — TTCL frame format: frames 12/14 (inter-trigger/remote trigger) that the RTRG forwards with nulls
-- `knowledgeBase/vhdl/` — Per-module plain-English VHDL summaries: `RTRG_chan_in.md`, `RTRG_disc_mach.md`, `RTRG_router_data_path.md`, `MTRG_top.md`, `MTRG_calc_total_sum.md`, etc.
+- [vhdl/](vhdl/) — Per-module plain-English VHDL summaries: `RTRG_chan_in.md`, `RTRG_disc_mach.md`, `RTRG_router_data_path.md`, `MTRG_top.md`, `MTRG_calc_total_sum.md`, etc.
 - [EPICS_RTrig_templates.md](EPICS_RTrig_templates.md) — EPICS PVs that configure the RTRG firmware described here (ILM, X/Y maps, throttle, delays, SERDES power)
 - [vxworks_trigger_drivers.md](vxworks_trigger_drivers.md) — VxWorks asyn drivers (asynTrigRouterDriver, asynTrigMasterDriver) that write the VME registers these modules read

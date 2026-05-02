@@ -264,7 +264,7 @@ ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
 3. `caput Online_CS_SaveData No Save`
 4. Wait 5 s → `kill_IOC.sh`
 5. Posts to ELOG with run duration + data size
-6. Launches `RunParquet` (parquet sort pipeline) in a new terminal
+6. Launches `RunParquet` ([parquet sort pipeline](dgs_analysis.md)) in a new terminal
 
 **`sync_exp_data.sh`** — Live data rsync daemon (sources `expInfo.sh` for paths):
 - Reads `expName`, `dataFolder`, `nfsFolder` from `expInfo.sh` at startup
@@ -288,7 +288,7 @@ ln -s ~/ANLDAQ/tcpReceiver/expInfo.sh ~/dgs_analysis/working/expInfo.sh
   - **`ReadBlock(index)`**: seeks to `blockPos[index]` and calls `ReadNextBlock()` — enables random-access into any block by index after a `ScanNumBlock()` pass.
   - **`PrintPayLoad()`**: dumps raw `payload[]` vector (populated only in TAC mode) as hex.
   - DIG data: each word is `ntohl()`-converted on read; TAC data: stored as-is from `fread` (no byte-swap).
-- **`downloadData.sh`** — `rsync`s a run's binary data files from `slopebox:/global/ioc/dgsReceiver/data/<prefix>*` into `../data/`. Takes one argument (file prefix/run ID). Commented-out lines show prior test variants (`haha*`, `XXXX*`). Uses `slopebox` as the NFS/rsync source hostname.
+- **`downloadData.sh`** — `rsync`s a run's binary data files from `slopebox:/global/ioc/dgsReceiver/data/<prefix>*` into `../data/`. Takes one argument (file prefix/run ID). Commented-out lines show prior test variants (`haha*`, `XXXX*`). Uses `slopebox` ([overview_DGS.md](overview_DGS.md)) as the NFS/rsync source hostname.
 - **`readHexFile.sh`** — Dumps the first N 32-bit words of a binary file as hex, one word per line with a 6-digit decimal index. Usage: `readHexFile.sh <binary_file> <num_words>`. Internally: `hexdump -n (N×4) -v -e '1/4 "%08X\n"' file | awk '{printf "%06d: 0x%s\n", NR-1, $1}'`. Useful for inspecting raw packet headers.
 
 **`run_control_gui.py`** — Standalone Tkinter run control GUI for `dgs4`:
@@ -447,7 +447,7 @@ Current `IPList`: `.141 .142 .143 .144 .145 .177 .178 .179 .180 .183 .181 .182` 
 4. `caput Online_CS_SaveData No Save` ✅ verified 2026-04-24 — `stop_run.sh:L31`
 5. `sleep 5` then calls `kill_IOC.sh` to kill receiver processes ✅ verified 2026-04-24 — `stop_run.sh:L34-35`
 6. **ELOG post:** calculates duration from `RunTimestamp.txt` start/stop timestamps; posts run size (`du -sh`) and NFS path ✅ verified 2026-04-24 — `stop_run.sh:L40-67`
-7. **Parquet sort:** launches `~/DGS_Analysis/working/RunParquet expInfo.sh <run_num>` in a new `gnome-terminal` ✅ verified 2026-04-24 — `stop_run.sh:L82-83`
+7. **Parquet sort:** launches `~/DGS_Analysis/working/RunParquet expInfo.sh <run_num>` in a new `gnome-terminal` (see [dgs_analysis.md](dgs_analysis.md)) ✅ verified 2026-04-24 — `stop_run.sh:L82-83`
 
 ### `run_control_gui.py` — Tkinter GUI
 

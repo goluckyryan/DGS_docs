@@ -359,12 +359,12 @@ Covers: Frame 1 (Sync), Frame 2 (Debug), Frames 3–10 (Trigger Decision), Frame
 
 ## Cross-References
 
-- `knowledgeBase/ttcl_frame_spec.md` — Full per-frame wire-format details (section 7 of this document)
-- `knowledgeBase/fpga.md` — FPGA firmware overview; TTCL role in the 3-tier trigger hierarchy
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: 20-frame command generation, TAC-II TDC
-- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: TTCL reception, throttle logic
-- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware: TTCL reception, trigger decision window
-- `knowledgeBase/data_structures.md` — GEB binary data format; TTCL-driven event timestamps
-- `knowledgeBase/XIA_1SFP.md` — XIA 1-SFP FPGA: receive-only TTCL client for XIA Pixie; uses PROPAGATION_CONTROL to pass frames 0 (sync) and 1–8 (trigger accept) while ignoring higher-level commands
-- `knowledgeBase/myriad.md` — MγRIAD module: TTCL client + auxiliary trigger input via Link U; sends triggers back to MTRG (unlike XIA 1-SFP)
-- `knowledgeBase/multi_system_linking.md` — Multi-system clock/trigger sharing; TTCL ImpSync (frame content) and clock propagation across Link L/R/U in cross-system configurations
+- [ttcl_frame_spec.md](ttcl_frame_spec.md) — Full per-frame wire-format details (section 7 of this document)
+- [fpga.md](fpga.md) — FPGA firmware overview; TTCL role in the 3-tier trigger hierarchy
+- [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — MTRG Main FPGA: 20-frame command generation, TAC-II TDC
+- [deep_fpga_RTRG.md](deep_fpga_RTRG.md) — RTRG firmware: TTCL reception, throttle logic
+- [deep_fpga_DIG.md](deep_fpga_DIG.md) — DIG firmware: TTCL reception, trigger decision window
+- [data_structures.md](data_structures.md) — GEB binary data format; TTCL-driven event timestamps
+- [XIA_1SFP.md](XIA_1SFP.md) — XIA 1-SFP FPGA: receive-only TTCL client for XIA Pixie; uses PROPAGATION_CONTROL to pass frames 0 (sync) and 1–8 (trigger accept) while ignoring higher-level commands
+- [myriad.md](myriad.md) — MγRIAD module: TTCL client + auxiliary trigger input via Link U; sends triggers back to MTRG (unlike XIA 1-SFP)
+- [multi_system_linking.md](multi_system_linking.md) — Multi-system clock/trigger sharing; TTCL ImpSync (frame content) and clock propagation across Link L/R/U in cross-system configurations

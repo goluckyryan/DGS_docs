@@ -50,11 +50,11 @@ Run subfolders: `exp2008_001`, `exp2008_002`, ... (runs 1–122 present as of 20
 ## Run Control
 
 - **Run control host:** DCS2 (`dcsu@DCS2.onenet`)
-- **ANLDAQ folder:** `/home/phy/dcsu/ANLDAQ/tcpReceiver/`
+- **ANLDAQ folder:** `/home/phy/dcsu/ANLDAQ/tcpReceiver/` (see [ANLDAQ TCP Receiver](ANLDAQ_tcpReceiver.md))
 - **Start run:** `start_run.sh`
 - **Stop run:** `stop_run.sh`
 - **Simple start/stop:** `simpleStartStop.sh`
-- **TCP receiver binary:** `tcpReceiverMT` (multi-threaded)
+- **TCP receiver binary:** `tcpReceiverMT` (multi-threaded) — see [ANLDAQ_tcpReceiver.md](ANLDAQ_tcpReceiver.md)
 - **expInfo.sh:** defines experiment variables (name, folders, GEB_ID, next run #)
 
 ---
@@ -109,7 +109,7 @@ Run subfolders: `exp2008_001`, `exp2008_002`, ... (runs 1–122 present as of 20
 ## Trigger Settings (`basic_settings.sh`)
 
 - **Trigger:** `SumX`
-- **MTRG VME crate:** VME99 (`VME99:MTRG:*`)
+- **MTRG VME crate:** VME99 (`VME99:MTRG:*`) — see [Deep FPGA MTRG](deep_fpga_MTRG.md)
 - **Trigger monitor select:** SumX
 - **EN_SUM_X:** on
 - **SUM_OF_X/Y_THRESH:** 0 (open threshold)
@@ -153,7 +153,7 @@ Run subfolders: `exp2008_001`, `exp2008_002`, ... (runs 1–122 present as of 20
 
 ## Notes
 
-- Data synced to NFS at `fs2.onenet:/mnt/vol5/atlasdata/dgs/exp2008_Chiara` via `sync_exp_data.sh`
+- Data synced to NFS at `fs2.onenet:/mnt/vol5/atlasdata/dgs/exp2008_Chiara` via `sync_exp_data.sh` (see [utility_scripts.md](utility_scripts.md))
 - Same ANLDAQ folder structure exists on pi5-dgs (Ryan's Pi) as well as DCS2
 - As of 2026-04-14 check: 122 run directories present on vol5 (latest: `exp2008_122`)
 
@@ -180,7 +180,7 @@ All other runs: delete from data0 once confirmed on NFS (spot-check MD5 of a few
 
 ## Monitoring
 
-**Data0 space monitor cron:** No active data0 monitor cron exists on spark-ca9f, pi5-lnFill, or DCS2. The old pi5-dgs cron (id: `d3285cee-893e-49c4-91df-85e57ace9b07`) was confirmed deleted; no replacement was set up. ✅ verified 2026-04-19 — `utility_scripts.md` + DCS2 crontab check. data0 is at 1% used (3.4T free as of 2026-04-18) — no urgent need, but worth addressing eventually.
+**Data0 space monitor cron:** No active data0 monitor cron exists on spark-ca9f, pi5-lnFill, or DCS2. The old pi5-dgs cron (id: `d3285cee-893e-49c4-91df-85e57ace9b07`) was confirmed deleted; no replacement was set up. ✅ verified 2026-04-19 — [`utility_scripts.md`](utility_scripts.md) + DCS2 crontab check. data0 is at 1% used (3.4T free as of 2026-04-18) — no urgent need, but worth addressing eventually.
 
 ---
 
@@ -188,7 +188,7 @@ All other runs: delete from data0 once confirmed on NFS (spot-check MD5 of a few
 
 ## Cross-References
 
-- `knowledgeBase/nfs_layout.md` — Full NFS mount layout on DCS2; vol3/vol4 directory structure
-- `knowledgeBase/run_procedures.md` — Typical DGS run workflow; GEBSort calibration and sorting steps
-- `knowledgeBase/dgs_analysis.md` — Post-experiment analysis: fastEventConstructor, parquet_pysort
-- `knowledgeBase/influxdb_grafana.md` — InfluxDB/Grafana monitoring on DCS2; temperature and health data
+- [nfs_layout.md](nfs_layout.md) — Full NFS mount layout on DCS2; vol3/vol4 directory structure
+- [run_procedures.md](run_procedures.md) — Typical DGS run workflow; GEBSort calibration and sorting steps
+- [dgs_analysis.md](dgs_analysis.md) — Post-experiment analysis: fastEventConstructor, parquet_pysort
+- [influxdb_grafana.md](influxdb_grafana.md) — InfluxDB/Grafana monitoring on DCS2; temperature and health data

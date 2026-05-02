@@ -310,13 +310,13 @@ Pulse Delay units: 100s of ns (time from end of pulse n to beginning of pulse n+
 
 ## Cross-References
 
-- `knowledgeBase/ttcl.md` — TTCL overview, physical/electrical specs, protocol layers (sections 1–6, 8)
-- `knowledgeBase/fpga.md` — FPGA firmware overview; TTCL role in the 3-tier trigger hierarchy
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA: 20-frame command generation
-- `knowledgeBase/deep_fpga_RTRG.md` — RTRG firmware: TTCL reception, throttle logic
-- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware: TTCL reception, trigger decision window
-- `knowledgeBase/data_structures.md` — GEB binary data format; TTCL-driven event timestamps
-- `knowledgeBase/multi_system_linking.md` — Multi-system TTCL ImpSync and Selective Propagation
-- `knowledgeBase/myriad.md` — MγRIAD VME FPGA details; Frame 14 command processing
-- `knowledgeBase/digitizer_tester.md` — Digitizer Tester board; Frame 14 pulse/loop commands
-- `knowledgeBase/vhdl/MTRG_GITMO.md` — GITMO VHDL module; external NIM trigger → code 0x56
+- [ttcl.md](ttcl.md) — TTCL overview, physical/electrical specs, protocol layers (sections 1–6, 8)
+- [fpga.md](fpga.md) — FPGA firmware overview; TTCL role in the 3-tier trigger hierarchy
+- [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — MTRG Main FPGA: 20-frame command generation
+- [deep_fpga_RTRG.md](deep_fpga_RTRG.md) — RTRG firmware: TTCL reception, throttle logic
+- [deep_fpga_DIG.md](deep_fpga_DIG.md) — DIG firmware: TTCL reception, trigger decision window
+- [data_structures.md](data_structures.md) — GEB binary data format; TTCL-driven event timestamps
+- [multi_system_linking.md](multi_system_linking.md) — Multi-system TTCL ImpSync and Selective Propagation
+- [myriad.md](myriad.md) — MγRIAD VME FPGA details; Frame 14 command processing
+- [digitizer_tester.md](digitizer_tester.md) — Digitizer Tester board; Frame 14 pulse/loop commands
+- [vhdl/MTRG_GITMO.md](vhdl/MTRG_GITMO.md) — GITMO VHDL module; external NIM trigger → code 0x56

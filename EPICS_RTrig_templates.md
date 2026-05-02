@@ -337,10 +337,10 @@ the multiplicity logic. 8 links × 10 channels = 80 PVs. ✅ verified 2026-04-26
 
 ## Related Files
 
-- `knowledgeBase/EPICS_DB_templates.md` — MTrig/SDig/MDig template overview (parent file; links here)
-- `knowledgeBase/vxworks_trigger_drivers.md` — VxWorks RTRG/MTRG asyn drivers that write these PVs
-- `knowledgeBase/260E_trigger_scheme.md` — End-to-end RTRG/MTRG trigger firmware logic these PVs control
-- `knowledgeBase/hardware_architecture.md` — RTrig/MTrig hardware description (board-level: DIG/RTRG/MTRG roles, signal flow)
-- `knowledgeBase/connectors.md` — NIM/LVDS connector assignments
-- `knowledgeBase/multi_system_linking.md` — Cross-system clock/trigger sharing (uses L/R/U link PVs documented here)
-- `knowledgeBase/VME_registers.md` — Full RTrig/MTrig VME register map
+- [EPICS_DB_templates.md](EPICS_DB_templates.md) — MTrig/SDig/MDig template overview (parent file; links here)
+- [vxworks_trigger_drivers.md](vxworks_trigger_drivers.md) — VxWorks RTRG/MTRG asyn drivers that write these PVs
+- [260E_trigger_scheme.md](260E_trigger_scheme.md) — End-to-end RTRG/MTRG trigger firmware logic these PVs control
+- [hardware_architecture.md](hardware_architecture.md) — RTrig/MTrig hardware description (board-level: DIG/RTRG/MTRG roles, signal flow)
+- [connectors.md](connectors.md) — NIM/LVDS connector assignments
+- [multi_system_linking.md](multi_system_linking.md) — Cross-system clock/trigger sharing (uses L/R/U link PVs documented here)
+- [VME_registers.md](VME_registers.md) — Full RTrig/MTrig VME register map

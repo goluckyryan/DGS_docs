@@ -681,10 +681,10 @@ Controls automatic configuration of the **MAIN FPGA** from Flash memory on power
 - Not to be confused with MTRG or RTRG — MyRIAD is an *auxiliary* expansion module, not a primary trigger processor
 
 **Related files:**
-- `knowledgeBase/ttcl.md` — TTCL protocol specification; MyRIAD is a TTCL client that also sends triggers back to MTRG via Link U
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — MTRG Main FPGA that drives the TTCL stream MyRIAD receives; also handles MYRIAD_RCV_MACH and MYRIAD_TRIGGER algorithms
-- `knowledgeBase/fpga.md` — FPGA firmware overview; firmware type codes including 0xB (MyRIAD)
-- `knowledgeBase/VME_registers.md` — VME register map reference for DIG/MTRG/RTRG boards
-- `knowledgeBase/XIA_1SFP.md` — Another auxiliary SERDES-based trigger interface (receive-only; no Link U back-channel unlike MyRIAD)
-- `knowledgeBase/analog_gammasphere.md` — GITMO context: MyRIAD GITMO bridges analog master trigger crate to DGS
-- `knowledgeBase/multi_system_linking.md` — Cross-system trigger sharing; Link U used by MyRIAD
+- [`ttcl.md`](ttcl.md) — TTCL protocol specification; MyRIAD is a TTCL client that also sends triggers back to MTRG via Link U
+- [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) — MTRG Main FPGA that drives the TTCL stream MyRIAD receives; also handles MYRIAD_RCV_MACH and MYRIAD_TRIGGER algorithms
+- [`fpga.md`](fpga.md) — FPGA firmware overview; firmware type codes including 0xB (MyRIAD)
+- [`VME_registers.md`](VME_registers.md) — VME register map reference for DIG/MTRG/RTRG boards
+- [`XIA_1SFP.md`](XIA_1SFP.md) — Another auxiliary SERDES-based trigger interface (receive-only; no Link U back-channel unlike MyRIAD)
+- [`analog_gammasphere.md`](analog_gammasphere.md) — GITMO context: MyRIAD GITMO bridges analog master trigger crate to DGS
+- [`multi_system_linking.md`](multi_system_linking.md) — Cross-system trigger sharing; Link U used by MyRIAD

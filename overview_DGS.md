@@ -2,7 +2,7 @@
 
 Stability: C2 - Active / semi-stable
 
-> See also: `overview_SmallSystem.md` for DuoGe (DUO) and X-Array (DXA) small systems.
+> See also: [`overview_SmallSystem.md`](overview_SmallSystem.md) for DuoGe (DUO) and X-Array (DXA) small systems.
 
 ## Table of Contents
 
@@ -204,7 +204,7 @@ _Source: wiki.anl.gov/gsdaq/DAQ_system ✅ visited 2026-04-27_
 | DFMA | 5068 | 5069 | ✅ verified 2026-04-05 — `ANLDAQ/EPICS_para.sh:L5` (comment) |
 | SlopeBox | 5074 | 5075 | ✅ verified 2026-04-06 — `ioc/boot/vme99.cmd:L21-22` + `EPICS_para.sh:L36-37` |
 
-> DUO and DXA ports are in `overview_SmallSystem.md`.
+> DUO and DXA ports are in [`overview_SmallSystem.md`](overview_SmallSystem.md).
 
 ---
 
@@ -252,7 +252,7 @@ _Source: wiki.anl.gov/gsdaq/DAQ_system ✅ visited 2026-04-27_
 - Controlled by `LNFill_App.py` on pi5 (192.168.203.58) ✅ verified 2026-04-16 — `lnfill.md` Computers table (`LNFill_ping_cron.sh:L19`)
 - Scheduled: 6am + 6pm daily; 15-min emergency fills for warm detectors ✅ verified 2026-04-18 — live pi5-lnFill crontab (`00 06,18 * * *`); README.md was stale (said 07,19)
 - Monitored via InfluxDB/Grafana on DCS2; alerts via Discord
-- Full details: `lnfill.md`
+- Full details: [`lnfill.md`](lnfill.md)
 
 ---
 
@@ -280,13 +280,13 @@ _Source: wiki.anl.gov/gsdaq/DAQ_system ✅ visited 2026-04-27_
 - Discord webhook URLs: <https://elog.phy.anl.gov/GS+maintenance/45>
 
 ---
-*Split from overview.md — 2026-04-06. See also: `overview_SmallSystem.md`.*
+*Split from overview.md — 2026-04-06. See also: [`overview_SmallSystem.md`](overview_SmallSystem.md).*
 
 ## Cross-References
 
-- `knowledgeBase/hardware_architecture.md` — Detailed hardware breakdown: DuoGe vs DGS, signal chain, collector box
-- `knowledgeBase/fpga.md` — FPGA firmware overview: 3-tier hierarchy, signal flow, trigger cycle
-- `knowledgeBase/ioc.md` — EPICS IOC configuration, firmware versions, boot scripts
-- `knowledgeBase/lnfill.md` — Liquid nitrogen cooling system
-- `knowledgeBase/ANLDAQ.md` — DAQ GUI, TCP receiver, run control
-- `knowledgeBase/overview_SmallSystem.md` — DuoGe (DUO) and X-Array (DXA) small system overview
+- [`hardware_architecture.md`](hardware_architecture.md) — Detailed hardware breakdown: DuoGe vs DGS, signal chain, collector box
+- [`fpga.md`](fpga.md) — FPGA firmware overview: 3-tier hierarchy, signal flow, trigger cycle
+- [`ioc.md`](ioc.md) — EPICS IOC configuration, firmware versions, boot scripts
+- [`lnfill.md`](lnfill.md) — Liquid nitrogen cooling system
+- [`ANLDAQ.md`](ANLDAQ.md) — DAQ GUI, TCP receiver, run control
+- [`overview_SmallSystem.md`](overview_SmallSystem.md) — DuoGe (DUO) and X-Array (DXA) small system overview

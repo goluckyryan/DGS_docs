@@ -84,7 +84,7 @@ fs2.onenet:/mnt/vol5/atlasdata/dgs/exp2008_Chiara/
 
 DCS2 local storage: `/` on NVMe1 (915G, 45% used), `/mnt/data0` on NVMe0 (1.8T, 26% used) — not NFS.
 
-> ⚠️ **Scope:** We only see the `knowledgeBase/` subtree. Other data (e.g. `musics/`, other experiment groups) may exist under `atlasdata/` on the server but are not mounted on DCS2 and not accessible from here.
+> ⚠️ **Scope:** We only see the []() subtree. Other data (e.g. `musics/`, other experiment groups) may exist under `atlasdata/` on the server but are not mounted on DCS2 and not accessible from here.
 
 *Source: `ssh dcsu@DCS2.onenet "cat /proc/mounts | grep nfs"` and `df -h` — 2026-04-05* ✅ verified 2026-04-18 — `/proc/mounts` on DCS2: all 6 NFS mounts confirmed (server paths, ro/rw flags, NFSv4.1)
 
@@ -284,7 +284,7 @@ Compares `longin`/`longout` PV names between two dated snapshots of `MTrigRegist
 - **Output:** count of old/new PVs, sorted lists of added and removed PV names with record type
 - Uses `pathlib` + `re` only — no EPICS required, pure file diff
 - **Not integrated into ANLDAQ GUI** — standalone dev utility
-- **Cross-reference:** `knowledgeBase/ioc.md` documents the `ioc/db/` directory; MTRG templates are in `db/`
+- **Cross-reference:** [`ioc.md`](ioc.md) documents the `ioc/db/` directory; MTRG templates are in `db/`
 
 ---
 
@@ -411,7 +411,7 @@ The current VxWorks cross-compilation environment (symlinked as `devel`):
 |---|---|
 | `base/` | EPICS base |
 | `boot/` | IOC boot scripts |
-| `knowledgeBase/` | DGS-specific code |
+| []() | DGS-specific code |
 | `dgs1Top/` | DGS1 legacy top-level |
 | `extensions/` | EPICS extensions |
 | `gcc/` | Cross-compiler |
@@ -655,7 +655,7 @@ A working test area used for Sep 2025 DGS testing. Contains:
 - `live_plot.gnu` — gnuplot live plot script
 - `core.18302`, `core.7887` — core dumps (crash artifacts)
 
-> **Cross-reference:** The `dgsReceive`/`dgsReceiver` binaries are standalone C programs (not ANLDAQ). The ANLDAQ Python GUI is the current production receiver; these binaries likely predate it or are test stand variants. The `.gtd` raw file format matches the GEB data format (see `knowledgeBase/data_structures.md`).
+> **Cross-reference:** The `dgsReceive`/`dgsReceiver` binaries are standalone C programs (not ANLDAQ). The ANLDAQ Python GUI is the current production receiver; these binaries likely predate it or are test stand variants. The `.gtd` raw file format matches the GEB data format (see [`data_structures.md`](data_structures.md)).
 
 ---
 
@@ -704,7 +704,7 @@ typedef struct {
 | `test_20/`, `test_20_ge/`, `test_20_trig/` | Run 20 data subsets |
 | `core.*` | Crash core dumps from Dec 15 2025 |
 
-> **Cross-reference:** `rcvr_merge` tools are NFS-only (not in any Git repo). Trigger holdoff tuning results here are directly relevant to MTRG holdoff register settings. See `knowledgeBase/deep_fpga_MTRG_MAIN.md` for trigger holdoff configuration.
+> **Cross-reference:** `rcvr_merge` tools are NFS-only (not in any Git repo). Trigger holdoff tuning results here are directly relevant to MTRG holdoff register settings. See [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) for trigger holdoff configuration.
 
 ---
 
@@ -720,7 +720,7 @@ typedef struct {
 | `Merged/` | Merged output `.gtd` files |
 | `ROOT_FILES/` | ROOT output histograms/trees from SBX tuning |
 
-> **Context:** Used for Slope Box characterization in 2022. `gtreceiver/` suggests this predates or overlaps with the migration from GRETINA-based tools. `GEBSort/` is the event sorter/builder used to process raw data. ROOT_FILES contains analysis output. See `knowledgeBase/sbx.md` for SBX hardware documentation.
+> **Context:** Used for Slope Box characterization in 2022. `gtreceiver/` suggests this predates or overlaps with the migration from GRETINA-based tools. `GEBSort/` is the event sorter/builder used to process raw data. ROOT_FILES contains analysis output. See [`sbx.md`](sbx.md) for SBX hardware documentation.
 
 ---
 
@@ -884,10 +884,10 @@ Top-level directories on vol5 (18 named experiments + test areas):
 
 ## Cross-References
 
-- `knowledgeBase/collectorboxpi.md` — Raspberry Pi soft IOC; PXE boot infrastructure served from fs2.onenet piserver NFS
-- `knowledgeBase/influxdb_grafana.md` — InfluxDB/Grafana on DCS2 (192.168.203.56); same server as NFS mounts
-- `knowledgeBase/expMemory_2008_Chiara.md` — Active experiment data locations on NFS (vol5 paths)
-- `knowledgeBase/lnfill.md` — LN2 fill system; lnfill scripts on vol3, ln2con home on vol3
-- `knowledgeBase/ANLDAQ.md` — Data acquisition; raw run files land on NFS vol4/vol5
-- `knowledgeBase/dgs_analysis.md` — Post-analysis; reads from NFS experiment directories
-- `knowledgeBase/ioc.md` — NFS-hosted IOC software tree (`vol2/global_32/ioc/`): boot scripts, EPICS DB, py_scripts, dgsReceiver, dgsSoftIOC, EDM screens, FW_Maint
+- [`collectorboxpi.md`](collectorboxpi.md) — Raspberry Pi soft IOC; PXE boot infrastructure served from fs2.onenet piserver NFS
+- [`influxdb_grafana.md`](influxdb_grafana.md) — InfluxDB/Grafana on DCS2 (192.168.203.56); same server as NFS mounts
+- [`expMemory_2008_Chiara.md`](expMemory_2008_Chiara.md) — Active experiment data locations on NFS (vol5 paths)
+- [`lnfill.md`](lnfill.md) — LN2 fill system; lnfill scripts on vol3, ln2con home on vol3
+- [`ANLDAQ.md`](ANLDAQ.md) — Data acquisition; raw run files land on NFS vol4/vol5
+- [`dgs_analysis.md`](dgs_analysis.md) — Post-analysis; reads from NFS experiment directories
+- [`ioc.md`](ioc.md) — NFS-hosted IOC software tree (`vol2/global_32/ioc/`): boot scripts, EPICS DB, py_scripts, dgsReceiver, dgsSoftIOC, EDM screens, FW_Maint

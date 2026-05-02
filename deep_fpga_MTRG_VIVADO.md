@@ -123,8 +123,8 @@ Two source files exist in the Vivado version that are **not** in the ISE active 
 
 ## Cross-References
 
-- `knowledgeBase/deep_fpga_MTRG.md` — MTRG overview: all 3 devices (Main FPGA, VME FPGA, CPLD)
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — ISE-based MTRG main FPGA (production); shared VHDL source files
-- `knowledgeBase/deep_fpga_MTRG_VME.md` — VME FPGA (Spartan-3): configures and communicates with the main FPGA
-- `knowledgeBase/deep_fpga_building.md` — Vivado 2018.3 build toolchain setup
-- `knowledgeBase/fpga.md` — FPGA firmware overview; MTRG role in the 3-tier trigger hierarchy
+- [deep_fpga_MTRG.md](deep_fpga_MTRG.md) — MTRG overview: all 3 devices (Main FPGA, VME FPGA, CPLD)
+- [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — ISE-based MTRG main FPGA (production); shared VHDL source files
+- [deep_fpga_MTRG_VME.md](deep_fpga_MTRG_VME.md) — VME FPGA (Spartan-3): configures and communicates with the main FPGA
+- [deep_fpga_building.md](deep_fpga_building.md) — Vivado 2018.3 build toolchain setup
+- [fpga.md](fpga.md) — FPGA firmware overview; MTRG role in the 3-tier trigger hierarchy

@@ -120,9 +120,10 @@ This allows `gamuser` and `dgs` accounts to mount/format removable disks without
 
 | File | Relationship |
 |------|--------------|
-| `nfs_layout.md` | NFS storage volumes used alongside removable disks |
-| `run_procedures.md` | Experiment run procedures including data storage |
-| `overview_DGS.md` | DGS machine overview (GS/DGS Linux hosts that use this) |
+| [nfs_layout.md](nfs_layout.md) | NFS storage volumes used alongside removable disks |
+| [run_procedures.md](run_procedures.md) | Experiment run procedures including data storage |
+| [overview_DGS.md](overview_DGS.md) | DGS machine overview (GS/DGS Linux hosts that use this) |
+| [expMemory_2008_Chiara.md](expMemory_2008_Chiara.md) | Active experiment log — data storage locations and disk usage |
 
 ---
 

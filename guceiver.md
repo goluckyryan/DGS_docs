@@ -373,9 +373,9 @@ At startup, Guceiver reads `{board_name}:user_package_data` via EPICS CA for eac
 
 Guceiver connects to the **same TCP port 9001** as `tcpReceiver` (the production data-to-disk receiver). It is a diagnostic tool, not a replacement — it can run instead of `tcpReceiver` for quick checks, or it may be run simultaneously if the IOC supports multiple connections.
 
-See `knowledgeBase/ANLDAQ.md` for the tcpReceiver / production DAQ pipeline.
-See `knowledgeBase/data_structures.md` for the full binary event format.
-See `knowledgeBase/DIG_firmware_expert.md` for DIG header type 7/8 field definitions.
+See [`ANLDAQ.md`](ANLDAQ.md) for the tcpReceiver / production DAQ pipeline.
+See [`data_structures.md`](data_structures.md) for the full binary event format.
+See [`DIG_firmware_expert.md`](DIG_firmware_expert.md) for DIG header type 7/8 field definitions.
 
 ## Cross-References
 

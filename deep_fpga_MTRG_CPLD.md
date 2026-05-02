@@ -109,8 +109,8 @@ Multiple GRETINA CPLD snapshots exist in `FPGA/Firmware_Tags/MasterTrigger/20200
 
 ## See Also
 
-- `knowledgeBase/deep_fpga_MTRG.md` — MTRG overview: all three devices (Main FPGA + VME FPGA + CPLD)
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — Main FPGA: receives the fast strobe analog multiplicity sum from this CPLD
-- `knowledgeBase/fpga.md` — System overview: fast strobe latency (~1 µs) vs full SERDES trigger cycle (2 µs)
-- `knowledgeBase/sbx.md` — Slope Box Extension: sources of the BGO sum signals this CPLD aggregates
-- `knowledgeBase/DGS_SVN.md` — `GRETNA_CPLD_CHECK/` entry for SVN archive context
+- [deep_fpga_MTRG.md](deep_fpga_MTRG.md) — MTRG overview: all three devices (Main FPGA + VME FPGA + CPLD)
+- [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — Main FPGA: receives the fast strobe analog multiplicity sum from this CPLD
+- [fpga.md](fpga.md) — System overview: fast strobe latency (~1 µs) vs full SERDES trigger cycle (2 µs)
+- [sbx.md](sbx.md) — Slope Box Extension: sources of the BGO sum signals this CPLD aggregates
+- [DGS_SVN.md](DGS_SVN.md) — `GRETNA_CPLD_CHECK/` entry for SVN archive context

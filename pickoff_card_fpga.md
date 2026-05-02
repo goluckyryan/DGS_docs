@@ -8,7 +8,7 @@ Stability: C3 - Structural / stable
 **Tool:** Xilinx ISE 14.7 ✅ verified 2026-04-25 — `SlopeboxInt_TopLevel_RevC.vhd:L13`  
 **Author:** John T. Anderson (ANL), created 2020-10-05 ✅ verified 2026-04-25 — `SlopeboxInt_TopLevel_RevC.vhd:L8`  
 **Firmware version:** Code date `0x0914` (Sept 2014?), revision `0x0182` ✅ verified 2026-04-25 — `SlopeboxInt_TopLevel_RevC.vhd:L619-620`  
-**See also:** [`sbx.md`](sbx.md), [`slope_box_interface.md`](slope_box_interface.md), [`sbxPi_ioc.md`](sbxPi_ioc.md)
+**See also:** [`sbx.md`](sbx.md), [`slope_box_interface.md`](slope_box_interface.md), [`PickoffPi_ioc.md`](PickoffPi_ioc.md)
 
 ---
 
@@ -282,7 +282,7 @@ All addresses verified 2026-04-25 — `SlopeboxInt_TopLevel_RevC.vhd:L228-345` (
 |------|--------------|
 | `sbx.md` | Slope Box system overview including Pickoff Card role |
 | `deep_fpga_SBX_CtrlFPGA.md` | Detailed analysis of the SBX Motherboard Control FPGA (RevC same FPGA) |
-| `sbxPi_ioc.md` | Pi IOC that communicates with this FPGA via SPI |
+| `PickoffPi_ioc.md` | Pi IOC that communicates with this FPGA via SPI |
 | `collector_fpga.md` | Collector box FPGA for comparison (similar architecture) |
 | `hardware_architecture.md` | System context: BGO and HPGe detector signal chain |
 

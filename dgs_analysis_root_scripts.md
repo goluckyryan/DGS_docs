@@ -320,14 +320,14 @@ Channel ID extracted as `id[hit] % 100` (raw digitizer id modulo 100).
 
 | Topic | File |
 |-------|------|
-| Full pipeline reference (EventBuilder, parquetCLI, ProcessRUN, gain/pz scripts) | `knowledgeBase/dgs_analysis.md` |
-| gray_apps (GrayCAL, GrayMAN, grayfit) | `knowledgeBase/dgs_analysis_grayapps.md` |
-| Pole-zero correction theory + `pz_from_parquet.py` detail | `knowledgeBase/pole_zero.md` |
-| GEBSort full reference | `knowledgeBase/gebsort.md` |
-| GEB binary data format + GEBHeader struct | `knowledgeBase/data_structures.md` |
-| Gammasphere geometry (GS hole → θ/φ, map.dat context) | `knowledgeBase/gammasphere_geometry.md` |
-| DIG firmware readout modes (source of raw GEB payloads) | `knowledgeBase/DIG_firmware_expert.md` |
-| DuoGe system overview | `knowledgeBase/overview_SmallSystem.md` |
+| Full pipeline reference (EventBuilder, parquetCLI, ProcessRUN, gain/pz scripts) | [dgs_analysis.md](dgs_analysis.md) |
+| gray_apps (GrayCAL, GrayMAN, grayfit) | [dgs_analysis_grayapps.md](dgs_analysis_grayapps.md) |
+| Pole-zero correction theory + `pz_from_parquet.py` detail | [pole_zero.md](pole_zero.md) |
+| GEBSort full reference | [gebsort.md](gebsort.md) |
+| GEB binary data format + GEBHeader struct | [data_structures.md](data_structures.md) |
+| Gammasphere geometry (GS hole → θ/φ, map.dat context) | [gammasphere_geometry.md](gammasphere_geometry.md) |
+| DIG firmware readout modes (source of raw GEB payloads) | [DIG_firmware_expert.md](DIG_firmware_expert.md) |
+| DuoGe system overview | [overview_SmallSystem.md](overview_SmallSystem.md) |
 
 ---
 

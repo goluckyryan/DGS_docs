@@ -509,17 +509,17 @@ _Split to separate file 2026-04-23 to keep `vxworks.md` under 650 lines._
 
 ## Cross-References
 
-- `knowledgeBase/ioc.md` — IOC config, boot scripts, firmware versions, MVME5500 setup
-- `knowledgeBase/vxworks_migration.md` — Detailed migration notes from Solaris/con6 to Ubuntu 24
-- `knowledgeBase/vxworks_fifo_readout.md` — DMA buffer architecture, trigger FIFO readout, Type-F headers
-- `knowledgeBase/vxworks_state_machines.md` — inLoop/outLoop/MiniSender state machines, trigger driver summary, queue management
-- `knowledgeBase/vxworks_trigger_drivers.md` — trigger asyn driver deep-dive (asynTrigCommonDriver, asynTrigMasterDriver, asynTrigRouterDriver, firmware type codes)
-- `knowledgeBase/EPICS_asyn.md` — asyn driver internals: port model, worker threads, write flow
-- `knowledgeBase/vxworks_vme_devlayer.md` — extended devGVME/devGData/DGS_DEFS reference: VME flash register map, `ConfigureFlash` register sequence, `DGS_DEFS.h` constants, `rawEvt` buffer descriptor, board type table, outLoop globals
-- `knowledgeBase/VME_registers.md` — VME register addresses used by the IOC driver
-- `knowledgeBase/fpga.md` — FPGA firmware overview; the firmware binaries loaded by VxWorks
-- `knowledgeBase/ANLDAQ.md` — High-level pipeline overview (inLoop/outLoop/MiniSender data flow diagram + key PVs)
-- `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiverMT protocol; the TCP receiver MiniSender connects to
-- `knowledgeBase/deep_fpga_RTRG.md` / `knowledgeBase/deep_fpga_MTRG_MAIN.md` — RTRG/MTRG FPGA firmware
+- [`ioc.md`](ioc.md) — IOC config, boot scripts, firmware versions, MVME5500 setup
+- [`vxworks_migration.md`](vxworks_migration.md) — Detailed migration notes from Solaris/con6 to Ubuntu 24
+- [`vxworks_fifo_readout.md`](vxworks_fifo_readout.md) — DMA buffer architecture, trigger FIFO readout, Type-F headers
+- [`vxworks_state_machines.md`](vxworks_state_machines.md) — inLoop/outLoop/MiniSender state machines, trigger driver summary, queue management
+- [`vxworks_trigger_drivers.md`](vxworks_trigger_drivers.md) — trigger asyn driver deep-dive (asynTrigCommonDriver, asynTrigMasterDriver, asynTrigRouterDriver, firmware type codes)
+- [`EPICS_asyn.md`](EPICS_asyn.md) — asyn driver internals: port model, worker threads, write flow
+- [`vxworks_vme_devlayer.md`](vxworks_vme_devlayer.md) — extended devGVME/devGData/DGS_DEFS reference: VME flash register map, `ConfigureFlash` register sequence, `DGS_DEFS.h` constants, `rawEvt` buffer descriptor, board type table, outLoop globals
+- [`VME_registers.md`](VME_registers.md) — VME register addresses used by the IOC driver
+- [`fpga.md`](fpga.md) — FPGA firmware overview; the firmware binaries loaded by VxWorks
+- [`ANLDAQ.md`](ANLDAQ.md) — High-level pipeline overview (inLoop/outLoop/MiniSender data flow diagram + key PVs)
+- [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) — tcpReceiverMT protocol; the TCP receiver MiniSender connects to
+- [`deep_fpga_RTRG.md`](deep_fpga_RTRG.md) / [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) — RTRG/MTRG FPGA firmware
 
 *Created: 2026-04-05 | Last reviewed: 2026-04-25*

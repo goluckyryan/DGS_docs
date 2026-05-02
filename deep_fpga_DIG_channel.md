@@ -455,19 +455,19 @@ Located in each branch's `Cores/` directory:
 
 ## See Also
 
-- `knowledgeBase/deep_fpga_DIG.md` — DIG firmware overview: Spartan-3 architecture, ADC pipeline, event packet format, master/slave config, FIFO readout (this file is a continuation of that)
-- `knowledgeBase/deep_fpga_DIG_modules.md` — DIG selected module analysis Part 1: `SERDES_TX_Mach_DGS.vhd` (disc packer), `event_packer.vhd` (accordion FIFO), `pileup_processor.vhd` (8-state FSM), `SERDES_RX_Mach.vhd` (20-frame Router command receiver), `Timestamp_Generator.vhd`, `Trigger_Mux.vhd`, `Channel_Readout_Controller.vhd`, `Channel_Readout_Mach.vhd`
-- `knowledgeBase/deep_fpga_DIG_modules2.md` — DIG selected module analysis Part 2: `dc_balance_mach.vhd`, `disparity_lookup.vhd`, `event_data_fifo.vhd`, `decimator.vhd`, `Event_Header_FIFO.vhd`, `Channel_FIFO_Readout_Mach.vhd`, `Lvme.vhd`, `Registers.vhd` (199-entry VME register map)
-- `knowledgeBase/deep_fpga_DIG_eventpacket.md` — DIG event packet format: full LED/CFD header layout (all 14 words), split field reconstruction, waveform samples, integration timelines
-- `knowledgeBase/fpga.md` — System-level overview: trigger hierarchy, signal flow, PEQ explanation, end-to-end timeline
-- `knowledgeBase/DIG_firmware_expert.md` — Operator-level guide: all 8 readout modes, register summary, discriminator config
-- `knowledgeBase/deep_fpga_RTRG.md` — Router firmware: multiplicity aggregation, throttle, VME register map
-- `knowledgeBase/deep_fpga_MTRG_MAIN.md` — Master trigger firmware: trigger algorithms, TAC-II TDC, 20-frame commands
-- `knowledgeBase/ttcl.md` — TTCL spec: full frame-by-frame breakdown of the 20-frame command structure DIG receives
-- `knowledgeBase/ANLDAQ.md` — DAQ software: `class_DIG.h` decodes DIG packet format documented here
-- `knowledgeBase/connectors.md` — DIG connector pinouts: RJ45 SERDES, 36-pin Aux I/O, RTRG IEC cable
-- `knowledgeBase/deep_fpga_building.md` — Build toolchain: ISE 14.7 on Ubuntu 24.04, Docker/Podman approach
-- `knowledgeBase/preamp_reset_readme.md` — Detailed explanation of preamp reset (PRK) detection logic, blanking timing, BGO veto gate, and PARST timestamp fields
+- [deep_fpga_DIG.md](deep_fpga_DIG.md) — DIG firmware overview: Spartan-3 architecture, ADC pipeline, event packet format, master/slave config, FIFO readout (this file is a continuation of that)
+- [deep_fpga_DIG_modules.md](deep_fpga_DIG_modules.md) — DIG selected module analysis Part 1: `SERDES_TX_Mach_DGS.vhd` (disc packer), `event_packer.vhd` (accordion FIFO), `pileup_processor.vhd` (8-state FSM), `SERDES_RX_Mach.vhd` (20-frame Router command receiver), `Timestamp_Generator.vhd`, `Trigger_Mux.vhd`, `Channel_Readout_Controller.vhd`, `Channel_Readout_Mach.vhd`
+- [deep_fpga_DIG_modules2.md](deep_fpga_DIG_modules2.md) — DIG selected module analysis Part 2: `dc_balance_mach.vhd`, `disparity_lookup.vhd`, `event_data_fifo.vhd`, `decimator.vhd`, `Event_Header_FIFO.vhd`, `Channel_FIFO_Readout_Mach.vhd`, `Lvme.vhd`, `Registers.vhd` (199-entry VME register map)
+- [deep_fpga_DIG_eventpacket.md](deep_fpga_DIG_eventpacket.md) — DIG event packet format: full LED/CFD header layout (all 14 words), split field reconstruction, waveform samples, integration timelines
+- [fpga.md](fpga.md) — System-level overview: trigger hierarchy, signal flow, PEQ explanation, end-to-end timeline
+- [DIG_firmware_expert.md](DIG_firmware_expert.md) — Operator-level guide: all 8 readout modes, register summary, discriminator config
+- [deep_fpga_RTRG.md](deep_fpga_RTRG.md) — Router firmware: multiplicity aggregation, throttle, VME register map
+- [deep_fpga_MTRG_MAIN.md](deep_fpga_MTRG_MAIN.md) — Master trigger firmware: trigger algorithms, TAC-II TDC, 20-frame commands
+- [ttcl.md](ttcl.md) — TTCL spec: full frame-by-frame breakdown of the 20-frame command structure DIG receives
+- [ANLDAQ.md](ANLDAQ.md) — DAQ software: `class_DIG.h` decodes DIG packet format documented here
+- [connectors.md](connectors.md) — DIG connector pinouts: RJ45 SERDES, 36-pin Aux I/O, RTRG IEC cable
+- [deep_fpga_building.md](deep_fpga_building.md) — Build toolchain: ISE 14.7 on Ubuntu 24.04, Docker/Podman approach
+- [preamp_reset_readme.md](preamp_reset_readme.md) — Detailed explanation of preamp reset (PRK) detection logic, blanking timing, BGO veto gate, and PARST timestamp fields
 
 ---
 *Source: `DGS_tools_pack/raw_FPGA/Dig*/` — VHDL source. PDF: `ANL Digitizer Firmware for Experts.pdf`. Created: 2026-04-05.*

@@ -254,7 +254,7 @@ Key flow-control PVs:
 - **Event-bound depth**: updates only when a full event is in the FIFO (lags live by ≤ 1 event)
 - inLoop uses **event-bound depth** → every buffer read is guaranteed to contain only complete events (no need to stitch partial events across reads)
 
-> **Deep-dive:** For full state machine internals (outLoop.st state table, all PVs monitored/reported, MiniSender.st TCP handshake, QueueManagement three-queue buffer pool), see [`knowledgeBase/vxworks.md`](vxworks.md) — *outLoop.st*, *MiniSender.st*, and *QueueManagement.c* sections.
+> **Deep-dive:** For full state machine internals (outLoop.st state table, all PVs monitored/reported, MiniSender.st TCP handshake, QueueManagement three-queue buffer pool), see [`vxworks.md`](vxworks.md) — *outLoop.st*, *MiniSender.st*, and *QueueManagement.c* sections.
 
 ---
 

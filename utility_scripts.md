@@ -208,10 +208,10 @@ Serdes_Linkup.sh
 
 ## Cross-References
 
-- `knowledgeBase/DGS_SVN.md` — SVN archive context; NS_scripts and slopebox_scripts source
-- `knowledgeBase/collectorbox_PVs.md` — Current authoritative PV list (replaces outdated SVN PV references)
-- `knowledgeBase/snapshot_pv.md` — Modern Python/pyepics PV snapshot utilities (supersedes these legacy scripts)
-- `knowledgeBase/gammasphere_geometry.md` — GS hole → GS_ID numbering used by BGO tuning scripts
-- `knowledgeBase/sbx.md` — Slope box hardware; BGO HV channels addressed by slopebox_scripts
-- `knowledgeBase/trig_setup_scripts.md` — `Serdes_Linkup.sh` script (listed in `enableScriptList.txt`; documented there)
-- `knowledgeBase/expMemory_2008_Chiara.md` — current experiment data locations
+- [`DGS_SVN.md`](DGS_SVN.md) — SVN archive context; NS_scripts and slopebox_scripts source
+- [`collectorbox_PVs.md`](collectorbox_PVs.md) — Current authoritative PV list (replaces outdated SVN PV references)
+- [`snapshot_pv.md`](snapshot_pv.md) — Modern Python/pyepics PV snapshot utilities (supersedes these legacy scripts)
+- [`gammasphere_geometry.md`](gammasphere_geometry.md) — GS hole → GS_ID numbering used by BGO tuning scripts
+- [`sbx.md`](sbx.md) — Slope box hardware; BGO HV channels addressed by slopebox_scripts
+- [`trig_setup_scripts.md`](trig_setup_scripts.md) — `Serdes_Linkup.sh` script (listed in `enableScriptList.txt`; documented there)
+- [`expMemory_2008_Chiara.md`](expMemory_2008_Chiara.md) — current experiment data locations

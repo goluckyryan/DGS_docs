@@ -2,7 +2,7 @@
 
 Stability: C2 - Active / semi-stable
 
-_Split from `collectorbox_devicesupport.md` on 2026-04-26. Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/CollectorApp/src/`_
+_Split from [`collectorbox_devicesupport.md`](collectorbox_devicesupport.md) on 2026-04-26. Source: `DGS_tools_pack/collectorboxpi/CollectorBox_RevA/CollectorApp/src/`_
 
 **See also:** [`collectorbox_devicesupport.md`](collectorbox_devicesupport.md) — Core architecture, SPI flows, global data structure, conversion coefficients
 
@@ -613,7 +613,9 @@ No functions are implemented. The actual ADC scanning logic is handled via `Coll
 ## Cross-References
 
 - [`collectorboxpi.md`](collectorboxpi.md) — Raspberry Pi soft IOC: PXE boot, HV control, collector assignments
+- [`collectorbox_devicesupport.md`](collectorbox_devicesupport.md) — Core SPI device support: architecture, SPI flows, global data structure, conversion coefficients
 - [`collector_fpga.md`](collector_fpga.md) — CtrlFPGA and StripeFPGA firmware; SPI register maps
+- [`collector_ctrlFPGA_registers.md`](collector_ctrlFPGA_registers.md) — CtrlFPGA register interface (141 registers): DPRAM bank layout, ADC scan results
 - [`collectorbox_PVs.md`](collectorbox_PVs.md) — Full PV list (1,431 records/detector)
 - [`sbx.md`](sbx.md) — Slope Box Extension; pickoff card; BGO HV; GS_ID dongle
 - [`EPICS.md`](EPICS.md) — EPICS record types and device support concepts

@@ -417,7 +417,7 @@ _Documented 2026-04-21 — code-verified from `DGS_tools_pack/lnFill/`._
 
 **Purpose:** Rotates `LNFill_cron.log` — copies it to `logs/archive/LNFill_cron_YYYYMMDD.log` then truncates the live log to zero. Prevents unbounded growth.
 
-**Called by:** pi5-lnFill crontab — every Sunday at midnight (`0 0 * * 0`). ✅ verified 2026-04-22 — cross-referenced with `knowledgeBase/lnfill.md:L159` (live pi5-lnFill crontab entry)
+**Called by:** pi5-lnFill crontab — every Sunday at midnight (`0 0 * * 0`). ✅ verified 2026-04-22 — cross-referenced with [lnfill.md:L159](lnfill.md:L159) (live pi5-lnFill crontab entry)
 
 ---
 
@@ -499,9 +499,9 @@ Purpose: correlate active fills with temperature alarm state to suppress false a
 ## Cross-References
 
 - [`lnfill.md`](lnfill.md) — Operational overview, fill types, cron jobs, health monitoring, troubleshooting
-- `knowledgeBase/influxdb_grafana.md` — InfluxDB/Grafana on DCS2; HPGeTemp database
-- `knowledgeBase/nfs_layout.md` — Full NFS layout; `gamln.db` analysis (1357 records)
-- `knowledgeBase/con6_lnfill.md` — con6 (Solaris 10): CVS source repo + 68040 cross-compiler for lnfill IOC
+- [influxdb_grafana.md](influxdb_grafana.md) — InfluxDB/Grafana on DCS2; HPGeTemp database
+- [nfs_layout.md](nfs_layout.md) — Full NFS layout; `gamln.db` analysis (1357 records)
+- [con6_lnfill.md](con6_lnfill.md) — con6 (Solaris 10): CVS source repo + 68040 cross-compiler for lnfill IOC
 
 ---
 

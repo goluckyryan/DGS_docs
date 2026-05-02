@@ -401,10 +401,10 @@ dtbtev <infile>
 
 ## Cross-References
 
-- `knowledgeBase/gebsort.md` — Core GEBSort: GEBSort framework, bin_dgs, jta, calibration workflow
-- `knowledgeBase/gebsort_additional_sorters.md` — Non-DGS sorters (GRETINA, TAC-II, DFMA, etc.)
-- `knowledgeBase/ANLDAQ_tcpReceiver.md` — tcpReceiverMT deep-dive (production DGS receiver; contrast with gtReceiver here)
-- `knowledgeBase/data_structures.md` — GEB binary format: what GEBMerge reads and writes
+- [gebsort.md](gebsort.md) — Core GEBSort: GEBSort framework, bin_dgs, jta, calibration workflow
+- [gebsort_additional_sorters.md](gebsort_additional_sorters.md) — Non-DGS sorters (GRETINA, TAC-II, DFMA, etc.)
+- [ANLDAQ_tcpReceiver.md](ANLDAQ_tcpReceiver.md) — tcpReceiverMT deep-dive (production DGS receiver; contrast with gtReceiver here)
+- [data_structures.md](data_structures.md) — GEB binary format: what GEBMerge reads and writes
 
 ---
 *Created: 2026-04-26. Split from gebsort.md. Source: `DGS_tools_pack/gebsort/`.*

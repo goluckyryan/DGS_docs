@@ -503,13 +503,13 @@ One instance per channel (10 total). Manages the **go/no-go decision** and **wav
 
 ## Cross-References
 
-- `knowledgeBase/DIG_firmware_expert.md` — Expert guide: all readout modes, data format, timing, trigger_mux_select
-- `knowledgeBase/preamp_reset_readme.md` — Preamp reset (PRK) handling: detection thresholds, CHANNEL_KILLED gate, PARST timestamp
-- `knowledgeBase/ttcl.md` — TTCL spec: trigger command frames received and acted on by DIG
-- `knowledgeBase/data_structures.md` — GEB binary format: DIG event packet layout
-- `knowledgeBase/connectors.md` — DIG connector pinouts: RJ45 SERDES, 36-pin Aux I/O
-- `knowledgeBase/VME_registers.md` — DIG VME register addresses from asyn driver source
-- `knowledgeBase/fpga.md` — FPGA system overview: DIG role in 3-tier trigger hierarchy
-- `knowledgeBase/deep_fpga_DIG_modules2.md` — DIG selected module analysis Part 2: DC balance, FIFOs, decimator, event header FIFO, channel collection FIFO, VME FSM, register map
+- [DIG_firmware_expert.md](DIG_firmware_expert.md) — Expert guide: all readout modes, data format, timing, trigger_mux_select
+- [preamp_reset_readme.md](preamp_reset_readme.md) — Preamp reset (PRK) handling: detection thresholds, CHANNEL_KILLED gate, PARST timestamp
+- [ttcl.md](ttcl.md) — TTCL spec: trigger command frames received and acted on by DIG
+- [data_structures.md](data_structures.md) — GEB binary format: DIG event packet layout
+- [connectors.md](connectors.md) — DIG connector pinouts: RJ45 SERDES, 36-pin Aux I/O
+- [VME_registers.md](VME_registers.md) — DIG VME register addresses from asyn driver source
+- [fpga.md](fpga.md) — FPGA system overview: DIG role in 3-tier trigger hierarchy
+- [deep_fpga_DIG_modules2.md](deep_fpga_DIG_modules2.md) — DIG selected module analysis Part 2: DC balance, FIFOs, decimator, event header FIFO, channel collection FIFO, VME FSM, register map
 
 *Created: 2026-04-07 | Last reviewed: 2026-04-24*
