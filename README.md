@@ -9,6 +9,15 @@ This repository contains technical documentation for the **Digital Gamma-ray Spe
 
 ---
 
+## 📁 Guides by Audience
+
+| Folder | Purpose |
+|--------|---------|
+| [`operator_guides/`](operator_guides/README.md) | Step-by-step procedures for operators and physicists — what to set and in what order |
+| [`engineer_guides/`](engineer_guides/README.md) | Deep technical references for hardware, firmware, and software internals |
+
+---
+
 ## Contents
 
 ### System Overview
