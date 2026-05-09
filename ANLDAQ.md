@@ -517,6 +517,19 @@ The GLBL DB (`db/MDigRegisters.template`, etc.) is loaded with `CRATE=NN` substi
 
 ---
 
+## Web-Based Run Control (`run_control_web.py`) — Added 2026-05-09
+
+Flask + Socket.IO web server running on **DCS2** at `http://<dcs2-ip>:5050`. Provides browser-based DAQ run control as an alternative to the Qt GUI. Also embeds a **FastMCP server** (SSE transport, port 5051) exposing DAQ tools.
+
+**Key features:**
+- Start/stop runs via EPICS (`Online_CS_StartStop`, `Online_CS_SaveData`) + tcpReceiver subprocess
+- Real-time Socket.IO streaming of run state, data size, buffer rates to browser
+- Pre-run PV snapshot (via `snapshot_pv`), post-run MergeRUN, elog posting
+- MCP tools: `mcp_start_run`, `mcp_stop_run`, `mcp_run_status`, `mcp_refresh`, `mcp_merge_run`
+- Key paths on DCS2: `SCRIPT_DIR=/home/phy/dcsu/ANLDAQ/tcpReceiver`, `MERGE_DIR=/home/phy/dcsu/DGS_Analysis/working`
+
+---
+
 ## See Also
 
 - [`ANLDAQ_tcpReceiver.md`](ANLDAQ_tcpReceiver.md) — `tcpReceiverMT` deep-dive: 3 binaries, TCP protocol, GEB header, class_DIG.h/class_TDC.h decoders, run control scripts (split from this file)

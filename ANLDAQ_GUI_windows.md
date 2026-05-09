@@ -459,6 +459,44 @@ See **[`guceiver.md`](guceiver.md)** for: architecture diagram, class_Receiver.p
 
 ---
 
+## New GUI Windows and Scripts (Added 2026-05-09, commit 7420bed)
+
+### `gui_Trigger.py` — Trigger Diagnostics Window
+`TriggerWindow` (530 lines) — combines MTRG trigger controls with per-RTRG diagnostic monitoring in one view.
+- Tab 1: `triggerControlTab` + `wheelRAMTab` from `gui_MTRG.py` (reused components)
+- Tab 2+: Per-RTRG diagnostic panels showing raw trigger rate counters, accepted trigger counters, link status
+- MTRG trigger rate counters: `reg_Diagnostic*`, `reg_RAW_TRIG_RATE_COUNTER_N_HIGH/LOW`, `reg_TRIG_RATE_COUNTER_N_HIGH/LOW`
+
+### `gui_Restore.py` — PV Snapshot Restore Window
+`RestoreWindow` (303 lines) — restores per-channel digitizer PV settings from a snapshot JSON file.
+- Reads snapshot files (from [`snapshot_pv`](../snapshot_pv/)) and applies selected PV types to all channels
+- Supported: `led_threshold`, `channel_enable`, `CFD_fraction`, `coarse_threshold`, `coarse_width`, `disc_width`, `downsample_factor`, `ext_disc_sel`, `ext_disc_src`, `k0_window`, `k_window`, `d_window`, `d3_window`, `m_window`, `p1_window`, `p2_window`, `raw_data_delay`, `raw_data_length`
+- Uses `concurrent.futures.ThreadPoolExecutor` for parallel PV writes; checkbox per PV type; confirmation before applying
+
+### `gui_GS_Summary.py` — GS Detector Summary Window
+`GSSummaryWindow` (212 lines) — overview of all Gammasphere detectors showing live monitoring PVs per slot.
+- Dropdown to select detector; per-detector live readback panel (1-second QTimer)
+- Shows: `Conv_Temp`, `Conv_GeHV`, `Calc_PWRTemp`, `Calc_FanRPM`, `Calc_ChamberHumidity`, `Calc_ChamberTemp`, `Calc_PCBTemp`, `Conv_Resistance`, `Conv_24V` etc.
+
+### `run_control_web.py` — Web DAQ Run Control (DCS2)
+Flask + Socket.IO web server (1199 lines) — runs on DCS2, browser-based run control at `http://<dcs2-ip>:5050`. Also hosts MCP server (FastMCP, SSE on port 5051) — see [DCS2 DAQ MCP Server](../MEMORY.md).
+- **Run control:** start/stop via EPICS + tcpReceiver subprocess; real-time Socket.IO streaming of run state/data size/buffer rates
+- **MergeRUN:** calls `MergeRUN` for post-run data merging; elog integration; PV snapshot before run
+- **Key paths (DCS2):** `SCRIPT_DIR=/home/phy/dcsu/ANLDAQ/tcpReceiver`, `MERGE_DIR=/home/phy/dcsu/DGS_Analysis/working`
+- **MCP tools:** `mcp_start_run`, `mcp_stop_run`, `mcp_run_status`, `mcp_refresh`, `mcp_merge_run`
+
+### New Scripts (`gui/scripts/`)
+| Script | Lines | Purpose |
+|--------|-------|---------|
+| `setup_dig.sh` | 514 | Full digitizer setup: LED thresholds, CFD, channel enable, timing windows for all boards |
+| `setup_trig.sh` | 471 | Trigger system setup: MTRG/RTRG algorithm, veto, plane maps, coincidence windows |
+| `setup_sbx.sh` | 95 | SBX/slope box setup: BGO HV, GeC/GeSide gain, DC offsets via Collector Box PVs |
+| `hv_on.sh` | 208 | Ge HV ramp-up sequence for all detectors |
+| `Serdes_Dig_Trig.sh` | 70 | SerDes link initialization for DIG+Trigger boards |
+| `bgo_hv_restore.py` | 348 | Python: restore BGO HV setpoints from snapshot |
+
+---
+
 ## See Also
 
 - [`ANLDAQ.md`](ANLDAQ.md) — parent overview (class_PV, class_Board, findAllPV, commander.py)
@@ -471,4 +509,4 @@ See **[`guceiver.md`](guceiver.md)** for: architecture diagram, class_Receiver.p
 - [`deep_fpga_MTRG_MAIN.md`](deep_fpga_MTRG_MAIN.md) — MTRG firmware details for trigger tab PVs
 - [`deep_fpga_RTRG.md`](deep_fpga_RTRG.md) — RTRG firmware details for RTR window PVs
 
-*Created: 2026-04-13 | Last reviewed: 2026-04-24*
+*Created: 2026-04-13 | Last reviewed: 2026-05-09 (updated for commit 7420bed: gui_Trigger, gui_Restore, gui_GS_Summary, run_control_web.py, new scripts)*

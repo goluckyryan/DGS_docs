@@ -141,6 +141,8 @@ python3 dumpPVs.py --all --outdir /mnt/data0/exp2008_Chiara/data/exp2008_036/
 Named: `{YYYYMMDD_HHMMSS}_pv_{device}.txt` ✅ verified 2026-04-14 — `dumpPVs.py:L141` (`f"{date_str}_pv_{os.path.basename(f).replace('_db.txt', '')}.txt"`)
 Example: `20260405_161500_pv_vme01.txt`
 
+**Output directory:** defaults to `pastSnapshots/` subdirectory (auto-created) alongside `dumpPVs.py`. Override with `--outdir`. Updated 2026-05-06 commit `7406035`.
+
 ### Implementation details
 - Creates all `epics.PV()` objects first, then waits for connection (0.5–1s timeout)
 - Reads in parallel using `ThreadPoolExecutor` (up to 40 workers)
@@ -203,7 +205,7 @@ Excludes noisy/internal PVs that change constantly:
 ### Implementation details
 - Creates `epics.PV()` objects, does a `get()` to establish connection, then `add_callback()`
 - Callback fires in background thread on every PV change; **up to 40 parallel threads** for initial setup (scales with PV count)
-- Log file rotates daily: `pv_history_YYYYMMDD.log`
+- Log file rotates daily: `watchDogHistory/pv_history_YYYYMMDD.log` (directory auto-created; updated 2026-05-06 commit `7406035` — previously logged to working directory)
 - Thread-safe log writes via `threading.Lock()`
 - Graceful shutdown on Ctrl+C: clears all callbacks + EPICS CA cache
 
