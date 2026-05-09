@@ -1,0 +1,2 @@
+# Ignore PDF files — store markdown summaries instead
+*.pdf
