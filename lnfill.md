@@ -91,7 +91,7 @@ Automated control system for filling germanium detector **dewars** with liquid n
 | `gefilltime2.dat` | **Per-detector LN2 fill time bounds** — 113 lines, format: `GS_ID, min_time_sec, max_time_sec`. Covers GS 1–110 + detectors 201 (DUO?) and 501. Loaded at startup by `LNFill_App.py:L333-344` into `geminfilltime[]` / `gemaxfilltime[]` arrays (default 151s min / 575s max if file absent ✅ verified 2026-04-12 — `LNFill_App.py:L30-31`). Example: GS 1–109 mostly 139–419s; GS 108=100–419s; GS 110=120–419s. Values set from 2020-03-28 fill session (per file header). Passed to each `DetMan` via `setDetMinFillTimes()` / `setDetMaxFillTimes()`. **Vacuum health indicator:** fill time trending shorter = vacuum degrading = detector warming faster = possible vacuum leak. |
 | `templog/` | Temperature log directory |
 | `AddPress.sh` | **Spare tank pressure management** — monitors tank pressures during a fill; opens/closes spare tank fill valves (LNT3, LNT6) to keep both tank stations pressurized. Runs for up to 2,200s; exits when fill completes or timeout. See details below. |
-| `setTNF.sh` | **Set Time of Next Fill** — writes `LN_TTNF:XC` PV with the next scheduled fill time. Called by `LNFill_cron.sh` after each fill. Logic: if current hour >10 → next fill is 12h earlier (morning→evening or evening→morning); if arg given, uses that hour directly. Format: `HH:01`. ✅ verified 2026-04-13 — `setTNF.sh:L7-29` |
+| `setTNF.sh` | **Set Time of Next Fill** — writes `LN_TTNF:XC` PV. Called by `LNFill_cron.sh` before each fill. Updated 2026-05-16: now reads current `LN_TTNF:XC` and adds 12 hours (preserving minutes). Manual mode: `./setTNF.sh 18:07` (validates `hh:mm` format). Prevents IOC internal sequencer from firing during Python fill. |
 | `epics_cron.sh` | **EPICS environment for cron** — sets `EPICS_BASE`, `PYEPICS_USE_SYSTEM_LIBS`, `PYEPICS_LIBCA/COM`, and `LD_LIBRARY_PATH` for aarch64 Pi. Sourced by cron jobs that need pyepics. ✅ verified 2026-04-13 — `epics_cron.sh:L2-6` |
 | `clean.sh` | **Log file cleanup** — deletes fill log files under 80 bytes (aborted/empty runs) and removes stray `core.*` dump files from `~/` and `logs/`. ✅ verified 2026-04-13 — `clean.sh:L4-8` |
 | `archive_cron_log.sh` | **Weekly log archiver for `LNFill_cron.log` and `LNFill_Auto_EFill_cron.log`** — copies both logs to `logs/archive/` with Sunday-date suffix and truncates originals if non-empty. Run via cron every Sunday at midnight (`0 0 * * 0`). ✅ verified 2026-04-18 — `lnfill/archive_cron_log.sh` (commit 26a7865); updated 2026-04-21 (commit 2a527d5) to also archive EFill cron log |
@@ -176,24 +176,38 @@ During M-fill startup, `CheckTemps()` runs *before* the instance kill check — 
 
 > **DCS2 backup fill watchdog (added 2026-04-21):** `LNFill_cron.sh` now runs at **6:05 AM and 6:05 PM** on DCS2 as an automatic backup. If pi5-lnFill ran the fill at 6:00, DCS2 sees `LN_FILL_MODE:XC = 3` and exits. If pi5 failed, DCS2 proceeds with a full fill. This makes DCS2 a self-healing fallback with no manual intervention needed.
 
-### LN2 PV Watchdog (`lnfill_watchdog.py`, on DCS2) ✅ added 2026-04-21 — `lnfill` commit `061b1f1`
-Daemon that monitors 16 LN2-related EPICS PVs via CA subscriptions and logs state changes to `watchdog.log`.
+### LN2 PV Watchdog (`lnfill_watchdog.py`, on DCS2) ✅ added 2026-04-21, expanded 2026-05-16
+Daemon that monitors ~451 LN2-related EPICS PVs via CA subscriptions and logs state changes to `watchdog.log`. Only logs on value change — no polling noise.
 
-**Monitored PVs:**
-| PV | Description |
-|----|-------------|
-| `LN_MODE:XC` | Current fill mode (Ready/Filling Dets/Filling Tanks/etc.) — set by VxWorks sequencer on ln2con |
-| `LN_FILL_MODE:XC` | Cron coordination flag — **only values 0 and 3 are used in practice**: 0=idle/manual, 3=cron fill in progress. ⚠️ The watchdog source code comment says `0=Manual, 1=Auto Det, 2=Auto Tank+Det` — these are **stale comments** from an older intent; values 1 and 2 are never set by current code. ✅ verified 2026-04-23 — `LNFill_cron.sh:L13,L30-31,L53` (only reads/writes 0 and 3); `lnfill_watchdog.py:L41` (stale comment) |
-| `LN_TTNF:XC` | Time of Next Fill |
-| `LN_TLFF:XC` | Time Last Det Fill Finished |
-| `LN_TSFS:XC` | Duration of last det fill |
-| `LNM1-4_FV:VM` | Manifold 1-4 fill valves (Open/Closed/Auto/Disable) |
-| `LNS1-2_VV:VM` | Supply valves station 1 (north) and 2 (south) |
-| `LNT1-2_FV:VM` | Tank 1-2 fill valves |
-| `LNT1-2_VV:VM` | Tank 1-2 vent valves |
-| `LNH1-20_FV:EN` | Hose 1-20 enable (normally disabled) |
+**Monitored PV categories (updated 2026-05-16):**
+| Category | Count | PVs |
+|----|------|-----|
+| Header / IOC status | ~44 | `LN_MODE:XC`, `LN_FILL_MODE:XC`, `LN_TTNF:XC`, `LN_TLFF:XC`, `LN_TSFS:XC`, `LN_ALMSTAT:XC`, `LN_ALM:XC`, `LN_ALARM:ALM`, `LN_ABORT:XC`, `LN_FDN:XC`, `LN_FTN:XC`, `LN_AUTO_OPEN_ENA:XC`, all alarm ACK PVs (`LN_VTERR_ACK:XC`, `LN_FTERR_ACK:XC`, `LN_TSERR_ACK:XC`, `LN_OS_ALARM_ACK:XC`, `LN_HUNG_ACK:XC`, `CNOTOK_ERR_ACK:XC`, `TEMPDO/HI/LO/MC_ERR_ACK:XC`), fill IDs, timing PVs, `LN_VECC:XC` |
+| Supply valves | 6 | `LNS1-2_VV:EN`, `LNS1-2_VV:VM`, `LNS1-2_TM:BT` |
+| Tank valves | 30 | `LNT1-6_FV:EN/VM`, `LNT1-6_VV:EN/VM`, `LNT1-6_TM:BT` |
+| Manifold valves | 32 | `LNM1-4_FV:EN/VM`, `LNM1-4_VV:EN/VM`, `LNM1-4A_FV:EN/VM`, `LNM1-4_TM:BT`, `LNM1-4A_TM:BT` |
+| GN2 valves | 4 | `LNG1-02_FV:EN/VM`, `LNG2-02_FV:EN/VM` |
+| Detector valves | 336 | `LNH1-28 × Man1-4: FV:EN`, `FV:VM`, `TM:BT` |
+
+**Excluded (noisy/numerical):** `_TM:AT` (voltage), `SUB.D`/`SUB.E` (fill times), `_PR:AP` (pressure), `:QUAL`, `LN_TSLF:XC`/`LN_TSLTF:XC` (update every second)
 
 **Key insight from watchdog:** `LN_MODE:XC` is set by the **VxWorks sequencer on ln2con** (not by `LNFill_App.py`). `LN_FILL_MODE:XC` is set by `LNFill_cron.sh` (value 3 = cron fill in progress, 0 = manual/idle). These are two different PVs with different purposes.
+
+**Note:** After an IOC reboot, the watchdog must be restarted — CA subscriptions do not survive IOC power cycles.
+
+### IOC Internal Fill Sequencer (`lnfiller.vx`) — discovered 2026-05-16
+
+The lnfill IOC (MVME167) runs its own VxWorks fill sequencer (`lnfiller.vx`). It uses `LN_TTNF:XC` to determine when to start an internal fill and reports state via `LN_MODE:XC` (Ready → Filling Dets → Filling Tanks → Finishing → Ready).
+
+**Critical issue (2026-05-16 incident):** When DCS2 ran the backup fill at 06:05, the IOC sequencer also triggered (because `LN_TTNF:XC` was set to 06:01, which had already passed). Two independent fill systems controlled the same valve PVs simultaneously, causing overtime alarms (`LN_ALMSTAT:XC = Overtimes`, `LN_ALM:XC = 7`) and IOC lockout (all manifold `LNM1-4_FV:VM` stuck at Disabled). Required IOC reboot to clear.
+
+**Prevention:** `setTNF.sh` (updated 2026-05-16) now reads the current `LN_TTNF:XC` and adds 12 hours (preserving minutes), ensuring the IOC scheduled time (xx:07) is always after the cron fires (xx:00 or xx:05). The `:07` offset gives `setTNF.sh` time to push the IOC schedule forward before it triggers.
+
+**Source code for `lnfiller.vx`:** NOT available on spark or DCS2. Located on con6 (192.168.203.136) at `/home/gam/repository/lnfill/` (CVS repo). Until retrieved, the IOC internal fill logic cannot be fully understood. **Do not speculate about behavior.**
+
+### AddPress.sh Race Condition with TankMan.py — discovered 2026-05-16
+
+`AddPress.sh` runs in background during fills and writes to `LNT3_FV:EN` and `LNT6_FV:EN` (spare tank fill valves). `TankMan.py` also controls these PVs during tank fill. No coordination between them — potential for valve state corruption if both run concurrently during tank fill phase.
 
 ---
 
