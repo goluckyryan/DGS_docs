@@ -136,7 +136,7 @@ DGS is a full software+firmware+hardware stack:
 | Host | IP | OS | Role |
 |------|----|----|------|
 | DCS2 | .56 | Ubuntu 24.04 | Data analysis, InfluxDB, Grafana |
-| dgs1 | .122 | SL 6.8 | Main DAQ | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
+| dgs1 | .122 | SL 6.8 | ~~Main DAQ~~ **RETIRED** — confirmed by Ryan 2026-05-18 | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
 | dgs2 | .123 | Rocky 8.7 | Main DAQ (4TB SSD) | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
 | dgs4 | .125 | SL 7.9 | — | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
 | dgs6 | .184 | Rocky 8.7 | — | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
@@ -152,7 +152,7 @@ DGS is a full software+firmware+hardware stack:
 | pi5-lnfill | .58 | Debian 13 | LN fill cron + HPGe temp push |
 | spark-ca9f (DGX Spark) | .132 | Linux (arm64) | General DGS host — **this machine** (replaced pi5-dgs 2026-04-15) |
 | pi5-dgs | .2 | Debian 13 | Ryan's former admin Pi (retired from General DGS role 2026-04-15) |
-| piserver1 | .154 | Ubuntu 20.04 | Pi PXE server | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
+| piserver1 | .154 | Ubuntu 20.04 | ~~Pi PXE server~~ **RETIRED** — confirmed by Ryan 2026-05-18 | ✅ verified 2026-04-19 — wiki.anl.gov/gsdaq/Computers_and_networks
 | gs-pdu-north | .224 | — | Power strip north |
 | gs-pdu-south | .225 | — | Power strip south |
 | fs2.onenet | .71 | — | NFS/tftp server for collector Pis | ✅ verified 2026-04-19 — `collectorboxpi/README.md:L287` (`nfsroot=192.168.203.71:/mnt/vol1/fs2/nfs/piserver/...`)
