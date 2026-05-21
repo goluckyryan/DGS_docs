@@ -199,6 +199,8 @@ Detailed plain-English summaries of key FPGA VHDL source files. Generated 2026-0
 | [lnfill_ioc.md](lnfill_ioc.md) | LN fill system deep internals: InfluxDB data flow, hose→detID mapping table, ln2con IOC boot tree, DetMan.py FillManifold() state machine |
 | [con6_lnfill.md](con6_lnfill.md) | con6 (Solaris 10, 192.168.203.136): CVS source repo + 68040 cross-compiler for lnfill IOC; ln2con NFS boot host; archiving priority and retirement migration plan |
 
+| [gs_model.md](gs_model.md) | GS_model 3D detector viewer: Three.js sphere/flat/ring views, server.py API (`/api/temps/epics`, `/api/temps/influx`, `/api/mapping`), geometry/mapping/hose-map JSON files, coordinate system |
+
 ### Utilities & Operations
 
 | File | Description |
