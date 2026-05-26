@@ -198,6 +198,8 @@ Detailed plain-English summaries of key FPGA VHDL source files. Generated 2026-0
 | [lnfill.md](lnfill.md) | LN filling system: valves, tanks, fill schedule, cron jobs, Discord alerts, ops procedures (overtime, manual fill, findhose) |
 | [lnfill_ioc.md](lnfill_ioc.md) | LN fill system deep internals: InfluxDB data flow, hose→detID mapping table, ln2con IOC boot tree, DetMan.py FillManifold() state machine |
 | [con6_lnfill.md](con6_lnfill.md) | con6 (Solaris 10, 192.168.203.136): CVS source repo + 68040 cross-compiler for lnfill IOC; ln2con NFS boot host; archiving priority and retirement migration plan |
+| [fill_monitor_user_guide.md](fill_monitor_user_guide.md) | fill_monitor user guide: adjust/report/plot/add-press/check-press subcommands, cron integration, Discord alerts (W1–W6, N1–N3), weekly log sections, flag reference |
+| [fill_monitor_technical_reference.md](fill_monitor_technical_reference.md) | fill_monitor technical reference: classifier/adjuster/reporter architecture, decision flow, adjustment rules, state file, gefilltime2.dat format, tunable parameters, worked examples |
 
 | [gs_model.md](gs_model.md) | GS_model 3D detector viewer: Three.js sphere/flat/ring views, server.py API (`/api/temps/epics`, `/api/temps/influx`, `/api/mapping`), geometry/mapping/hose-map JSON files, coordinate system |
 
