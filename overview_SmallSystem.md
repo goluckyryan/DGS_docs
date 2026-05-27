@@ -95,8 +95,9 @@ Stability: C2 - Active / semi-stable
 |------|--------------------|----|------|
 | tangerine | .78 | Rocky Linux 8 | DAQ host / FTP server for IOC | ✅ verified 2026-04-19 — `ANLDAQ/ioc/README.md:L33,L46` |
 | IOC (vme66) | .81 | VxWorks | VME IOC | ✅ verified 2026-04-19 — `ANLDAQ/ioc/README.md:L45,L50` |
-| sbxh3 | .164 | — | Raspberry Pi for SBX | ✅ verified 2026-04-19 — `snapshot_pv/EPICS_env.sh:L28` (IP .164, comment sbxh3); cross-ref `sbx.md` |
-| sbxcc | .158 | — | Raspberry Pi for SBX | ✅ verified 2026-04-19 — `snapshot_pv/EPICS_env.sh:L28` (IP .158, comment sbxcc); cross-ref `sbx.md` |
+| sbxh3 | .164 | Raspberry Pi OS | Raspberry Pi for SBX (user: pi) | ✅ verified 2026-04-19 — `snapshot_pv/EPICS_env.sh:L28` (IP .164, comment sbxh3); cross-ref `sbx.md` |
+| sbxcc | .158 | Raspberry Pi OS | Raspberry Pi for SBX (user: pi) | ✅ verified 2026-04-19 — `snapshot_pv/EPICS_env.sh:L28` (IP .158, comment sbxcc); cross-ref `sbx.md` |
+| duo-ts | .54 | — | Terminal server for DUO IOC console access | ✅ verified 2026-05-26 — confirmed by Ryan Tang |
 
 ### EPICS Ports
 
