@@ -506,6 +506,12 @@ Each fill run creates `fill_YYYYMMDD_HHMM.log` — already organized, no rotatio
 ### Archive Directory
 `~/lnFill/logs/archive/` — created automatically on first run.
 
+### DCS2 NFS Backup (added 2026-05-28)
+All lnFill logs are backed up to DCS2 NFS storage:
+- **Path:** `dcs2:/dgsdata/fs2/vol2/lnFill_LOG/`
+- **Mechanism:** `sync_logs.sh` (pi5-lnFill repo, updated 2026-05-28 — +5 lines)
+- This is a persistent off-pi5 copy; survives pi5 crashes/reboots.
+
 ---
 
 ## AI Fill Monitoring (General DGS, spark-ca9f)
