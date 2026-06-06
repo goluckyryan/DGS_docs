@@ -54,6 +54,8 @@ sshpass -p 'gam$hippie' ssh \
 
 Password: `gam$hippie` (same as all DGS systems).
 
+⚠️ **SSH broken as of 2026-06-05:** con6 is pingable and port 22 is open. Key exchange negotiates successfully (Sun_SSH_1.1, diffie-hellman-group1-sha1). Password prompt appears but the session hangs indefinitely after sending credentials — never accepts or rejects. Root cause unknown; likely sshd session table full from hung zombie connections (previously observed between DCS2 and con6), or PAM/login shell blocking. **Physical console access or a reboot is required to restore SSH.** Confirmed by both Ryan and General DGS — 2026-06-05.
+
 ---
 
 ## Key Directories on con6
@@ -118,6 +120,10 @@ Password: `gam$hippie` (same as all DGS systems).
 VxWorks headers: `/home/gam/prod/vxWorks/vxw_5.1.1/h/` (needed for cross-compilation)
 
 ⚠️ These are **Solaris/SPARC native binaries** — they do NOT run on Linux x86_64 or ARM64.
+
+⚠️ **Not accessible via NFS (2026-06-05):** con6 only exports `/usr/local`, `/export/home/root3`, `/export/home/root4`, and `/export/home/root10`. The `/home/gam` directory (which contains the compiler and CVS repo) is **not NFS-exported** and is only reachable via direct SSH login to con6.
+
+**Linux alternative:** `gcc-m68k-linux-gnu` is available on spark-ca9f (`apt install gcc-m68k-linux-gnu`). This is a proper m68k cross-compiler that runs on aarch64. It targets Linux ABI, not VxWorks, so VxWorks headers/libs from con6 would still be needed — but it is a viable path to rebuild `lnfiller.vx` once those headers are archived.
 
 **Makefile flags used (from CVS):**
 ```makefile
