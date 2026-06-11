@@ -239,8 +239,10 @@ _Source: wiki.anl.gov/gsdaq/DAQ_system ✅ visited 2026-04-27_
 |-------|------|----------|--------|--------|
 | MTRG | 0x1022 | 0x04A8 | TAC2 + Trigger Hold-Off | ✅ `ioc/README.md:L26` (2026-04-08) |
 | RTRG | 0x0414 | 0x260E | Old but working | ✅ `ioc/README.md:L27` (2026-04-08) |
-| MDIG | 20250704 | 0x4CD8 | — | ✅ `ioc/README.md:L28` (2026-04-08) |
-| SDIG | 20250704 | 0x4CD8 | — | ✅ `ioc/README.md:L29` (2026-04-08) |
+| MDIG | 20250704 | 0x4CD8 | bits[11:8]=`C` = master DIG flag — live-verified | ✅ `ioc/README.md:L28` + live caget 2026-06-10 |
+| SDIG | 20250704 | **0x4DD8** | bits[11:8]=`D` = slave DIG flag — live-verified | ✅ live caget 2026-06-10 (⚠️ `ioc/README.md:L29` shows `0x4CD8` — README abbreviation, not what the slave board actually reports) |
+
+> ✅ **Resolved 2026-06-10 via live read** — `caget VME03:MDIG1:fw_type_RBV` returns `12` (`0xC`), `VME03:SDIG1:fw_type_RBV` returns `13` (`0xD`); both report `mjr=0xD`, `min=0x8`, `pcb_revision=4`. Reconstructed full word: MDIG1 = `0x4CD8`, SDIG1 = `0x4DD8`. The DIG source layout in [`VME_registers.md`](VME_registers.md#0x0600-0x060c-code-revision--timestamp-error) (`X"4" & master_slave_flag & MAJOR & MINOR`) is confirmed. The `ioc/README.md` table appears to show only the master-form abbreviation for both rows.
 
 ---
 

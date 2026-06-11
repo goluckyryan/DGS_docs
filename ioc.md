@@ -427,8 +427,8 @@ FTP credentials are stored separately (see `boot/` README — password not displ
 |-------|--------|------|----------|---------|
 | MTRG | 0xf13 | 0x1022 | 0x04A8 | TAC2 + Trigger Hold-Off |
 | RTRG | 0xf13 | 0x0414 | 0x260E | Old but working |
-| MDIG | 0xf13 | 20250704 | 0x4CD8 | — |
-| SDIG | 0xf13 | 20250704 | 0x4CD8 | — |
+| MDIG | 0xf13 | 20250704 | 0x4CD8 | bits[11:8]=`C` (master) — live-verified 2026-06-10 |
+| SDIG | 0xf13 | 20250704 | **0x4DD8** | bits[11:8]=`D` (slave) — live-verified 2026-06-10 via `caget VME03:SDIG1:fw_type_RBV` (returns 13). The `ioc/README.md:L29` value `0x4CD8` is a README-side abbreviation; the slave board itself reports `0x4DD8` |
 
 (MDIG = Master Digitizer, SDIG = Slave Digitizer)
 

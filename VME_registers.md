@@ -242,19 +242,30 @@ Range: `0x0300` … `0x0324`
 
 | Offset | Register | R/W | Description |
 |--------|----------|-----|-------------|
-| `0x0600` | `regin_code_revision` | R | FPGA code revision word (bits[11:8] = board type) |
+| `0x0600` | `regin_code_revision` | R | FPGA code revision word — DIG layout: bits[15:12]=`4` (fixed = DIG family), bits[11:8] = master(`C`)/slave(`D`) flag, bits[7:4] = `cCODE_VERSION_MAJOR`, bits[3:0] = `cCODE_VERSION_MINOR` ✅ verified 2026-06-10 — `DGSDIG_git/BuildBranches/DGS_TAG_20180607_TWEAK/DGS/Source/Digitizer.vhd:L471` |
 | `0x0604` | `regin_code_date` | R | FPGA code build date |
 | `0x0608` | `reg_ts_err_count_ctrl` | R/W | Timestamp error counter control |
 | `0x060C` | `regin_ts_err_count` | R | Timestamp error count |
 
-**`regin_code_revision` board type decode** (bits[11:8]):
+**`regin_code_revision` decode** — the field layout differs between board families:
+
+**DIG family** (`X"4" & master_slave_flag & MAJOR & MINOR`):
+
+| Code | Board | Notes |
+|------|-------|-------|
+| `0x4C..` | ANL Master Digitizer (MDIG) | `SLAVE_MODE=FALSE` |
+| `0x4D..` | ANL Slave Digitizer (SDIG) | `SLAVE_MODE=TRUE`, same firmware build as master |
+
+Example: `0x4CD8` = master DIG, build with `cCODE_VERSION_MAJOR=0xD`, `cCODE_VERSION_MINOR=0x8`. The matching slave from the same build self-reports `0x4DD8`. ✅ verified 2026-06-10 — `DGSDIG_git/BuildBranches/DGS_TAG_20180607_TWEAK/DGS/Source/Digitizer.vhd:L471` (`regin_code_revision <= X"00004" & X"D" & cCODE_VERSION_MAJOR & cCODE_VERSION_MINOR when (SLAVE_MODE = TRUE) else X"00004" & X"C" & cCODE_VERSION_MAJOR & cCODE_VERSION_MINOR;`)
+
+**MTRG/RTRG family** (different layout — bits[11:8] interpreted as board type):
 
 | Code | Board |
 |------|-------|
-| `0xC` | ANL Master Digitizer (MDIG) |
-| `0xD` | ANL Slave Digitizer (SDIG) |
-| `0x4` | DGS Master Trigger (MTRG) |
-| `0x6` | DGS Router Trigger (RTRG) |
+| `0x04..` (bits[11:8]=`4`) | DGS Master Trigger (MTRG) |
+| `0x26..` (bits[11:8]=`6`) | DGS Router Trigger (RTRG) |
+
+> ⚠️ **Do not conflate** the DIG `0xC`/`0xD` master/slave flag with the MTRG-side `BUILD_TYPE` enum in [`fpga.md`](fpga.md) (which also lists `C=DGS Digitizer`/`D=DSSD Digitizer`). The DIG board hard-codes `0x4` in bits[15:12] and uses bits[11:8] purely as a master/slave selector — it does not pass through `BUILD_TYPE`. The nibble-value coincidence is misleading.
 
 ### 0x0700–0x07E4: Per-Channel Event Counters
 
@@ -644,7 +655,7 @@ These access sub-modules via separate VME address pages (4 KB each), reaching SE
 VMERead32(0, 0x0000)
 
 # Read DIG firmware code revision and date (MDIG1 = cardno 0 on vme99/tangerine)
-VMERead32(0, 0x0600)   # regin_code_revision  → e.g. 0x4CD8 (bits[11:8]=0xC = ANL MDIG)
+VMERead32(0, 0x0600)   # regin_code_revision  → e.g. 0x4CD8 (master DIG); slave on same build = 0x4DD8
 VMERead32(0, 0x0604)   # regin_code_date
 
 # Read DIG accepted event count ch0

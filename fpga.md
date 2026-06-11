@@ -417,7 +417,13 @@ All ANL FPGA firmware variants share a common `trigger_top` component parameteri
 | E | 0xE | (unused) |
 | F | 0xF | **VME FPGA** |
 
-**DGS-relevant types in bold.** Current production firmware: MTRG=0x4, RTRG=0x6, DIG=0xC. The MTRG revision `0x04A8` → bits\[11:8\]=4 (DGS MTRG); RTRG `0x260E` → bits\[11:8\]=6 (DGS Router); DIG `0x4CD8` → bits\[11:8\]=C (DGS Digitizer).
+**DGS-relevant types in bold.** Current production firmware: MTRG=0x4, RTRG=0x6, DIG=0xC/0xD.
+
+> ⚠️ **The `BUILD_TYPE` enum above is a `trigger_top` simulation-only generic from `MstrTrig_pkg.vhd` — it is NOT the field layout actually written to the DIG `regin_code_revision` register.** The DIG firmware writes a different format. See [`VME_registers.md`](VME_registers.md#0x0600-0x060c-code-revision--timestamp-error) and [`ioc.md`](ioc.md) for the real DIG `regin_code_revision` decode.
+>
+> Briefly: DIG `regin_code_revision` is hard-coded as `X"00004" & X"D" & cCODE_VERSION_MAJOR & cCODE_VERSION_MINOR` when `SLAVE_MODE=TRUE`, else `X"00004" & X"C" & ...`. So `0x4CD8` = master DIG (major=D, minor=8); `0x4DD8` = slave DIG (same source build). The `0xC`/`0xD` nibble here is a **master/slave selector for the DIG board type**, not the MTRG BUILD_TYPE enum value (which happens to also list `C=DGS Digitizer`/`D=DSSD Digitizer` — coincidental nibble reuse, unrelated meaning). ✅ verified 2026-06-10 — `DGSDIG_git/BuildBranches/DGS_TAG_20180607_TWEAK/DGS/Source/Digitizer.vhd:L471`
+>
+> MTRG `0x04A8` and RTRG `0x260E` use yet a different layout — those values are MTRG `trigger_top` instantiations and the bits[11:8] interpretation differs again. The MTRG/RTRG `BUILD_TYPE` codes (4=DGS MTRG, 6=DGS Router) are passed as a Verilog/VHDL generic at synthesis time but the exact register-format mapping for those boards has not been re-verified here.
 
 ---
 
