@@ -385,7 +385,7 @@ in detail in the diagram above; Manifolds B (same tank station) and
 C/D (other tank station) have identical structure.
 
 The tank station also has its own LEDs for tank-level and external
-supply line monitoring (see [LED PV Map](#led-pv-map) below).
+supply line monitoring (see [LED + Valve Unified Reference](#led--valve-unified-reference) below).
 
 ### Operational Sequence
 
@@ -412,44 +412,86 @@ open to ambient through the return lines and vent manifold.  No
 gravity drain — the system equalizes to ambient pressure via the
 always-open vent path.
 
-### LED PV Map
+### LED + Valve Unified Reference
 
-The system has 128 LED PVs in total.  Each is exposed as both an
-analog voltage (`_TM:AT`) and a binary enum (`_TM:BT` with values
-Warm/Cold/Fault/"No Data").
+The LN2 plant has 128 LEDs and 138 valves, organized into five
+LED classes and seven valve classes by physical location.  Each
+LED is exposed as both an analog voltage (`_TM:AT`) and a binary
+enum (`_TM:BT` with values Warm/Cold/Fault/"No Data").  Valves
+use the standard `_EN` (command/state) and `_VM` (monitor
+readback) record convention.
 
-| PV pattern | Count | Location | Cold reading means |
-|------------|-------|----------|---------------------|
-| `LNT{n}_TM:AT` (n=1–6) | 6 | Tank vent valve | Tank is full (overflow detected) |
-| `LNS{n}_TM:AT` (n=1,2) | 2 | External supply line vent valve | External feed line from outside building is primed all the way to tank fill valves |
-| `LNM{n}A_TM:AT` (n=1–4) | 4 | Inside tank station, at junction where Main+Spare feeds combine into the manifold feed line | LN2 flowing out of tank station into feed line |
-| `LNM{n}_TM:AT` (n=1–4) | 4 | Distribution manifold vent valve | Manifold feed line primed (cold LN2 reached the distribution manifold) |
-| `LNH{m}-{vv}_TM:AT` (m=1–4, vv=01–28) | 112 | Vent manifold, one per detector at the return-line junction | Detector dewar is full (LN2 in return line) |
+The table below pairs each PV with its operator-facing common
+name (the names you say out loud and look for on the live UI at
+`http://pi5-lnfill:3344/`) and a short functional description.
+Common names follow the labels visible in the live UI's SVG
+overlay (`/static/app.js`) and the `mann` field in `/api/config`
+(which maps `LNM1 → Manifold A`, `LNM2 → B`, `LNM3 → C`, `LNM4
+→ D`).  Where the UI uses an abbreviated short label, the
+corresponding full-word operator name is listed first and the UI
+short label is given in parentheses for cross-reference.
 
-Each vent point in the LN2 path has an LED.  The naming convention
-makes the role explicit: the PV prefix identifies the device, the
-LED PV is co-located with that device's vent valve, and a Cold
-reading confirms the plumbing upstream of that vent valve is fully
-primed.
+Manifold ID mapping (canonical, from `/api/config`):
+  Manifold A = `LNM1`  (Station 1)
+  Manifold B = `LNM2`  (Station 1)
+  Manifold C = `LNM3`  (Station 2)
+  Manifold D = `LNM4`  (Station 2)
 
-### Companion Valves
+In the per-row examples below, `{X}` stands for the manifold
+letter (A/B/C/D), `{n}` stands for the per-class index (tank
+number, supply station number, etc.) and `{vv}` stands for the
+2-digit detector position (01..28).
 
-LED sensors are paired with the valves that control flow at the
-same point.  Both feed valves and vent valves use the same `_EN`
-(command/state) and `_VM` (monitor readback) conventions.
+| Common name | LED PV | Companion valve PV(s) | What it does | Count | Grouping |
+|-------------|--------|------------------------|--------------|------:|----------|
+| Supply {n} leak valve / supply vent (UI: `Leak Valve`); LED at the external supply line | `LNS{n}_TM:AT` | `LNS{n}_VV:EN/VM` | LED Cold = external supply line (from outside building) is primed all the way to the tank fill valves.  Supply vent valve opens to bleed pressure during fills (“leak valve” is the operator term for the supply vent). | 2 | Supply line (Station 1: S1; Station 2: S2) |
+| Tank {n} fill valve (UI: `T{n} Fill`) | — | `LNT{n}_FV:EN/VM` | Admits supply LN2 into Tank {n}.  Tank fills are orchestrated by `TankMan.FillTanks()`.  No companion LED (fill valves are state-only). | 6 | Tank station (T1–T3 → Station 1; T4–T6 → Station 2) |
+| Tank {n} vent valve (UI: `T{n} Vent`); LED at tank overflow line | `LNT{n}_TM:AT` | `LNT{n}_VV:EN/VM` | LED Cold = tank is full (LN2 overflowed into the vent line).  Vent valve opens during the tank fill to bleed back-pressure. | 6 | Tank station (T1–T3 → Station 1; T4–T6 → Station 2) |
+| Manifold {X} fill valve / main feed (UI: `To Man {X}`) | — | `LNM{n}_FV:EN/VM` | Primary feed-line shutoff inside the tank station that admits primary-tank LN2 into the Manifold {X} feed line.  Closed by BL-2 RED when broken-feed-line condition fires.  Shares its priming LED with the spare feed valve (see Manifold {X}A LED row below). | 4 | Manifold A,B → Station 1; Manifold C,D → Station 2 |
+| Manifold {X} spare valve (UI: `Spare-{X}`) | — | `LNM{n}A_FV:EN/VM` | Failover feed-line shutoff inside the tank station.  Opened by `ManifoldFailover` when the primary tank goes Warm on this manifold to swap onto the spare tank. | 4 | Same as Manifold {X} fill valve |
+| Manifold {X} vent valve / priming valve (UI: `Man {X} VV`); LED at distribution manifold | `LNM{n}_TM:AT` | `LNM{n}_VV:EN/VM` | LED Cold = manifold feed line is primed (cold LN2 reached the distribution manifold out in the array).  Vent valve opens at fill start to bleed back-pressure during priming; closes when manifold goes Cold. | 4 | Manifold A,B → Station 1; Manifold C,D → Station 2 |
+| Manifold {X}A junction LED (Main/Spare junction LED inside tank station) | `LNM{n}A_TM:AT` | (no dedicated valve — paired with both `LNM{n}_FV` main feed and `LNM{n}A_FV` spare feed) | LED Cold = LN2 flowing out of the tank station into the Manifold {X} feed line.  Both feed valves target this LED because they sit at the same physical Main/Spare junction.  This LED runs hot continuously during fills, so live HIGH/LOW continuous polling is suppressed via `LED_FAULT_RULES['ts_manifold']` and only one-shot snapshot faults are surfaced. | 4 | Inside tank station (paired with main+spare for Manifold {X}) |
+| Detector {X}{vv} valve (UI: `{X}{vv}`); LED at detector overflow return line | `LNH{m}-{vv}_TM:AT` | `LNH{m}-{vv}_FV:EN/VM` | Per-detector solenoid that admits manifold-fed LN2 into the dewar during a fill.  Closes the moment `_TM:BT` transitions to Cold.  `LNFill_App.py` orchestrates per-detector fills.  Example operator label: `A01` for detector at Manifold A position 1 (PV `LNH1-01`). | 112 | Detector array (Manifolds A–D × 28 detector positions) |
+|             | **Total LEDs: 128** | **Total valves: 138** | | | |
 
-| Valve PV | Role |
-|----------|------|
-| `LNT{n}_FV:EN/VM` | Tank Fill Valve (external supply → tank, n=1–6) |
-| `LNT{n}_VV:EN/VM` | Tank Vent Valve (n=1–6) |
-| `LNS{n}_VV:EN/VM` | External supply line Vent Valve (n=1,2) |
-| `LNM{n}_FV:EN/VM` | Manifold Main Feed Valve / MFV (tank → manifold, n=1–4) |
-| `LNM{n}A_FV:EN/VM` | Manifold Spare Feed Valve (n=1–4) |
-| `LNM{n}_VV:EN/VM` | Manifold Vent Valve / priming valve at distribution manifold (n=1–4) |
-| `LNH{m}-{vv}_FV:EN/VM` | Detector supply solenoid (m=1–4, vv=01–28) |
+### Plant grouping reference
 
-See [PV Naming Convention](#pv-naming-convention) for the full
-prefix/suffix table.
+The LN2 distribution chain runs **External supply → Tank station
+→ Distribution manifold → Detector**.  The plant is split into two
+stations; each station serves two manifolds and three tanks.  The
+following grouping table maps the canonical short labels onto the
+physical layout.
+
+| Group | Members | Description |
+|-------|---------|-------------|
+| Station 1 (tank-station side) | Supply S1, Tanks T1–T3, Manifolds A + B | Tank-station controls + plumbing for Manifolds A (`LNM1`) and B (`LNM2`).  Supply-side fill orchestration by `TankMan.FillTanks(1)`. |
+| Station 2 (tank-station side) | Supply S2, Tanks T4–T6, Manifolds C + D | Tank-station controls + plumbing for Manifolds C (`LNM3`) and D (`LNM4`).  Supply-side fill orchestration by `TankMan.FillTanks(2)`. |
+| Manifold A | `LNM1` (distribution manifold), `LNM1A` (junction LED), detectors `A01`–`A28` | Manifold A serves 28 detector positions; failover scope: `ManifoldFailover` swaps to spare tank when Manifold A's junction LED goes Warm. |
+| Manifold B | `LNM2`, `LNM2A`, detectors `B01`–`B28` | Manifold B is the second manifold on Station 1. |
+| Manifold C | `LNM3`, `LNM3A`, detectors `C01`–`C28` | Manifold C is the first manifold on Station 2. |
+| Manifold D | `LNM4`, `LNM4A`, detectors `D01`–`D28` | Manifold D is the second manifold on Station 2. |
+
+The canonical mapping (Manifold A ↔ `LNM1`, B ↔ `LNM2`, C ↔ `LNM3`,
+D ↔ `LNM4`) lives in `/api/config` served by pi5-lnfill:3344 (the
+`manifolds[].mann` field).  In code it is encoded in
+`fill_constants.py` (`MANIFOLD_TO_TS`, `MANIFOLD_KEYS`,
+`MANIFOLD_KEY_TO_LABEL`) and reflected in `LNValve.py`'s per-valve-type
+PV construction (lines 99–148 on pi5-lnfill).  The `ln.inits` file
+on ln2con (`/home/gamop/lnfill_logs/ln.inits`) is the legacy
+fill controller's runtime config and carries per-device fill
+parameters (`min_time`, `max_time`, threshold, SMOO, etc.).
+
+**Two LEDs per manifold:** each manifold has two distinct
+primed-LN2 checkpoints that need independent monitoring.  `LNM{n}_TM:AT`
+is at the distribution manifold out in the array (vent-valve
+co-located); `LNM{n}A_TM:AT` is at the Main/Spare junction inside
+the tank station (both Main Feed `LNM{n}_FV` and Spare Feed
+`LNM{n}A_FV` converge here).  The vent valve `LNM{n}_VV` bleeds
+back-pressure during distribution-manifold priming, so it pairs
+with the distribution-manifold LED, not the junction LED.
+
+See [PV Naming Convention](#pv-naming-convention) below for the
+full prefix/suffix decomposition (`LN{T,S,M,H}{idx}_{FV,VV,SM,TM}:{EN,VM,...}`).
 
 ### EPICS Interface
 
@@ -642,7 +684,13 @@ tank station:
    LN2 flows from the external supply into the tank; the vent valve
    releases displaced gas.  The vent valve's temperature sensor
    detects when the tank is full (Cold = liquid overflowing into
-   vent line).  Typical fill times: 1300–1900s per tank.
+   vent line).  Closure is triggered by EITHER the IOC enum
+   (`_TM:BT = Cold`) or the software cold detector (EWMA of the
+   raw `_TM:AT` voltage crossing 5.3V), whichever fires first.
+   The Discord result message reflects both paths: a tank closed
+   by the software detector reports "filled ✅" even if the IOC
+   enum hadn't updated yet.  Typical fill times: 1300–1900s per
+   tank.
 
 3. **Spare tank** — Tank 3 (TS1) and Tank 6 (TS2) are refilled last,
    with shorter timeout (400–500s for spare vs 3500–4000s for mains).
@@ -793,11 +841,15 @@ For bad temperature readbacks, stores both `temp_begin` and `temp_end`
 so the reporter can determine severity (transient vs persistent).
 
 Also provides `check_missing_log()` [ML-1] and `check_fill_completeness()`
-[IL-2/IL-3] as standalone functions. These are called by both `adjust`
+[IL-2 / IL-3 / IL-4] as standalone functions. These are called by both `adjust`
 and `report` commands before any adjustment or reporting. `check_missing_log`
 fires when the log file doesn't exist or was unparseable (parsed_log is None);
 suppressible via `--no-missing-log-alert` (used by AUTO cron for M-fills
-that often produce no log).
+that often produce no log).  `check_fill_completeness` covers three
+distinct shapes: missing-footer with detector data ([IL-2]), missing-footer
+with no detector data ([IL-3]), and the inverse — well-formed footer with
+zero detector data on any non-T fill ([IL-4], the "phantom fill" case).
+All three are suppressible via `--no-discord`.
 
 Does NOT touch gefilltime2.dat. Not sim-aware. Has no knowledge of
 Discord, InfluxDB, or any output mechanism — never imports the reporter.
@@ -811,8 +863,9 @@ last_fill_floor, clamp_first_seen, adjuster weekly_log_sections sub-keys.
 Owns gefilltime2.dat. Sim-aware (fill_open computation, cold_time proxy).
 Also owns: missing fill log detection [ML-1] (via check_missing_log from
 classifier — fires before check_fill_completeness), incomplete fill log
-detection [IL-2/IL-3] (checks for completion footer), per-fill clamp
-ceiling alerts (writes to current_fill_alerts['clamped']).
+detection [IL-2 / IL-3], phantom-fill detection [IL-4] (complete log,
+zero detectors, non-T fill type), per-fill clamp ceiling alerts (writes
+to current_fill_alerts['clamped']).
 
 ### fill_reporter.py
 
@@ -821,12 +874,20 @@ classifier-only (anomaly sections) vs full (all 10 sections). Reads
 structured data from JSON, dispatches, and clears consumed keys:
 
 - `current_fill_alerts` → per-fill Discord (W1-W4, W6, N2, N4), cleared after send
-- IL alerts fired by `check_fill_completeness` (called by both adjust and report commands)
+- IL alerts fired by `check_fill_completeness` (called by both adjust and report commands) — covers IL-2 (incomplete with detectors), IL-3 (incomplete and empty), and IL-4 (complete but empty, non-T fill types only)
 - `pending_weekly_summary` → weekly Discord (W5, N3), cleared after send
 - `weekly_log_sections` → weekly log file (accumulates all week)
 
-All Discord dispatched via `fill_interfaces` wrappers
-(which delegate to `WriteDiscordMessage.py`).
+All Discord dispatched from inside `fill_monitor/` goes through
+the `fill_interfaces` wrappers, which are the authoritative
+pure-Python urllib implementation.  Non-fill_monitor callers
+(`LNFill_App.py`, `DetMan.py`, `TankMan.py`, `SaveTemp.py` at the
+repo root) instead import directly from `WriteDiscordMessage.py`,
+which is a standalone legacy file with its own ``os.system('curl
+...')`` implementation.  `WriteDiscordMessage.py` is intentionally
+independent of `fill_monitor/` so the legacy scripts can run in
+isolation; its callers remain subject to the apostrophe-in-shell
+bug class (see INSIGHTS.md I-9).
 
 ### fill_plotter.py
 
@@ -916,8 +977,8 @@ PV reads per iteration: 28 FV:VM (valve states, pre-warmed at fill
 detection) + 0-N TM:AT (LED voltage, lazy, only for valves open > 180s).
 No SM:SUB.D reads — fill time tracked internally.
 
-**Active.**  A confirmed broken-feedline verdict closes the manifold's
-main feed valve (``LNM{x}_FV:EN → 'Auto'``, i.e. lets the AB
+A confirmed broken-feedline verdict closes the manifold's main
+feed valve (``LNM{x}_FV:EN → 'Auto'``, i.e. lets the AB
 controller put it in auto/closed state) and sends the RED Discord
 alert via ``run_monitoring()``'s ``caput_fn=_caput`` and
 ``discord_fn=send_discord_anomaly`` wiring
@@ -925,9 +986,8 @@ alert via ``run_monitoring()``'s ``caput_fn=_caput`` and
 
 Kill switch: ``--no-feedline-check``.  When set, no detector LED
 or valve PV reads happen and no alerts fire (the detector is
-skipped entirely — ``bl_detector`` is constructed but never updated).
-Use this as the rollback path if BL-1 misbehaves; no code change
-required.
+skipped entirely — ``bl_detector`` is constructed but never
+updated).
 
 **Failover-cooldown suppression.**  ``ManifoldFailover`` and
 ``BrokenLineDetector`` are wired together by
@@ -982,10 +1042,8 @@ PRIMING by sampling the manifold vent LED at vent close.  See
 **Two output tiers from a single trigger:**
 
 * **BL-2 (RED, broken line)** — ``max_vent_led < BL2_BROKEN_LINE_THRESHOLD``
-  (2.0V) at vent close.  Fires RED Discord and (when activated)
-  closes the manifold's main feed valve.  Initially deployed
-  INERT: Discord still fires but with a ``[BL-2 IN DEVELOPMENT —
-  NO ACTION TAKEN]`` prefix and no caput.
+  (2.0V) at vent close.  Fires RED Discord and closes the
+  manifold's main feed valve via ``caput``.
 
 * **BL-3 (YELLOW, unprimed)** —
   ``BL2_BROKEN_LINE_THRESHOLD ≤ max_vent_led < BL3_UNPRIMED_THRESHOLD``
@@ -1050,14 +1108,10 @@ re-monitoring after vent close, no re-arm if vent re-opens).
 
 **Action on verdict:**
 
-* BL-2 RED, activated (future): close ``LNM{n}_FV:EN → 'Auto'``
-  via ``caput_fn``, send RED Discord without prefix.
-* BL-2 RED, INERT (current deployment): no caput; send RED Discord
-  with ``[BL-2 IN DEVELOPMENT — NO ACTION TAKEN]`` prefix.  Selected
-  by passing ``caput_fn=None`` from the ``run_monitoring`` wiring
-  — no separate CLI flag.
-* BL-3 YELLOW: no caput ever; send YELLOW Discord with no ``[BL-N]``
-  prefix.  Active in both inert and activated phases of BL-2.
+* BL-2 RED: close ``LNM{n}_FV:EN → 'Auto'`` via ``caput_fn``,
+  send RED Discord.
+* BL-3 YELLOW: no caput; send YELLOW Discord with no ``[BL-N]``
+  prefix.
 
 **Polling rate:** uses the existing main loop poll (30s normal, 5s
 when warm-manifold tracker is active).  No new thread.  Vent-LED
@@ -1086,12 +1140,6 @@ reads, no alerts, ``attach_bl2_detector(None)`` leaves
 ``ManifoldFailover._bl2_detector`` at ``None`` and the
 ``suppress()`` calls become silent no-ops.
 
-**Promoting BL-2 out of inert mode (future change):**
-in ``run_monitoring``, change the BL-2 dispatch call from
-``caput_fn=None`` to ``caput_fn=_caput``.  One-line diff.  BL-3
-behaviour is unchanged.  The dev-banner prefix vanishes from RED
-Discord messages and the feed valve closes when RED fires.
-
 ### fill_led_logger.py
 
 Hosts both the CSV LED voltage logger (diagnostic, opt-in) and
@@ -1106,27 +1154,42 @@ at thread start (parallel via libca).
 - ``--log-led`` (default): CSV logs the 112 detector LEDs only at
   1Hz.  Back-compat with the original logger.  ~12 MB per 30-min
   fill.
-- ``--log-full``: superset of ``--log-led``.  CSV also logs 14
+- ``--log-full``: superset of ``--log-led``.  CSV also logs 16
   extra LEDs (4 distribution-manifold vent ``LNM{n}_TM:AT``, 4
-  TS-manifold ``LNM{n}A_TM:AT``, 6 tank-vent ``LNT{n}_TM:AT``) and
-  emits valve transition event rows for 136 valves (112 detector
-  ``FV:VM``, 4 manifold vent ``VV:VM``, 8 manifold feed ``FV:VM``,
-  6 tank feed ``FV:VM``, 6 tank vent ``VV:VM``).  Required input
-  for BL-2 priming analysis.  ~14 MB per 30-min fill plus a few
-  KB of event rows.
+  TS-manifold ``LNM{n}A_TM:AT``, 6 tank-vent ``LNT{n}_TM:AT``, 2
+  supply ``LNS{n}_TM:AT``) and emits valve transition event rows
+  for 136 valves (112 detector ``FV:VM``, 4 manifold vent
+  ``VV:VM``, 8 manifold feed ``FV:VM``, 6 tank feed ``FV:VM``, 6
+  tank vent ``VV:VM``).  Required input for BL-2 priming analysis.
+  ~14 MB per 30-min fill plus a few KB of event rows.
 
 **Live fault detector** (``LiveLedMonitor`` class):
 
-Polls 120 LEDs every 1s regardless of CSV mode — 112 detector
-(``LNH{m}-{v}_TM:AT``), 4 manifold-vent (``LNM{n}_TM:AT``), 4 TS
-(``LNM{n}A_TM:AT``) — and their companion valve state PVs.
+Polls 128 LEDs every 1s regardless of CSV mode:
+
+- 112 detector LEDs        (``LNH{m}-{v}_TM:AT``, valve ``FV:VM``)
+- 4 manifold-vent LEDs     (``LNM{n}_TM:AT``,    valve ``VV:VM``)
+- 4 manifold-supply LEDs   (``LNM{n}A_TM:AT``,   valve ``FV:VM``)
+  historical key 'ts_manifold' in LED_FAULT_RULES
+- 6 tank-vent LEDs         (``LNT{n}_TM:AT``,    no companion valve)
+- 2 supply LEDs            (``LNS{n}_TM:AT``,    no companion valve)
+
+The last two LED classes (tank-vent and supply) have no companion
+valve in the live catalogue.  The poll loop short-circuits the
+valve caget for those entries and treats the LED as permanently
+CLOSED for the state machine, which means valve transitions never
+fire and the ``START_*`` / ``END_*`` fault types never emit for
+those LEDs from the live path.  Only ``HIGH`` / ``LOW`` /
+``SUSPECT`` can fire from the live path for tank-vent and supply
+LEDs.  Per TODO #56 (2026-06-04).
+
 Runs the locked B-2 fault state machine on each sample and
 accumulates fault entries in an in-memory buffer.  At clean exit
 (stop_event set normally), flushes the buffer to JSON state
 (``current_fill_alerts['led_faults']`` + ``live_led_active=True``)
 via an atomic tmp+rename write.  If the monitor crashes mid-fill,
 the buffer is discarded with no JSON side effect — the classifier's
-log-based fallback then runs uncontested.
+log-based fallback then runs uncontested for detector LEDs.
 
 Fault rules (8 fault types, see ``classify_voltage_sample``):
 
@@ -1144,6 +1207,69 @@ Fault rules (8 fault types, see ``classify_voltage_sample``):
   crosses back through the hysteresis zone (5.86 - 0.4 = 5.46V
   for HIGH; 1.6 + 0.4 = 2.0V for LOW).  See
   ``LED_FAULT_HYSTERESIS`` docstring for the rationale.
+
+**Contiguous-with-valve suppression (post-buffer pass):**
+
+``HIGH`` and ``LOW`` are reserved for excursions that are
+*non-contiguous* with a subsequent valve transition.  If an
+excursion that fires HIGH is still in progress when the valve
+transitions Auto→Open, the resulting ``START_HIGH`` is the
+authoritative fault for that physical event; the snapshot ``HIGH``
+fired earlier is a duplicate and gets suppressed at
+``finalize()`` time.  Symmetric for ``LOW`` + ``START_LOW``.
+
+A *rearm event* — the per-LED ``armed_high``/``armed_low``
+transition from ``False`` back to ``True`` after the voltage
+drops below the hysteresis floor — marks the boundary between
+two distinct excursions.  A ``HIGH`` followed by a high-side
+rearm is its own excursion and stays in the buffer regardless
+of what comes later.
+
+Worked examples (TODO #47 cases):
+
+- **Case A** — V > 5.86V from sample 1 continuously through
+  valve open, no excursion below 5.86V (or below the 5.46V
+  rearm).  Buffer:  ``HIGH`` (sample 1), ``START_HIGH`` (valve
+  open).  After suppression: ``START_HIGH`` only.
+- **Case B** — V > 5.86V on sample 1 (``HIGH``), decays below
+  5.46V (rearm), valve opens with V in (4.0, 5.86]
+  (``START_SUSPECT``).  After suppression: both kept; the rearm
+  separates them and ``START_SUSPECT`` is not a suppression
+  trigger.
+- **Case C** — V > 5.86V on sample 1 (``HIGH`` #1), decays
+  below 5.46V (rearm), returns to V > 5.86V (``HIGH`` #2), valve
+  opens with V still > 5.86V (``START_HIGH``).  After
+  suppression: ``HIGH`` #1 + ``START_HIGH`` kept; ``HIGH`` #2
+  suppressed because no high-side rearm occurred between it and
+  the ``START_HIGH``.
+
+The suppression is implemented as a pure helper
+``suppress_contiguous_high_low(events)`` (see
+``fill_led_logger.py``) that runs over a flat chronological event
+stream of fault dicts and rearm markers.  ``LiveLedMonitor``
+builds the stream during ``poll()`` (by snapshotting
+``armed_high``/``armed_low`` pre- and post-classify) and calls
+the helper from ``finalize()`` before flushing the cleaned
+``fault_buffer`` to JSON.
+
+**Discard-on-anomaly escape (truncated sessions):**
+
+When monitor-tanks or add-press exits via the ``[EX-2]`` /
+``[EX-3]`` anomaly branch (parent PID dead AND manifold valves
+still open after a fresh re-read), the live LED monitor's
+in-memory fault buffer is *discarded* at ``finalize()`` time
+rather than flushed to JSON.  The truncated session's fault data
+is suspect (the fill was clearly cut short — the operator already
+has the 🔴 red anomaly alert), and treating that data
+the same as a clean fill's would inflate the weekly reporter
+counts with noise.  The wiring uses a ``threading.Event``
+(``led_discard_event``) set by the anomaly branch before
+``led_stop_event``; the LED logger thread reads it in its
+``finally`` block and flips ``LiveLedMonitor.discard_on_finalize``
+before calling ``finalize()``.  Normal-exit fills leave the
+event unset and the buffer flushes as usual.  See TODO #48
+(within-iteration race fix that gates the discard decision) and
+TODO #53 for design rationale.
 
 The ``--no-led-check`` flag disables only the live detector; the
 CSV logger continues to run if its own flag is set.  The two
@@ -1176,21 +1302,27 @@ fill cycle), plus ``gsid`` + ``hose`` for detector LEDs.
   ``T_VENT`` (tank vent valves, n=1..6).  Event rows fire only on
   state change (not per poll), keeping event volume bounded by
   transition count.
+- Failed-read sentinel (TODO #50): when a PV's ``caget_str``
+  raises during the per-iteration CSV write loop, the row is
+  emitted with the literal string ``FAILED`` in the ``led_v``
+  column:  ``ts, m, vv, FAILED``.  This keeps the row count
+  per iteration stable (equal to the catalogue size) so forensic
+  CSV readers can distinguish *detector had no data* from
+  *detector had no faults*.  When any PV fails in an iteration,
+  the LED logger also emits a single aggregated stderr line
+  ``[WARN] LED logger iter dropped N PVs`` so a live operator
+  reading cron logs sees the degradation.  Live fault detection
+  (``LiveLedMonitor.poll``) is unaffected by failed CSV reads —
+  it has its own per-PV exception handling and degrades
+  gracefully.  Parsers consuming the CSV must tolerate the
+  non-numeric ``FAILED`` value alongside the existing
+  non-numeric ``EVENT=<state>`` rows.
 
 **Output path:** ``logs/fill_monitor/led_log_<mode>_YYYYMMDD_HHMMSS.csv``
 where ``<mode>`` is ``led`` or ``full``.
 
 Independent of BrokenLineDetector — works with or without
 ``--no-feedline-check``.
-
-The pre-fill uses a more aggressive formula than the post-fill adjuster:
-2× proportional (20-60s vs 10-30s) plus a 30s flat boost, yielding
-50-90s total adjustment. No cold_time clamp is applied.  This is
-intentionally aggressive: the small amount of LN2 wasted by
-overshooting during a scheduled fill pales in comparison to the amount
-needed to cool down the entire delivery system for an extra mid-day
-auto fill just to service one underfilled detector.  The bump is
-temporary (restored by the adjuster after the fill).
 
 ### fill_flush_history.py
 
@@ -1226,7 +1358,7 @@ See [Tank Monitoring](#tank-monitoring-monitor-tanks).
 ### fill_interfaces.py
 
 Shared I/O infrastructure.  Single bootstrap point for EPICS
-(pyepics env vars, PV cache, caget_many), Discord (WriteDiscordMessage wrappers),
+(pyepics env vars, PV cache, caget_many), Discord (urllib HTTP POST),
 InfluxDB (push_fill.sh wrapper, INFLUX_TXT_DIR), and common utilities
 (date_str).  All external dependency setup lives here.
 
@@ -1366,30 +1498,122 @@ load from the LED logger thread.
 
 ### The fix
 
-One-shot pre-warm before the timing-sensitive loop runs:
+One-shot pre-warm before the timing-sensitive loop runs.
+``caget_cache_init`` runs **two phases per PV** inside a single
+shared ``pv_lock`` critical section:
 
-1. Call ``epics.get_pv(name)`` for every PV in the catalogue.
-   This is instant — it registers the PV with pyepics' dict
-   cache and hands a CA-search task to libca's background
-   thread.
-2. Call ``pv.wait_for_connection(timeout=5.0)`` on each.
-   Sequential in Python, but libca opens channels **in parallel**
-   in the background, so total wall time is `max(connect_time)`
-   across the list, not `sum(connect_time)`.
+1. **Phase 1 — connect.**  Call ``epics.get_pv(name)`` for every PV
+   in the catalogue (instant, hands CA-search to libca's background
+   thread).  Then call ``pv.wait_for_connection(timeout=remaining)``
+   on each.  Sequential in Python, but libca opens channels **in
+   parallel** in the background, so total wall time of the connect
+   loop is `max(connect_time)` across the list, not `sum(connect_time)`.
+
+2. **Phase 2 — prime the value cache (added 2026-06-16).**  Call
+   ``pv.get(timeout=remaining, use_monitor=False)`` on every
+   connected PV.  This forces a synchronous CA read so
+   ``self._args['value']`` is populated before the function returns.
+   **Without this step, a "connected" PV does not yet have a cached
+   value** — the first monitor DBR arrives asynchronously a few ms
+   after the channel hits CONNECTED.  Any ``caget_str`` /
+   ``caget_num`` call hitting the PV in that window would fall
+   through to pyepics' synchronous CA fallback with the default
+   0.5 s timeout, race libca, and (under load) return None →
+   ``RuntimeError``.  That is the bug that crashed the 2026-06-16
+   02:00 M-fill (see the 2026-06-16 02:00 incident background
+   below).
+
 3. After ``caget_cache_init`` returns, every subsequent ``caget``
-   on those PVs hits pyepics' warm monitor cache in <0.01 ms
+   on those PVs hits pyepics' warm monitor cache in 7-20 µs
    (memory lookup, no network round-trip).
 
-### Measured performance (LNFill IOC)
+A PV that connects but whose Phase 2 prime returns None (or raises)
+is recorded in the **failed** list, NOT the connected count.
+"Preflight passed" must mean "subsequent cagets will succeed", not
+"the channel might be connected".
 
-| Catalogue | PVs | Cold (first call) | Warm (post-clear, IOC remembers) |
+### Measured performance (pi5-lnFill, live IOC, 2026-06-16 06:56 CDT)
+
+Full production batches under live-fill load (6 AM F-fill running):
+
+| Batch | PVs | Wall time | % of 10 s budget | Steady-state caget |
+|---|---:|---:|---:|---:|
+| LNFill_App phase 1 preflight | 332 | 257 ms | 2.6 % | 7-20 µs |
+| LNFill_App per-manifold (10 s) | 171 | 446-521 ms | 4.5-5.2 % | 7-20 µs |
+| LNFill_App per-manifold (5 s OLD) | 171 | 786-1069 ms | 16-21 % | 3000-6000 µs |
+| LNFill_App tank batch | 22 | 310 ms | 3.1 % | 7-20 µs |
+| Default sites (e.g. valve_state) | 112 | 286 ms | 2.9 % | 7-20 µs |
+
+The per-manifold path at the OLD 5 s budget was actually SLOWER
+than at 10 s.  Smaller per-PV remaining budget squeezed the
+Phase 2 prime get's individual timeout, forcing libca into more
+retries and producing the high steady-state caget cost (because
+the cache was only partially primed when the budget ran out).
+This is why the 2026-06-16 patch bumped both the function default
+and the LNFill_App per-manifold call site to 10 s.
+
+Steady-state caget after a properly primed cache:
+  * First read per PV: 2-3 ms (one-time string-conversion cost)
+  * Subsequent reads per PV: 7-20 µs (true monitor-cache hit)
+
+Legacy cold-vs-warm measurements (pre-Phase-2, 2026-06-01 incident
+baseline) retained for historical comparison:
+
+| Catalogue | PVs | Cold (first call) | Warm (post-clear) |
 |---|---:|---:|---:|
 | Gauges (`read_all_gauges`) | 5 | 113 ms | 1.3 ms |
 | Valve states (`read_valve_states`) | 14 | 62 ms | 2.6 ms |
 | LED full + LiveLed | 262 | 544 ms | 67 ms |
 
-Default ``caget_cache_init`` timeout is 5.0 s — ~9× headroom over
-the measured worst case for the largest catalogue.
+### ⚠️ DO NOT REGRESS
+
+The pre-2026-06-16 implementation only called
+``wait_for_connection`` (Phase 1).  It was wrong.  Three rules
+guard against re-introducing that bug:
+
+1. **Phase 2 prime is mandatory.**  Removing the
+   ``pv.get(use_monitor=False)`` loop puts the 2026-06-16 M-fill
+   crash race back on the table.  Pinned by
+   `test_caget_cache_init.py::test_CCI_PRIME1_prime_get_called_per_connected_pv`.
+2. **Default timeout must be >= 10 s.**  Pinned by
+   `test_caget_cache_init.py::test_CCI_PRIME6_default_timeout_is_at_least_10s`.
+   Measured timing data (above) shows even a 5 s budget tips into
+   tight-budget pathology under load.
+3. **Every call site that passes an explicit timeout must use >= 10 s.**
+   See the per-manifold call site in `LNFill_App.py`'s phase-2
+   preflight — it was 5.0 pre-patch and had to bump alongside.
+
+### Background: the 2026-06-16 02:00 incident
+
+The 2026-06-16 02:00 cron-fired M-fill crashed mid-DetMan(2)-
+construction with ``RuntimeError: caget LNM2_FV:VM failed:
+timeout or disconnected``.  The Manifold-1 worker thread was
+already running, completed normally, and posted its "Manifold 1
+fill completed in 425 seconds" message to Discord — perfectly
+masking the main-thread crash from the operator.  The fill log
+file had only the header (no detector data, no completion
+footer), but the LN2 fill of H1-07 worked correctly.
+
+Root cause: ``caget_cache_init`` Phase 2 (prime) did not exist.
+The Manifold-2 preflight at 02:00:10 connected all 171 PVs in
+0.35 s.  Less than a second later,
+``DetMan(2).__init__ → CloseAllValves(0) →
+LNValve('MANF',2).GetState()`` ran the very first
+``caget_str('LNM2_FV:VM')``.  ``pv._args['value']`` was still
+``None`` (no monitor DBR yet), so pyepics fell through to
+``ca.get_with_metadata(..., timeout=0.5)``.  Under the concurrent
+2 AM CA load the read timed out, returned None, and ``caget_str``
+raised.  The exception killed the main thread; the already-
+running Manifold-1 daemon thread finished its fill normally,
+masking the crash entirely.
+
+The two-phase fix above closes the window between connect and
+first monitor by forcing a synchronous read inside preflight
+itself.
+
+Default ``caget_cache_init`` timeout is 10.0 s (bumped from 5.0 s
+on 2026-06-16).  See [DO NOT REGRESS](#️-do-not-regress) above
+for the budget rationale.
 
 ### Integration sites
 
@@ -1466,8 +1690,8 @@ future change that accidentally routes either one through
 ### Failure mode and operator visibility
 
 If the pre-warm fails partially (some PVs don't connect within
-5 s), each integration site writes a single stderr line of the
-shape:
+the budget, or connect but Phase 2 prime returns None), each
+integration site writes a single stderr line of the shape:
 
     [WARN] <site>-pre-warm failed to connect N of M PVs (first: [...])
 
@@ -1477,6 +1701,12 @@ existing failure-handling paths (PV-1 / PV-2 abort, gauge None
 result, BL-1 fallback) take over.  The pre-warm is strictly
 best-effort; it never changes the failure semantics of the path
 it fronts — only the timing-window in which they can occur.
+
+LNFill_App's per-manifold phase-2 preflight (the call site that
+triggered the 2026-06-16 patch) is the strictest consumer: it
+treats any critical-PV preflight failure as RED and sets
+``ToFill[m] = False`` to skip the affected manifold while other
+manifolds proceed.
 
 ---
 
@@ -1504,6 +1734,83 @@ components' data.
 **Idempotency:** The classifier checks `last_classified` (filename) and
 skips state updates if the same file is classified again. The reporter
 clears alert keys after dispatch, so a second `report()` call is a no-op.
+
+### State file (`state.json`) atomic transactions
+
+The `StateFile` context manager in `fill_monitor/fill_interfaces.py`
+is the canonical wrapper for state.json writes.  It exists to close
+two holes in the legacy `open(STATE_FILE, 'w')` + `json.dump`
+pattern:
+
+  1. **Lock-free readers landing mid-truncate.**  `open(path, 'w')`
+     truncates the file the moment `open()` returns.  Any reader
+     that landed between the truncate and the subsequent
+     `json.dump` completion saw `{}` or a partial JSON blob and
+     hit `JSONDecodeError`.  Affected callers: check-press cron,
+     plotter forensic mode, ad-hoc `cat` / `jq` inspection.
+
+  2. **Writer crashes mid-write.**  A process killed between the
+     truncate and the dump-completion left the on-disk file
+     truncated and unrecoverable without an out-of-band restore.
+
+**Mechanism.**  `StateFile` combines two POSIX guarantees:
+
+  * `fcntl.flock(fd, LOCK_EX)` for the lifetime of the `with`
+    block, so concurrent writer processes serialise instead of
+    clobbering each other.  The kernel auto-releases the flock
+    when the FD closes (which always happens on process death),
+    so a crashed writer cannot leave the lock orphaned.
+
+  * `os.replace(tmp, STATE_FILE)` for atomic commits.  Writes
+    flow into a sibling `state.json.tmp`, `fsync`'d, then the
+    rename swaps it into place in a single POSIX-atomic step.
+    Lock-free readers always see either the pre-block state or
+    the post-block state, never partial.
+
+**Lock-holders** (own a fill cycle, wrap in `with StateFile(...)`):
+  * `fill_add_press.py` :: `run_live()`
+  * `fill_tank_monitor.py` :: `run_monitor_tanks()`
+  * `fill_adjuster.py` :: `main()`
+  * `fill_reporter.py` :: `FillReporter` usage path
+  * `fill_prefill_check.py` :: `run()`
+
+**Lock-free readers** (rely on `os.replace` atomicity, no flock):
+  * `fill_check_pressure.py` :: `_should_run()`
+  * `fill_plotter.py` (`--sim` mode only; production mode does
+    not touch state.json)
+  * Ad-hoc operator inspection (`cat`, `jq`, etc.)
+
+**Crash semantics.**  Crash inside a `with` block before normal
+`__exit__` runs: `self.data` was in memory only, never reached
+disk; STATE_FILE preserved at its pre-block state; kernel auto-
+releases the flock; a stray `state.json.tmp` may be left on disk
+but is named with the `.tmp` suffix and is safe to delete (the
+rename atomicity guarantees it is NOT the live file).  Exception
+inside the `with` block (handled by `__exit__`): all in-memory
+mutations discarded, no write, lock released, exception re-raised.
+
+**Interim commits.**  Long-running blocks (add-press,
+monitor-tanks) may call `state.flush()` to commit intermediate
+progress to disk while still holding the lock.  A mid-block
+crash after a `flush()` loses only the post-flush mutations,
+not the whole block's worth of work.
+
+**Intra-process concern (LED logger thread vs main thread).**
+Within monitor-tanks, the LED logger runs in its own thread
+and today writes state.json independently.  flock is a per-process
+lock, not a per-thread lock; it does NOT serialise the two
+threads.  The Phase-2 wiring commit will refactor
+`LiveLedMonitor.finalize()` to mutate the main thread's
+`state.data` directly, guarded by a `threading.Lock` shared
+between the two threads.  Today the latent race exists but no
+corruption has been observed.
+
+**Current status (this commit).**  The `StateFile` class and its
+test bench (`test_state_file.py`, 10 cases SF1–SF10) are landed
+as a foundation commit.  No production caller is wired to it
+yet — the five lock-holder entry points still use the legacy
+`open` + `json.dump` pattern.  Phase 2 will migrate them one
+at a time, each in its own commit.
 
 ---
 
@@ -1615,6 +1922,22 @@ For each detector in the fill log:
    based path emits entries as described above, each tagged
    `source='log'`.  Live entries carry `source='live'`; the two
    are mutually exclusive per fill cycle (never both).
+
+   **Vacant-hose promotion:** Live LED entries from hoses with no
+   installed detector (not in `known_detectors`) are promoted
+   without a `gsid` field.  The weekly log table displays these
+   with a dash (—) in the GSID column.  The Discord weekly (W5)
+   routes them to Tier 3 (same as disabled hoses).  This ensures
+   broken sensors on empty hose positions are visible before a
+   detector is installed.
+
+   The hose label from a live entry is normalised via
+   `FillClassifier._normalize_hose()` before the
+   `known_detectors` reverse lookup in
+   `_promote_live_led_faults`.  The live monitor emits unpadded
+   labels (`B-8`) while `known_detectors` carries space-padded
+   labels from the fill-log parser (`B- 8`); both are normalised
+   before comparison.
 
    `START_HIGH`/`START_LOW` are logged but never used to reject a
    detector reading — detectors often start high (cold from a
@@ -2360,15 +2683,32 @@ causing expected mismatches at manifold boundaries.
 The fill monitor dispatches Discord alerts from multiple components.
 Two channels are used:
 
-- `WriteDiscordMessage(msg)` → **#system-messages** (`discord.WebHook`)
-- `WriteAnomalyMessage(msg)` → **#anomaly** (`discord_anomaly.WebHook`)
+- `write_discord(msg)` → **#system-messages** (`discord.WebHook`)
+- `write_anomaly(msg)` → **#anomaly** (`discord_anomaly.WebHook`)
+- `write_influx(msg)`  → InfluxDB line-protocol POST (single record)
 
-Both functions live in `WriteDiscordMessage.py` (repo root, shared with
-LNFill_App.py) and auto-prefix the hostname (e.g., `[pi5-lnFill]`).
+All three functions are implemented in
+`fill_monitor/fill_interfaces.py` as pure-Python `urllib.request`
+POSTs (JSON body built with `json.dumps`).  No shell, no
+subprocess, no curl dependency — caller-supplied content
+(apostrophes, quotes, newlines, unicode, shell metacharacters)
+reaches Discord/Influx byte-for-byte without escaping at the call
+site.  Hostname is auto-prefixed on Discord sends
+(e.g., `[pi5-lnFill]`).
+
+`WriteDiscordMessage.py` at the repo root is a SEPARATE legacy
+file with its own standalone ``os.system('curl ...')``
+implementation that is NOT routed through `fill_interfaces`.  It
+is kept as-is for the four repo-root callers (`LNFill_App.py`,
+`DetMan.py`, `TankMan.py`, `SaveTemp.py`) that need to run
+without depending on `fill_monitor/`.  Those callers continue to
+exercise the legacy shell-quoting bug class.  Nothing inside
+`fill_monitor/` should import from `WriteDiscordMessage.py` —
+use the `fill_interfaces` API instead.
 
 Wrapper functions in `fill_interfaces.py`:
-- `send_discord_operational(msg)` → `WriteDiscordMessage(msg)`
-- `send_discord_anomaly(msg)` → `WriteAnomalyMessage(msg)`
+- `send_discord_operational(msg)` → `write_discord(msg)`
+- `send_discord_anomaly(msg)` → `write_anomaly(msg)`
 
 Both wrappers append one line to `DISCORD_LOG_FILE`
 (`cron_logs/discord_log.txt`) via the private `_log_discord(channel, msg)`
@@ -2390,13 +2730,13 @@ All alert-sending components accept `--no-discord` to suppress output.
 | Dispatch path | Components | Batching |
 |---------------|-----------|----------|
 | Reporter `discord_per_fill()` | adjust, report | Warnings batched → #anomaly; notices batched → #system-messages |
-| Reporter `discord_weekly()` | report (Monday rollover) | W5 → #anomaly; N3 → #system-messages |
-| Classifier `check_fill_completeness()` | adjust, report | ML-1, IL-2, IL-3 sent individually → #anomaly |
+| Reporter `discord_weekly()` | report (Monday rollover) | W5 three-tier: Tier 1 + Tier 2 → #anomaly; Tier 3 + empty-week “all clean” → #system-messages.  N3 → #system-messages. |
+| Classifier `check_fill_completeness()` | adjust, report | ML-1, IL-2, IL-3, IL-4 sent individually → #anomaly |
 | Pre-fill check `pre_fill_adjust_check()` | pre-fill-adjust-check | PFM-1..5 per-detector immediate (no batching); PFM-OPEN one per affected manifold; VS-4, GF-1, N5, PF-1 batched by type; PF-2, PF-3, GF-2 sent individually |
 | Tank monitor main loop | add-press, monitor-tanks | FO, W-WM, EX, PV sent individually → #anomaly |
 | `LowPressureTracker.check()` | add-press, monitor-tanks | N-LP, W-LP sent individually → #anomaly |
-| `BrokenLineDetector` | add-press, monitor-tanks | BL-1 sent individually → #anomaly (active; suppressed only by `--no-feedline-check`) |
-| `BrokenPrimingDetector` | add-press, monitor-tanks | Single vent-close trigger, two-tier output: BL-2 RED (`<2.0V`) and BL-3 YELLOW (`2.0–3.0V`) both sent individually → #anomaly.  BL-2 currently INERT (Discord with `[BL-2 IN DEVELOPMENT — NO ACTION TAKEN]` prefix, no caput); BL-3 always live (no caput ever).  Suppressed entirely only by `--no-feedline-check`. |
+| `BrokenLineDetector` | add-press, monitor-tanks | BL-1 sent individually → #anomaly.  Suppressed only by `--no-feedline-check`. |
+| `BrokenPrimingDetector` | add-press, monitor-tanks | Single vent-close trigger, two-tier output: BL-2 RED (`<2.0V`, closes manifold main feed valve) and BL-3 YELLOW (`2.0–3.0V`, no caput) both sent individually → #anomaly.  Suppressed only by `--no-feedline-check`. |
 | `_check_ioc_health()` | check-press | CP-1 sent individually → #anomaly |
 
 ---
@@ -2687,7 +3027,7 @@ Both share the same monitoring classes (`ManifoldTempTracker`,
 | **Source** | `fill_tank_monitor.py`, `BrokenLineDetector` class (~line 553+) |
 | **Trigger** | ≥4 of last 6 eligible detectors on same manifold show no LN2 flow |
 | **Automatic action** | Closes manifold feed valve (`LNMx_FV:EN → Auto`) |
-| **Currently** | **Active** — `caput_fn=_caput`, `discord_fn=send_discord_anomaly` in `run_monitoring()`.  Kill switch: `--no-feedline-check` skips all BL-1 PV reads + alerts.  Suppressed for 240s per manifold after every successful tank failover (see *Failover-cooldown suppression* in the `BrokenLineDetector` section). |
+| **Wiring** | `run_monitoring()` with `caput_fn=_caput`, `discord_fn=send_discord_anomaly`.  Suppressed for 240s per manifold after every successful tank failover (see *Failover-cooldown suppression* in the `BrokenLineDetector` section).  Disabled entirely by `--no-feedline-check`. |
 
 **Algorithm detail:**
 
@@ -2712,8 +3052,7 @@ Detectors with <180s fill or invalid LED are invisible to the window.
 **Dynamic behavior:** Active detectors can flip verdict each poll.
 Detectors can drop out if LED goes invalid, older history slides in.
 
-**Activation:** Remove `caput_fn=None` and `discord_fn=None` overrides
-in `run_monitoring()`.  Disabled entirely by `--no-feedline-check`.
+**Disabled by:** `--no-feedline-check`.
 
 #### BL-2 — Broken Feed Line at End of Priming (RED)
 
@@ -2724,7 +3063,7 @@ in `run_monitoring()`.  Disabled entirely by `--no-feedline-check`.
 | **Source** | `fill_tank_monitor.py`, `BrokenPrimingDetector` class |
 | **Trigger** | At vent valve close: `max_vent_led < BL2_BROKEN_LINE_THRESHOLD` (2.0V) |
 | **Automatic action** | Closes manifold main feed valve (`LNM{n}_FV:EN → Auto`) when activated |
-| **Currently** | **INERT** — wired in `run_monitoring()` with `caput_fn=None`, `discord_fn=send_discord_anomaly`.  RED Discord fires with `[BL-2 IN DEVELOPMENT — NO ACTION TAKEN]` prefix; no caput.  Promotion to active = change `caput_fn=None` to `caput_fn=_caput` at the wiring site.  Suppressed entirely only by `--no-feedline-check`. |
+| **Wiring** | `run_monitoring()` with `caput_fn=_caput`, `discord_fn=send_discord_anomaly`.  Disabled entirely by `--no-feedline-check`. |
 | **Threshold rationale** | Set from 6 years of historical vent-close voltages: in clean recent operation only ~6 F-fill events/year fall below 2.0V and every one is a genuine broken-line or facility-wide LN2 supply failure (cross-confirmed by detector OVERTIME fills on the same manifold). |
 
 See the `BrokenPrimingDetector` section above for the full algorithm,
@@ -2740,7 +3079,7 @@ exclusion with BL-3.
 | **Source** | `fill_tank_monitor.py`, `BrokenPrimingDetector` class (shared with BL-2) |
 | **Trigger** | At vent valve close: `BL2_BROKEN_LINE_THRESHOLD ≤ max_vent_led < BL3_UNPRIMED_THRESHOLD` (2.0–3.0V) |
 | **Automatic action** | NONE — BL-3 is informational only; never closes valves regardless of `caput_fn`. |
-| **Currently** | Live from day 1.  No inert/active distinction.  Suppressed entirely only by `--no-feedline-check`. |
+| **Wiring** | Same `BrokenPrimingDetector` instance as BL-2.  Disabled entirely by `--no-feedline-check`. |
 | **User-facing tag** | NONE — Discord message does NOT carry `[BL-3]` (or any `[BL-N]`) tag.  The internal stderr log line uses `[BL-3]` for code-side tracing only. |
 | **Threshold rationale** | Set from F-fill historical data: ~10 events/year at <3.0V (≈1/month).  Most are not broken-line failures but indicate slow / weak priming that may degrade detector fill performance.  Operator gets the YELLOW notice; fill is allowed to proceed. |
 
@@ -2901,8 +3240,29 @@ skipped.
 |-------|-------|
 | **Severity** | 🔴 red |
 | **Channel** | #anomaly |
-| **Source** | `fill_tank_monitor.py`, main loop (~line 2538) |
-| **Trigger** | `os.getppid()` changed (parent cron script died) with manifolds open |
+| **Source** | `fill_tank_monitor.py`, main loop (~line 2890) |
+| **Trigger** | `_is_pid_alive(parent_pid) == False` **AND** a *fresh* `read_valve_states()` (re-run after the PID-dead detection) still shows manifolds open |
+
+**Termination check order (TODO #48):** the per-iteration check is
+structured as *PID alive? → if dead, fresh re-read of valves → decide.*
+The fresh re-read closes a within-iteration race where the parent
+could close its last valve and exit between the top-of-loop valve
+read and the PID-alive check (the monitoring sub-tasks took some
+wall time).  Without the fresh read the top-of-iteration snapshot
+would be ~tens of ms stale and could fire a false 🔴 alert.
+Conservative fallback: if the fresh read raises, the code falls
+back to the stale snapshot so a genuine problem still surfaces.
+
+**LED-fault discard (TODO #53):** when this alert fires, the code
+also sets `led_discard_event`, signalling the LED logger thread to
+set `LiveLedMonitor.discard_on_finalize = True` before its
+`finalize()` runs.  The in-memory fault buffer is dropped instead of
+flushed to the state file — the truncated session's fault data is
+suspect, and the operator already has the 🔴 alert telling them the
+fill went sideways.  Normal-exit branches leave the event unset
+and the buffer flushes as usual.  See the *Discard-on-anomaly
+escape* subsection under LED Sensor Infrastructure for the
+thread-synchronisation details.
 
 #### EX-3 — AddPress Exiting (manifolds open)
 
@@ -2910,11 +3270,20 @@ skipped.
 |-------|-------|
 | **Severity** | 🔴 red |
 | **Channel** | #anomaly |
-| **Source** | `fill_add_press.py`, exit handler (~line 1216) |
+| **Source** | `fill_add_press.py`, exit handler (~line 1280) |
 | **Trigger** | `ctrl.exit_manifolds_open == True` at add-press exit |
 
 Re-reads valve states at exit to report which manifolds are open.
 If the read fails, reports 'unknown'.
+
+**LED-fault discard (TODO #53):** unconditionally sets
+`led_discard_event` after firing this alert, so the LED logger
+thread drops its fault buffer at `finalize()` instead of flushing.
+Same rationale as EX-2: the session was cut short and the fault
+data is unreliable.  Unlike EX-2, the discard fires whenever this
+branch runs — the `ctrl.exit_manifolds_open` flag committed
+add-press to the anomaly branch earlier; the cleanup re-read here
+only improves the alert text.
 
 #### I-TO — Non-Critical Timeout
 
@@ -2940,9 +3309,9 @@ and clears the key so alerts are never re-sent.
 
 **Batching:** The reporter collects all warnings into one #anomaly
 message with header `Fill (YYYY-MM-DD HH:MM) — N warning(s):` and
-all notices into one #system-messages message.  ML-1 and IL-2/IL-3
-are dispatched separately by `check_fill_completeness()` before the
-reporter runs.
+all notices into one #system-messages message.  ML-1 and the IL-series
+(IL-2 / IL-3 / IL-4) are dispatched separately by `check_fill_completeness()`
+before the reporter runs.
 
 #### W1 — OVERTIME
 
@@ -3014,6 +3383,45 @@ LNFill_App started filling but crashed or was killed.
 
 Fill started (log file created) but never reached detector filling —
 all manifolds likely aborted during priming.
+
+#### IL-4 — Empty Completed Fill (Phantom Fill)
+
+| Field | Value |
+|-------|-------|
+| **Severity** | 🔴 red |
+| **Channel** | #anomaly (sent individually) |
+| **Source** | `fill_classifier.py`, `check_fill_completeness()` |
+| **Trigger** | `parsed_log['complete'] == True` AND `parsed_log['detectors']` is empty AND `parsed_log['fill_type'] != 'T'` |
+| **Suppression** | `--no-discord` |
+
+Fill log is structurally complete (has the "Total App Runtime" footer)
+but contains zero detector rows.  Every fill type except T (tank-only)
+implies the run intended to fill at least one detector; reaching the
+footer with no detector data means the fill aborted after writing its
+headers but before opening any detector valves.  Typical cause: all
+manifolds in the Disabled state at fill start (each manifold writes a
+`Manifold N is in Disabled state -- abort fill` line to the matching
+`.error.log`).  Other producers: valve-init faults, supply-pressure
+failures detected after header emission.
+
+The `fill_type != 'T'` exclusion is mandatory: T-fills are tank-only
+by design and intentionally produce no detector rows.  Without the
+exclusion every T-fill would false-alarm.
+
+Note that `check_fill_completeness()` still returns `True` for an
+[IL-4] log — the log is structurally complete and any downstream
+processing that handles "complete" logs runs normally.  [IL-4] is
+informational about the empty body, not a completeness verdict.
+
+Return-value semantics for `check_fill_completeness()`:
+
+| Shape | Returns | Alert |
+|-------|---------|-------|
+| Complete, has detectors | `True` | none |
+| Complete, zero detectors, T-fill | `True` | none |
+| Complete, zero detectors, non-T | `True` | [IL-4] |
+| Incomplete, has detectors | `False` | [IL-2] |
+| Incomplete, zero detectors | `False` | [IL-3] |
 
 #### W3-a — Bad Temperature Readback (None start)
 
@@ -3200,32 +3608,197 @@ go to #system-messages (notices list).
 
 ### Weekly Summary
 
-#### W5 — Weekly Faulty LN2 Sensors
+#### W5 — Weekly LED Voltage Faults (three-tier, TODO #27 LOCKED spec)
 
 | Field | Value |
 |-------|-------|
-| **Severity** | ⚠️ warn |
-| **Channel** | #anomaly |
-| **Source** | Reporter: `fill_reporter.py`, `discord_weekly()` (~line 860) |
-| **Trigger** | Detector with ≥7 `led_faults` events in `pending_weekly_summary` (out of ~14 fills/week) |
-| **Data source** | Classifier snapshots `led_faults` to `pending_weekly_summary` on Monday rollover |
+| **Severity** | ⚠️ warn (Tier 1, Tier 2) / ℹ️ info (Tier 3, empty-week) |
+| **Channel** | #anomaly (Tier 1, Tier 2) + #system-messages (Tier 3, empty-week) |
+| **Source** | Reporter: `fill_reporter.py`, `discord_weekly()` |
+| **Trigger** | Detector with ≥4 coalesced events in `pending_weekly_summary` (`WEEKLY_LED_FAULT_THRESHOLD = 4` in `fill_reporter.py`) |
+| **Data source** | Classifier snapshots `led_faults` to `pending_weekly_summary` on Monday rollover.  Live `known_detectors` (top-level state) is read by the reporter to classify Tier 3. |
 
-Events are `led_faults` entries from the classifier (both live
-and log sources merged).  The reporter applies the
-`LED_FAULT_RULES` policy filter at render time so non-detector
-LED entries are scoped per LED class (manifold-vent drops
-HIGH/LOW; TS / tank / supply drop all faults).  Eight
-possible fault types (five from the log-based path: `START_HIGH`,
-`START_LOW`, `END_HIGH`, `END_LOW`, `START_SUSPECT`; plus three
-from the live mid-fill polling path: `HIGH`, `LOW`, `SUSPECT`).
-Aggregated by (hose, gsid) with fault type breakdown.  The weekly
-Discord summary lists per-detector counts of each fault type
-present that week.
+**Tier classification** (resolved in this order; the first
+matching rule wins):
 
-The ≥7 threshold means ≥50% of fills had a faulty reading — this is a
-chronic sensor problem, not a one-time glitch.  The adjuster uses hard
-fallback mode for these detectors (limited to -1 downward adjustment
-per fill).
+  1. **Infrastructure LED → Tier 2 (or Tier 1)**.  Any hose label
+     whose PV id starts with `LNS`, `LNT`, or `LNM` is a
+     non-detector tank-station LED (supply vent, tank vent,
+     manifold vent, manifold supply).  Infrastructure LEDs are
+     always operationally relevant — they monitor hardware that
+     every downstream detector depends on — so they must never
+     fall through to Tier 3.  They route to Tier 1 if they have
+     ≥1 `END_HIGH`/`END_LOW`/`DIP_BELOW_COLD` event (rare but
+     possible), otherwise to Tier 2.  Implemented by
+     `_is_infrastructure_led(hose)` in `fill_reporter.py`,
+     consulted at the top of the per-hose loop in
+     `_classify_led_faults_by_tier`.
+  2. **Tier 1 (fill-affecting) → #anomaly**.  Detector hose with
+     ≥1 `END_HIGH`, `END_LOW`, or `DIP_BELOW_COLD` event (highest
+     severity); the LED was bad at vent close so cold detection
+     was compromised for that fill.
+  3. **Tier 2 (service needed) → #anomaly**.  Detector hose that
+     is currently installed (present in `known_detectors`) AND
+     has no Tier 1 fault types but ≥4 events of any other type.
+  4. **Tier 3 (DISABLED detector hose) → #system-messages**.
+     A detector hose (`A-1`..`D-24`) that is not currently in
+     `known_detectors`.  Tier 3 is by construction reserved for
+     truly vacant detector positions — infrastructure LEDs are
+     handled by rule 1 above and never reach this branch.
+  5. **Empty week**: when all three tiers are silent, send
+     `ℹ️ Weekly LED summary: all LEDs clean ✅` to
+     #system-messages only.
+
+**Hose-label normalisation** (`_normalize_hose` helper).  Two
+code paths produce different textual forms of the same
+single-digit detector hose:
+
+  - the fill-log parser (`fill_classifier.py`) emits the
+    space-padded form `'B- 8'` (the alignment used inside the
+    fill log's `DET:` rows);
+  - the live LED monitor (`fill_led_logger._detector_hose`)
+    emits the unpadded form `'B-8'`.
+
+A dedicated helper, `_normalize_hose(label)`, collapses both
+variants to the canonical unpadded form (`'B-8'`).  Non-detector
+PV ids (LED PV strings such as `LNS2`, `LNT3`, `LNM1A`) and
+`None` pass through unchanged so the helper is safe to call on
+any hose-shaped field.
+
+The helper is defined twice for module independence — once in
+`fill_reporter.py` (top of file, used by `_coalesce_per_fill`,
+`_hose_current_gsid`, and indirectly by `_classify_led_faults_by_tier`
+through the keys they produce) and once as a static method on
+`FillClassifier` in `fill_classifier.py` (used by
+`_promote_live_led_faults` when patching `gsid` from
+`known_detectors`).  Both implementations apply the same regex
+(`^([A-D])-\s+(\d+)$`), so the canonical form is identical
+regardless of which module the value enters from.  Every site
+that joins data across the live/log boundary normalises first;
+any new consumer that compares hose labels coming from both
+pipelines must do the same.
+
+**Per-fill coalescing** (`_coalesce_per_fill` in fill_reporter):
+Multiple JSON `led_faults` entries that share `(hose, fill_id)`
+collapse to ONE event tagged with the dominant fault_type per the
+severity ladder.  Hose labels are passed through
+`_normalize_hose()` before keying so that the padded
+fill-log-parser form (`B- 8`) and the unpadded live-monitor form
+(`B-8`) coalesce under one key; without this step a single
+physical single-digit hose would split into two coalescing
+groups and could fall below the weekly threshold.  The ladder
+(rank 1 = most severe):
+
+  1. `END_HIGH`, `END_LOW`           (Tier 1 fault: fill compromised)
+  2. `START_HIGH`, `START_LOW`       (Tier 2 fault: service needed)
+  3. `HIGH`, `LOW`                   (Tier 2 fault: service needed)
+  4. `START_SUSPECT`                 (Tier 2 fault: suspect)
+  5. `SUSPECT`                       (Tier 2 fault: suspect, lowest)
+
+A fill with both `END_HIGH` + `SUSPECT` counts as 1 Tier 1 event,
+NOT 2.  After coalescing, `total_events` for a detector is the
+count of distinct fills (`fill_id` values) where the detector had
+ANY fault; `affecting_fill_count` is the subset of fills where
+the dominant fault was `END_HIGH` or `END_LOW`;
+`suspect_event_count` is the subset where the dominant fault was
+`SUSPECT` or `START_SUSPECT`.  The two subsets are mutually
+exclusive by construction.
+
+**Message format** (verbatim from TODO #27 LOCKED spec):
+
+Tier 1 (#anomaly):
+```
+⚠️ Weekly LED voltage — faulty LN2 sensors (May 18–May 24): N total events across M detectors
+  GS29 (B-12): 18 total events (8 affecting fill completion)
+  GS73 (A-1): 16 total events (10 affecting fill completion, 2 suspect events)
+```
+
+Tier 2 (#anomaly, separate message):
+```
+⚠️ Weekly LED voltage — service needed: N total events across M detectors
+  GS84 (B-7): 4 total events
+  GS101 (D-19): 2 total events (1 suspect event)
+ℹ️ 1 additional LED fault(s) on DISABLED hoses noted in #system-messages.
+```
+The cross-channel footer is appended ONLY when Tier 3 has ≥1
+detector — it points #anomaly subscribers at the #system-messages
+detail.
+
+Tier 3 (#system-messages):
+```
+ℹ️ Weekly LED voltage — DISABLED hoses: N total events across M detectors
+  (C-12): 6 total events
+```
+No `GS{n}` prefix on Tier 3 lines (the hose has no current
+detector to identify).
+
+**Singular/plural rules** (applied via `_plural`):
+  - `1 total event` / `2 total events`
+  - `1 suspect event` / `2 suspect events`
+  - `1 detector` / `2 detectors`
+  - `1 additional LED fault` / `2 additional LED faults`
+  - **NOT pluralized**: `1 affecting fill completion`,
+    `2 affecting fill completion` (locked spec phrase)
+
+**Tier 3 'DISABLED' interpretation.**  A *detector hose* is
+treated as DISABLED if it has no currently-installed detector
+(absence from `known_detectors`).  This is the right routing for
+the W5 LED fault summary: an unoccupied detector hose has no
+detector to service, so operators shouldn't be paged in
+#anomaly for LED faults on it.  Hoses with an installed detector
+but the valve in 'Disable' state are already covered by the
+detector-state matrix in the pre-fill check (PFM-1–5 series →
+#anomaly) and the N4 detector configuration tracker; those
+checks are the right place to surface 'detector present but
+disabled' conditions, not the W5 LED voltage summary.  So such
+a hose routes to Tier 2 here without creating duplicate
+coverage.
+
+The DISABLED rule applies **only to detector hoses**
+(`A-1`..`D-24`).  Infrastructure LEDs (`LNS{n}`, `LNT{n}`,
+`LNM{n}`, `LNM{n}A`) never appear in `known_detectors` by
+construction, but they must not be filed under Tier 3 — a faulty
+tank-station sensor affects every detector downstream and is
+always operationally relevant.  The infrastructure-LED rule
+(rule 1 above) catches them first and routes them to Tier 2
+regardless of `known_detectors` state.
+
+LED-class-specific filtering happens BEFORE tier classification.
+The reporter applies `LED_FAULT_RULES` to the raw entries so each
+LED class surfaces only the operator-relevant fault subset (per
+TODO #56, 2026-06-04):
+  - **detector**: all 8 fault types kept
+  - **manifold_vent**: drops continuous HIGH/LOW; keeps
+    START_*/END_*/SUSPECT/START_SUSPECT
+  - **ts_manifold** (manifold-supply LNM{n}A): keeps log-based
+    one-shot snapshot fault types only (START_*/END_*/START_SUSPECT);
+    drops continuous HIGH/LOW/SUSPECT (noisy on hot-running LEDs)
+  - **tank** (LNT{n}): all 8 fault types kept
+  - **supply** (LNS{n}): all kept EXCEPT START_SUSPECT (residual
+    cold from prior fills makes the SUSPECT band on ovf_begin
+    expected, not a fault)
+
+Eight possible fault types (five from the log-based path:
+`START_HIGH`, `START_LOW`, `END_HIGH`, `END_LOW`, `START_SUSPECT`;
+plus three from the live mid-fill polling path: `HIGH`, `LOW`,
+`SUSPECT`).  Aggregated by hose with fault type breakdown after
+the per-fill coalescing pass.
+
+**Tank-station LED source-selection override**: detector-LED
+log-based faults are gated on the source-selection rule (skipped
+when the live monitor ran cleanly).  Tank-vent, supply, and
+manifold-supply LED log-based faults ALWAYS run regardless of
+`live_led_active`, because the live monitor either does not
+cover the relevant window (tank fills are not orchestrated by the
+LED-logger-spawning processes) or its data for those LEDs is
+suppressed at the back end as noise.  See fill_classifier.py
+tank-station log-based fault block for the detailed rationale.
+
+The ≥4 threshold (dropped from the prior ≥7 in the pre-three-tier
+W5 implementation) surfaces flaky sensors earlier without spamming
+on one-off transients.  The adjuster uses hard fallback mode for
+Tier 1 detectors (limited to -1 downward adjustment per fill) to
+avoid aggressive min_time changes based on unreliable sensor data.
 
 #### N3 — Weekly Large Min-Time Changes
 
@@ -3305,7 +3878,7 @@ python3 -m fill_monitor check-press --no-discord
 
 | Sub-key | Owner |
 |---------|-------|
-| led_faults (open / short / suspect LED fault events from live + log paths), overtime, bad_temp, invalid_gsids, duplicate_gsids, hose_changes (JSON audit only), gsid_hose, detector_changes | Classifier |
+| led_faults (open / short / suspect LED fault events from live + log paths), overtime, bad_temp, invalid_gsids, duplicate_gsids, hose_changes (JSON audit only), detector_changes | Classifier |
 | temp_overrides | Both (classifier writes partial, adjuster enriches) |
 | clamped, min_time_start, min_time_end, min_time_lo, min_time_hi | Adjuster |
 | low_pressure, warm_manifold | AddPress |

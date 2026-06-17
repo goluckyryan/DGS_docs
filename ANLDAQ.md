@@ -60,7 +60,7 @@ Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS
 | `gui_Board.py` | 432 | Generic board PV window (table of all PVs for a board) | ✅ 2026-04-18 |
 | `gui_CH.py` | 402 | Per-channel detail window for DIG boards (5 tabs; opened from DIGWindow) | ✅ 2026-04-18 |
 | `gui_LinkSys.py` | 295 | Link system window (`link_sys.py` launcher) | ✅ 2026-04-17 |
-| `gui_scalar.py` | 164 | Scalar/rate monitor window (threshold, disc count, ahit count per channel) | ✅ 2026-04-18 |
+| `gui_scalar.py` | 182 | Scalar/rate monitor window (threshold, disc count, ahit count per channel) + InfluxDB trigger-rate toggle | ✅ 2026-04-18 |
 | `gui_Det.py` | 324 | Detector view window | ✅ 2026-04-18 |
 | `gui_GS.py` | 209 | Per-detector GS window: Info/Status (IDs, HV, temps, voltages) + Control (scan/HV/BGO) | ✅ 2026-04-26 |
 | `class_Board.py` | 73 | Board abstraction (see below) | ✅ 2026-04-17 |
@@ -68,9 +68,16 @@ Branches exist for multiple experiments: `master` (SlopeBox/DUO teststand), `DGS
 | `class_PVWidgets.py` | 393 | PV-bound Qt widgets (see below) | ✅ 2026-04-17 |
 | `custom_QClasses.py` | 200 | Custom Qt base classes (see below) | ✅ 2026-04-18 |
 | `json2pv.py` | 281 | Parses `All_PV.json` → PV objects (see below) | ✅ 2026-04-18 |
-| `aux.py` | 7 | Two helper functions: `natural_key(s)` — natural sort key (splits on digit boundaries for human-order sorting); `make_pattern_list(prefix_list)` — compiles a list of regexes matching `PREFIX_[A-Za-z]` patterns | ✅ verified 2026-04-23 — `aux.py:L3-6` |
+| `aux.py` | 35 | Helper functions: `natural_key(s)`, `make_pattern_list(prefix_list)`, plus any additional shared utilities | ✅ verified 2026-04-23 — `aux.py:L3-6` |
 | `Guceiver/` | — | Live waveform/spectrum monitor (matplotlib) | — |
 | `scripts/` | — | Shell/Python scripts launchable from GUI combo box | — |
+| `monitor.py` | 301 | `TriggerRateMonitor` — polls GeC disc_count/ahit_count PVs on a QTimer and pushes rates to InfluxDB v3 (`TrigRate` DB on 192.168.203.56:8181); owned by the Scalar window; toggle via checkbox; config persisted under `"influx"` key of `expInfo.json` | — |
+| `run_controller.py` | 538 | `RunController` — **single source of truth for run state**; reads/writes `expInfo.json` atomically; allocates run IDs; posts elog entries; takes PV snapshots; caput's EPICS start/stop; shared by `commander.py`, `run_control_web.py`, and CLI tools | — |
+| `setup_dig.py` | — | `SetupDig` — verifies DIG board configs match `config_dig.json` | — |
+| `setup_hv.py` | — | `SetupHV` — HV setup helper (renamed from `hv_on_all.py`) | — |
+| `setup_linkSys.py` | — | `LinkSys` — full link system setup (renamed from `link_sys.py`) | — |
+| `setup_sbx_all.py` | — | `SetupSBXAll` — SBX setup; `gui_SysSetup.py` invokes it | — |
+| `setup_trig.py` | — | `SetupTrig` — trigger board setup | — |
 
 ---
 
@@ -163,6 +170,26 @@ cd tcpReceiver && make
 4. Click **Start Run** → spawns `tcpReceiverMT` ✅ verified 2026-04-29 — `gui/gui_DataTaking.py:L45,L104,L137` (RunStatusWindow docstring: "spawns tcpReceiverMT"; subprocess.Popen call)
 5. Monitor with **Guceiver** (live waveform/spectrum view)
 6. Click **Stop Run** → data saved to `{expFolder}/{expName}_{runID:03d}/`
+
+**Note (2026-06-16):** Run state is now exclusively managed by `run_controller.py`'s `RunController` class. All callers (commander GUI, run_control_web Flask server, CLI tools) call into this shared module. `expInfo.json` at the repo root is the single source of truth for run ID, status, paths, elog, and PV snapshots. Writes are atomic (tempfile + `os.replace`).
+
+### System Setup Scripts (gui_SysSetup.py)
+
+`gui_SysSetup.py` provides a **System Setup** tab in the main GUI that automates full-system initialization. It launches setup modules for each subsystem:
+
+| Config file | Setup class | What it configures |
+|------------|-------------|-------------------|
+| `config_link.json` | `LinkSys` (setup_linkSys.py) | VME link system (rack connections) |
+| `config_hv.json` | `SetupHV` (setup_hv.py) | High-voltage power supplies |
+| `config_dig.json` | `SetupDig` (setup_dig.py) | Digitizer board parameters |
+| `config_sbx.json` | `SetupSBXAll` (setup_sbx_all.py) | Slope box settings |
+| `config_trig.json` | `SetupTrig` (setup_trig.py) | Trigger board settings |
+
+All config files live under `gui/` (not tracked in git — site-local). These replaced the old bash scripts (`hv_on.sh`, `link_sys.sh`, etc.) with a unified Python + JSON approach.
+
+### Trigger Rate Monitor (monitor.py)
+
+`TriggerRateMonitor` in `gui/monitor.py` polls GeC `disc_count` and `ahit_count` PVs on a configurable QTimer and pushes rates to **InfluxDB v3** (`TrigRate` DB, `192.168.203.56:8181`). It is owned by the Scalar window. The operator enables it via a checkbox and configures URL/DB/token/period via `InfluxConfigDialog`. Persistent config is stored under the `"influx"` key of `expInfo.json` (managed by `RunController`).
 
 ---
 
